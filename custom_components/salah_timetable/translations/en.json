@@ -1,0 +1,89 @@
+{
+  "title": "Salah Timetable",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a mosque",
+        "description": "Choose a stable mosque ID (lowercase letters, numbers, underscores or hyphens). Timetable import is not available in this initial release.",
+        "data": {
+          "name": "Mosque name",
+          "mosque_id": "Stable mosque ID",
+          "time_zone": "Mosque timezone (for example Europe/London)"
+        }
+      }
+    },
+    "error": {
+      "invalid_mosque_id": "Enter 1–64 lowercase letters, numbers, underscores or hyphens, starting with a letter or number.",
+      "invalid_name": "Enter a mosque name of 1–100 characters.",
+      "invalid_time_zone": "Enter a valid IANA timezone."
+    },
+    "abort": {
+      "already_configured": "This mosque ID is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Mosque options",
+        "data": {
+          "time_zone": "Mosque timezone"
+        }
+      }
+    },
+    "error": {
+      "invalid_time_zone": "Enter a valid IANA timezone."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "fajr_begin": {
+        "name": "Fajr beginning"
+      },
+      "fajr_jamaat": {
+        "name": "Fajr Jamaat"
+      },
+      "sunrise": {
+        "name": "Sunrise"
+      },
+      "sehri_ends": {
+        "name": "Sehri ends"
+      },
+      "dhuhr_begin": {
+        "name": "Dhuhr beginning"
+      },
+      "dhuhr_jamaat": {
+        "name": "Dhuhr Jamaat"
+      },
+      "jumuah": {
+        "name": "Jumu’ah"
+      },
+      "asr_begin": {
+        "name": "Asr beginning"
+      },
+      "asr_jamaat": {
+        "name": "Asr Jamaat"
+      },
+      "maghrib_begin": {
+        "name": "Maghrib beginning"
+      },
+      "maghrib_jamaat": {
+        "name": "Maghrib Jamaat"
+      },
+      "isha_begin": {
+        "name": "Isha beginning"
+      },
+      "isha_jamaat": {
+        "name": "Isha Jamaat"
+      },
+      "istewa": {
+        "name": "Istewa"
+      },
+      "iftar": {
+        "name": "Iftar"
+      },
+      "taraweeh": {
+        "name": "Taraweeh"
+      }
+    }
+  }
+}

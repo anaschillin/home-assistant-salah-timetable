@@ -1,0 +1,24 @@
+[project]
+name = "salah-timetable"
+version = "0.1.0"
+description = "Home Assistant Salah Timetable custom integration"
+requires-python = ">=3.14.2"
+license = "MIT"
+
+[dependency-groups]
+dev = [
+  "pytest-homeassistant-custom-component==0.13.373",
+  "ruff==0.17.1",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--strict-markers --cov=custom_components.salah_timetable --cov-report=term-missing"
+
+[tool.ruff]
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
