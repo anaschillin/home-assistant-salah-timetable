@@ -10,6 +10,7 @@ from homeassistant.helpers import device_registry as dr
 
 from .const import CONF_TIME_ZONE, DOMAIN
 from .coordinator import SalahCoordinator
+from .source_updates import SourceUpdateManager
 from .storage import TimetableStorage
 
 type SalahConfigEntry = ConfigEntry[SalahCoordinator]
@@ -26,6 +27,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> boo
             "Stored timetable is invalid; original storage retained"
         ) from err
     coordinator = SalahCoordinator(hass, entry, storage, zone)
+    coordinator.source_updates = SourceUpdateManager(hass, entry, storage, coordinator)
     entry.runtime_data = coordinator
     await coordinator.async_config_entry_first_refresh()
     dr.async_get(hass).async_get_or_create(
@@ -36,6 +38,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> boo
         model="Mosque timetable",
     )
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await coordinator.source_updates.async_start()
     entry.async_on_unload(entry.add_update_listener(async_update_options))
     return True
 
@@ -45,7 +48,10 @@ async def async_update_options(hass: HomeAssistant, entry: SalahConfigEntry) -> 
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> bool:
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unloaded:
+        await entry.runtime_data.source_updates.async_stop()
+    return unloaded
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> None:
