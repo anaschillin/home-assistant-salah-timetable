@@ -27,7 +27,7 @@ staging, explicit approval and real timestamp sensors after entry reload; pendin
 review also survives cancellation/reload. No hand-edited storage, YAML sensors or
 user templates. A manual browser installation/release check remains separate.
 
-## Milestone 3 — secure URL sources and modular PDF parsing
+## Milestone 3 — secure URL sources and modular PDF parsing (in progress)
 
 1. Build a bounded HTTPS downloader with content signatures, MIME checks, timeouts,
    download limits and redirect limits. Revalidate every redirect and resolved IP;
@@ -42,6 +42,15 @@ user templates. A manual browser installation/release check remains separate.
    update status/errors without exposing credentials or private URLs in diagnostics.
 5. Test SSRF redirects/rebinding, oversized/chunked files, misleading content types,
    corrupted/encrypted PDFs, parser limits, change detection and approval persistence.
+
+Implemented and tested: HTTPS downloader, strict sample PDF adapter, isolated PDF
+worker, URL-first source options/manual upload, daily/manual change checks, durable
+staging/approval, status sensor, diagnostics and storage v3 migration.
+
+Outstanding: inspect the user-provided NMS UK PDF and add a fixture-tested adapter.
+Its host is blocked by the current cloud network policy; the nmsuk.org domain addition
+is saved as an environment draft. No NMS compatibility is claimed. Publication of that
+network change or a directly provided PDF is needed to complete the real-layout work.
 
 Acceptance: only tested layouts are listed as supported; changes never auto-activate.
 

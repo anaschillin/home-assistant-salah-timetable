@@ -10,7 +10,7 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import CONF_MOSQUE_ID, CONF_TIME_ZONE, DOMAIN
-from .import_flow import CsvImportOptionsFlow
+from .source_flow import SourceOptionsFlow
 
 
 def valid_zone(value: str) -> bool:
@@ -66,7 +66,7 @@ class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return SalahOptionsFlow()
 
 
-class SalahOptionsFlow(CsvImportOptionsFlow):
+class SalahOptionsFlow(SourceOptionsFlow):
     async def async_step_settings(self, user_input=None):
         errors = {}
         if user_input is not None:

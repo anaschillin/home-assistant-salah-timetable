@@ -2,18 +2,22 @@
 
 A Home Assistant custom integration for mosque prayer timetables.
 
-**Status: Milestone 2 — manual CSV import with validation and approval.**
-Configure a mosque, upload a CSV, map its columns, review the coverage and approve
-it through the Home Assistant UI. Published values become timestamp sensors without
-YAML sensors, templates or regex configuration.
+**Status: Milestone 3 infrastructure — secure URL sources and staged update checks.**
+Configure a mosque, add a public HTTPS PDF/CSV source or upload a file, map columns,
+and approve a validated timetable in the Home Assistant UI. Changes are never
+activated automatically. No YAML sensors, templates or regex setup are required.
 
-PDF parsing, URL downloads, automatic updates, Ramadan activation, next-prayer
-calculations and the Lovelace card are planned; they are **not implemented**.
+**PDF compatibility is limited to the documented synthetic sample layout.** The
+requested NMS UK timetable has not yet been downloaded/inspected, so compatibility
+with it is not claimed. See [supported PDF layouts](docs/pdf_layouts.md).
+
+Ramadan activation, next-prayer calculations and the Lovelace card remain planned.
 
 ## Requirements and installation
 
 Home Assistant **2026.10.0 or newer**. Development uses Python **3.14.2+** and is
-tested against Home Assistant 2026.10.2. No API keys or external services are needed.
+tested against Home Assistant 2026.10.2. No API keys are needed. URL sources require HTTPS Internet access. PDF extraction
+requires Linux/POSIX process resource limits (as provided by supported HA systems).
 
 1. In HACS, open **Custom repositories**.
 2. Add `https://github.com/anaschillin/home-assistant-salah-timetable` with type **Integration**.
@@ -34,8 +38,10 @@ allows users to rename entity IDs independently.
 
 ## Import a timetable
 
-1. Open the mosque's **Configure → Import CSV timetable**.
-2. Select a UTF-8 CSV file, its year and **Annual** or **Ramadan** kind.
+1. Open the mosque's **Configure → Add or replace a URL source (recommended)**.
+2. Enter a public HTTPS URL, PDF/CSV type, explicit year and Annual/Ramadan kind.
+   Select a documented PDF layout. Alternatively use **Upload a supported PDF** or
+   **Import CSV timetable**. CSV does not use the PDF-layout selection.
 3. Select the date column and each published prayer column. Recognized headings are
    suggested, but check every mapping. Leave fields without published times unselected.
 4. Choose **24-hour HH:MM** or **Explicit HH:MM AM/PM**. No AM/PM is inferred.
@@ -47,6 +53,8 @@ the staged import available under **Configure → Review pending import**, inclu
 after a Home Assistant restart. Review or reject it before uploading another file.
 Closing before the preview discards the in-progress mapping; upload the file again.
 A saving error keeps the existing timetable; check Home Assistant logs and retry.
+For a URL import, the reproducible source settings are saved with the staged file.
+The UI's source-import menu is URL-first after initial mosque identity setup.
 
 Each source is identified by kind and year (for example `annual-2026`). An approved
 import **replaces that entire source**, not just the uploaded dates. The preview
@@ -58,6 +66,46 @@ fails.
 
 **Ramadan imports are stored and reviewed separately, but do not override annual
 records yet.** Automatic/manual Ramadan activation belongs to a later milestone.
+
+## URL checking and approval
+
+Configured URL sources are checked daily, with persisted check times used to catch
+up after restarts. **Configure → Check URL sources now** runs a manual check.
+The **Source status** diagnostic sensor reports configured/up-to-date/pending/error
+state and safe timestamps/counts. Failed downloads or parses preserve approved data.
+
+Checks use ETag/Last-Modified when a valid seen-file baseline exists, and compare
+SHA-256 bytes. Changed, valid content is staged, never auto-activated. A pending
+proposal blocks other changes from replacing its review slot. Rejection preserves
+the seen digest, so the same rejected file is not proposed repeatedly. A later
+changed source is reviewed again. Invalid content does not advance the baseline.
+
+**Manage URL sources** can check or remove a source. Removal stops its future checks
+and retains approved data. Import a new URL for the same kind/year to change source
+settings. Source profiles, validators, check status and pending proposals survive a
+restart; running requests and timers do not.
+
+Public HTTPS on port 443 is required. Credentials, HTTP, local/private/link-local/
+reserved destinations and unsafe redirects are rejected. All resolved addresses are
+checked by the resolver used for the actual connection, including after redirects;
+this avoids a separate DNS preflight/rebinding gap. TLS verification stays enabled.
+Downloads use an isolated session with no inherited cookies, credentials or environment
+proxies. Deployments that require an outbound proxy are not supported by this path.
+At most three redirects and 30 seconds are allowed; compressed HTTP responses,
+misleading content types/signatures and oversized streamed bodies are rejected.
+
+## PDF format and limits
+
+Only layouts listed in [PDF layouts](docs/pdf_layouts.md) are supported. The current
+`pdf_table_v1` adapter has original synthetic golden fixtures; it is not a general
+PDF-to-table recognizer and is not evidence of real mosque compatibility. Unknown
+layouts, scanned/image-only PDFs, encrypted and corrupt documents are rejected.
+There is no OCR or fallback that guesses a missing time.
+
+PDF input is limited to **2 MiB, 16 pages and 256 KiB extracted text**. Extraction
+runs outside HA's event loop in an isolated Python worker using pinned pypdf, with
+an 8-second wall limit, CPU/memory limits and decompression guards. Original binary
+PDF, checksum, extracted canonical values and selected mapping are retained.
 
 ## CSV format
 
@@ -113,13 +161,15 @@ Jamaat is a single scheduled event, not an interval. These are today's events,
 
 A shared coordinator checks the mosque-local date once per minute, so midnight
 selection can take up to one minute. Approval requests an immediate refresh. Equal
-data does not trigger repeated sensor writes. No per-second countdown states exist.
+data does not trigger repeated sensor writes. No per-second countdown states exist. A seventeenth diagnostic sensor reports URL
+source status; it is separate from the sixteen prayer-event sensors.
 
 ## Storage and safety
 
-Per-mosque files in `.storage/salah_timetable.<entry_id>` use schema version **2**.
-The version 1 migration retains approved legacy timetables without inventing source
-metadata. Staged CSV, checksum, coverage and original values survive restarts.
+Per-mosque files in `.storage/salah_timetable.<entry_id>` use schema version **3**.
+Version 1/2 migrations retain approved and pending data without inventing source
+metadata. Staged files, checksums, coverage, source settings and original values survive
+restarts.
 Source and canonical records are immutable; future overrides will be separate.
 
 Writes are atomic, serialized and checked on disk before replacing in-memory data.
@@ -131,11 +181,14 @@ columns, so avoid uploading private information.
 File selection uses HA's authenticated upload service and opaque upload IDs, never
 arbitrary paths. Reading, parsing, validation and JSON serialization run in executor
 threads. Uploaded temporary files are deleted when consumed, including invalid imports.
-The 512 KiB limit is this integration's acceptance limit; HA's shared upload endpoint
-can receive larger temporary files before the integration rejects them.
+CSV's 512 KiB and PDF's 2 MiB limits are acceptance limits; HA's shared upload endpoint
+can receive larger temporary files before the integration rejects them. Diagnostics
+include allowlisted counts/status only, not mosque identity, URLs, raw files or values.
+Source URLs may contain private query parameters: they are not included in logs or
+diagnostic downloads, but remain in private HA storage.
 
-No external source is downloaded. Files must be uploaded manually. DST gaps/folds
-are rejected rather than guessed. Changing the mosque timezone revalidates records;
+Downloaded PDF/CSV bytes receive the same validation and approval as manual imports.
+DST gaps/folds are rejected rather than guessed. Changing the mosque timezone revalidates records;
 if setup then fails, choose the correct timezone in Mosque settings without rewriting
 the original source.
 
@@ -149,11 +202,13 @@ uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 ```
 
-`uv.lock` fixes development dependencies. The integration has no third-party runtime
-requirements beyond HA's bundled `file_upload` component. Tests use actual config
+`uv.lock` fixes development dependencies. The integration uses HA's bundled
+`file_upload` component and pinned `pypdf==6.21.1`. Tests use actual config
 flows, registries, platforms, authenticated local HTTP uploads and atomic storage in
-temporary directories. They require neither an external network nor a production HA
-instance. Parser fixtures are synthetic and redistributable under this repository's
+temporary directories. Transport tests mock remote responses and exercise real connector resolution; PDF
+fixtures execute the isolated worker. The suite requires no external network or
+production HA instance. Worker execution is black-box tested; its isolated process
+intentionally does not inherit coverage/environment instrumentation. Parser fixtures are synthetic and redistributable under this repository's
 MIT license.
 
 GitHub Actions runs pytest, lint/format checks, hassfest and HACS validation. Hosted

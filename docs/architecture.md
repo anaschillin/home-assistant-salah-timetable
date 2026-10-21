@@ -1,4 +1,4 @@
-# Architecture — Milestone 2
+# Architecture — Milestone 3 infrastructure
 
 ## Boundaries
 
@@ -6,7 +6,7 @@
 - `import_flow.py`: native HA file selector, bounded upload consumption, graphical
   column mapping and explicit approval/rejection of a durable proposal.
 - `csv_parser.py`: dependency-free bounded parser. Returns a candidate; never mutates
-  active HA state. Future PDF adapters can implement the same parser protocol.
+  active HA state. PDF adapters delegate their explicit extracted columns to it.
 - `import_model.py`: immutable source, SHA-256 provenance, coverage, warnings and
   parser protocol, selected date/field mapping and time format. Stored reports validate
   their metadata against the canonical rows.
@@ -20,10 +20,10 @@
 
 ## Import lifecycle
 
-The options menu offers settings, CSV import, and review when a candidate is staged.
+The options menu offers URL sources first, manual PDF/CSV, settings, and pending review.
 HA's authenticated `file_upload` dependency receives the file and returns an opaque
 UUID. A single executor operation consumes and cleans up the upload context, reads
-at most 512 KiB plus one byte, and inspects CSV shape/encoding. The mapping flow keeps
+at most the format limit plus one byte, and inspects structure/encoding. The mapping flow keeps
 only bounded content in memory until the user selects explicit date/prayer columns,
 year, kind and time format. Parsing and timezone validation occur off the event loop.
 
@@ -57,10 +57,11 @@ dates. All gaps are visible and absent times remain unavailable.
 
 ## Persistence and failures
 
-Schema 2 stores `timetables`, `approved_sources` and a nullable `staged` proposal. The
-HA Store migration validates schema 1 before writing, carries its timetables forward,
-and creates empty source metadata rather than fabricating provenance. Unsupported
-versions are not overwritten. Source checksums and coverage are revalidated on load.
+Schema 3 stores `timetables`, `approved_sources`, a nullable `staged` proposal,
+`remote_sources` and `remote_checks`. Migration validates legacy schema 1/2 before
+writing, carries approved and pending data forward, and creates empty source metadata
+where necessary rather than fabricating provenance. Unsupported versions are not
+overwritten. Source checksums and coverage are revalidated on load.
 
 Store writes are private, atomic, serialized and use off-thread JSON serialization.
 Storage instances share a per-entry lock and refresh disk state before each mutation
@@ -73,8 +74,42 @@ causes a setup error instead of fabricated values; restore a backup for corrupti
 
 ## Current limitations
 
-No network downloader, PDF parser, effective Ramadan overrides, next-event engine,
-frontend assets or diagnostics download handler exists. Ramadan candidates can be
+The requested real NMS mosque PDF layout has not been inspected yet; the only PDF
+adapter is the explicitly documented sample. Effective Ramadan overrides, next-event
+calculation and frontend assets do not exist. Ramadan candidates can be
 stored but are never selected over annual records. Iftar/Taraweeh defaults are not
 applied yet. DST gaps and ambiguous folds are rejected; explicit fold handling can be
 added with a separate, reviewed source model. The full product is not production-ready.
+
+## Milestone 3 additions
+
+`source_flow.py` makes the options menu URL-first and also offers manual PDF/CSV.
+Every route reuses graphical mapping and explicit persisted review. `download.py`
+owns a dedicated HTTPS session/connector whose resolver validates actual connection
+addresses. Redirects, body size, time, content encoding/type/signatures and HTTP
+validators are bounded. No environment proxy or authenticated shared session is reused.
+
+`pdf_parser.py` dispatches tested layouts, converts extracted values into canonical
+CSV and delegates value validation to the existing parser. `pdf_worker.py` extracts
+untrusted PDF text in a separate, isolated, resource-limited process. Unknown layouts
+fail closed. Only the synthetic sample adapter exists until the requested NMS source
+can be inspected; see `pdf_layouts.md`.
+
+`source_model.py` holds immutable URL/parser profiles and allowlisted check metadata.
+`source_updates.py` serializes manual and scheduled checks. A source comparison inside
+the storage transaction prevents an old download from staging after its profile has
+changed or been removed. Seen digest/HTTP validators are advanced only for validated
+content; rejection retains the baseline without making the source active. No polling
+path calls approval. An occupied pending slot is preserved. Unload cancels downloads,
+joins already-started writes and removes its timer.
+
+Storage schema **3** adds remote profiles/checks and original binary PDF provenance;
+CSV candidates from schema 2 remain readable. Version 1/2 migrations preserve approved
+and pending data. Original PDF bytes are base64-encoded with their byte checksum;
+extracted canonical text and mapping remain distinct. Config entry options do not
+contain raw files. Candidate/profile/check writes stay atomic and off the event loop.
+
+The diagnostic source-status entity uses safe aggregate state; explicit notifications
+refresh it even when daily prayer data has not changed. `diagnostics.py` exports only
+allowlisted counts, kinds, years and error codes, never config-entry identity, source
+URLs, HTTP validators, imported rows or original content. Logs use fixed error codes.

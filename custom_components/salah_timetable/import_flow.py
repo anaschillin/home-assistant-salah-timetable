@@ -1,6 +1,7 @@
 """Native Home Assistant upload, column mapping and persisted import review."""
 
 from collections import Counter
+from dataclasses import replace
 from html import escape
 from math import isfinite
 from typing import Any
@@ -105,6 +106,15 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         self._review_stage_id: str | None = None
         self._mapping_input: dict[str, Any] = {}
         self._review_runtime = None
+        self._parser = PARSER
+        self._source_format = "csv"
+        self._parser_id = "csv_v1"
+        self._remote_url = None
+        self._download_result = None
+
+    @staticmethod
+    def _csv_parser():
+        return CsvParser()
 
     def _coordinator(self):
         if self.config_entry.state is not ConfigEntryState.LOADED:
@@ -260,7 +270,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             if not errors:
                 try:
                     candidate = await self.hass.async_add_executor_job(
-                        lambda: PARSER.parse(
+                        lambda: self._parser.parse(
                             self._content,
                             timetable_id=f"{self._kind}-{self._year}",
                             kind=self._kind,
@@ -272,9 +282,33 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                     )
                     if self._coordinator() is not coordinator:
                         return self.async_abort(reason="integration_reloaded")
+                    remote_source = None
+                    if self._remote_url is not None:
+                        from .source_model import RemoteSource
+
+                        candidate = await self.hass.async_add_executor_job(
+                            lambda: replace(
+                                candidate,
+                                source_url=self._remote_url,
+                                etag=self._download_result.etag,
+                                last_modified=self._download_result.last_modified,
+                            )
+                        )
+                        remote_source = RemoteSource(
+                            source_id=candidate.timetable.timetable_id,
+                            url=self._remote_url,
+                            media_type=self._source_format,
+                            kind=self._kind,
+                            year=self._year,
+                            date_column=user_input["date_column"],
+                            columns=columns,
+                            time_format=user_input["time_format"],
+                            parser_id=self._parser_id,
+                        )
                     self._review_stage_id = await coordinator.storage.async_stage(
-                        candidate
+                        candidate, remote_source=remote_source
                     )
+                    coordinator.async_update_listeners()
                 except PendingImportError:
                     return self.async_abort(reason="pending_import_exists")
                 except ValueError as err:
@@ -316,8 +350,10 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                     if current is not None:
                         await current.storage.async_load()
                         await current.async_refresh()
+                        current.async_update_listeners()
                 else:
                     await coordinator.storage.async_reject(self._review_stage_id)
+                    coordinator.async_update_listeners()
             except ValueError:
                 return self.async_abort(reason="stale_import")
             except OSError, HomeAssistantError:

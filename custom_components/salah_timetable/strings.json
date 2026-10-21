@@ -28,7 +28,11 @@
         "menu_options": {
           "settings": "Mosque settings",
           "import_csv": "Import CSV timetable",
-          "review": "Review pending import"
+          "review": "Review pending import",
+          "import_url": "Add or replace a URL source (recommended)",
+          "import_pdf": "Upload a supported PDF",
+          "check_updates": "Check URL sources now",
+          "manage_sources": "Manage URL sources"
         }
       },
       "settings": {
@@ -76,13 +80,48 @@
         "data": {
           "decision": "Action"
         }
+      },
+      "import_url": {
+        "title": "Add a timetable URL",
+        "description": "Use a public HTTPS PDF or CSV URL. Downloads are validated and staged for review before activation. Select a PDF layout documented as supported. The sample table layout is not a compatibility claim for an arbitrary mosque. For CSV, the PDF layout choice is ignored.\n\n{detail}",
+        "data": {
+          "url": "Public HTTPS timetable URL",
+          "media_type": "File type",
+          "kind": "Timetable kind",
+          "year": "Year",
+          "pdf_layout": "PDF layout"
+        }
+      },
+      "import_pdf": {
+        "title": "Upload a supported PDF",
+        "description": "Upload a text PDF no larger than 2 MiB (at most 16 pages). Only documented layouts are supported. Scanned/encrypted files and unknown layouts are rejected; use CSV instead. The source is staged before activation.\n\n{detail}",
+        "data": {
+          "file": "PDF file",
+          "kind": "Timetable kind",
+          "year": "Year",
+          "pdf_layout": "PDF layout"
+        }
+      },
+      "check_updates": {
+        "title": "Check URL sources now",
+        "description": "Submit to check the configured URL sources. Valid changes will be staged for your approval. Existing timetables stay active. Automatic checks run daily while loaded. See the Source status sensor, or reopen Configure afterwards."
+      },
+      "manage_sources": {
+        "title": "Manage URL sources",
+        "description": "{summary}\n\nRemoving a URL source stops future checks and leaves approved timetable data in place. Import another URL for the same kind/year to replace a source.",
+        "data": {
+          "source_id": "Source",
+          "action": "Action"
+        }
       }
     },
     "error": {
       "invalid_time_zone": "Enter a valid IANA timezone.",
       "invalid_csv": "The CSV could not be validated. See the details above.",
       "invalid_mapping": "Select at least one prayer column. A source column cannot be reused or mapped as both a date and a prayer.",
-      "save_failed": "Saving failed. The active timetable has not been replaced. Try again after checking Home Assistant storage and logs."
+      "save_failed": "Saving failed. The active timetable has not been replaced. Try again after checking Home Assistant storage and logs.",
+      "invalid_pdf": "The PDF could not be validated. See details above.",
+      "source_failed": "The URL source could not be downloaded or parsed. See details above."
     },
     "abort": {
       "integration_not_loaded": "The mosque integration must be loaded before importing. Check its setup error or change its settings first.",
@@ -90,7 +129,10 @@
       "upload_expired": "The upload is no longer available. Start a new CSV import.",
       "no_pending_import": "There is no pending timetable to review.",
       "stale_import": "The pending import changed while you were reviewing it. Reopen Configure and review the current import.",
-      "integration_reloaded": "Mosque settings changed while this dialog was open. Reopen Configure to review the current timetable."
+      "integration_reloaded": "Mosque settings changed while this dialog was open. Reopen Configure to review the current timetable.",
+      "checks_complete": "URL checks completed. See the Source status sensor, or reopen Configure to review a pending import.",
+      "no_remote_sources": "There are no configured URL sources.",
+      "source_save_failed": "Source settings could not be saved. Check Home Assistant storage and logs, then retry."
     }
   },
   "entity": {
@@ -142,6 +184,16 @@
       },
       "taraweeh": {
         "name": "Taraweeh"
+      },
+      "source_status": {
+        "name": "Source status",
+        "state": {
+          "not_configured": "No URL sources",
+          "configured": "Configured",
+          "up_to_date": "Up to date",
+          "pending_review": "Pending review",
+          "error": "Check failed"
+        }
       }
     }
   },
@@ -162,6 +214,23 @@
       "options": {
         "approve": "Approve and save timetable",
         "reject": "Reject and keep the active timetable"
+      }
+    },
+    "pdf_layout": {
+      "options": {
+        "pdf_table_v1": "Sample pipe-delimited text table (v1)"
+      }
+    },
+    "source_format": {
+      "options": {
+        "pdf": "PDF",
+        "csv": "CSV"
+      }
+    },
+    "source_action": {
+      "options": {
+        "check": "Check now",
+        "remove": "Stop checks and remove URL source"
       }
     }
   }
