@@ -184,7 +184,7 @@ async def test_v1_migration_retains_data_without_inventing_provenance(
     assert storage.approved_sources == {}
     assert storage.staged is None
     saved = await hass.async_add_executor_job(load_json, legacy.path)
-    assert saved["version"] == STORAGE_VERSION == 2
+    assert saved["version"] == STORAGE_VERSION == 3
     assert saved["data"]["timetables"] == [timetable.as_dict()]
     assert saved["data"]["approved_sources"] == {}
     assert (await reload_storage(hass, entry)).timetables == (timetable,)

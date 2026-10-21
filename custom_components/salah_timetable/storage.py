@@ -1,10 +1,11 @@
 """Atomic per-mosque persistence for approved and staged timetable sources."""
 
 from asyncio import Lock
-from dataclasses import dataclass
-from datetime import date
+from dataclasses import dataclass, replace
+from dataclasses import field as dataclass_field
+from datetime import date, datetime, timezone
 from types import MappingProxyType
-from typing import Mapping
+from typing import Any, Mapping
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -15,6 +16,7 @@ from homeassistant.util.json import load_json
 from .const import DOMAIN, STORAGE_VERSION
 from .import_model import ImportCandidate
 from .model import DailyPrayers, PrayerField, Timetable
+from .source_model import RemoteSource, validate_check
 
 
 class PendingImportError(ValueError):
@@ -48,6 +50,12 @@ class _Snapshot:
     timetables: tuple[Timetable, ...]
     approved_sources: Mapping[str, ImportCandidate]
     staged: StagedImport | None
+    remote_sources: Mapping[str, RemoteSource] = dataclass_field(
+        default_factory=lambda: MappingProxyType({})
+    )
+    remote_checks: Mapping[str, Mapping[str, Any]] = dataclass_field(
+        default_factory=lambda: MappingProxyType({})
+    )
 
     def as_dict(self) -> dict:
         return {
@@ -57,6 +65,12 @@ class _Snapshot:
                 for key, candidate in self.approved_sources.items()
             },
             "staged": self.staged.as_dict() if self.staged else None,
+            "remote_sources": {
+                key: source.as_dict() for key, source in self.remote_sources.items()
+            },
+            "remote_checks": {
+                key: dict(check) for key, check in self.remote_checks.items()
+            },
         }
 
 
@@ -77,15 +91,22 @@ class _TimetableStore(Store[dict]):
     async def _async_migrate_func(
         self, old_major_version: int, old_minor_version: int, old_data: dict
     ) -> dict:
-        if old_major_version != 1:
+        if old_major_version not in {1, 2}:
             raise ValueError("Unsupported timetable storage version")
         payload = {
             "timetables": old_data["timetables"],
-            "approved_sources": {},
-            "staged": None,
+            "approved_sources": old_data["approved_sources"]
+            if old_major_version == 2
+            else {},
+            "staged": old_data["staged"] if old_major_version == 2 else None,
+            "remote_sources": {},
+            "remote_checks": {},
         }
-        await self.hass.async_add_executor_job(self._owner._decode, payload)
-        return payload
+
+        def migrate():
+            return self._owner._decode(payload).as_dict()
+
+        return await self.hass.async_add_executor_job(migrate)
 
 
 class TimetableStorage:
@@ -112,6 +133,14 @@ class TimetableStorage:
     @property
     def staged(self) -> StagedImport | None:
         return self._snapshot.staged
+
+    @property
+    def remote_sources(self) -> Mapping[str, RemoteSource]:
+        return self._snapshot.remote_sources
+
+    @property
+    def remote_checks(self) -> Mapping[str, Mapping[str, Any]]:
+        return self._snapshot.remote_checks
 
     def _validate(self, tables: tuple[Timetable, ...]) -> None:
         if len({table.timetable_id for table in tables}) != len(tables):
@@ -150,6 +179,13 @@ class TimetableStorage:
                 or approved_tables.get(key) != candidate.timetable
             ):
                 raise ValueError("Approved provenance does not match active timetable")
+        if set(snapshot.remote_checks) - set(snapshot.remote_sources):
+            raise ValueError("Source checks require a configured remote source")
+        for key, source in snapshot.remote_sources.items():
+            if key != source.source_id:
+                raise ValueError("Remote source identity does not match its key")
+        for check in snapshot.remote_checks.values():
+            validate_check(check)
         if snapshot.staged:
             self._validate(
                 self._replacement_tables(snapshot.timetables, snapshot.staged.candidate)
@@ -180,7 +216,23 @@ class TimetableStorage:
         staged = (
             StagedImport.from_dict(staged_data) if staged_data is not None else None
         )
-        snapshot = _Snapshot(tables, MappingProxyType(approved), staged)
+        raw_sources = data["remote_sources"]
+        raw_checks = data["remote_checks"]
+        if not isinstance(raw_sources, dict) or not isinstance(raw_checks, dict):
+            raise ValueError("Invalid remote source storage structure")
+        remote_sources = {
+            key: RemoteSource.from_dict(value) for key, value in raw_sources.items()
+        }
+        remote_checks = {
+            key: validate_check(value) for key, value in raw_checks.items()
+        }
+        snapshot = _Snapshot(
+            tables,
+            MappingProxyType(approved),
+            staged,
+            MappingProxyType(remote_sources),
+            MappingProxyType(remote_checks),
+        )
         self._validate_snapshot(snapshot)
         return snapshot
 
@@ -229,26 +281,166 @@ class TimetableStorage:
                 if by_id.get(key) == candidate.timetable
             }
             await self._async_persist(
-                _Snapshot(tables, MappingProxyType(approved), self.staged)
+                replace(
+                    self._snapshot,
+                    timetables=tables,
+                    approved_sources=MappingProxyType(approved),
+                )
             )
 
-    async def async_stage(self, candidate: ImportCandidate) -> str:
-        """Save a proposal without changing any active timetable values."""
+    def _require_source(
+        self, source_id: str, expected_source: RemoteSource | None = None
+    ) -> RemoteSource:
+        source = self.remote_sources.get(source_id)
+        if source is None or (
+            expected_source is not None and source != expected_source
+        ):
+            raise ValueError("The configured remote source has changed")
+        return source
+
+    @staticmethod
+    def _candidate_matches_source(
+        candidate: ImportCandidate, source: RemoteSource
+    ) -> bool:
+        return (
+            candidate.timetable.timetable_id == source.source_id
+            and candidate.timetable.kind == source.kind
+            and candidate.year == source.year
+            and candidate.source_url == source.url
+            and candidate.source_format == source.media_type
+            and candidate.date_column == source.date_column
+            and candidate.columns == source.columns
+            and candidate.time_format == source.time_format
+            and candidate.parser_id == source.parser_id
+        )
+
+    async def async_stage(
+        self,
+        candidate: ImportCandidate,
+        *,
+        remote_source: RemoteSource | None = None,
+        expected_source: RemoteSource | None = None,
+    ) -> str:
+        """Save a proposal and optional URL profile without changing active values."""
         async with self._lock:
             await self._async_refresh_snapshot()
             if self.staged is not None:
                 raise PendingImportError(
                     "Review the pending import before uploading another"
                 )
+            if expected_source is not None:
+                self._require_source(expected_source.source_id, expected_source)
+            profile = remote_source or expected_source
+            sources = dict(self.remote_sources)
+            checks = dict(self.remote_checks)
+            if profile is not None:
+                if not self._candidate_matches_source(candidate, profile):
+                    raise ValueError(
+                        "Imported data does not match its remote source profile"
+                    )
+                sources[profile.source_id] = profile
+                now = datetime.now(timezone.utc).isoformat()
+                checks[profile.source_id] = validate_check(
+                    {
+                        "status": "pending",
+                        "last_checked": now,
+                        "last_success": now,
+                        "last_seen_sha256": candidate.sha256,
+                        "etag": candidate.etag,
+                        "last_modified": candidate.last_modified,
+                        "error_code": None,
+                    }
+                )
             stage_id = uuid4().hex
             await self._async_persist(
-                _Snapshot(
-                    self.timetables,
-                    self.approved_sources,
-                    StagedImport(stage_id, candidate),
+                replace(
+                    self._snapshot,
+                    staged=StagedImport(stage_id, candidate),
+                    remote_sources=MappingProxyType(sources),
+                    remote_checks=MappingProxyType(checks),
                 )
             )
             return stage_id
+
+    async def async_set_remote_source(
+        self, source: RemoteSource, *, expected_source: RemoteSource | None = None
+    ) -> None:
+        """Save an explicit profile; changed profiles start with no old validators."""
+        async with self._lock:
+            await self._async_refresh_snapshot()
+            if expected_source is not None:
+                self._require_source(source.source_id, expected_source)
+            previous = self.remote_sources.get(source.source_id)
+            if (
+                previous != source
+                and self.staged is not None
+                and self.staged.candidate.timetable.timetable_id == source.source_id
+            ):
+                raise PendingImportError(
+                    "Review the pending import before changing its source"
+                )
+            sources = dict(self.remote_sources)
+            sources[source.source_id] = source
+            checks = dict(self.remote_checks)
+            if previous != source:
+                checks[source.source_id] = validate_check({"status": "configured"})
+            await self._async_persist(
+                replace(
+                    self._snapshot,
+                    remote_sources=MappingProxyType(sources),
+                    remote_checks=MappingProxyType(checks),
+                )
+            )
+
+    async def async_record_check(
+        self,
+        source_id: str,
+        check: Mapping[str, Any],
+        *,
+        expected_source: RemoteSource | None = None,
+    ) -> None:
+        """Merge only redacted metadata, conditional on an unchanged URL profile."""
+        async with self._lock:
+            await self._async_refresh_snapshot()
+            self._require_source(source_id, expected_source)
+            checks = dict(self.remote_checks)
+            checks[source_id] = validate_check(
+                {**checks.get(source_id, {}), **validate_check(check)}
+            )
+            await self._async_persist(
+                replace(self._snapshot, remote_checks=MappingProxyType(checks))
+            )
+
+    async def async_remove_remote_source(
+        self, source_id: str, *, expected_source: RemoteSource | None = None
+    ) -> None:
+        """Stop checking a URL without removing any approved or staged timetable."""
+        async with self._lock:
+            await self._async_refresh_snapshot()
+            self._require_source(source_id, expected_source)
+            sources = dict(self.remote_sources)
+            sources.pop(source_id)
+            checks = dict(self.remote_checks)
+            checks.pop(source_id, None)
+            await self._async_persist(
+                replace(
+                    self._snapshot,
+                    remote_sources=MappingProxyType(sources),
+                    remote_checks=MappingProxyType(checks),
+                )
+            )
+
+    def _decision_checks(
+        self, candidate: ImportCandidate, status: str
+    ) -> Mapping[str, Mapping[str, Any]]:
+        checks = dict(self.remote_checks)
+        source_id = candidate.timetable.timetable_id
+        source = self.remote_sources.get(source_id)
+        if source is not None and candidate.source_url == source.url:
+            checks[source_id] = validate_check(
+                {**checks.get(source_id, {}), "status": status}
+            )
+        return MappingProxyType(checks)
 
     def _require_stage(self, stage_id: str) -> StagedImport:
         if self.staged is None or self.staged.stage_id != stage_id:
@@ -264,10 +456,12 @@ class TimetableStorage:
             approved = dict(self.approved_sources)
             approved[candidate.timetable.timetable_id] = candidate
             await self._async_persist(
-                _Snapshot(
-                    self._replacement_tables(self.timetables, candidate),
-                    MappingProxyType(approved),
-                    None,
+                replace(
+                    self._snapshot,
+                    timetables=self._replacement_tables(self.timetables, candidate),
+                    approved_sources=MappingProxyType(approved),
+                    staged=None,
+                    remote_checks=self._decision_checks(candidate, "approved"),
                 )
             )
 
@@ -275,9 +469,13 @@ class TimetableStorage:
         """Discard the exact proposal, preserving the last approved source."""
         async with self._lock:
             await self._async_refresh_snapshot()
-            self._require_stage(stage_id)
+            staged = self._require_stage(stage_id)
             await self._async_persist(
-                _Snapshot(self.timetables, self.approved_sources, None)
+                replace(
+                    self._snapshot,
+                    staged=None,
+                    remote_checks=self._decision_checks(staged.candidate, "rejected"),
+                )
             )
 
     def for_date(self, day: date) -> DailyPrayers | None:

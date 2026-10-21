@@ -1,5 +1,7 @@
 """Immutable import candidates, provenance and explicit coverage reports."""
 
+import base64
+import binascii
 import csv
 import io
 from dataclasses import dataclass
@@ -11,6 +13,7 @@ from typing import Mapping, Protocol
 from .model import PrayerField, Timetable
 
 MAX_SOURCE_BYTES = 512 * 1024
+MAX_PDF_BYTES = 2 * 1024 * 1024
 
 
 class ImportValidationError(ValueError):
@@ -119,6 +122,12 @@ class ImportCandidate:
     columns: Mapping[str, str]
     time_format: str = "24h"
     parser_id: str = "csv_v1"
+    source_format: str = "csv"
+    source_base64: str | None = None
+    extracted_text: str | None = None
+    source_url: str | None = None
+    etag: str | None = None
+    last_modified: str | None = None
 
     def __post_init__(self) -> None:
         if type(self.year) is not int or not 1 <= self.year <= 9999:
@@ -132,8 +141,35 @@ class ImportCandidate:
             raise ImportValidationError(
                 "CSV must be nonempty and no larger than 512 KiB"
             )
-        if self.sha256 != sha256(source).hexdigest():
+        if self.source_format == "csv":
+            if self.source_base64 is not None or self.extracted_text is not None:
+                raise ImportValidationError("CSV source cannot contain PDF provenance")
+            source_bytes = source
+        elif self.source_format == "pdf":
+            if (
+                not isinstance(self.source_base64, str)
+                or len(self.source_base64) > ((MAX_PDF_BYTES + 2) // 3) * 4
+                or self.extracted_text != self.source_text
+            ):
+                raise ImportValidationError("Invalid PDF source provenance")
+            try:
+                source_bytes = base64.b64decode(self.source_base64, validate=True)
+            except (ValueError, binascii.Error) as err:
+                raise ImportValidationError("Invalid PDF source encoding") from err
+            if len(source_bytes) > MAX_PDF_BYTES or not source_bytes.startswith(
+                b"%PDF-"
+            ):
+                raise ImportValidationError("Invalid PDF source signature or size")
+        else:
+            raise ImportValidationError("Unsupported source format")
+        if self.sha256 != sha256(source_bytes).hexdigest():
             raise ImportValidationError("The stored source checksum does not match")
+        from .source_model import validate_source_url, validate_validator
+
+        if self.source_url is not None:
+            object.__setattr__(self, "source_url", validate_source_url(self.source_url))
+        validate_validator(self.etag)
+        validate_validator(self.last_modified)
         self._validate_provenance()
         if any(row.day.year != self.year for row in self.timetable.days):
             raise ImportValidationError("Every date must match the declared year")
@@ -149,7 +185,13 @@ class ImportCandidate:
         object.__setattr__(self, "warnings", warnings)
 
     def _validate_provenance(self) -> None:
-        if self.parser_id != "csv_v1" or self.time_format not in {"24h", "12h"}:
+        from .source_model import PDF_PARSER_IDS
+
+        if (
+            self.time_format not in {"24h", "12h"}
+            or (self.source_format == "csv" and self.parser_id != "csv_v1")
+            or (self.source_format == "pdf" and self.parser_id not in PDF_PARSER_IDS)
+        ):
             raise ImportValidationError("Unsupported parser or time format")
         try:
             header = next(
@@ -203,6 +245,12 @@ class ImportCandidate:
             "date_column": self.date_column,
             "columns": dict(self.columns),
             "time_format": self.time_format,
+            "source_format": self.source_format,
+            "source_base64": self.source_base64,
+            "extracted_text": self.extracted_text,
+            "source_url": self.source_url,
+            "etag": self.etag,
+            "last_modified": self.last_modified,
         }
 
     @classmethod
@@ -219,6 +267,12 @@ class ImportCandidate:
                 columns=data["columns"],
                 time_format=data["time_format"],
                 parser_id=data["parser_id"],
+                source_format=data.get("source_format", "csv"),
+                source_base64=data.get("source_base64"),
+                extracted_text=data.get("extracted_text"),
+                source_url=data.get("source_url"),
+                etag=data.get("etag"),
+                last_modified=data.get("last_modified"),
             )
         except (AttributeError, KeyError, TypeError, ValueError, OverflowError) as err:
             raise ImportValidationError("Stored import data is invalid") from err

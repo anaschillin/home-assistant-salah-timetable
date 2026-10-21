@@ -10,8 +10,10 @@
   ],
   "documentation": "https://github.com/anaschillin/home-assistant-salah-timetable",
   "integration_type": "service",
-  "iot_class": "local_push",
+  "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/anaschillin/home-assistant-salah-timetable/issues",
-  "requirements": [],
-  "version": "0.2.0"
+  "requirements": [
+    "pypdf==6.21.1"
+  ],
+  "version": "0.3.0"
 }
