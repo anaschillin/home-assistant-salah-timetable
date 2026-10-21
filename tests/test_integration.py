@@ -53,7 +53,7 @@ async def test_timestamps_reload_rollover_and_stable_ids(hass, populated, freeze
 
 async def test_invalid_store_setup_error(hass, entry):
     with patch(
-        "custom_components.salah_timetable.storage.Store.async_load",
+        "custom_components.salah_timetable.storage._TimetableStore.async_load",
         AsyncMock(return_value={"timetables": [{}]}),
     ):
         assert not await hass.config_entries.async_setup(entry.entry_id)
