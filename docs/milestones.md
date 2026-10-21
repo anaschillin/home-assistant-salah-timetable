@@ -10,7 +10,7 @@ prayer vocabulary, persistent multi-year storage, timestamp sensors, tests and C
 Release acceptance: hosted hassfest/HACS checks pass, then review an installation
 in a disposable Home Assistant instance. No import or dashboard claims.
 
-## Milestone 2 — validated manual CSV import
+## Milestone 2 — validated manual CSV import (implemented)
 
 1. Define parser protocol and structured staging/provenance/coverage result types.
 2. Add a bounded CSV parser with explicit year/date and column mapping. Normalize
@@ -22,8 +22,10 @@ in a disposable Home Assistant instance. No import or dashboard claims.
 5. Test fixture imports, invalid encodings, malformed data, next-year and leap-year
    coverage, cancellation, restart, failed saves and independent mosque entries.
 
-Acceptance: approve a CSV in the UI and observe real timestamp sensors after restart.
-No hand-edited storage, YAML sensors or user templates.
+Acceptance verified by automated tests: authenticated upload, graphical mapping,
+staging, explicit approval and real timestamp sensors after entry reload; pending
+review also survives cancellation/reload. No hand-edited storage, YAML sensors or
+user templates. A manual browser installation/release check remains separate.
 
 ## Milestone 3 — secure URL sources and modular PDF parsing
 

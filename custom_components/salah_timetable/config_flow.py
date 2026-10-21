@@ -1,4 +1,4 @@
-"""UI configuration for a mosque; source import is a later milestone."""
+"""UI configuration, settings and manual CSV import for a mosque."""
 
 import re
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -10,6 +10,7 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import CONF_MOSQUE_ID, CONF_TIME_ZONE, DOMAIN
+from .import_flow import CsvImportOptionsFlow
 
 
 def valid_zone(value: str) -> bool:
@@ -65,8 +66,8 @@ class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return SalahOptionsFlow()
 
 
-class SalahOptionsFlow(config_entries.OptionsFlow):
-    async def async_step_init(self, user_input=None):
+class SalahOptionsFlow(CsvImportOptionsFlow):
+    async def async_step_settings(self, user_input=None):
         errors = {}
         if user_input is not None:
             if valid_zone(user_input[CONF_TIME_ZONE]):
@@ -76,7 +77,7 @@ class SalahOptionsFlow(config_entries.OptionsFlow):
             CONF_TIME_ZONE, self.config_entry.data[CONF_TIME_ZONE]
         )
         return self.async_show_form(
-            step_id="init",
+            step_id="settings",
             data_schema=vol.Schema(
                 {vol.Required(CONF_TIME_ZONE, default=current): selector.TextSelector()}
             ),

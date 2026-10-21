@@ -1,0 +1,346 @@
+"""Native Home Assistant upload, column mapping and persisted import review."""
+
+from collections import Counter
+from html import escape
+from math import isfinite
+from typing import Any
+
+import voluptuous as vol
+from homeassistant import config_entries
+from homeassistant.components.file_upload import process_uploaded_file
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import selector
+from homeassistant.util import dt as dt_util
+
+from .csv_parser import CsvParser
+from .import_model import MAX_SOURCE_BYTES, ImportValidationError
+from .model import PrayerField, normalize_field
+from .storage import PendingImportError
+
+PARSER = CsvParser()
+IGNORE_COLUMN = "__ignore__"
+MAX_UPLOAD_BYTES = MAX_SOURCE_BYTES
+
+
+def read_uploaded_csv(hass: HomeAssistant, file_id: str) -> bytes:
+    """Consume an opaque HA upload token, including cleanup, off the event loop."""
+    with process_uploaded_file(hass, file_id) as path:
+        with path.open("rb") as stream:
+            content = stream.read(MAX_UPLOAD_BYTES + 1)
+        if len(content) > MAX_UPLOAD_BYTES:
+            raise ImportValidationError("CSV exceeds the 512 KiB import limit")
+        PARSER.inspect(content)
+        return content
+
+
+def _safe_text(value: str) -> str:
+    """Do not let imported labels become Markdown or HTML in the preview."""
+    value = escape(value[:500])
+    for character in ("\\", "`", "*", "_", "[", "]", "|", "#"):
+        value = value.replace(character, "\\" + character)
+    return value.replace("\n", " ").replace("\r", " ")
+
+
+def import_summary(candidate, existing) -> str:
+    """Bounded, explicit review of coverage, missing fields and replacement."""
+    coverage = candidate.coverage
+    table = candidate.timetable
+    lines = [
+        f"**{table.kind.title()} {candidate.year}** · {coverage.row_count} dated rows",
+        f"Dates: {coverage.start_date.isoformat()} to {coverage.end_date.isoformat()}",
+        f"SHA-256: `{candidate.sha256}`",
+        f"Format: {candidate.time_format}. Date column: {_safe_text(candidate.date_column)}.",
+        "Columns: "
+        + "; ".join(
+            f"{_safe_text(source)} → {field}"
+            for source, field in candidate.columns.items()
+        ),
+        f"Missing dates: **{len(coverage.missing_dates)}**. Missing times remain unavailable.",
+    ]
+    if coverage.missing_fields:
+        lines.append(
+            "Missing fields (number of rows): "
+            + ", ".join(
+                f"{key}: {count}" for key, count in coverage.missing_fields.items()
+            )
+        )
+    previous = next(
+        (item for item in existing if item.timetable_id == table.timetable_id), None
+    )
+    lines.append(
+        f"Approval replaces **{len(previous.days)} existing rows** for this source."
+        if previous
+        else "Approval adds this source; other years remain stored."
+    )
+    if table.kind == "ramadan":
+        lines.append(
+            "**Ramadan source will be stored only. Ramadan activation and overrides are not implemented yet.**"
+        )
+    lines.append("Preview (first three dates; all explicit times on those dates):")
+    for row in table.days[:3]:
+        values = "; ".join(
+            f"{field.value}: {', '.join(value.strftime('%H:%M') for value in times)}"
+            for field, times in row.times.items()
+        )
+        lines.append(f"- {row.day.isoformat()} — {values}")
+    if candidate.warnings:
+        lines.append("Validation warnings:")
+        lines.extend(f"- {_safe_text(warning)}" for warning in candidate.warnings[:10])
+    lines.append(
+        "Approve only after checking these values against the published timetable."
+    )
+    return "\n\n".join(lines)
+
+
+class CsvImportOptionsFlow(config_entries.OptionsFlow):
+    """Reusable options-flow steps; settings are provided by the subclass."""
+
+    def __init__(self) -> None:
+        self._content: bytes | None = None
+        self._headers: tuple[str, ...] = ()
+        self._kind = "annual"
+        self._year: int | None = None
+        self._review_stage_id: str | None = None
+        self._mapping_input: dict[str, Any] = {}
+        self._review_runtime = None
+
+    def _coordinator(self):
+        if self.config_entry.state is not ConfigEntryState.LOADED:
+            return None
+        return self.config_entry.runtime_data
+
+    async def async_step_init(self, user_input=None):
+        menu = ["settings", "import_csv"]
+        coordinator = self._coordinator()
+        if coordinator is not None and coordinator.storage.staged is not None:
+            menu.append("review")
+        return self.async_show_menu(step_id="init", menu_options=menu)
+
+    async def async_step_import_csv(self, user_input=None):
+        coordinator = self._coordinator()
+        if coordinator is None:
+            return self.async_abort(reason="integration_not_loaded")
+        if coordinator.storage.staged is not None:
+            return self.async_abort(reason="pending_import_exists")
+        errors = {}
+        detail = ""
+        if user_input is not None:
+            try:
+                year = user_input["year"]
+                if (
+                    isinstance(year, bool)
+                    or not isinstance(year, (int, float))
+                    or not isfinite(year)
+                    or not 1900 <= year <= 2199
+                    or not float(year).is_integer()
+                ):
+                    raise ImportValidationError(
+                        "Year must be a whole number from 1900 to 2199"
+                    )
+                self._content = await self.hass.async_add_executor_job(
+                    read_uploaded_csv, self.hass, user_input["file"]
+                )
+                self._headers = await self.hass.async_add_executor_job(
+                    PARSER.inspect, self._content
+                )
+                self._year = int(user_input["year"])
+                self._kind = user_input["kind"]
+            except (ValueError, OSError, HomeAssistantError) as err:
+                errors["base"] = "invalid_csv"
+                detail = _safe_text(str(err))
+            else:
+                return await self.async_step_map_columns()
+        return self.async_show_form(
+            step_id="import_csv",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("file"): selector.FileSelector(
+                        selector.FileSelectorConfig(accept=".csv,text/csv")
+                    ),
+                    vol.Required("kind", default="annual"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=["annual", "ramadan"],
+                            translation_key="timetable_kind",
+                        )
+                    ),
+                    vol.Required(
+                        "year",
+                        default=dt_util.utcnow().astimezone(coordinator.zone).year,
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=1900,
+                            max=2199,
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                }
+            ),
+            errors=errors,
+            description_placeholders={"detail": detail},
+        )
+
+    def _mapping_schema(self):
+        source_options = [
+            {"value": IGNORE_COLUMN, "label": "Do not import this field"}
+        ] + [{"value": header, "label": header} for header in self._headers]
+        inferred = {}
+        for header in self._headers:
+            try:
+                inferred[header] = normalize_field(header)
+            except ValueError:
+                continue
+        counts = Counter(inferred.values())
+        schema = {
+            vol.Required(
+                "date_column",
+                default=self._mapping_input.get(
+                    "date_column",
+                    next(
+                        (
+                            header
+                            for header in self._headers
+                            if header.lower() == "date"
+                        ),
+                        self._headers[0],
+                    ),
+                ),
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(options=list(self._headers))
+            ),
+            vol.Required(
+                "time_format", default=self._mapping_input.get("time_format", "24h")
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=["24h", "12h"], translation_key="time_format"
+                )
+            ),
+        }
+        for field in PrayerField:
+            suggested = next(
+                (
+                    header
+                    for header, value in inferred.items()
+                    if value == field and counts[value] == 1
+                ),
+                IGNORE_COLUMN,
+            )
+            schema[
+                vol.Optional(
+                    field.value, default=self._mapping_input.get(field.value, suggested)
+                )
+            ] = selector.SelectSelector(
+                selector.SelectSelectorConfig(options=source_options)
+            )
+        return vol.Schema(schema)
+
+    async def async_step_map_columns(self, user_input=None):
+        if self._content is None:
+            return self.async_abort(reason="upload_expired")
+        coordinator = self._coordinator()
+        if coordinator is None:
+            return self.async_abort(reason="integration_not_loaded")
+        errors = {}
+        detail = ""
+        if user_input is not None:
+            self._mapping_input = dict(user_input)
+            columns = {}
+            for field in PrayerField:
+                source = user_input.get(field.value, IGNORE_COLUMN)
+                if source == IGNORE_COLUMN:
+                    continue
+                if source in columns or source == user_input["date_column"]:
+                    errors["base"] = "invalid_mapping"
+                    break
+                columns[source] = field.value
+            if not columns:
+                errors["base"] = "invalid_mapping"
+            if not errors:
+                try:
+                    candidate = await self.hass.async_add_executor_job(
+                        lambda: PARSER.parse(
+                            self._content,
+                            timetable_id=f"{self._kind}-{self._year}",
+                            kind=self._kind,
+                            year=self._year,
+                            date_column=user_input["date_column"],
+                            columns=columns,
+                            time_format=user_input["time_format"],
+                        )
+                    )
+                    if self._coordinator() is not coordinator:
+                        return self.async_abort(reason="integration_reloaded")
+                    self._review_stage_id = await coordinator.storage.async_stage(
+                        candidate
+                    )
+                except PendingImportError:
+                    return self.async_abort(reason="pending_import_exists")
+                except ValueError as err:
+                    errors["base"] = "invalid_csv"
+                    detail = _safe_text(str(err))
+                except OSError, HomeAssistantError:
+                    errors["base"] = "save_failed"
+                else:
+                    self._content = None
+                    return await self.async_step_review()
+        return self.async_show_form(
+            step_id="map_columns",
+            data_schema=self._mapping_schema(),
+            errors=errors,
+            description_placeholders={"detail": detail},
+        )
+
+    async def async_step_review(self, user_input=None):
+        coordinator = self._coordinator()
+        if coordinator is None:
+            return self.async_abort(reason="integration_not_loaded")
+        staged = coordinator.storage.staged
+        if staged is None:
+            return self.async_abort(reason="no_pending_import")
+        if self._review_runtime is None:
+            self._review_runtime = coordinator
+        elif self._review_runtime is not coordinator:
+            return self.async_abort(reason="integration_reloaded")
+        if self._review_stage_id is None:
+            self._review_stage_id = staged.stage_id
+        if self._review_stage_id != staged.stage_id:
+            return self.async_abort(reason="stale_import")
+        errors = {}
+        if user_input is not None:
+            try:
+                if user_input["decision"] == "approve":
+                    await coordinator.storage.async_approve(self._review_stage_id)
+                    current = self._coordinator()
+                    if current is not None:
+                        await current.storage.async_load()
+                        await current.async_refresh()
+                else:
+                    await coordinator.storage.async_reject(self._review_stage_id)
+            except ValueError:
+                return self.async_abort(reason="stale_import")
+            except OSError, HomeAssistantError:
+                errors["base"] = "save_failed"
+            else:
+                return self.async_create_entry(
+                    title="", data=dict(self.config_entry.options)
+                )
+        return self.async_show_form(
+            step_id="review",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("decision"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=["approve", "reject"],
+                            translation_key="import_decision",
+                        )
+                    )
+                }
+            ),
+            errors=errors,
+            description_placeholders={
+                "summary": f"Mosque timezone: {coordinator.zone.key}\n\n"
+                + import_summary(staged.candidate, coordinator.storage.timetables)
+            },
+        )

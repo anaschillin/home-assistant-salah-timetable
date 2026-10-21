@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Add a mosque",
-        "description": "Choose a stable mosque ID (lowercase letters, numbers, underscores or hyphens). Timetable import is not available in this initial release.",
+        "description": "Choose a stable mosque ID (lowercase letters, numbers, underscores or hyphens). After setup, open Configure to import a CSV timetable.",
         "data": {
           "name": "Mosque name",
           "mosque_id": "Stable mosque ID",
@@ -25,13 +25,72 @@
     "step": {
       "init": {
         "title": "Mosque options",
+        "menu_options": {
+          "settings": "Mosque settings",
+          "import_csv": "Import CSV timetable",
+          "review": "Review pending import"
+        }
+      },
+      "settings": {
+        "title": "Mosque settings",
         "data": {
           "time_zone": "Mosque timezone"
+        }
+      },
+      "import_csv": {
+        "title": "Upload a CSV timetable",
+        "description": "Upload a UTF-8 CSV, at most 512 KiB, with a header row and ISO dates (YYYY-MM-DD) in the chosen year. Annual imports may be incomplete; missing dates and fields remain unavailable. Ramadan imports are stored separately; activation is not implemented yet.\n\n{detail}",
+        "data": {
+          "file": "CSV file",
+          "kind": "Timetable kind",
+          "year": "Year"
+        }
+      },
+      "map_columns": {
+        "title": "Map CSV columns",
+        "description": "Select the date column and the source column for each published prayer field. Leave unpublished fields unselected. Each column can be mapped only once. Recognized headings are suggested; check every choice. Times require HH:MM (24-hour) or HH:MM AM/PM as selected. Jumu’ah congregations may use semicolon-separated times.\n\n{detail}",
+        "data": {
+          "date_column": "Date column",
+          "time_format": "Time format",
+          "fajr_begin": "Fajr beginning",
+          "fajr_jamaat": "Fajr Jamaat",
+          "sunrise": "Sunrise",
+          "sehri_ends": "Sehri ends",
+          "dhuhr_begin": "Dhuhr beginning",
+          "dhuhr_jamaat": "Dhuhr Jamaat",
+          "jumuah": "Jumu’ah",
+          "asr_begin": "Asr beginning",
+          "asr_jamaat": "Asr Jamaat",
+          "maghrib_begin": "Maghrib beginning",
+          "maghrib_jamaat": "Maghrib Jamaat",
+          "isha_begin": "Isha beginning",
+          "isha_jamaat": "Isha Jamaat",
+          "istewa": "Istewa",
+          "iftar": "Iftar",
+          "taraweeh": "Taraweeh"
+        }
+      },
+      "review": {
+        "title": "Review timetable before activation",
+        "description": "{summary}",
+        "data": {
+          "decision": "Action"
         }
       }
     },
     "error": {
-      "invalid_time_zone": "Enter a valid IANA timezone."
+      "invalid_time_zone": "Enter a valid IANA timezone.",
+      "invalid_csv": "The CSV could not be validated. See the details above.",
+      "invalid_mapping": "Select at least one prayer column. A source column cannot be reused or mapped as both a date and a prayer.",
+      "save_failed": "Saving failed. The active timetable has not been replaced. Try again after checking Home Assistant storage and logs."
+    },
+    "abort": {
+      "integration_not_loaded": "The mosque integration must be loaded before importing. Check its setup error or change its settings first.",
+      "pending_import_exists": "Review or reject the pending import before uploading another file.",
+      "upload_expired": "The upload is no longer available. Start a new CSV import.",
+      "no_pending_import": "There is no pending timetable to review.",
+      "stale_import": "The pending import changed while you were reviewing it. Reopen Configure and review the current import.",
+      "integration_reloaded": "Mosque settings changed while this dialog was open. Reopen Configure to review the current timetable."
     }
   },
   "entity": {
@@ -83,6 +142,26 @@
       },
       "taraweeh": {
         "name": "Taraweeh"
+      }
+    }
+  },
+  "selector": {
+    "timetable_kind": {
+      "options": {
+        "annual": "Annual",
+        "ramadan": "Ramadan (storage only)"
+      }
+    },
+    "time_format": {
+      "options": {
+        "24h": "24-hour HH:MM",
+        "12h": "Explicit HH:MM AM/PM"
+      }
+    },
+    "import_decision": {
+      "options": {
+        "approve": "Approve and save timetable",
+        "reject": "Reject and keep the active timetable"
       }
     }
   }
