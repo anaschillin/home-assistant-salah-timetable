@@ -1,4 +1,4 @@
-# Architecture — Milestone 3 infrastructure
+# Architecture — Milestone 3
 
 ## Boundaries
 
@@ -74,9 +74,9 @@ causes a setup error instead of fabricated values; restore a backup for corrupti
 
 ## Current limitations
 
-The requested real NMS mosque PDF layout has not been inspected yet; the only PDF
-adapter is the explicitly documented sample. Effective Ramadan overrides, next-event
-calculation and frontend assets do not exist. Ramadan candidates can be
+Only the inspected Nuneaton Muslim Society annual layout and the synthetic sample
+layout are supported. Other mosque PDFs are rejected. Effective Ramadan overrides,
+next-event calculation and frontend assets do not exist. Ramadan candidates can be
 stored but are never selected over annual records. Iftar/Taraweeh defaults are not
 applied yet. DST gaps and ambiguous folds are rejected; explicit fold handling can be
 added with a separate, reviewed source model. The full product is not production-ready.
@@ -92,8 +92,13 @@ validators are bounded. No environment proxy or authenticated shared session is 
 `pdf_parser.py` dispatches tested layouts, converts extracted values into canonical
 CSV and delegates value validation to the existing parser. `pdf_worker.py` extracts
 untrusted PDF text in a separate, isolated, resource-limited process. Unknown layouts
-fail closed. Only the synthetic sample adapter exists until the requested NMS source
-can be inspected; see `pdf_layouts.md`.
+fail closed. `nms_layout.py` validates the inspected annual table: 14 pages, explicit
+cover/month years, exact headings, all Gregorian dates/weekdays and 13 physical time
+columns. It applies documented column meridiems, resolves same-column quotation marks
+before splitting Friday Jumu’ah from ordinary Dhuhr, and retains all raw cells. The
+selected field subset must keep the known meanings and 24-hour canonical format.
+It does not interpret Khutbah notes or Hijri dates as scheduled congregations or
+confirmed Ramadan dates. See `pdf_layouts.md`.
 
 `source_model.py` holds immutable URL/parser profiles and allowlisted check metadata.
 `source_updates.py` serializes manual and scheduled checks. A source comparison inside

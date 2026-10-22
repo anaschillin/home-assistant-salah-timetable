@@ -12,7 +12,7 @@ from .import_flow import CsvImportOptionsFlow, _safe_text
 from .import_model import ImportValidationError
 from .pdf_parser import PdfParser
 
-PDF_LAYOUTS = ["pdf_table_v1"]
+PDF_LAYOUTS = ["nms_annual_v1", "pdf_table_v1"]
 
 
 def _year(value) -> int:
@@ -50,7 +50,7 @@ def source_fields(year, *, url=False):
                 min=1900, max=2199, step=1, mode=selector.NumberSelectorMode.BOX
             )
         ),
-        vol.Required("pdf_layout", default="pdf_table_v1"): selector.SelectSelector(
+        vol.Required("pdf_layout", default="nms_annual_v1"): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=PDF_LAYOUTS, translation_key="pdf_layout"
             )

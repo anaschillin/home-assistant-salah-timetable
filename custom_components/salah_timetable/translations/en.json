@@ -52,7 +52,7 @@
       },
       "map_columns": {
         "title": "Map CSV columns",
-        "description": "Select the date column and the source column for each published prayer field. Leave unpublished fields unselected. Each column can be mapped only once. Recognized headings are suggested; check every choice. Times require HH:MM (24-hour) or HH:MM AM/PM as selected. Jumu’ah congregations may use semicolon-separated times.\n\n{detail}",
+        "description": "Select the date column and the source column for each published prayer field. Leave unpublished fields unselected. Each column can be mapped only once. Check every suggested mapping. For the NMS annual layout, retain the labelled fields, Date and 24-hour format: its documented morning/noon/evening columns have already been normalized. General CSV and sample PDF times require HH:MM or explicit HH:MM AM/PM as selected. Jumu’ah congregations may use semicolon-separated times.\n\n{detail}",
         "data": {
           "date_column": "Date column",
           "time_format": "Time format",
@@ -83,7 +83,7 @@
       },
       "import_url": {
         "title": "Add a timetable URL",
-        "description": "Use a public HTTPS PDF or CSV URL. Downloads are validated and staged for review before activation. Select a PDF layout documented as supported. The sample table layout is not a compatibility claim for an arbitrary mosque. For CSV, the PDF layout choice is ignored.\n\n{detail}",
+        "description": "Use a public HTTPS PDF or CSV URL. Downloads are validated and staged for review before activation. Choose the documented PDF layout: Nuneaton Muslim Society annual calendar, or the synthetic sample table. Other mosque layouts are unsupported. For CSV, the PDF layout choice is ignored.\n\n{detail}",
         "data": {
           "url": "Public HTTPS timetable URL",
           "media_type": "File type",
@@ -94,7 +94,7 @@
       },
       "import_pdf": {
         "title": "Upload a supported PDF",
-        "description": "Upload a text PDF no larger than 2 MiB (at most 16 pages). Only documented layouts are supported. Scanned/encrypted files and unknown layouts are rejected; use CSV instead. The source is staged before activation.\n\n{detail}",
+        "description": "Upload a text PDF no larger than 2 MiB (at most 16 pages). For the Nuneaton Muslim Society calendar choose its annual layout and Annual kind. Scanned/encrypted files and unknown layouts are rejected; use CSV instead. The source is staged before activation.\n\n{detail}",
         "data": {
           "file": "PDF file",
           "kind": "Timetable kind",
@@ -218,7 +218,8 @@
     },
     "pdf_layout": {
       "options": {
-        "pdf_table_v1": "Sample pipe-delimited text table (v1)"
+        "pdf_table_v1": "Sample pipe-delimited text table (v1)",
+        "nms_annual_v1": "Nuneaton Muslim Society annual calendar (v1)"
       }
     },
     "source_format": {

@@ -79,6 +79,13 @@ def import_summary(candidate, existing) -> str:
         lines.append(
             "**Ramadan source will be stored only. Ramadan activation and overrides are not implemented yet.**"
         )
+    if candidate.parser_id == "nms_annual_v1":
+        lines.append(
+            "NMS annual layout: morning/noon/evening columns are normalized to 24-hour time. "
+            "The published Maghrib (Iftaar) value supplies both Jamaat and Iftar; Sunset remains Maghrib beginning. "
+            "Friday's shared slot supplies Jumu'ah only. Second-Khutbah notes are not additional Jamaat events. "
+            "Hijri dates do not confirm Ramadan activation."
+        )
     lines.append("Preview (first three dates; all explicit times on those dates):")
     for row in table.days[:3]:
         values = "; ".join(

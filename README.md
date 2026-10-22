@@ -2,14 +2,14 @@
 
 A Home Assistant custom integration for mosque prayer timetables.
 
-**Status: Milestone 3 infrastructure — secure URL sources and staged update checks.**
+**Status: Milestone 3 — secure URL sources, tested PDF layouts and staged updates.**
 Configure a mosque, add a public HTTPS PDF/CSV source or upload a file, map columns,
 and approve a validated timetable in the Home Assistant UI. Changes are never
 activated automatically. No YAML sensors, templates or regex setup are required.
 
-**PDF compatibility is limited to the documented synthetic sample layout.** The
-requested NMS UK timetable has not yet been downloaded/inspected, so compatibility
-with it is not claimed. See [supported PDF layouts](docs/pdf_layouts.md).
+**PDF compatibility is limited to documented layouts.** The attached Nuneaton Muslim
+Society annual calendar for 2026 is validated, alongside the synthetic sample layout.
+Other mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layouts.md).
 
 Ramadan activation, next-prayer calculations and the Lovelace card remain planned.
 
@@ -96,11 +96,24 @@ misleading content types/signatures and oversized streamed bodies are rejected.
 
 ## PDF format and limits
 
-Only layouts listed in [PDF layouts](docs/pdf_layouts.md) are supported. The current
-`pdf_table_v1` adapter has original synthetic golden fixtures; it is not a general
-PDF-to-table recognizer and is not evidence of real mosque compatibility. Unknown
+Only layouts listed in [PDF layouts](docs/pdf_layouts.md) are supported. Select
+**Nuneaton Muslim Society annual calendar (v1)** for the supplied 2026 calendar,
+Annual kind, year 2026 and 24-hour format. Date/prayer mappings are preselected; check
+the review before approval. Its 365 dates and 5,110 event values were compared with an
+independent extraction. Only synthetic, original fixtures are committed. The
+`pdf_table_v1` adapter remains a separate synthetic sample, not a general recognizer. Unknown
 layouts, scanned/image-only PDFs, encrypted and corrupt documents are rejected.
 There is no OCR or fallback that guesses a missing time.
+
+For NMS, Dawn supplies Fajr beginning; Sehri Ends is separate. Sunset supplies
+Maghrib beginning, while the distinct published Maghrib (Iftaar) cell supplies both
+Jamaat and Iftar. Friday's shared Dhuhr/Jumu’ah slot supplies Jumu’ah only. Second-
+Khutbah notes are not imported as congregation times, and Hijri dates do not confirm
+Ramadan activation. No Taraweeh time is invented. The adapter documents its fixed
+morning/noon/evening interpretation of the printed 12-hour columns.
+
+The attachment validates manual PDF import. The website's live HTTPS availability
+has not been verified; the supplied HTTP URL is not accepted by the secure downloader.
 
 PDF input is limited to **2 MiB, 16 pages and 256 KiB extracted text**. Extraction
 runs outside HA's event loop in an isolated Python worker using pinned pypdf, with
