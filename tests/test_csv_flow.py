@@ -1,0 +1,416 @@
+"""Exercise CSV approval through HA options flows and authenticated uploads."""
+
+from datetime import date
+from unittest.mock import AsyncMock, patch
+from uuid import uuid4
+
+import pytest
+from aiohttp import FormData
+from homeassistant.components.file_upload import _DATA as UPLOAD_DATA
+from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import entity_registry as er
+from homeassistant.setup import async_setup_component
+
+from custom_components.salah_timetable.const import DOMAIN
+from custom_components.salah_timetable.import_model import MAX_SOURCE_BYTES
+
+CSV = b"Date,Fajr Start,Fajr Jamaat\n2026-10-21,05:45,06:15\n2026-10-22,05:47,06:15\n"
+REPLACEMENT_CSV = b"Date,Fajr Start,Fajr Jamaat\n2026-10-21,05:55,06:25\n"
+
+
+@pytest.fixture(autouse=True)
+def import_clock(freezer):
+    """Freeze before HA creates bearer tokens so their issue time stays valid."""
+    freezer.move_to("2026-10-21 10:00:00+00:00")
+
+
+@pytest.fixture
+async def upload_client(hass, hass_client):
+    """Use HA's real upload endpoint rather than mocking file selection."""
+    assert await async_setup_component(hass, "file_upload", {})
+    return await hass_client()
+
+
+async def upload(hass, client, content=CSV):
+    body = FormData()
+    body.add_field("file", content, filename="timetable.csv", content_type="text/csv")
+    response = await client.post("/api/file_upload", data=body)
+    assert response.status == 200
+    file_id = (await response.json())["file_id"]
+    path = hass.data[UPLOAD_DATA].file_path(file_id)
+    assert await hass.async_add_executor_job(path.is_file)
+    return file_id, path
+
+
+async def begin_import(hass, entry):
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] == FlowResultType.MENU
+    assert "import_csv" in result["menu_options"]
+    return await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "import_csv"}
+    )
+
+
+async def stage_upload(hass, entry, client, content=CSV, *, kind="annual", year=2026):
+    result = await begin_import(hass, entry)
+    assert result["step_id"] == "import_csv"
+    file_id, path = await upload(hass, client, content)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"file": file_id, "kind": kind, "year": year}
+    )
+    assert result["step_id"] == "map_columns"
+    assert not await hass.async_add_executor_job(path.exists)
+    assert file_id not in hass.data[UPLOAD_DATA].files
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "date_column": "Date",
+            "time_format": "24h",
+            "fajr_begin": "Fajr Start",
+            "fajr_jamaat": "Fajr Jamaat",
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "review"
+    assert "summary" in result["description_placeholders"]
+    return result
+
+
+async def test_upload_preview_approve_and_reload(hass, entry, freezer, upload_client):
+    freezer.move_to("2026-10-21 10:00:00+00:00")
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    entity_id = er.async_get(hass).async_get_entity_id(
+        "sensor", DOMAIN, "example_fajr_begin"
+    )
+    assert hass.states.get(entity_id).state == "unavailable"
+    result = await stage_upload(hass, entry, upload_client)
+    storage = entry.runtime_data.storage
+    assert storage.staged is not None
+    assert storage.for_date(date(2026, 10, 21)) is None
+    assert hass.states.get(entity_id).state == "unavailable"
+    assert "missing" in result["description_placeholders"]["summary"].lower()
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == "2026-10-21T04:45:00+00:00"
+    assert entry.runtime_data.storage.staged is None
+    assert (
+        entry.runtime_data.storage.approved_sources["annual-2026"].source_text
+        == CSV.decode()
+    )
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == "2026-10-21T04:45:00+00:00"
+    assert entry.options == {}
+
+
+async def test_pending_survives_cancel_reload_and_new_flow(hass, entry, upload_client):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await stage_upload(hass, entry, upload_client)
+    stage_id = entry.runtime_data.storage.staged.stage_id
+    hass.config_entries.options.async_abort(result["flow_id"])
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.runtime_data.storage.staged.stage_id == stage_id
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert "review" in result["menu_options"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "review"}
+    )
+    assert result["step_id"] == "review"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.runtime_data.storage.for_date(date(2026, 10, 21)) is not None
+
+
+async def test_rejection_preserves_active_data(hass, populated, freezer, upload_client):
+    freezer.move_to("2026-10-21 10:00:00+00:00")
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    previous = populated.runtime_data.storage.timetables
+    result = await stage_upload(hass, populated, upload_client, REPLACEMENT_CSV)
+    assert populated.runtime_data.storage.timetables == previous
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "reject"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert populated.runtime_data.storage.timetables == previous
+    assert populated.runtime_data.storage.staged is None
+    assert await hass.config_entries.async_reload(populated.entry_id)
+    await hass.async_block_till_done()
+    assert populated.runtime_data.storage.timetables == previous
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        b"\xff\xfeinvalid",
+        b"Date,Fajr\n2026-10-21,05:45,extra\n",
+        b"x" * (MAX_SOURCE_BYTES + 1),
+    ],
+)
+async def test_invalid_upload_is_removed(hass, entry, upload_client, content):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await begin_import(hass, entry)
+    file_id, path = await upload(hass, upload_client, content)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026}
+    )
+    assert result["step_id"] == "import_csv"
+    assert result["errors"] == {"base": "invalid_csv"}
+    assert not await hass.async_add_executor_job(path.exists)
+    assert file_id not in hass.data[UPLOAD_DATA].files
+    assert entry.runtime_data.storage.staged is None
+
+
+async def test_missing_upload_is_reported(hass, entry):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await begin_import(hass, entry)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"file": uuid4().hex, "kind": "annual", "year": 2026}
+    )
+    assert result["step_id"] == "import_csv"
+    assert result["errors"] == {"base": "invalid_csv"}
+    assert entry.runtime_data.storage.staged is None
+
+
+async def test_duplicate_mapping_is_rejected(hass, entry, upload_client):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await begin_import(hass, entry)
+    file_id, _ = await upload(hass, upload_client)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026}
+    )
+    assert result["step_id"] == "map_columns"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "date_column": "Date",
+            "time_format": "24h",
+            "fajr_begin": "Fajr Start",
+            "fajr_jamaat": "Fajr Start",
+        },
+    )
+    assert result["step_id"] == "map_columns"
+    assert result["errors"] == {"base": "invalid_mapping"}
+    assert entry.runtime_data.storage.staged is None
+
+
+async def test_unloaded_entry_cannot_start_import(hass, entry):
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "import_csv"}
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "integration_not_loaded"
+
+
+async def test_stage_save_failure_can_be_retried(hass, entry, upload_client):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await begin_import(hass, entry)
+    file_id, _ = await upload(hass, upload_client)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026}
+    )
+    mapping = {"date_column": "Date", "time_format": "24h", "fajr_begin": "Fajr Start"}
+    with patch.object(
+        entry.runtime_data.storage,
+        "async_stage",
+        AsyncMock(side_effect=OSError("disk full")),
+    ):
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"], mapping
+        )
+    assert result["step_id"] == "map_columns"
+    assert result["errors"] == {"base": "save_failed"}
+    assert entry.runtime_data.storage.staged is None
+    assert entry.runtime_data.storage.timetables == ()
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], mapping
+    )
+    assert result["step_id"] == "review"
+    assert entry.runtime_data.storage.staged is not None
+    assert entry.runtime_data.storage.timetables == ()
+
+
+async def test_approval_save_failure_keeps_pending_and_active(
+    hass, populated, upload_client
+):
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    previous = populated.runtime_data.storage.timetables
+    result = await stage_upload(hass, populated, upload_client, REPLACEMENT_CSV)
+    staged = populated.runtime_data.storage.staged
+    with patch.object(
+        populated.runtime_data.storage,
+        "async_approve",
+        AsyncMock(side_effect=OSError("disk full")),
+    ):
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"], {"decision": "approve"}
+        )
+    assert result["step_id"] == "review"
+    assert result["errors"] == {"base": "save_failed"}
+    assert populated.runtime_data.storage.timetables == previous
+    assert populated.runtime_data.storage.staged == staged
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert populated.runtime_data.storage.staged is None
+    assert populated.runtime_data.storage.timetables != previous
+
+
+async def test_stale_preview_cannot_approve_new_stage(hass, entry, upload_client):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await stage_upload(hass, entry, upload_client)
+    old = entry.runtime_data.storage.staged
+    await entry.runtime_data.storage.async_reject(old.stage_id)
+    current_id = await entry.runtime_data.storage.async_stage(old.candidate)
+    assert current_id != old.stage_id
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "stale_import"
+    assert entry.runtime_data.storage.staged.stage_id == current_id
+    assert entry.runtime_data.storage.timetables == ()
+
+
+async def test_next_year_approval_preserves_current_year(
+    hass, populated, upload_client
+):
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    previous = populated.runtime_data.storage.for_date(date(2026, 10, 21))
+    entity_id = er.async_get(hass).async_get_entity_id(
+        "sensor", DOMAIN, "example_fajr_begin"
+    )
+    state = hass.states.get(entity_id).state
+    result = await stage_upload(
+        hass, populated, upload_client, CSV.replace(b"2026-", b"2027-"), year=2027
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert populated.runtime_data.storage.for_date(date(2026, 10, 21)) == previous
+    assert populated.runtime_data.storage.for_date(date(2027, 10, 21)) is not None
+    assert hass.states.get(entity_id).state == state
+    assert {
+        table.timetable_id for table in populated.runtime_data.storage.timetables
+    } == {"annual-2026", "annual-2027"}
+
+
+async def test_ramadan_approval_does_not_apply_overrides(
+    hass, populated, upload_client
+):
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    previous = populated.runtime_data.storage.for_date(date(2026, 10, 21))
+    result = await stage_upload(
+        hass, populated, upload_client, REPLACEMENT_CSV, kind="ramadan"
+    )
+    assert "stored only" in result["description_placeholders"]["summary"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert "ramadan-2026" in populated.runtime_data.storage.approved_sources
+    assert populated.runtime_data.storage.for_date(date(2026, 10, 21)) == previous
+
+
+async def test_fractional_year_does_not_consume_upload(hass, entry, upload_client):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await begin_import(hass, entry)
+    file_id, path = await upload(hass, upload_client)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026.5}
+    )
+    assert result["step_id"] == "import_csv"
+    assert result["errors"] == {"base": "invalid_csv"}
+    assert "whole number" in result["description_placeholders"]["detail"]
+    assert await hass.async_add_executor_job(path.exists)
+    assert file_id in hass.data[UPLOAD_DATA].files
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026}
+    )
+    assert result["step_id"] == "map_columns"
+    assert not await hass.async_add_executor_job(path.exists)
+    assert file_id not in hass.data[UPLOAD_DATA].files
+
+
+async def test_two_mapping_flows_cannot_overwrite_pending_import(
+    hass, entry, upload_client
+):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    flows = []
+    for content in (CSV, REPLACEMENT_CSV):
+        result = await begin_import(hass, entry)
+        file_id, _ = await upload(hass, upload_client, content)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026}
+        )
+        assert result["step_id"] == "map_columns"
+        flows.append(result["flow_id"])
+    mapping = {"date_column": "Date", "time_format": "24h", "fajr_begin": "Fajr Start"}
+    first = await hass.config_entries.options.async_configure(flows[0], mapping)
+    assert first["step_id"] == "review"
+    staged = entry.runtime_data.storage.staged
+    second = await hass.config_entries.options.async_configure(flows[1], mapping)
+    assert second["type"] == FlowResultType.ABORT
+    assert second["reason"] == "pending_import_exists"
+    assert entry.runtime_data.storage.staged == staged
+    assert entry.runtime_data.storage.staged.candidate.source_text == CSV.decode()
+    assert entry.runtime_data.storage.timetables == ()
+
+
+async def test_reloaded_preview_requires_reopening_review(hass, entry, upload_client):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await stage_upload(hass, entry, upload_client)
+    stage_id = entry.runtime_data.storage.staged.stage_id
+    hass.config_entries.async_update_entry(entry, options={"time_zone": "Asia/Riyadh"})
+    await hass.async_block_till_done()
+    assert entry.runtime_data.zone.key == "Asia/Riyadh"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "integration_reloaded"
+    assert entry.runtime_data.storage.staged.stage_id == stage_id
+    assert entry.runtime_data.storage.timetables == ()
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "review"}
+    )
+    assert result["step_id"] == "review"
+    assert "Asia/Riyadh" in result["description_placeholders"]["summary"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.runtime_data.storage.staged is None
+    entity_id = er.async_get(hass).async_get_entity_id(
+        "sensor", DOMAIN, "example_fajr_begin"
+    )
+    assert hass.states.get(entity_id).state == "2026-10-21T02:45:00+00:00"

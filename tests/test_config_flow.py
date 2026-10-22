@@ -41,6 +41,10 @@ async def test_invalid_input(hass):
 
 async def test_options(hass, entry):
     result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] == FlowResultType.MENU
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "settings"}
+    )
     assert result["type"] == FlowResultType.FORM
     bad = await hass.config_entries.options.async_configure(
         result["flow_id"], {"time_zone": "bad"}

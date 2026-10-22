@@ -1,0 +1,56 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 1000 800] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 264 >>
+stream
+BT /F1 10 Tf 30 760 Td 16 TL
+(Salah Timetable) Tj T*
+(Mosque: Synthetic Example) Tj T*
+(Year 2026) Tj T*
+(Date | Fajr Begin | Fajr Jamaat | Sunrise | Jumuah) Tj T*
+(2026-01-01 | 06:15 | 06:45 | 08:10 |) Tj T*
+(2026-01-02 | 06:16 | " | 08:11 | 13:00;14:00) Tj T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 1000 800] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 177 >>
+stream
+BT /F1 10 Tf 30 760 Td 16 TL
+(Salah Timetable) Tj T*
+(Year 2026) Tj T*
+(Date | Fajr Begin | Fajr Jamaat | Sunrise | Jumuah) Tj T*
+(2026-01-03 | 06:17 | 06:45 | 08:12 |) Tj T*
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000127 00000 n 
+0000000195 00000 n 
+0000000322 00000 n 
+0000000637 00000 n 
+0000000764 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+992
+%%EOF
