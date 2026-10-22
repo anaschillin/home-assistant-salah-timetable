@@ -16,6 +16,7 @@ from typing import Protocol
 
 from .csv_parser import CsvParser
 from .import_model import ImportCandidate, ImportValidationError
+from .nms_layout import NMS_COLUMNS, NmsLayout
 
 MAX_PDF_BYTES = 2 * 1024 * 1024
 MAX_PDF_PAGES = 16
@@ -99,7 +100,10 @@ class PipeTableLayout:
         return output.getvalue()
 
 
-_LAYOUTS: dict[str, PdfLayout] = {"pdf_table_v1": PipeTableLayout()}
+_LAYOUTS: dict[str, PdfLayout] = {
+    "pdf_table_v1": PipeTableLayout(),
+    "nms_annual_v1": NmsLayout(),
+}
 
 
 def extract_pdf_pages(content: bytes) -> tuple[str, ...]:
@@ -172,6 +176,15 @@ class PdfParser:
         columns: dict[str, str],
         time_format: str = "24h",
     ) -> ImportCandidate:
+        if self.layout_id == "nms_annual_v1" and (
+            kind != "annual"
+            or date_column != "Date"
+            or time_format != "24h"
+            or any(NMS_COLUMNS.get(name) != field for name, field in columns.items())
+        ):
+            raise ImportValidationError(
+                "Use Annual, Date, 24-hour format and the labelled prayer columns for the NMS layout"
+            )
         canonical_csv = self._csv(content)
         candidate = CsvParser().parse(
             canonical_csv.encode("utf-8"),
