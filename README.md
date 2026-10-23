@@ -7,9 +7,10 @@ Configure a mosque, add a public HTTPS PDF/CSV source or upload a file, map colu
 and approve a validated timetable in the Home Assistant UI. Changes are never
 activated automatically. No YAML sensors, templates or regex setup are required.
 
-**PDF compatibility is limited to documented layouts.** The attached Nuneaton Muslim
-Society annual calendar for 2026 is validated, alongside the synthetic sample layout.
-Other mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layouts.md).
+**PDF compatibility is limited to documented layouts.** The inspected Nuneaton Muslim
+Society annual and monthly calendars, Zakariyya Masjid’s separate 2026 Ramadan page,
+and the synthetic sample layout are validated. Zakariyya’s annual tables and other
+mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layouts.md).
 
 The integration includes independent next-Salah/next-Jamaat events, confirmed-date
 Ramadan overrides and a graphical Lovelace card. A disposable Home Assistant runtime
@@ -91,6 +92,13 @@ uses Maghrib beginning when available. Without a published Taraweeh time, the ca
 shows **After Isha Jamaat** and the Taraweeh timestamp remains unavailable. Original
 imported values are kept separately from these effective values.
 
+Import review compares the proposed data with the adjusted confirmed window and
+shows annual fallback, default Iftar and unavailable timestamps separately. Source
+and effective time-order conflicts are warnings; values are never corrected.
+Ambiguous active sources block approval while retaining the approved data and
+pending proposal. A printed Ramadan heading or 31-row table does not confirm the
+month’s dates. See [Ramadan validation](docs/ramadan_validation.md).
+
 ## Dashboard
 
 The integration bundles the **Salah Timetable** Lovelace card and its graphical
@@ -137,7 +145,8 @@ Only layouts listed in [PDF layouts](docs/pdf_layouts.md) are supported. Select
 **Nuneaton Muslim Society annual calendar (v1)** for the supplied 2026 calendar,
 Annual kind, year 2026 and 24-hour format. Date/prayer mappings are preselected; check
 the review before approval. Its 365 dates and 5,110 event values were compared with an
-independent extraction. Only synthetic, original fixtures are committed. The
+independent extraction. Additional real fixtures validate the NMS May–June 2022
+monthly layout and the separate Ramadan page in Zakariyya’s 2026 calendar. The
 `pdf_table_v1` adapter remains a separate synthetic sample, not a general recognizer. Unknown
 layouts, scanned/image-only PDFs, encrypted and corrupt documents are rejected.
 There is no OCR or fallback that guesses a missing time.
@@ -152,7 +161,7 @@ morning/noon/evening interpretation of the printed 12-hour columns.
 The attachment validates manual PDF import. The website's live HTTPS availability
 has not been verified; the supplied HTTP URL is not accepted by the secure downloader.
 
-PDF input is limited to **2 MiB, 16 pages and 256 KiB extracted text**. Extraction
+PDF input is limited to **4 MiB, 16 pages and 256 KiB extracted text**. Extraction
 runs outside HA's event loop in an isolated Python worker using pinned pypdf, with
 an 8-second wall limit, CPU/memory limits and decompression guards. Original binary
 PDF, checksum, extracted canonical values and selected mapping are retained.
@@ -243,7 +252,7 @@ columns, so avoid uploading private information.
 File selection uses HA's authenticated upload service and opaque upload IDs, never
 arbitrary paths. Reading, parsing, validation and JSON serialization run in executor
 threads. Uploaded temporary files are deleted when consumed, including invalid imports.
-CSV's 512 KiB and PDF's 2 MiB limits are acceptance limits; HA's shared upload endpoint
+CSV's 512 KiB and PDF's 4 MiB limits are acceptance limits; HA's shared upload endpoint
 can receive larger temporary files before the integration rejects them. Diagnostics
 include allowlisted counts/status only, not mosque identity, URLs, raw files or values.
 Source URLs may contain private query parameters: they are not included in logs or

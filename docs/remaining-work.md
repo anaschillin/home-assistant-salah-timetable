@@ -12,7 +12,7 @@ complete only when its stated evidence exists. See [recorded validation](validat
 | HACS custom-repository installation | Pending | Install with a maintainer's GitHub authorization in disposable HA; verify bundled assets, restart, update and removal |
 | Physical mobile/tablet checks | Pending | Test narrow displays, themes, text scaling, touch and keyboard access on real devices |
 | Complete backup restoration | Pending | Restore a full HA backup archive, including configuration entries and timetable storage, then verify identities and approved/pending data |
-| Asset provenance | Maintainer review needed | Confirm redistribution rights for contributed branding and any future third-party fixtures |
+| Asset provenance | Maintainer review needed | Confirm redistribution rights for contributed branding and real NMS/Zakariyya PDF fixtures; publications are excluded from integration release archives |
 | Release publication | Pending | Review release notes, validation and checklist, then publish the prepared draft |
 
 HACS does not require an existing public release for a custom repository: its
@@ -46,10 +46,18 @@ acceptance. The validated HA 2026.10.2 checks remain recorded separately.
 
 ## Subsequent additions
 
+Ramadan import review now checks adjusted confirmed-window coverage, inherited and
+unavailable values, advisory time ordering and approval-time source ambiguity. The
+real NMS May–June 2022 and Zakariyya 2026 Ramadan-page fixtures have strict adapters
+and independent expected-value comparisons. See [Ramadan validation](ramadan_validation.md).
+
 1. Verify the NMS website's public HTTPS timetable URL and scheduled changes on a
    network that can access it. Its supplied HTTP URL remains intentionally rejected;
    manual import of the attached NMS PDF is tested.
-2. Add other mosque annual/Ramadan PDF adapters only after obtaining inspectable,
+2. Add a complete NMS Ramadan publication and full Zakariyya annual support (the
+   contributed annual PDF has a truncated May date cell). Support native cross-year
+   Ramadan publications without changing printed dates; current imports use one
+   Gregorian year per source. Add further adapters only after obtaining inspectable,
    redistributable fixtures and an independent expected-results comparison. Unknown
    layouts and scanned/encrypted PDFs remain unsupported.
 3. Expand language translations and test additional accessibility combinations.

@@ -114,3 +114,42 @@ Final candidate 0.5.2 checks after merging the maintainer updates: **569 Python
 tests**, **31 Node frontend tests**, both native Chromium viewport fixtures
 (including the enlarged-text regression), Ruff lint/format, release asset/note
 preparation and official hassfest all passed. No GitHub release/tag was published.
+
+
+## Contributed Ramadan publications — candidate 0.5.3
+
+Pulled maintainer fixtures through `daa6a1a`. The original binary files are unchanged;
+attribution and SHA-256 hashes are recorded in the [fixture README](../tests/fixtures/pdf/README.md).
+
+- NMS `nms ramadhan.pdf` is May–June **2022**, not a complete Ramadan-only file.
+  The strict monthly adapter produces 61 exact dates and 854 event values.
+- Zakariyya `zak.pdf` is the 2026 annual calendar plus a final Ramadan page. The new
+  adapter imports only that page: February 18–March 20, 31 dates and 341 published
+  values. Its final post-Ramadan Hijri-1 row does not activate Ramadan.
+- Every date and event value matched separately constructed Poppler spatial-text
+  CSV oracles, independently of production pypdf extraction and layout helpers.
+- Actual isolated extraction and native HA authenticated upload/map/review/approve
+  flows passed for both real PDFs. Source binary/checksum and parsed provenance
+  round-trip through persistence and config-entry reload without activation.
+- Explicit confirmation in the example February 18–March 19 window enables
+  Zakariyya's permitted default Iftar and text-only Taraweeh; March 20 stays inactive.
+  This test window is not a declaration of observed Ramadan dates.
+- Confirmed-window edge gaps, annual field retention, unavailable fields, default
+  Iftar, manual/off modes, date adjustment, source exclusion, advisory source/effective
+  chronology and legacy-source conflicts have regression coverage. Approval checks
+  current options and retains both approved data and pending proposals on conflict;
+  a conflicting proposal can still be rejected normally.
+- The PDF input bound is 4 MiB. Tests exercise acceptance at the exact boundary and
+  rejection above it by the isolated worker, plus upload/download limits. Page,
+  stream, text, decompression, CPU/memory and timeout protections are unchanged.
+
+The full Python suite passed **670 tests** (95% aggregate integration coverage;
+the isolated worker remains outside coverage instrumentation). After the metadata
+update, **23** frontend/packaging/release-preparation cases passed. Ruff lint/format,
+**31** Node tests, Chromium smoke at 360/900 pixels and official hassfest all passed.
+The reproducible 0.5.3 integration ZIP builds successfully and excludes PDF fixtures.
+No hosted Actions result, HACS installation, release or tag is claimed by these checks.
+
+The complete NMS Ramadan publication, full Zakariyya annual parsing and native
+cross-Gregorian-year PDF imports remain outside this change. See
+[Ramadan validation](ramadan_validation.md) and [remaining work](remaining-work.md).

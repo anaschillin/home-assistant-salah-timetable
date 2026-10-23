@@ -65,7 +65,9 @@ or AM/PM format. Jamaat ditto markers resolve only in their own column from a pr
 explicit value and reset on blanks; they never fill missing beginnings. Coverage counts
 missing fields per supplied row. Annual missing dates span the declared calendar year;
 Ramadan missing dates span only the first/last supplied dates and do not confirm lunar
-dates. All gaps are visible and absent times remain unavailable.
+dates. Review separately compares the proposed effective data with the adjusted
+confirmed Ramadan window, including missing edge dates and annual/default fallback.
+Absent source fields and unavailable effective timestamps are reported separately.
 
 ## Persistence and failures
 
@@ -142,6 +144,13 @@ Absent published Taraweeh produces the text “After Isha Jamaat”, with no tim
 The immutable result retains references to the annual and Ramadan rows; neither
 canonical nor original imported values are rewritten.
 
+`ramadan_validation.py` reviews a prospective replacement without mutating storage.
+It reports exact-window coverage, annual retention, default Iftar and unavailable
+timestamps, plus advisory source/effective time-order warnings. The same selection
+validator runs when saving Ramadan settings and, under the store lock, before
+approval using the current config-entry options. Conflicts preserve both the
+approved snapshot and pending proposal. No storage-schema change is required.
+
 ## Events and HA state
 
 The pure event engine orders absolute, timezone-aware timestamps by UTC and examines
@@ -177,7 +186,7 @@ countdown. The backend and card behavior have separate boundary tests.
 `frontend.py` registers the bundled directory at `/salah_timetable` through HA's
 asynchronous static-path API. For storage-mode Lovelace resources it creates or
 updates the integration's relative module URL, removes duplicate registrations and
-uses `?v=0.5.2` for cache changes. For YAML resources it uses HA's extra-JavaScript
+uses `?v=0.5.3` for cache changes. For YAML resources it uses HA's extra-JavaScript
 helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
 a resource-registration failure is logged without disabling valid prayer entities.
 

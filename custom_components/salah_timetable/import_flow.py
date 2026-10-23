@@ -18,7 +18,9 @@ from homeassistant.util import dt as dt_util
 from .csv_parser import CsvParser
 from .import_model import MAX_SOURCE_BYTES, ImportValidationError
 from .model import PrayerField, normalize_field
-from .storage import PendingImportError
+from .ramadan import RamadanSettings
+from .ramadan_validation import ramadan_review
+from .storage import PendingImportError, RamadanApprovalError
 
 PARSER = CsvParser()
 IGNORE_COLUMN = "__ignore__"
@@ -44,7 +46,7 @@ def _safe_text(value: str) -> str:
     return value.replace("\n", " ").replace("\r", " ")
 
 
-def import_summary(candidate, existing) -> str:
+def import_summary(candidate, existing, settings=None) -> str:
     """Bounded, explicit review of coverage, missing fields and replacement."""
     coverage = candidate.coverage
     table = candidate.timetable
@@ -58,11 +60,11 @@ def import_summary(candidate, existing) -> str:
             f"{_safe_text(source)} → {field}"
             for source, field in candidate.columns.items()
         ),
-        f"Missing dates: **{len(coverage.missing_dates)}**. Missing times remain unavailable.",
+        f"Missing dates{' within the supplied span' if table.kind == 'ramadan' else ''}: **{len(coverage.missing_dates)}**.",
     ]
     if coverage.missing_fields:
         lines.append(
-            "Missing fields (number of rows): "
+            "Fields absent from this source (number of rows): "
             + ", ".join(
                 f"{key}: {count}" for key, count in coverage.missing_fields.items()
             )
@@ -79,12 +81,25 @@ def import_summary(candidate, existing) -> str:
         lines.append(
             "**Ramadan overrides apply only on confirmed dates or with explicit manual activation in Ramadan settings.**"
         )
-    if candidate.parser_id == "nms_annual_v1":
+    if candidate.parser_id in {"nms_annual_v1", "nms_monthly_v1"}:
         lines.append(
-            "NMS annual layout: morning/noon/evening columns are normalized to 24-hour time. "
+            "NMS layout: morning/noon/evening columns are normalized to 24-hour time. "
             "The published Maghrib (Iftaar) value supplies both Jamaat and Iftar; Sunset remains Maghrib beginning. "
             "Friday's shared slot supplies Jumu'ah only. Second-Khutbah notes are not additional Jamaat events. "
             "Hijri dates do not confirm Ramadan activation."
+        )
+    if candidate.parser_id == "nms_monthly_v1":
+        lines.append(
+            "NMS monthly calendars may include dates outside Ramadan. "
+            "The source date range does not confirm the Ramadan date window."
+        )
+    if candidate.parser_id == "zak_ramadan_v1":
+        lines.append(
+            "Only the separate Zakariyya Ramadan page is imported; annual pages are not imported. "
+            "The printed table includes 20 March 2026 (Hijri 1 after Ramadan). "
+            "Its 31 rows do not confirm 31 Ramadan dates. "
+            "Maghrib beginning supplies default Iftar only when Ramadan is active. "
+            "No Maghrib Jamaat, Jumu'ah or Taraweeh timestamp is supplied by this layout."
         )
     lines.append("Preview (first three dates; all explicit times on those dates):")
     for row in table.days[:3]:
@@ -95,7 +110,13 @@ def import_summary(candidate, existing) -> str:
         lines.append(f"- {row.day.isoformat()} — {values}")
     if candidate.warnings:
         lines.append("Validation warnings:")
-        lines.extend(f"- {_safe_text(warning)}" for warning in candidate.warnings[:10])
+        lines.extend(
+            f"- {_safe_text(warning.replace('Missing times will remain unavailable.', 'Missing source fields remain absent from this import. Effective Ramadan availability is shown separately.'))}"
+            for warning in candidate.warnings[:10]
+        )
+    settings = settings or RamadanSettings()
+    if table.kind == "ramadan" or settings.mode == "on" or settings.confirmed_start:
+        lines.append(ramadan_review(table, existing, settings))
     lines.append(
         "Approve only after checking these values against the published timetable."
     )
@@ -364,6 +385,8 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 else:
                     await coordinator.storage.async_reject(self._review_stage_id)
                     coordinator.async_update_listeners()
+            except RamadanApprovalError:
+                errors["base"] = "ramadan_conflict"
             except ValueError:
                 return self.async_abort(reason="stale_import")
             except (
@@ -375,6 +398,12 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 return self.async_create_entry(
                     title="", data=dict(self.config_entry.options)
                 )
+        summary = await self.hass.async_add_executor_job(
+            import_summary,
+            staged.candidate,
+            coordinator.storage.timetables,
+            RamadanSettings.from_options(self.config_entry.options),
+        )
         return self.async_show_form(
             step_id="review",
             data_schema=vol.Schema(
@@ -389,7 +418,6 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             ),
             errors=errors,
             description_placeholders={
-                "summary": f"Mosque timezone: {coordinator.zone.key}\n\n"
-                + import_summary(staged.candidate, coordinator.storage.timetables)
+                "summary": f"Mosque timezone: {coordinator.zone.key}\n\n" + summary
             },
         )

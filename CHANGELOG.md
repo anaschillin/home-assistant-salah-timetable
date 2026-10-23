@@ -1,6 +1,19 @@
 # Changelog
 
-## 0.5.2 — unreleased
+## 0.5.3 — unreleased
+
+- Validate the contributed NMS May–June 2022 monthly PDF and the separate Ramadan
+  page in Zakariyya Masjid's 2026 calendar with strict layout adapters and independent
+  expected values. Preserve printed years and post-Ramadan rows without activation.
+- Increase the bounded PDF input limit to 4 MiB; keep all extraction resource,
+  decompression, page and text limits, and HTTPS protections.
+- Review coverage across confirmed Ramadan dates, annual fallback, default Iftar
+  and unavailable timestamps. Warn about contradictory source/effective times
+  without changing published data.
+- Recheck active Ramadan source ambiguity at approval; retain approved values and
+  the pending proposal when a conflict is found.
+
+## 0.5.2
 
 - Keep prayer tables contained and keyboard accessible at large text sizes; add a
   native Chromium regression at 200% root text size.

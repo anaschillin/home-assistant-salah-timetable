@@ -16,11 +16,17 @@ from homeassistant.util.json import load_json
 from .const import DOMAIN, STORAGE_VERSION
 from .import_model import ImportCandidate
 from .model import DailyPrayers, PrayerField, Timetable
+from .ramadan import RamadanSettings
+from .ramadan_validation import validate_ramadan_selection
 from .source_model import RemoteSource, validate_check
 
 
 class PendingImportError(ValueError):
     """A proposal must be reviewed before another can be staged."""
+
+
+class RamadanApprovalError(ValueError):
+    """A proposal cannot safely resolve under the current Ramadan settings."""
 
 
 @dataclass(frozen=True)
@@ -114,6 +120,7 @@ class TimetableStorage:
 
     def __init__(self, hass: HomeAssistant, entry_id: str, zone: ZoneInfo) -> None:
         self._hass = hass
+        self._entry_id = entry_id
         # Config-entry reloads can leave an older options flow awaiting parsing
         # while a new runtime opens this entry's store. Serialize both instances.
         locks = hass.data.setdefault(f"{DOMAIN}_storage_locks", {})
@@ -453,12 +460,21 @@ class TimetableStorage:
             await self._async_refresh_snapshot()
             staged = self._require_stage(stage_id)
             candidate = staged.candidate
+            tables = self._replacement_tables(self.timetables, candidate)
+            entry = self._hass.config_entries.async_get_entry(self._entry_id)
+            try:
+                validate_ramadan_selection(
+                    tables,
+                    RamadanSettings.from_options(entry.options if entry else {}),
+                )
+            except ValueError as err:
+                raise RamadanApprovalError(str(err)) from err
             approved = dict(self.approved_sources)
             approved[candidate.timetable.timetable_id] = candidate
             await self._async_persist(
                 replace(
                     self._snapshot,
-                    timetables=self._replacement_tables(self.timetables, candidate),
+                    timetables=tables,
                     approved_sources=MappingProxyType(approved),
                     staged=None,
                     remote_checks=self._decision_checks(candidate, "approved"),

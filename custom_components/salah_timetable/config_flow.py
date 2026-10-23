@@ -11,6 +11,7 @@ from homeassistant.helpers import selector
 
 from .const import CONF_MOSQUE_ID, CONF_TIME_ZONE, DOMAIN
 from .ramadan import RamadanSettings
+from .ramadan_validation import validate_ramadan_selection
 from .source_flow import SourceOptionsFlow
 
 
@@ -105,18 +106,7 @@ class SalahOptionsFlow(SourceOptionsFlow):
                 settings = RamadanSettings.from_options(values)
                 if settings.source_id is not None and settings.source_id not in sources:
                     raise ValueError("Select an imported Ramadan source")
-                if settings.source_id is None:
-                    dates = set()
-                    for table in tables:
-                        if table.kind != "ramadan":
-                            continue
-                        for row in table.days:
-                            if settings.is_active(row.day):
-                                if row.day in dates:
-                                    raise ValueError(
-                                        "Select a source because Ramadan timetables overlap"
-                                    )
-                                dates.add(row.day)
+                validate_ramadan_selection(tables, settings)
             except ValueError as err:
                 errors["base"] = "invalid_ramadan"
                 detail = str(err)

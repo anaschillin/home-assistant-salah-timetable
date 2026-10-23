@@ -122,6 +122,34 @@ async def test_overlapping_source_rejected_before_staging(hass, entry):
     assert storage.timetables == (original.timetable,)
 
 
+async def test_ramadan_approval_rechecks_current_options_and_retains_both_sources(
+    hass, entry
+):
+    from custom_components.salah_timetable.storage import RamadanApprovalError
+
+    storage = await reload_storage(hass, entry)
+    original = candidate(kind="ramadan", table_id="legacy-ramadan")
+    await storage.async_approve(await storage.async_stage(original))
+    stage_id = await storage.async_stage(candidate("06:00", kind="ramadan"))
+    # Settings can change after staging. Approval must check the current options.
+    hass.config_entries.async_update_entry(entry, options={"ramadan_mode": "on"})
+    with pytest.raises(RamadanApprovalError, match="overlap"):
+        await storage.async_approve(stage_id)
+    reloaded = await reload_storage(hass, entry)
+    assert reloaded.timetables == (original.timetable,)
+    assert reloaded.staged.stage_id == stage_id
+    hass.config_entries.async_update_entry(
+        entry,
+        options={"ramadan_mode": "on", "ramadan_source_id": "legacy-ramadan"},
+    )
+    await reloaded.async_approve(stage_id)
+    assert reloaded.staged is None
+    assert {table.timetable_id for table in reloaded.timetables} == {
+        "legacy-ramadan",
+        "ramadan-2026",
+    }
+
+
 async def test_approval_failure_retains_last_good_and_staged_proposal(hass, entry):
     storage = await reload_storage(hass, entry)
     original, replacement = candidate(), candidate("06:00")

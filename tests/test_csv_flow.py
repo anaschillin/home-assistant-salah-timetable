@@ -338,6 +338,49 @@ async def test_unconfirmed_ramadan_approval_does_not_apply_overrides(
     assert populated.runtime_data.data.effective.ramadan_active is False
 
 
+async def test_conflicting_ramadan_approval_stays_reviewable_and_can_be_rejected(
+    hass, entry, upload_client
+):
+    from zoneinfo import ZoneInfo
+
+    from custom_components.salah_timetable.csv_parser import CsvParser
+    from custom_components.salah_timetable.storage import TimetableStorage
+
+    storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
+    original = CsvParser().parse(
+        CSV,
+        timetable_id="legacy-ramadan",
+        kind="ramadan",
+        year=2026,
+        date_column="Date",
+        columns={"Fajr Start": "fajr_begin", "Fajr Jamaat": "fajr_jamaat"},
+    )
+    await storage.async_approve(await storage.async_stage(original))
+    hass.config_entries.async_update_entry(entry, options={"ramadan_mode": "on"})
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await stage_upload(
+        hass, entry, upload_client, REPLACEMENT_CSV, kind="ramadan"
+    )
+    staged = entry.runtime_data.storage.staged
+    assert "Unresolved dates" in result["description_placeholders"]["summary"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {"base": "ramadan_conflict"}
+    assert entry.runtime_data.storage.timetables == (original.timetable,)
+    assert entry.runtime_data.storage.staged == staged
+    assert entry.runtime_data.last_update_success
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "reject"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.runtime_data.storage.timetables == (original.timetable,)
+    assert entry.runtime_data.storage.staged is None
+
+
 async def test_fractional_year_does_not_consume_upload(hass, entry, upload_client):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
