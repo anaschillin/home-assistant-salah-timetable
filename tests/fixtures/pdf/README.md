@@ -1,8 +1,25 @@
 # PDF fixture provenance and supported sample layout
 
-All fixture PDFs, expected values and generation code in this directory are
-original synthetic examples under this repository's MIT license. They contain no
-real mosque prayer times and are not evidence of compatibility with any mosque.
+`sample_table.pdf`, `unsupported_layout.pdf` and their generator/expected CSV are
+original synthetic examples under this repository's MIT license. The synthetic
+NMS fixtures have their own [provenance](nms_README.md).
+
+Two real publications were contributed by the repository maintainer. Their layout,
+graphics and publisher marks are not claimed as original MIT-licensed artwork:
+
+| File | Publisher / actual content | SHA-256 |
+| --- | --- | --- |
+| `nms ramadhan.pdf` | Nuneaton Muslim Society, May–June **2022** monthly calendar; 61 dates, mostly outside Ramadan | `b5c7ca73f3fd659322c292745081a499152e77b5e40f228807221f224b6c96b0` |
+| `zak.pdf` | Zakariyya Jaam'e Masjid, Bolton, 2026 annual calendar plus a separate Ramadan page | `3809418e4ac386f5d0a03cbed82b6e09861e79c323af47db6be39584113ce8c1` |
+
+The corresponding `nms_monthly_2022.expected.csv` and
+`zak_ramadan_2026.expected.csv` are independent factual-value oracles built using
+Poppler `pdftotext -layout`, rather than production pypdf extraction or adapter
+helpers. They cover all 61/854 NMS dates/event values and all 31/341 Zakariyya Ramadan
+page dates/event values. The Zakariyya table includes March 20, after its Ramadan
+rows; source coverage never confirms Ramadan activation. These fixtures are
+excluded from integration release archives. Publisher permissions for repository
+redistribution remain part of the maintainer's asset-provenance review.
 
 Run `python tests/fixtures/pdf/generate.py` to deterministically recreate fixtures.
 `sample_table.pdf` is a two-page, text-based table; `sample_table.expected.csv` is

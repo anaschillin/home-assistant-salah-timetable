@@ -15,10 +15,11 @@ from threading import BoundedSemaphore
 from typing import Protocol
 
 from .csv_parser import CsvParser
-from .import_model import ImportCandidate, ImportValidationError
+from .import_model import MAX_PDF_BYTES, ImportCandidate, ImportValidationError
 from .nms_layout import NMS_COLUMNS, NmsLayout
+from .nms_monthly_layout import NMS_MONTHLY_COLUMNS, NmsMonthlyLayout
+from .zak_ramadan_layout import ZAK_RAMADAN_COLUMNS, ZakRamadanLayout
 
-MAX_PDF_BYTES = 2 * 1024 * 1024
 MAX_PDF_PAGES = 16
 MAX_TEXT_BYTES = 256 * 1024
 MAX_WORKER_OUTPUT_BYTES = 2 * MAX_TEXT_BYTES + 1024
@@ -103,6 +104,8 @@ class PipeTableLayout:
 _LAYOUTS: dict[str, PdfLayout] = {
     "pdf_table_v1": PipeTableLayout(),
     "nms_annual_v1": NmsLayout(),
+    "nms_monthly_v1": NmsMonthlyLayout(),
+    "zak_ramadan_v1": ZakRamadanLayout(),
 }
 
 
@@ -111,7 +114,7 @@ def extract_pdf_pages(content: bytes) -> tuple[str, ...]:
     if not isinstance(content, bytes) or not content.startswith(b"%PDF-"):
         raise ImportValidationError("The file is not a PDF")
     if len(content) > MAX_PDF_BYTES:
-        raise ImportValidationError("PDF must be no larger than 2 MiB")
+        raise ImportValidationError("PDF must be no larger than 4 MiB")
     worker = Path(__file__).with_name("pdf_worker.py")
     try:
         with _WORKERS:
@@ -176,14 +179,24 @@ class PdfParser:
         columns: dict[str, str],
         time_format: str = "24h",
     ) -> ImportCandidate:
-        if self.layout_id == "nms_annual_v1" and (
-            kind != "annual"
-            or date_column != "Date"
+        fixed_columns = {
+            "nms_annual_v1": NMS_COLUMNS,
+            "nms_monthly_v1": NMS_MONTHLY_COLUMNS,
+            "zak_ramadan_v1": ZAK_RAMADAN_COLUMNS,
+        }.get(self.layout_id)
+        if self.layout_id == "nms_annual_v1" and kind != "annual":
+            raise ImportValidationError("Use Annual kind for the NMS annual layout")
+        if self.layout_id == "zak_ramadan_v1" and kind != "ramadan":
+            raise ImportValidationError(
+                "Use Ramadan kind for the Zakariyya Ramadan page layout"
+            )
+        if fixed_columns is not None and (
+            date_column != "Date"
             or time_format != "24h"
-            or any(NMS_COLUMNS.get(name) != field for name, field in columns.items())
+            or any(fixed_columns.get(name) != field for name, field in columns.items())
         ):
             raise ImportValidationError(
-                "Use Annual, Date, 24-hour format and the labelled prayer columns for the NMS layout"
+                "Use Date, 24-hour format and the labelled prayer columns for this mosque layout"
             )
         canonical_csv = self._csv(content)
         candidate = CsvParser().parse(

@@ -10,7 +10,9 @@ import json
 import resource
 import sys
 
-MAX_PDF_BYTES = 2 * 1024 * 1024
+# Keep in sync with import_model.MAX_PDF_BYTES; this isolated script intentionally
+# imports no integration modules. The actual-worker tests exercise the boundary.
+MAX_PDF_BYTES = 4 * 1024 * 1024
 MAX_PAGES = 16
 MAX_TEXT_BYTES = 256 * 1024
 MAX_PAGE_STREAM_BYTES = 2 * 1024 * 1024

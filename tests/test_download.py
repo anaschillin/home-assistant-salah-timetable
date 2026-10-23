@@ -331,7 +331,13 @@ async def test_redirect_limit_is_bounded(transport):
             {"Content-Type": "application/pdf", "Content-Encoding": "br"},
             "unsupported_encoding",
         ),
-        ({"Content-Type": "application/pdf", "Content-Length": "2097153"}, "too_large"),
+        (
+            {
+                "Content-Type": "application/pdf",
+                "Content-Length": str(download.MAX_PDF_BYTES + 1),
+            },
+            "too_large",
+        ),
         (
             {"Content-Type": "application/pdf", "Content-Length": "-1"},
             "invalid_content_length",

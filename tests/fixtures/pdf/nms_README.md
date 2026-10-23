@@ -3,7 +3,8 @@
 `nms_synthetic_2026.pdf`, its golden CSV and `nms_generate.py` are original synthetic
 MIT-licensed test data. Times are fictional and must never be used for prayer.
 The public NMS name/URL identify the inspected document signature; no published
-calendar graphics, contact details, or source PDF are redistributed here.
+calendar graphics or source PDF are included in this synthetic fixture. The separately
+contributed real `nms ramadhan.pdf` has its own attribution in [README.md](README.md).
 
 The fourteen-page fixture models the inspected Nuneaton Muslim Society 2026
 structure: cover/contact pages, twelve explicit month/year pages, thirteen physical

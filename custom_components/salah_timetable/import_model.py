@@ -13,7 +13,7 @@ from typing import Mapping, Protocol
 from .model import PrayerField, Timetable
 
 MAX_SOURCE_BYTES = 512 * 1024
-MAX_PDF_BYTES = 2 * 1024 * 1024
+MAX_PDF_BYTES = 4 * 1024 * 1024
 
 
 class ImportValidationError(ValueError):

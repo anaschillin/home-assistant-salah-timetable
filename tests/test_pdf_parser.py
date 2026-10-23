@@ -5,6 +5,7 @@ import importlib.util
 import io
 import json
 import subprocess
+import sys
 from datetime import date, time
 from hashlib import sha256
 from pathlib import Path
@@ -112,6 +113,27 @@ def test_invalid_selected_year_does_not_guess():
 def test_invalid_or_oversized_pdf(content):
     with pytest.raises(ImportValidationError):
         PdfParser().inspect(content)
+
+
+def test_parent_and_actual_worker_share_the_four_mib_boundary():
+    content = sample_pdf()
+    padding = MAX_PDF_BYTES - len(content) - 2
+    content = content.replace(b"startxref", b"%" + b"x" * padding + b"\nstartxref")
+    assert len(content) == MAX_PDF_BYTES == 4 * 1024 * 1024
+    assert len(extract_pdf_pages(content)) == 2
+    # Bypass the parent check to exercise the isolated worker's own stdin bound.
+    worker = (
+        Path(__file__).parents[1] / "custom_components/salah_timetable/pdf_worker.py"
+    )
+    result = subprocess.run(
+        [sys.executable, "-I", str(worker)],
+        input=content + b"x",
+        capture_output=True,
+        timeout=PDF_TIMEOUT_SECONDS,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert not result.stdout
 
 
 def test_unsupported_layout_does_not_extract_guesses():

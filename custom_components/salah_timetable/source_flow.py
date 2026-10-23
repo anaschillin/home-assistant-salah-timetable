@@ -9,10 +9,10 @@ from homeassistant.util import dt as dt_util
 
 from .download import DownloadError, async_download, validate_url
 from .import_flow import CsvImportOptionsFlow, _safe_text
-from .import_model import ImportValidationError
+from .import_model import MAX_PDF_BYTES, ImportValidationError
 from .pdf_parser import PdfParser
 
-PDF_LAYOUTS = ["nms_annual_v1", "pdf_table_v1"]
+PDF_LAYOUTS = ["nms_annual_v1", "nms_monthly_v1", "zak_ramadan_v1", "pdf_table_v1"]
 
 
 def _year(value) -> int:
@@ -32,7 +32,7 @@ def read_uploaded_pdf(hass, file_id, layout_id):
 
     with process_uploaded_file(hass, file_id) as path:
         with path.open("rb") as stream:
-            content = stream.read(2 * 1024 * 1024 + 1)
+            content = stream.read(MAX_PDF_BYTES + 1)
         parser = PdfParser(layout_id=layout_id)
         parser.inspect(content)
         return content

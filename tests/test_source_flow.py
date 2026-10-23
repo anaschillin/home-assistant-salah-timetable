@@ -14,6 +14,7 @@ from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.const import DOMAIN
 from custom_components.salah_timetable.download import DownloadError, DownloadResult
+from custom_components.salah_timetable.import_model import MAX_PDF_BYTES
 
 PDF_FIXTURE = Path(__file__).parent / "fixtures/pdf/sample_table.pdf"
 CSV = b"Date,Fajr Start,Fajr Jamaat\n2026-01-01,05:45,06:15\n2026-01-02,05:47,06:15\n"
@@ -286,7 +287,7 @@ async def test_manual_pdf_upload_approval_uses_same_persistence(
 
 
 @pytest.mark.parametrize(
-    "content", [b"not a pdf", b"%PDF-invalid", b"x" * (2 * 1024 * 1024 + 1)]
+    "content", [b"not a pdf", b"%PDF-invalid", b"%PDF-" + b"x" * MAX_PDF_BYTES]
 )
 async def test_invalid_pdf_upload_is_cleaned_up(
     hass, entry, source_upload_client, content

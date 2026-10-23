@@ -84,7 +84,7 @@
       },
       "import_url": {
         "title": "Add a timetable URL",
-        "description": "Use a public HTTPS PDF or CSV URL. Downloads are validated and staged for review before activation. Choose the documented PDF layout: Nuneaton Muslim Society annual calendar, or the synthetic sample table. Other mosque layouts are unsupported. For CSV, the PDF layout choice is ignored.\n\n{detail}",
+        "description": "Use a public HTTPS PDF or CSV URL. Downloads are validated and staged for review before approval. Select the documented PDF layout and printed year: NMS annual/monthly calendar pages, the separate Zakariyya 2026 Ramadan page, or the synthetic sample table. Other layouts are unsupported. For CSV, the PDF layout choice is ignored. Ramadan activation requires separate confirmed dates or explicit manual activation.\n\n{detail}",
         "data": {
           "url": "Public HTTPS timetable URL",
           "media_type": "File type",
@@ -95,7 +95,7 @@
       },
       "import_pdf": {
         "title": "Upload a supported PDF",
-        "description": "Upload a text PDF no larger than 2 MiB (at most 16 pages). For the Nuneaton Muslim Society calendar choose its annual layout and Annual kind. Scanned/encrypted files and unknown layouts are rejected; use CSV instead. The source is staged before activation.\n\n{detail}",
+        "description": "Upload a text PDF no larger than 4 MiB (at most 16 pages). Select its documented layout and printed year. Use Annual for the NMS annual calendar; the NMS monthly layout also supports partial calendars. Use Ramadan for the separate Zakariyya Ramadan page. Scanned/encrypted files and unknown layouts are rejected; use CSV instead. Approval stores the source; Ramadan settings control activation.\n\n{detail}",
         "data": {
           "file": "PDF file",
           "kind": "Timetable kind",
@@ -134,7 +134,8 @@
       "save_failed": "Saving failed. The active timetable has not been replaced. Try again after checking Home Assistant storage and logs.",
       "invalid_pdf": "The PDF could not be validated. See details above.",
       "source_failed": "The URL source could not be downloaded or parsed. See details above.",
-      "invalid_ramadan": "The Ramadan settings are invalid. See the details above."
+      "invalid_ramadan": "The Ramadan settings are invalid. See the details above.",
+      "ramadan_conflict": "Approval conflicts with the current Ramadan settings. Select a Ramadan source in Ramadan settings, then review again. The approved timetable and pending proposal have been retained."
     },
     "abort": {
       "integration_not_loaded": "The mosque integration must be loaded before importing. Check its setup error or change its settings first.",
@@ -265,7 +266,9 @@
     "pdf_layout": {
       "options": {
         "pdf_table_v1": "Sample pipe-delimited text table (v1)",
-        "nms_annual_v1": "Nuneaton Muslim Society annual calendar (v1)"
+        "nms_annual_v1": "Nuneaton Muslim Society annual calendar (v1)",
+        "nms_monthly_v1": "Nuneaton Muslim Society monthly calendar pages (v1)",
+        "zak_ramadan_v1": "Zakariyya Masjid — separate Ramadan page, 2026 (v1)"
       }
     },
     "source_format": {
