@@ -1,0 +1,9 @@
+{
+  "name": "salah-timetable-card",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/frontend/*.test.mjs",
+    "test:browser": "node --test tests/frontend/browser-smoke.mjs"
+  }
+}

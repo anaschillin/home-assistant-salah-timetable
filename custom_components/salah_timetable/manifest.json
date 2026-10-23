@@ -1,6 +1,11 @@
 {
   "domain": "salah_timetable",
   "name": "Salah Timetable",
+  "after_dependencies": [
+    "frontend",
+    "http",
+    "lovelace"
+  ],
   "codeowners": [
     "@anaschillin"
   ],
@@ -15,5 +20,5 @@
   "requirements": [
     "pypdf==6.21.1"
   ],
-  "version": "0.3.1"
+  "version": "0.5.0"
 }

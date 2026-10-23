@@ -11,6 +11,7 @@ from homeassistant.helpers import issue_registry as ir
 
 from .const import CONF_TIME_ZONE, DOMAIN
 from .coordinator import SalahCoordinator
+from .frontend import async_setup_frontend
 from .source_updates import SourceUpdateManager
 from .storage import TimetableStorage
 
@@ -19,6 +20,7 @@ PLATFORMS = [Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> bool:
+    await async_setup_frontend(hass)
     zone = ZoneInfo(entry.options.get(CONF_TIME_ZONE, entry.data[CONF_TIME_ZONE]))
     storage = TimetableStorage(hass, entry.entry_id, zone)
     try:
