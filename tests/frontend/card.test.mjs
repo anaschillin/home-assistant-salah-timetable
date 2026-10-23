@@ -45,6 +45,65 @@ test("card renders local times, missing states and theme-responsive layout", () 
   card.hass = {states: {"sensor.mosque_prayer_timetable": {state: "unavailable", attributes}}}; assert.match(card.shadowRoot.textContent, /Timetable unavailable/);
 });
 
+test("Friday Dhuhr congregation is labelled Jumuah", () => {
+  const friday = {
+    ...attributes,
+    date: "2026-10-23",
+    prayers: [{
+      key: "dhuhr",
+      name: "Dhuhr",
+      begin: "2026-10-23T11:55:00Z",
+      jamaat: ["2026-10-23T12:25:00Z"],
+    }],
+    jamaat_events: [{
+      timestamp: "2026-10-23T12:25:00Z",
+      prayer: "jumuah",
+      field: "jumuah",
+    }],
+  };
+
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass(friday);
+  card._render(Date.parse("2026-10-23T11:00:00Z"));
+
+  const rows = find(card.shadowRoot, "tr");
+  const dhuhr = rows.find(row => row.textContent.includes("Dhuhr"));
+
+  assert.ok(dhuhr, "Dhuhr row should exist");
+  assert.match(dhuhr.textContent, /Jumuah\s+13:25/);
+});
+
+test("weekday Dhuhr Jamaat is not labelled Jumuah", () => {
+  const weekday = {
+    ...attributes,
+    date: "2026-10-22",
+    prayers: [{
+      key: "dhuhr",
+      name: "Dhuhr",
+      begin: "2026-10-22T11:55:00Z",
+      jamaat: ["2026-10-22T12:25:00Z"],
+    }],
+    jamaat_events: [{
+      timestamp: "2026-10-22T12:25:00Z",
+      prayer: "dhuhr",
+      field: "dhuhr_jamaat",
+    }],
+  };
+
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass(weekday);
+  card._render(Date.parse("2026-10-22T11:00:00Z"));
+
+  const dhuhr = find(card.shadowRoot, "tr")
+    .find(row => row.textContent.includes("Dhuhr"));
+
+  assert.ok(dhuhr);
+  assert.match(dhuhr.textContent, /13:25/);
+  assert.doesNotMatch(dhuhr.textContent, /Jumuah/);
+});
+
 test("card lifecycle ticks locally and releases its interval", () => {
   const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = hass();
   card.connectedCallback(); card.connectedCallback(); assert.equal(timers.size, 1);

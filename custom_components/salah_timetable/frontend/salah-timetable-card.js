@@ -1,4 +1,4 @@
-import {countdown, discoverEntity, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, prayerName} from "./card-utils.js?v=0.5.4";
+import {countdown, discoverEntity, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, prayerName} from "./card-utils.js?v=0.5.5";
 
 const CSS = `
 :host{display:block;color:var(--primary-text-color);font-family:var(--paper-font-body1_-_font-family,inherit)}
@@ -83,7 +83,23 @@ export class SalahTimetableCard extends HTMLElement {
       if (!prayer || typeof prayer !== "object") continue;
       const row = node("tr"); const name = node("th", prayer.name || prayerName({prayer: prayer.key})); name.scope = "row";
       const congregations = Array.isArray(prayer.jamaat) ? prayer.jamaat : [];
-      row.append(name, node("td", formatTime(prayer.begin, zone, locale)), node("td", congregations.length ? congregations.map(value => formatTime(value, zone, locale)).join(" / ") : "—"));
+
+const congregationTimes = congregations.map(value => {
+  const isJumuah = prayer.key === "dhuhr" &&
+    Array.isArray(data.jamaat_events) &&
+    data.jamaat_events.some(event =>
+      event.prayer === "jumuah" &&
+      Date.parse(event.timestamp) === Date.parse(value)
+    );
+
+  return `${isJumuah ? "Jumuah " : ""}${formatTime(value, zone, locale)}`;
+});
+
+row.append(
+  name,
+  node("td", formatTime(prayer.begin, zone, locale)),
+  node("td", congregationTimes.length ? congregationTimes.join(" / ") : "—")
+);
       body.append(row);
     }
     table.append(body);
