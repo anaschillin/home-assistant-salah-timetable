@@ -94,3 +94,23 @@ only allowlisted coverage/event flags.
 Local release-note preparation passed its seven tests and generated a ZIP, checksum
 and version-specific notes. The manual draft-release workflow was parsed and reviewed
 but was not triggered; GitHub API access remains blocked in this environment.
+
+
+A new Chromium check reproduced phone-width overflow at 200% root text size. The
+prayer table now stays in a labelled, keyboard-focusable scroll region; the enlarged
+layout passes at both 360px and 900px. The native fixture now has 21 checks per
+viewport. Asset cache versions are advanced in candidate 0.5.2.
+
+A separate minimum-version runner started HA 2026.10.0 and completed configuration,
+CSV approval, Ramadan and independent-mosque checks. Its first restart failed because
+Docker reassigned an automatic host port; an explicit stable port corrected that
+runner issue. A subsequent attempt still did not confirm expected Fajr after restart.
+Full minimum-version acceptance remains unverified. The draft runner is preserved
+on `codex/live-smoke-runner` for startup/state investigation, and is not included in
+main-branch validation tooling. Task containers and private configurations were removed.
+
+
+Final candidate 0.5.2 checks after merging the maintainer updates: **569 Python
+tests**, **31 Node frontend tests**, both native Chromium viewport fixtures
+(including the enlarged-text regression), Ruff lint/format, release asset/note
+preparation and official hassfest all passed. No GitHub release/tag was published.

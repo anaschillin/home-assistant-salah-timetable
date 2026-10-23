@@ -1,10 +1,15 @@
 # Changelog
 
-## 0.5.1 — unreleased
+## 0.5.2 — unreleased
+
+- Keep prayer tables contained and keyboard accessible at large text sizes; add a
+  native Chromium regression at 200% root text size.
 
 - Report actual integration load state and safe row/event availability in diagnostics.
 - Strengthen historical storage migration and backup recovery tests, and add checked
   release-note preparation with a manual, validation-gated draft workflow.
+
+## 0.5.1
 
 - Keep published Sehri/Iftar times visible after their events on the final confirmed
   Ramadan date, with “Passed” rather than an unavailable value. Future countdown

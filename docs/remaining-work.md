@@ -8,7 +8,7 @@ complete only when its stated evidence exists. See [recorded validation](validat
 | Work | Status | Completion evidence |
 | --- | --- | --- |
 | Hosted validation | Unverified here: GitHub API access returns Forbidden | Successful Validate run for the exact release commit, including HACS and hassfest |
-| Minimum HA version | Live smoke in progress | HA 2026.10.0 configuration, import, persistence, card and real editor checks pass |
+| Minimum HA version | HA 2026.10.0 setup/import work; restart acceptance is unresolved | HA 2026.10.0 configuration, import, persistence, card and real editor checks pass |
 | HACS custom-repository installation | Pending | Install with a maintainer's GitHub authorization in disposable HA; verify bundled assets, restart, update and removal |
 | Physical mobile/tablet checks | Pending | Test narrow displays, themes, text scaling, touch and keyboard access on real devices |
 | Complete backup restoration | Pending | Restore a full HA backup archive, including configuration entries and timetable storage, then verify identities and approved/pending data |
@@ -36,6 +36,13 @@ HACS installation of this repository.
 - A manual draft-release workflow that requires an existing reviewed tag and green
   validation for its exact commit on main; it neither creates tags nor publishes
   or overwrites releases.
+
+The unfinished repeatable live runner is preserved on the
+[`codex/live-smoke-runner` branch](https://github.com/anaschillin/home-assistant-salah-timetable/tree/codex/live-smoke-runner).
+It reached configuration, import, Ramadan and two-mosque checks on HA 2026.10.0,
+but did not confirm the expected prayer state after restart. Complete startup/state
+diagnostics before treating that result as a storage defect or claiming minimum-version
+acceptance. The validated HA 2026.10.2 checks remain recorded separately.
 
 ## Subsequent additions
 

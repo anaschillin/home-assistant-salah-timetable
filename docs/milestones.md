@@ -3,7 +3,7 @@
 The [remaining-work checklist](remaining-work.md) tracks release blockers separately
 from later feature additions.
 
-Milestones 1–5 are implemented; the current candidate is 0.5.1. Keep follow-up work in focused PRs
+Milestones 1–5 are implemented; the current candidate is 0.5.2. Keep follow-up work in focused PRs
 with its own tests and documentation. A disposable HA 2026.10.2 runtime/frontend smoke check passed. Release acceptance
 still includes hosted validation, HACS installation and physical-device checks.
 

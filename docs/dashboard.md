@@ -42,7 +42,9 @@ entry per mosque, and each card follows the selected entity's mosque timezone.
 The layout adapts to narrow screens and uses Home Assistant's light/dark theme
 variables. Times use the configured mosque timezone, even when the browser is in
 another timezone. Countdowns update locally once per second from absolute event
-timestamps; they do not write Home Assistant sensor states or call services.
+timestamps; they do not write Home Assistant sensor states or call services. At
+large text sizes, the prayer table stays inside a labelled, keyboard-focusable
+scroll region so its columns remain readable without widening the card.
 
 ## Jamaat modes and boundaries
 
@@ -99,7 +101,7 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.5.1
+/salah_timetable/salah-timetable-card.js?v=0.5.2
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an
