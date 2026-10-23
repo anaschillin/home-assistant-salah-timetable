@@ -113,7 +113,7 @@ for (const width of [360, 900]) { const frame = document.createElement('iframe')
       const report = reports.find(item => item.width === width);
       assert.ok(report, `No report for ${width}px: ${JSON.stringify(reports)}`);
       assert.equal(report.status, "passed", report.error);
-      assert.equal(report.checks.length, 20);
+      assert.equal(report.checks.length, 21);
     });
     if (process.env.BROWSER_SCREENSHOT_DIR) {
       await debuggerSession.call("Runtime.evaluate", {expression: "new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))", awaitPromise: true});

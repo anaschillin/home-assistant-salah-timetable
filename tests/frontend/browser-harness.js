@@ -56,6 +56,11 @@ try {
   card.setConfig({entity: "sensor.example_prayer_timetable"}); card._render(Date.parse(time(4, 40)));
   const width = window.innerWidth;
   check("card fits its viewport", card.getBoundingClientRect().width <= width && document.documentElement.scrollWidth <= width);
+  document.documentElement.style.fontSize = "200%";
+  const scaledContent = card.shadowRoot.querySelector(".content");
+  const fitsScaledText = scaledContent.scrollWidth <= scaledContent.clientWidth + 1;
+  document.documentElement.style.fontSize = "";
+  check("card contains 200% text without overflowing", fitsScaledText);
   const columns = getComputedStyle(card.shadowRoot.querySelector(".ramadan-grid")).gridTemplateColumns.split(" ").length;
   check("responsive Ramadan grid", columns === (width <= 420 ? 2 : 3));
   document.documentElement.style.setProperty("--primary-text-color", "rgb(250, 250, 250)");
