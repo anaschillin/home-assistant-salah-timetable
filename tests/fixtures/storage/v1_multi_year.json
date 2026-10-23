@@ -1,0 +1,36 @@
+{
+  "timetables": [
+    {
+      "id": "legacy-annual",
+      "kind": "annual",
+      "days": [
+        {
+          "date": "2026-10-21",
+          "times": {
+            "fajr_begin": [
+              "05:45"
+            ],
+            "fajr_jamaat": [
+              "06:15"
+            ]
+          },
+          "original": {
+            "Dawn": "05:45",
+            "Jamaat": "06:15"
+          }
+        },
+        {
+          "date": "2027-01-01",
+          "times": {
+            "fajr_begin": [
+              "06:10"
+            ]
+          },
+          "original": {
+            "Dawn": "06:10"
+          }
+        }
+      ]
+    }
+  ]
+}
