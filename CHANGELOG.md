@@ -1,6 +1,15 @@
 # Changelog
 
-## 0.5.4 — unreleased
+## 0.5.5 — unreleased
+
+- Label published Jumu'ah congregation times in the daily Dhuhr row while retaining
+  ordinary Dhuhr labels; preserve the maintainer's display fix and regression tests.
+- Exercise real NMS monthly Ramadan approval and explicit date confirmation.
+- Retain CI browser diagnostics, prefer native Chrome and allow a bounded 15-second
+  debugger startup. Handle private Chromium profile paths, partially written port
+  files, process exits and signal failures with regression tests.
+
+## 0.5.4
 
 - Add live validation, HACS custom-repository and MIT license README badges.
 - Support the inspected Zakariyya 2026 annual PDF tables as a separate layout from

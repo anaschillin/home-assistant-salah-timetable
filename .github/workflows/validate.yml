@@ -61,10 +61,11 @@ jobs:
           echo "Environment:"
           node --version
           uname -a
-        
+
       - run: npm run test:browser
         env:
           REQUIRE_BROWSER_TESTS: '1'
+          CHROME_BIN: /usr/bin/google-chrome
 
   hassfest:
     runs-on: ubuntu-latest

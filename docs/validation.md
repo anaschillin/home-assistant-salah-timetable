@@ -195,3 +195,27 @@ reported passing for main before these commits. This coarse status is not proof 
 validation for the new release commit: GitHub API access still returns Forbidden,
 so exact hosted results and the remaining release acceptance checks remain pending.
 A release badge is deferred until an actual tagged release is published.
+
+
+## Maintainer updates and browser-startup hardening — candidate 0.5.5
+
+Pulled the maintainer's Chrome diagnostic step, NMS monthly confirmation test and
+Jumu'ah/Dhuhr display fix through `a1773eb`; those changes are retained. The reported
+hosted failure timed out waiting six seconds for `DevToolsActivePort`. Its D-Bus
+stderr alone does not establish why Chrome failed to expose that file.
+
+The smoke harness now prefers native Chrome before Chromium wrappers, with the CI
+job explicitly selecting `/usr/bin/google-chrome`. Local Chromium remains supported.
+Startup has a bounded 15-second budget, accepts Chrome's loopback-only stderr
+announcement when a confined profile file is invisible, and waits for a complete,
+valid port line. Spawn failures, numeric exits and signal termination are reported
+immediately. The whole test and browser process remain bounded and cleaned up;
+mandatory CI browser checks are not skipped or retried until they pass.
+
+Seven launcher regressions cover delayed/partial writes, private-profile discovery,
+invalid ports/non-loopback endpoints, exits, signals, spawn errors and timeout
+stderr. **40 Node tests** and real Chromium smoke at 360/900 pixels passed. The
+selected local binary was `/usr/bin/chromium`. **26 focused Python tests** covering
+the maintainer's NMS flow and frontend/packaging/release preparation also passed,
+as did Ruff lint/format. The new hosted Actions run remains to be checked after push;
+these local results do not establish its outcome.

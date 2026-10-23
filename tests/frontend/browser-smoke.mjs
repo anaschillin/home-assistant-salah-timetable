@@ -8,10 +8,11 @@ import {tmpdir} from "node:os";
 import {resolve, join} from "node:path";
 import {fileURLToPath} from "node:url";
 import {spawn} from "node:child_process";
+import {waitForDebuggerPort} from "./browser-startup.mjs";
 
 const root = resolve(fileURLToPath(new URL("../../", import.meta.url)));
 let browser;
-for (const candidate of [process.env.CHROME_BIN, "/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/google-chrome", "/opt/google/chrome/chrome"].filter(Boolean)) {
+for (const candidate of [process.env.CHROME_BIN, "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/opt/google/chrome/chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser"].filter(Boolean)) {
   try { await access(candidate, constants.X_OK); browser = candidate; break; } catch { /* Try the next installed browser. */ }
 }
 const skip = !browser && process.env.REQUIRE_BROWSER_TESTS !== "1" && process.env.REQUIRE_BROWSER !== "1" ? "Chromium/Chrome is not installed; set CHROME_BIN or REQUIRE_BROWSER_TESTS=1" : false;
@@ -57,8 +58,9 @@ function stopBrowser(child) {
   try { process.kill(process.platform === "win32" ? child.pid : -child.pid, "SIGKILL"); } catch { /* Already exited. */ }
 }
 
-test("real Chromium card and editor smoke", {skip, timeout: 30000}, async t => {
+test("real Chromium card and editor smoke", {skip, timeout: 45000}, async t => {
   assert.ok(browser, "A Chromium browser is required for this run");
+  t.diagnostic(`Browser executable: ${browser}`);
   const directory = await mkdtemp(join(tmpdir(), "salah-card-browser-"));
   const main = `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0}#result{display:none}</style></head><body><pre id="result">pending</pre><script>
 window.salahBrowserReports = []; window.addEventListener('message', event => { if(event.origin === location.origin && event.data.kind === 'salah-browser-result') { window.salahBrowserReports.push(event.data); document.querySelector('#result').textContent = JSON.stringify(window.salahBrowserReports); } });
@@ -84,16 +86,8 @@ for (const width of [360, 900]) { const frame = document.createElement('iframe')
     const args = ["--headless", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--disable-background-networking", "--no-first-run", "--no-default-browser-check", `--user-data-dir=${directory}`, "--remote-debugging-port=0", "about:blank"];
     child = spawn(browser, args, {detached: process.platform !== "win32", stdio: ["ignore", "ignore", "pipe"]});
     child.stderr.on("data", value => { stderr = (stderr + value).slice(-4000); });
-    let spawnError;
-    child.on("error", error => { spawnError = error; });
-    deadline = setTimeout(() => stopBrowser(child), 25000);
-    let port;
-    for (let attempt = 0; attempt < 60; attempt++) {
-      if (spawnError) throw spawnError;
-      assert.equal(child.exitCode, null, `Browser exited during startup: ${stderr}`);
-      try { port = (await readFile(join(directory, "DevToolsActivePort"), "utf8")).split("\n")[0]; break; } catch { await pause(100); }
-    }
-    assert.match(port || "", /^\d+$/, `Browser did not start its debugger: ${stderr}`);
+    deadline = setTimeout(() => stopBrowser(child), 40000);
+    const port = await waitForDebuggerPort(child, directory, {stderr: () => stderr});
     const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`, {signal: AbortSignal.timeout(3000)})).json();
     const page = targets.find(target => target.type === "page");
     assert.ok(page?.webSocketDebuggerUrl, "Browser did not expose a page debugger");
