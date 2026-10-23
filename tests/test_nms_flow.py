@@ -245,3 +245,92 @@ async def test_nms_url_profile_and_changed_pdf_require_new_approval(hass, entry)
         entry.runtime_data.storage.staged.candidate.sha256
         == sha256(changed).hexdigest()
     )
+
+async def test_nms_monthly_pdf_ramadan_upload_approval_and_activation(hass, entry, nms_upload_client, freezer):
+    """NMS monthly PDF can be approved and activated as a Ramadan source."""
+    from datetime import time
+
+    monthly_fixture = (
+        Path(__file__).parent / "fixtures/pdf/nms ramadhan.pdf"
+    )
+
+    await setup(hass, entry)
+
+    # Upload the real NMS monthly PDF as a Ramadan source.
+    result = await menu_step(hass, entry, "import_pdf")
+    content = monthly_fixture.read_bytes()
+    file_id, path = await upload_pdf(hass, nms_upload_client, content)
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "file": file_id,
+            "pdf_layout": "nms_monthly_v1",
+            "kind": "ramadan",
+            "year": 2022,
+        },
+    )
+
+    assert not await hass.async_add_executor_job(path.exists)
+
+    result = await submit_mapping(hass, result)
+
+    storage = entry.runtime_data.storage
+    candidate = storage.staged.candidate
+
+    assert candidate.parser_id == "nms_monthly_v1"
+    assert candidate.coverage.row_count == 61
+    assert candidate.coverage.missing_dates == ()
+
+    await approve(hass, result)
+
+    ramadan = storage.approved_sources["ramadan-2022"]
+
+    # Importing a Ramadan source does not automatically activate it.
+    freezer.move_to("2022-05-01T12:00:00+00:00")
+    await entry.runtime_data.async_refresh()
+    assert not entry.runtime_data.data.effective.ramadan_active
+
+    # Confirm a deliberately selected test window.
+    result = await menu_step(hass, entry, "ramadan")
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "ramadan_mode": "auto",
+            "ramadan_start": "2022-05-01",
+            "ramadan_end": "2022-05-02",
+            "ramadan_adjustment": 0,
+            "ramadan_source_id": "ramadan-2022",
+        },
+    )
+
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+
+    # Confirm settings and approved source survive a reload.
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert (
+        entry.runtime_data.storage.approved_sources["ramadan-2022"]
+        == ramadan
+    )
+
+    freezer.move_to("2022-05-01T12:00:00+00:00")
+    await entry.runtime_data.async_refresh()
+
+    effective = entry.runtime_data.data.effective
+
+    assert effective.ramadan_active
+    assert effective.row is not None
+    assert effective.row.times[PrayerField.IFTAR] == (time(20, 35),)
+    assert effective.row.times[PrayerField.MAGHRIB_BEGIN] == (
+        time(20, 32),
+    )
+    assert PrayerField.TARAWEEH not in effective.row.times
+
+    # Outside the confirmed window, Ramadan is inactive.
+    freezer.move_to("2022-05-03T12:00:00+00:00")
+    await entry.runtime_data.async_refresh()
+
+    assert not entry.runtime_data.data.effective.ramadan_active
