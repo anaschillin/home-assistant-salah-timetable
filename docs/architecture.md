@@ -193,7 +193,9 @@ Node tests cover helpers, rendering, safe text and editor round trips. An isolat
 headless Chromium harness checks real custom-element rendering with HA element
 stand-ins, narrow layouts, theme changes and editor interactions. These checks do not
 prove installation in a live HA frontend or visual behavior on real phones/tablets.
-See [dashboard setup](dashboard.md).
+A separate disposable HA 2026.10.2 manual-install smoke verified the actual frontend
+and editor, including a 0.5.0-to-0.5.1 resource upgrade. See the
+[validation record](validation.md) and [dashboard setup](dashboard.md).
 
 ## Remaining limitations
 

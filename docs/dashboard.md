@@ -4,6 +4,16 @@ The **Salah Timetable** card is bundled with the integration. It uses the mosque
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
 template sensors or YAML configuration.
 
+## Preview
+
+These screenshots show synthetic timetable data in the real Home Assistant 2026.10.2
+frontend, running integration 0.5.1. They are viewport checks, not physical-device
+certification.
+
+<img src="images/card-mobile.png" alt="Salah Timetable in Home Assistant at phone width, with prayer times and Ramadan information" width="260">
+
+[Tablet-width screenshot](images/card-tablet.png)
+
 ## Add the card
 
 1. Install/restart the integration, configure a mosque and approve a timetable.
@@ -117,7 +127,9 @@ with the selected mosque's actual entity ID.
 ## Validation limits
 
 Backend event/flow tests, Node frontend tests and an isolated headless Chromium
-harness cover the implemented behavior. The browser harness uses stand-ins for HA
-elements. It has not verified installation in a live HA frontend, HACS setup or
-visual rendering on real mobile/tablet devices. These remain release checks in
-[Milestone 6](milestones.md#milestone-6--release-hardening).
+harness cover the implemented behavior. That harness uses stand-ins for HA elements.
+A separate disposable HA 2026.10.2 manual installation also verified actual card
+loading, real selector/editor interactions, resource upgrades and phone/tablet
+viewports. HACS installation, complete manual picker workflows and physical-device
+visual checks remain release work. See the [validation record](validation.md) and
+[Milestone 6](milestones.md#milestone-6--release-hardening-partially-implemented).

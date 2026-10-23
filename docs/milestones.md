@@ -1,8 +1,8 @@
 # Implementation plan
 
-Milestones 1–5 are implemented in the 0.5.0 code. Keep follow-up work in focused PRs
-with its own tests and documentation. Release acceptance still includes hosted
-validation and a manual Home Assistant/HACS installation check.
+Milestones 1–5 are implemented; the current candidate is 0.5.1. Keep follow-up work in focused PRs
+with its own tests and documentation. A disposable HA 2026.10.2 runtime/frontend smoke check passed. Release acceptance
+still includes hosted validation, HACS installation and physical-device checks.
 
 ## Milestone 1 — foundation (implemented)
 
@@ -110,16 +110,20 @@ and HA theme variables. No separate card download or Card Mod is required.
 
 Node tests and an isolated headless Chromium harness cover event contexts, editor
 round trips, local ticking/timer cleanup, safe text, disconnections, theme changes
-and narrow layouts. HA elements are stand-ins in that harness. A live HA frontend
-installation, graphical setup through the real HA UI, HACS installation and visual
-checks on real mobile/tablet devices remain release acceptance work. See
-[dashboard setup](dashboard.md).
+and narrow layouts. HA elements are stand-ins in that harness. A separate disposable
+HA 2026.10.2 manual installation verified real card/editor components and viewport
+rendering. Complete manual picker workflows, HACS installation and physical-device
+checks remain release acceptance work; see the [validation record](validation.md)
+and [dashboard setup](dashboard.md).
 
 ## Milestone 6 — release hardening (partially implemented)
 
 Implemented: actionable Repairs for invalid stored records, reproducible manual-install
 ZIPs with checksums, runtime-asset inclusion checks and synchronized manifest/project/
-frontend cache versions. See [release preparation and manual checks](releasing.md).
+frontend cache versions. A real HA 2026.10.2 manual-install smoke also covers import,
+restart/pending review, two-mosque isolation/removal, resource upgrade and actual
+frontend/editor rendering. See the [validation record](validation.md) and
+[release preparation and manual checks](releasing.md).
 
 1. Exercise install, graphical setup, restart, upgrade and removal in a disposable
    HA instance installed through HACS; check real mobile/tablet rendering and themes.
@@ -127,8 +131,8 @@ frontend cache versions. See [release preparation and manual checks](releasing.m
    diagnostics and schema 1/2 migrations already exist.
 3. Review all network/import paths and resource limits, and add independently tested,
    redistributable fixtures before supporting further PDF layouts.
-4. Verify hosted pytest/frontend/lint, hassfest and HACS jobs; define a support policy,
-   versioned release notes and reviewed release publication. Reproducible archive
+4. Verify hosted pytest/frontend/lint, hassfest and HACS jobs; finalize the support
+   policy and release notes, then review publication. Reproducible archive
    building is automated; review fixture/asset licensing before publishing.
 5. Submit to the HACS default catalogue only once the complete user workflow is
    verified. The custom-repository installation remains the documented route.

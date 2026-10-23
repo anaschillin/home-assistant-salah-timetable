@@ -12,8 +12,9 @@ Society annual calendar for 2026 is validated, alongside the synthetic sample la
 Other mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layouts.md).
 
 The integration includes independent next-Salah/next-Jamaat events, confirmed-date
-Ramadan overrides and a graphical Lovelace card. Release hardening and a manual
-HACS/Home Assistant installation check remain. See [milestones](docs/milestones.md)
+Ramadan overrides and a graphical Lovelace card. A disposable Home Assistant runtime
+and real frontend have passed the [recorded checks](docs/validation.md). HACS
+installation and further release acceptance remain. See [milestones](docs/milestones.md)
 and the [release checklist](docs/releasing.md).
 
 ## Requirements and installation
@@ -275,8 +276,9 @@ fixtures execute the isolated worker. The suite requires no external network or
 production HA instance. Worker execution is black-box tested; its isolated process
 intentionally does not inherit coverage/environment instrumentation. Event tests cover
 exact boundaries, Friday congregations, DST and year/leap-day transitions. Frontend
-tests use Node and an isolated headless Chromium harness with HA element stand-ins;
-they do not replace a live HA frontend installation or visual checks on real devices.
+tests use Node and an isolated headless Chromium harness with HA element stand-ins.
+A separate real HA runtime/frontend smoke check also passed; physical-device checks
+and HACS installation remain separate acceptance work.
 Parser fixtures are synthetic and redistributable under this repository's MIT license.
 
 GitHub Actions runs pytest, frontend tests, lint/format checks, hassfest and HACS

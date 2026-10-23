@@ -3,6 +3,9 @@
 The packaging checks below are automated. A successful build does not certify a
 live Home Assistant/HACS installation or publish a GitHub release. The remaining
 manual checks are release acceptance work; record their results for each release.
+The current [validation record](validation.md) includes a disposable HA 2026.10.2
+manual installation and real frontend smoke, with explicit limits and a dependency
+preload required by the test environment’s proxy certificate.
 
 ## Build a distributable archive
 
@@ -120,7 +123,7 @@ issue with backup/reload guidance while preserving the affected file. Automated
 tests verify safe issue content, clearing after successful recovery and clearing
 on removal. Broader migration and backup/recovery acceptance remains necessary.
 
-Real HA frontend/HACS acceptance and real-device visual checks remain separate
-from the automated suite. Further PDF layouts, a broader migration/recovery review,
-versioned release notes and submission to the HACS default catalogue remain
-follow-up work. This packaging increment does not complete Milestone 6.
+HACS installation, complete manual UI acceptance and real-device visual checks
+remain separate from the completed disposable HA smoke. Further PDF layouts, a
+broader migration/recovery review, reviewed release publication and submission to
+the HACS default catalogue remain follow-up work. This packaging increment does not complete Milestone 6.
