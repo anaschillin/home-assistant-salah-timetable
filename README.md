@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for mosque prayer timetables.
 
-**Status: Milestone 3 — secure URL sources, tested PDF layouts and staged updates.**
+**Status: Milestones 1–5 implemented — imports, event calculations, Ramadan and a bundled dashboard card.**
 Configure a mosque, add a public HTTPS PDF/CSV source or upload a file, map columns,
 and approve a validated timetable in the Home Assistant UI. Changes are never
 activated automatically. No YAML sensors, templates or regex setup are required.
@@ -11,7 +11,10 @@ activated automatically. No YAML sensors, templates or regex setup are required.
 Society annual calendar for 2026 is validated, alongside the synthetic sample layout.
 Other mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layouts.md).
 
-Ramadan activation, next-prayer calculations and the Lovelace card remain planned.
+The integration includes independent next-Salah/next-Jamaat events, confirmed-date
+Ramadan overrides and a graphical Lovelace card. Release hardening and a manual
+HACS/Home Assistant installation check remain. See [milestones](docs/milestones.md)
+and the [release checklist](docs/releasing.md).
 
 ## Requirements and installation
 
@@ -64,8 +67,41 @@ stored, so next year's timetable can be imported in advance and selected by date
 A mosque must be successfully loaded to import; settings remain accessible if setup
 fails.
 
-**Ramadan imports are stored and reviewed separately, but do not override annual
-records yet.** Automatic/manual Ramadan activation belongs to a later milestone.
+Ramadan imports are stored and reviewed separately. After approval, use
+**Configure → Ramadan settings** to confirm when they may override annual records.
+
+## Ramadan settings
+
+- **Automatic** activates Ramadan only within the confirmed Gregorian start/end
+  dates, inclusive. Supply both dates or leave both empty; an empty range is inactive.
+  A confirmed range may span 1–35 days. Imported coverage and printed Hijri dates do
+  not confirm Ramadan.
+- **Manual on** is explicit activation until changed and ignores the date window.
+  **Off** disables Ramadan overrides and defaults.
+- **Date adjustment** shifts the confirmed window by a whole number from -3 to +3
+  days. It does not move timetable rows to another date.
+- **Ramadan timetable source** can use the unique matching source or an explicitly
+  selected imported Ramadan table. Overlapping sources require a selection.
+
+During Ramadan, published fields from the matching Ramadan date override the same
+annual date; other annual fields remain. Missing Ramadan dates never reuse another
+day's values. A separate published Iftar time is retained; otherwise effective Iftar
+uses Maghrib beginning when available. Without a published Taraweeh time, the card
+shows **After Isha Jamaat** and the Taraweeh timestamp remains unavailable. Original
+imported values are kept separately from these effective values.
+
+## Dashboard
+
+The integration bundles the **Salah Timetable** Lovelace card and its graphical
+editor. After importing a timetable, edit a dashboard, add the card and choose the
+mosque's **Prayer timetable** sensor. Select **Context aware**, **Previous Jamaat**
+or **Upcoming Jamaat**. No separate card download or Card Mod is required.
+
+The card shows the mosque/date, next Salah beginning, Jamaat context, five daily
+prayers and active Ramadan details. Countdowns run in the browser from absolute
+timestamps, without per-second Home Assistant state writes. It follows HA's theme
+and uses responsive layouts. See [dashboard setup and behavior](docs/dashboard.md)
+for resource troubleshooting and the event boundary rules.
 
 ## URL checking and approval
 
@@ -152,9 +188,9 @@ are warnings that require review; malformed dates/times, duplicates, ambiguous D
 events, invalid encoding, oversized input and unresolved ditto values block staging.
 Unmapped columns and original imported strings remain stored alongside parsed values.
 
-## Current entities
+## Entities and event behavior
 
-Sixteen sensors expose **today's absolute event timestamps** in the mosque timezone.
+Each mosque creates 25 sensors. Sixteen expose **today's effective event timestamps** in the mosque timezone.
 Home Assistant stores/displays these according to its standard timestamp behavior.
 
 | Prayer or event | Sensors |
@@ -164,18 +200,27 @@ Home Assistant stores/displays these according to its standard timestamp behavio
 | Sehri ends | Published time |
 | Jumu'ah | First congregation; all congregations in `scheduled_times` |
 | Istewa/noon | Published time |
-| Iftar | Published time |
+| Iftar | Published time, or Maghrib beginning during active Ramadan |
 | Taraweeh | Published time, only when explicitly provided |
 
-Missing dates or fields make their sensors **unavailable**. No times are calculated
-or filled in. Iftar and Taraweeh defaults belong to the later Ramadan milestone.
-Jamaat is a single scheduled event, not an interval. These are today's events,
-**not next-event sensors**. New mosques have unavailable sensors until approval.
+The remaining sensors are **Next Salah**, **Next Jamaat**, **Previous Jamaat**,
+**Next Sehri**, **Next Iftar**, **Ramadan status**, **Taraweeh status**, the diagnostic
+**Source status**, and **Prayer timetable** for the bundled card. Next Sehri/Iftar
+consider active Ramadan dates only. The dashboard sensor contains the local date and
+absolute event data; select it in the card editor instead of an individual prayer.
 
-A shared coordinator checks the mosque-local date once per minute, so midnight
-selection can take up to one minute. Approval requests an immediate refresh. Equal
-data does not trigger repeated sensor writes. No per-second countdown states exist. A seventeenth diagnostic sensor reports URL
-source status; it is separate from the sixteen prayer-event sensors.
+Next Salah beginning and next Jamaat are calculated independently. In context mode,
+the card shows the previous Jamaat before a prayer begins, its upcoming Jamaat after
+beginning, and the previous Jamaat with elapsed time once that scheduled event occurs.
+At the exact Jamaat time it becomes previous; Jamaat has no start/end interval.
+After Isha, next Salah uses tomorrow's actual Fajr. Calculations inspect yesterday,
+today and tomorrow; missing future data stays unavailable rather than extrapolated.
+
+Missing dates or fields make their event sensors **unavailable**, apart from the
+explicit Ramadan Iftar default above. No missing prayer times are invented. A shared
+coordinator refreshes at event boundaries and mosque-local midnight, with a one-minute
+fallback. Approval refreshes immediately; options changes reload the entry. Equal
+data does not trigger repeated sensor writes. No per-second countdown states exist.
 
 ## Storage and safety
 
@@ -183,12 +228,15 @@ Per-mosque files in `.storage/salah_timetable.<entry_id>` use schema version **3
 Version 1/2 migrations retain approved and pending data without inventing source
 metadata. Staged files, checksums, coverage, source settings and original values survive
 restarts.
-Source and canonical records are immutable; future overrides will be separate.
+Source and canonical records are immutable. Ramadan options are stored in the config
+entry; effective overrides are computed separately without rewriting imported rows.
 
 Writes are atomic, serialized and checked on disk before replacing in-memory data.
-A failed staging, approval or rejection preserves the prior snapshot. Removing the
-integration deletes its storage; unloading/restarting does not. Back up Home Assistant
-normally and do not edit `.storage` manually. Retained CSV can contain unmapped source
+A failed staging, approval or rejection preserves the prior snapshot. Invalid stored
+records create a Home Assistant Repair with recovery guidance and remain untouched;
+the issue clears after recovery or removal. HA handles corrupt JSON through its own
+storage recovery mechanism. Removing the integration deletes its storage;
+unloading/restarting does not. Back up Home Assistant normally and do not edit `.storage` manually. Retained CSV can contain unmapped source
 columns, so avoid uploading private information.
 
 File selection uses HA's authenticated upload service and opaque upload IDs, never
@@ -213,6 +261,10 @@ uv sync --frozen --group dev
 uv run --frozen pytest
 uv run --frozen ruff check .
 uv run --frozen ruff format --check .
+npm test
+# Requires Chromium/Chrome; set CHROME_BIN if it is not on a standard path.
+REQUIRE_BROWSER_TESTS=1 npm run test:browser
+uv run --frozen python scripts/build_release.py --check
 ```
 
 `uv.lock` fixes development dependencies. The integration uses HA's bundled
@@ -221,10 +273,15 @@ flows, registries, platforms, authenticated local HTTP uploads and atomic storag
 temporary directories. Transport tests mock remote responses and exercise real connector resolution; PDF
 fixtures execute the isolated worker. The suite requires no external network or
 production HA instance. Worker execution is black-box tested; its isolated process
-intentionally does not inherit coverage/environment instrumentation. Parser fixtures are synthetic and redistributable under this repository's
-MIT license.
+intentionally does not inherit coverage/environment instrumentation. Event tests cover
+exact boundaries, Friday congregations, DST and year/leap-day transitions. Frontend
+tests use Node and an isolated headless Chromium harness with HA element stand-ins;
+they do not replace a live HA frontend installation or visual checks on real devices.
+Parser fixtures are synthetic and redistributable under this repository's MIT license.
 
-GitHub Actions runs pytest, lint/format checks, hassfest and HACS validation. Hosted
-validation must pass before release; adding a workflow does not prove its hosted run
+GitHub Actions runs pytest, frontend tests, lint/format checks, hassfest and HACS
+validation, and builds an install archive with a checksum. Hosted validation must
+pass before release; adding a workflow does not prove its hosted run
 passed. See [architecture](docs/architecture.md), [milestones](docs/milestones.md),
-and [contributing](CONTRIBUTING.md). Licensed under [MIT](LICENSE).
+[dashboard documentation](docs/dashboard.md), and [contributing](CONTRIBUTING.md).
+Licensed under [MIT](LICENSE).

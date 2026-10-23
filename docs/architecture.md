@@ -1,8 +1,9 @@
-# Architecture — Milestone 3
+# Architecture — Milestones 1–5
 
 ## Boundaries
 
-- `config_flow.py`: mosque identity, UI creation, timezone options and import flow entry.
+- `config_flow.py`: mosque identity, UI creation, timezone/Ramadan options and import
+  flow entry. Options updates preserve unrelated settings and reload the entry.
 - `import_flow.py`: native HA file selector, bounded upload consumption, graphical
   column mapping and explicit approval/rejection of a durable proposal.
 - `csv_parser.py`: dependency-free bounded parser. Returns a candidate; never mutates
@@ -11,16 +12,27 @@
   parser protocol, selected date/field mapping and time format. Stored reports validate
   their metadata against the canonical rows.
 - `model.py`: immutable dated prayer values independent of HA. Only Jumu'ah accepts
-  multiple ordered times. No absent prayer value is inferred.
+  multiple ordered times. Missing imported values remain missing.
 - `storage.py`: versioned per-entry Store, staged candidate, approved sources and
   active table snapshot. Validate and persist before changing in-memory data.
-- `coordinator.py`: select annual records by mosque-local date, with no network calls.
-- `sensor.py`: timestamp entities with `{mosque_id}_{field}` unique IDs and HA registry
-  persistence. `__init__.py` owns typed runtime data, lifecycle/device registration.
+- `ramadan.py`: explicit date confirmation and exact-date, immutable effective
+  overrides. Published values take precedence over the documented Ramadan defaults.
+- `events.py`: pure timezone-aware next/previous events and contextual Jamaat
+  selection, independent of storage, UI and HA scheduling.
+- `coordinator.py`: resolve yesterday/today/tomorrow in the mosque timezone, calculate
+  events and schedule boundary refreshes, with no network calls.
+- `presentation.py`: serialize effective dates and absolute event timelines for the
+  card without adding ticking countdown state.
+- `sensor.py`: 25 entities per mosque with stable `{mosque_id}_{field}` unique IDs
+  and HA registry persistence; the card's unique ID uses `{mosque_id}_dashboard`.
+- `frontend.py` and `frontend/`: serve/register versioned bundled JavaScript and
+  provide the responsive card, pure display helpers and graphical editor.
+- `__init__.py`: typed runtime data, lifecycle, device registration and unloading.
 
 ## Import lifecycle
 
-The options menu offers URL sources first, manual PDF/CSV, settings, and pending review.
+The options menu offers URL sources first, manual PDF/CSV, mosque/Ramadan settings,
+and pending review.
 HA's authenticated `file_upload` dependency receives the file and returns an opaque
 UUID. A single executor operation consumes and cleans up the upload context, reads
 at most the format limit plus one byte, and inspects structure/encoding. The mapping flow keeps
@@ -70,18 +82,12 @@ Because HA logs some write failures without raising them, the integration compar
 saved payload/version on disk before promoting memory. Tests exercise real files,
 write failures, migration failures, restart, stale approvals and separate mosque stores.
 A failed import leaves the last approved snapshot available. Malformed stored data
-causes a setup error instead of fabricated values; restore a backup for corruption.
+causes a setup error and a persistent, translated Repair with recovery guidance. The
+issue contains no imported content and clears after successful recovery or entry
+removal. Invalid structured files remain untouched; corrupt JSON uses HA Store’s
+own recovery handling. Restore a backup rather than editing private storage.
 
-## Current limitations
-
-Only the inspected Nuneaton Muslim Society annual layout and the synthetic sample
-layout are supported. Other mosque PDFs are rejected. Effective Ramadan overrides,
-next-event calculation and frontend assets do not exist. Ramadan candidates can be
-stored but are never selected over annual records. Iftar/Taraweeh defaults are not
-applied yet. DST gaps and ambiguous folds are rejected; explicit fold handling can be
-added with a separate, reviewed source model. The full product is not production-ready.
-
-## Milestone 3 additions
+## Downloads and PDF adapters
 
 `source_flow.py` makes the options menu URL-first and also offers manual PDF/CSV.
 Every route reuses graphical mapping and explicit persisted review. `download.py`
@@ -118,3 +124,87 @@ The diagnostic source-status entity uses safe aggregate state; explicit notifica
 refresh it even when daily prayer data has not changed. `diagnostics.py` exports only
 allowlisted counts, kinds, years and error codes, never config-entry identity, source
 URLs, HTTP validators, imported rows or original content. Logs use fixed error codes.
+
+## Effective Ramadan data
+
+Ramadan settings live in config-entry options, separately from schema 3 source
+storage. Automatic activation needs an explicitly confirmed, inclusive Gregorian
+range of 1–35 days. Manual on is explicit confirmation until changed; off disables
+the layer. A whole-day adjustment from -3 to +3 shifts only the confirmation window.
+Imported coverage and Hijri text never activate Ramadan or move a row to another date.
+
+The resolver starts with the exact-date annual row and overlays fields from the
+exact-date Ramadan row only when active. An explicit source selection resolves
+overlapping Ramadan tables; ambiguous automatic selection is rejected. Missing
+override fields retain annual values. A published Iftar value from either source is
+preserved; otherwise effective Maghrib beginning supplies Iftar when available.
+Absent published Taraweeh produces the text “After Isha Jamaat”, with no timestamp.
+The immutable result retains references to the annual and Ramadan rows; neither
+canonical nor original imported values are rewritten.
+
+## Events and HA state
+
+The pure event engine orders absolute, timezone-aware timestamps by UTC and examines
+yesterday, today and tomorrow. Next Salah beginning and next Jamaat are independent.
+Tomorrow's Fajr must exist in tomorrow's actual effective timetable, including across
+year/leap-day boundaries. The engine never reuses today's Fajr or searches distant
+dates to conceal missing coverage. Multiple Jumu'ah congregations remain individual
+events associated with Dhuhr for context.
+
+Context selects the previous congregation before a prayer begins, the upcoming
+congregation after its beginning, then the previous congregation once its scheduled
+instant arrives. At the exact beginning, that prayer has begun; at the exact Jamaat
+instant, it is previous with zero elapsed time. A congregation has no duration.
+The card can instead request unconditional previous or upcoming Jamaat. Sehri/Iftar
+events are drawn only from active Ramadan dates.
+
+The coordinator returns an immutable snapshot and schedules a UTC callback for the
+next beginning, Jamaat, Sehri, Iftar or mosque-local midnight. A one-minute fallback
+handles missed scheduling. Equal snapshots do not produce repeated entity writes.
+Approval triggers a refresh; options changes reload the config entry. Unload cancels
+the boundary callback along with HA's coordinator timers.
+
+Sixteen daily timestamps, five next/previous timestamps, Ramadan/Taraweeh enums, the
+source-status diagnostic and the Prayer timetable sensor make 25 entities per
+mosque. Daily sensors expose effective rows. Missing event values are unavailable,
+apart from the explicit Iftar default. The Prayer timetable sensor's date state and
+attributes carry five prayer rows, yesterday/today/tomorrow absolute event arrays,
+current next/previous selections and Ramadan details. No entity stores a per-second
+countdown. The backend and card behavior have separate boundary tests.
+
+## Bundled card lifecycle
+
+`frontend.py` registers the bundled directory at `/salah_timetable` through HA's
+asynchronous static-path API. For storage-mode Lovelace resources it creates or
+updates the integration's relative module URL, removes duplicate registrations and
+uses `?v=0.5.0` for cache changes. For YAML resources it uses HA's extra-JavaScript
+helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
+a resource-registration failure is logged without disabling valid prayer entities.
+
+The `custom:salah-timetable-card` custom element and graphical editor use the mosque's
+Prayer timetable entity. The card computes countdowns/elapsed time locally from
+absolute timestamps and ticks only its own DOM once per second. It stops its timer
+when disconnected from the DOM. Imported/user text is assigned through `textContent`.
+Time labels follow the mosque timezone and HA locale; responsive CSS uses HA theme
+variables without Card Mod. The editor emits standard `config-changed` events and
+supports context, previous and upcoming modes plus an optional title.
+
+Node tests cover helpers, rendering, safe text and editor round trips. An isolated
+headless Chromium harness checks real custom-element rendering with HA element
+stand-ins, narrow layouts, theme changes and editor interactions. These checks do not
+prove installation in a live HA frontend or visual behavior on real phones/tablets.
+See [dashboard setup](dashboard.md).
+
+## Remaining limitations
+
+Only the inspected Nuneaton Muslim Society annual layout and the synthetic sample
+layout are supported. Other mosque layouts, OCR and scanned PDFs remain unsupported.
+The live NMS HTTPS source is unverified. DST gaps and ambiguous folds are rejected
+rather than guessed; explicit fold handling needs a separately reviewed source model.
+Automatic lunar-date calculation is intentionally absent; users confirm Ramadan.
+
+Release hardening still needs a manual HACS/HA installation and upgrade/removal
+exercise, real-device frontend checks and further security and migration review.
+Invalid stored records already have actionable Repair guidance. Reproducible install
+archives and synchronized metadata/cache versions are checked by release tooling. Hosted GitHub validation must be checked before release; local
+tests and workflow definitions alone do not establish that it passed.

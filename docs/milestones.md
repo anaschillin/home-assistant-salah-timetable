@@ -1,7 +1,8 @@
 # Implementation plan
 
-Keep each item a focused PR with its own tests and documentation. Do not combine
-all remaining milestones into one change.
+Milestones 1–5 are implemented in the 0.5.0 code. Keep follow-up work in focused PRs
+with its own tests and documentation. Release acceptance still includes hosted
+validation and a manual Home Assistant/HACS installation check.
 
 ## Milestone 1 — foundation (implemented)
 
@@ -56,7 +57,7 @@ website's HTTPS equivalent is unverified; HTTP downloads remain unsupported.
 
 Acceptance: only tested layouts are listed as supported; changes never auto-activate.
 
-## Milestone 4 — event engine and Ramadan
+## Milestone 4 — event engine and Ramadan (implemented)
 
 1. Create a pure timezone-aware event engine for previous/next Jamaat and independent
    next Salah beginning. Use tomorrow's actual Fajr record after Isha; missing future
@@ -71,9 +72,24 @@ Acceptance: only tested layouts are listed as supported; changes never auto-acti
 5. Test all prayer boundaries, multiple Friday congregations, DST, leap dates,
    December/January rollover, date adjustments and missing tomorrow records.
 
-Acceptance: a table-driven event matrix proves each requested dashboard context.
+Implemented with pure event/resolution modules, HA boundary scheduling and UI options.
+The integration exposes independent next-Salah/next-Jamaat, previous-Jamaat,
+active-Ramadan Sehri/Iftar timestamps and Ramadan/Taraweeh status. Existing daily
+sensors use the effective row while immutable imported values remain intact.
 
-## Milestone 5 — bundled Lovelace card
+Automatic Ramadan requires an inclusive confirmed 1–35-day range; manual on is
+explicit confirmation until changed and off disables the layer. A -3 to +3-day
+adjustment shifts only the confirmation window. Sources match exact Gregorian
+dates; overlapping Ramadan tables require explicit selection. Published Iftar is
+preserved, and missing Taraweeh remains text without an invented timestamp.
+
+Automated acceptance covers the context matrix, exact event boundaries, independent
+beginning/congregation selection, multiple Friday congregations, tomorrow's actual
+Fajr, missing data, DST, leap/year boundaries, confirmation ranges, source selection,
+options persistence and no per-second entity writes. The coordinator schedules exact
+event and midnight callbacks with a one-minute fallback.
+
+## Milestone 5 — bundled Lovelace card (implemented)
 
 1. Bundle versioned JS assets and register them through supported HA APIs. Provide
    a graphical editor selecting a mosque and context/previous/upcoming mode.
@@ -85,13 +101,34 @@ Acceptance: a table-driven event matrix proves each requested dashboard context.
 4. Add frontend unit and browser tests for editor round trips, all event contexts,
    disconnections, countdown boundaries, theme switching and narrow screens.
 
-Acceptance: install from HACS with no separate Card Mod or card download; configure
-and exercise the card entirely through the graphical editor.
+Implemented as `custom:salah-timetable-card`, bundled with the integration, with a
+graphical editor for the mosque's Prayer timetable entity, context/previous/upcoming
+mode and optional title. Resource setup uses supported HA APIs for storage and YAML
+resource modes. The card renders absolute timestamps and browser-local countdowns,
+five daily prayers, Ramadan details, missing/disconnected states, responsive layouts
+and HA theme variables. No separate card download or Card Mod is required.
 
-## Milestone 6 — release hardening
+Node tests and an isolated headless Chromium harness cover event contexts, editor
+round trips, local ticking/timer cleanup, safe text, disconnections, theme changes
+and narrow layouts. HA elements are stand-ins in that harness. A live HA frontend
+installation, graphical setup through the real HA UI, HACS installation and visual
+checks on real mobile/tablet devices remain release acceptance work. See
+[dashboard setup](dashboard.md).
 
-Redacted HA diagnostics, repair notifications, migrations/backups, more independently
-tested PDF layouts, end-to-end HACS upgrade/removal checks, security review of all
-network/import paths, support policy and release automation. Review licensing of
-fixtures/assets, publish release notes and submit to the HACS default catalogue only
-once the complete user workflow is verified.
+## Milestone 6 — release hardening (partially implemented)
+
+Implemented: actionable Repairs for invalid stored records, reproducible manual-install
+ZIPs with checksums, runtime-asset inclusion checks and synchronized manifest/project/
+frontend cache versions. See [release preparation and manual checks](releasing.md).
+
+1. Exercise install, graphical setup, restart, upgrade and removal in a disposable
+   HA instance installed through HACS; check real mobile/tablet rendering and themes.
+2. Extend migration/backup recovery coverage. Invalid-record Repairs, allowlisted
+   diagnostics and schema 1/2 migrations already exist.
+3. Review all network/import paths and resource limits, and add independently tested,
+   redistributable fixtures before supporting further PDF layouts.
+4. Verify hosted pytest/frontend/lint, hassfest and HACS jobs; define a support policy,
+   versioned release notes and reviewed release publication. Reproducible archive
+   building is automated; review fixture/asset licensing before publishing.
+5. Submit to the HACS default catalogue only once the complete user workflow is
+   verified. The custom-repository installation remains the documented route.
