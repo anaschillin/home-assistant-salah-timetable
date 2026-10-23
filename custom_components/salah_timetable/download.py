@@ -12,6 +12,7 @@ import socket
 from dataclasses import dataclass
 from hashlib import sha256
 from urllib.parse import urlsplit
+from zoneinfo import ZoneInfoNotFoundError
 
 from aiohttp import (
     ClientError,
@@ -149,7 +150,7 @@ def _validated_url(value: str) -> URL:
         _validate_host(url.raw_host)
     except DownloadError:
         raise
-    except ValueError, TypeError, UnicodeError:
+    except (ZoneInfoNotFoundError, ValueError, TypeError):
         raise DownloadError(
             "invalid_url", "Use HTTPS on port 443 without credentials or a fragment"
         ) from None
@@ -168,8 +169,11 @@ class PublicResolver(AbstractResolver):
         self._resolver = resolver if resolver is not None else DefaultResolver()
 
     async def resolve(
-        self, host: str, port: int = 0, family: socket.AddressFamily = socket.AF_INET
-    ) -> list[ResolveResult]:
+    self,
+    host: str,
+    port: int = 0,
+    family: socket.AddressFamily = socket.AF_INET,  # pylint: disable=no-member
+) -> list[ResolveResult]:
         _validate_host(host)
         answers = await self._resolver.resolve(host, port, family)
         if not answers:
@@ -325,7 +329,7 @@ async def async_download(
                                 target = _validated_url(
                                     str(current.join(URL(location)))
                                 )
-                            except ValueError, TypeError:
+                            except (ValueError, TypeError):
                                 raise DownloadError(
                                     "unsafe_redirect",
                                     "The timetable server redirected to an unsafe destination",
@@ -397,7 +401,7 @@ async def async_download(
         raise
     except TimeoutError:
         raise DownloadError("timeout", "The timetable download timed out") from None
-    except ClientError, OSError, ValueError:
+    except (ClientError, OSError, ValueError):
         raise DownloadError(
             "connection_failed", "The timetable source could not be reached securely"
         ) from None

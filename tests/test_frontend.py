@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from homeassistant.components import frontend as ha_frontend
-from homeassistant.components.lovelace.const import LOVELACE_DATA
 from homeassistant.components.lovelace.resources import (
     ResourceStorageCollection,
     ResourceYAMLCollection,
@@ -26,7 +25,7 @@ async def make_resources(hass):
     collection = ResourceStorageCollection(
         hass, SimpleNamespace(async_load=AsyncMock(return_value={}))
     )
-    hass.data[LOVELACE_DATA] = SimpleNamespace(
+    hass.data["lovelace"] = SimpleNamespace(
         resource_mode="storage", resources=collection
     )
     return collection
@@ -105,7 +104,7 @@ async def test_yaml_resources_untouched_with_extra_module_fallback(hass):
     assert await async_setup_component(hass, "http", {})
     original = [{"url": "/local/user.js", "type": "module"}]
     resources = ResourceYAMLCollection(original)
-    hass.data[LOVELACE_DATA] = SimpleNamespace(
+    hass.data["lovelace"] = SimpleNamespace(
         resource_mode="yaml", resources=resources
     )
     changes = Mock()
@@ -125,7 +124,7 @@ async def test_yaml_resources_untouched_with_extra_module_fallback(hass):
 async def test_yaml_fallback_waits_for_frontend_then_updates_only_own_urls(hass):
     assert await async_setup_component(hass, "http", {})
     resources = ResourceYAMLCollection([])
-    hass.data[LOVELACE_DATA] = SimpleNamespace(
+    hass.data["lovelace"] = SimpleNamespace(
         resource_mode="yaml", resources=resources
     )
     await async_setup_frontend(hass)

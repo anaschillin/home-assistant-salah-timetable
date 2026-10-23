@@ -17,7 +17,7 @@ from .source_flow import SourceOptionsFlow
 def valid_zone(value: str) -> bool:
     try:
         ZoneInfo(value)
-    except ZoneInfoNotFoundError, ValueError, TypeError:
+    except (ZoneInfoNotFoundError, ValueError, TypeError):
         return False
     return True
 

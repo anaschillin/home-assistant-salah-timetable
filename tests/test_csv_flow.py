@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 from aiohttp import FormData
-from homeassistant.components.file_upload import _DATA as UPLOAD_DATA
+from homeassistant.components.file_upload import DOMAIN as UPLOAD_DATA
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component

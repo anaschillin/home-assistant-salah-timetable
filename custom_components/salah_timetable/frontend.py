@@ -5,13 +5,13 @@ from asyncio import Lock
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlsplit
+from zoneinfo import ZoneInfoNotFoundError
 
 from homeassistant.components import frontend as ha_frontend
 from homeassistant.components.http import StaticPathConfig
-from homeassistant.components.lovelace.const import LOVELACE_DATA, MODE_STORAGE
+from homeassistant.components.lovelace.const import MODE_STORAGE
 from homeassistant.const import EVENT_COMPONENT_LOADED
-from homeassistant.core import Event, HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.core import Event, HomeAssistant, HomeAssistantError
 
 from .const import DOMAIN
 
@@ -51,7 +51,7 @@ def _remove_extra_versions(hass: HomeAssistant, *, keep_current: bool) -> None:
 
 
 async def _async_register_resource(hass: HomeAssistant) -> None:
-    data = hass.data.get(LOVELACE_DATA)
+    data = hass.data.get("lovelace")
     if data is None:
         return
     if data.resource_mode != MODE_STORAGE:
@@ -104,7 +104,7 @@ async def async_setup_frontend(hass: HomeAssistant) -> None:
             state.listening = True
         try:
             await _async_register_resource(hass)
-        except HomeAssistantError, OSError:
+        except (HomeAssistantError, ZoneInfoNotFoundError, ValueError, TypeError, OSError):
             # A dashboard-storage error must not make valid prayer data unavailable.
             # Do not emit collection contents, which may include private URLs.
             _LOGGER.warning(
