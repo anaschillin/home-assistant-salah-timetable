@@ -231,3 +231,31 @@ async def test_published_iftar_and_taraweeh_take_precedence(hass, entry, freezer
     assert state(hass, "taraweeh").state == "2026-03-10T21:00:00+00:00"
     assert state(hass, "taraweeh_status").state == "scheduled"
     assert state(hass, "dashboard").attributes["ramadan"]["taraweeh_text"] is None
+
+
+@pytest.mark.parametrize("last_confirmed_date", ["2026-03-10", "2026-03-11"])
+async def test_published_ramadan_times_remain_visible_after_their_events(
+    hass, entry, event_tables, freezer, last_confirmed_date
+):
+    freezer.move_to("2026-03-10T21:00:00+00:00")
+    hass.config_entries.async_update_entry(
+        entry,
+        options={
+            "ramadan_mode": "auto",
+            "ramadan_start": "2026-03-10",
+            "ramadan_end": last_confirmed_date,
+        },
+    )
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    info = state(hass, "dashboard").attributes["ramadan"]
+    assert info["active"] is True
+    assert info["sehri"] == "2026-03-10T05:55:00+00:00"
+    assert info["iftar"] == "2026-03-10T18:15:00+00:00"
+    # Today's published information remains distinct from any next-day countdown.
+    if last_confirmed_date == "2026-03-10":
+        assert state(hass, "next_sehri").state == "unavailable"
+        assert state(hass, "next_iftar").state == "unavailable"
+    else:
+        assert state(hass, "next_sehri").state == "2026-03-11T05:55:00+00:00"
+        assert state(hass, "next_iftar").state == "2026-03-11T18:00:00+00:00"

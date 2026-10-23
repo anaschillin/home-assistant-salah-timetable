@@ -104,3 +104,14 @@ test("Ramadan countdowns advance to an actual next-day event at the boundary", (
   assert.equal(nextRamadanEvent(attrs, "sehri", instant("04:30")), "2026-10-22T04:32:00Z");
   assert.equal(nextRamadanEvent(attrs, "iftar", instant("04:30")), "2026-10-21T17:00:00Z");
 });
+
+
+test("published Ramadan times remain visible after the last confirmed day's events", () => {
+  const attrs = {ramadan: {active: true, sehri: "2026-10-21T04:30:00Z", iftar: "2026-10-21T17:00:00Z"}, next_sehri: null, next_iftar: null, sehri_events: [], iftar_events: []};
+  for (const kind of ["sehri", "iftar"]) {
+    const value = nextRamadanEvent(attrs, kind, instant("20:00"));
+    assert.equal(value, attrs.ramadan[kind]);
+    assert.equal(countdown(value, instant("20:00")), "Passed");
+    assert.notEqual(formatTime(value, "Europe/London"), "—");
+  }
+});

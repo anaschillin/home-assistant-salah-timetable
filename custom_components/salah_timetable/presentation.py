@@ -60,7 +60,10 @@ def dashboard_attributes(data, zone, mosque_name):
                 PrayerEvent(value, PrayerField.IFTAR, "iftar").as_dict()
                 for value in effective.row.timestamps(PrayerField.IFTAR, zone)
             )
-    taraweeh = stamps(PrayerField.TARAWEEH) if data.effective.ramadan_active else ()
+    active = data.effective.ramadan_active
+    today_sehri = stamps(PrayerField.SEHRI_ENDS) if active else ()
+    today_iftar = stamps(PrayerField.IFTAR) if active else ()
+    taraweeh = stamps(PrayerField.TARAWEEH) if active else ()
     return {
         "mosque_name": mosque_name,
         "date": data.day.isoformat(),
@@ -73,12 +76,8 @@ def dashboard_attributes(data, zone, mosque_name):
         "iftar_events": iftar,
         "ramadan": {
             "active": data.effective.ramadan_active,
-            "sehri": data.events.next_sehri.timestamp.isoformat()
-            if data.events.next_sehri
-            else None,
-            "iftar": data.events.next_iftar.timestamp.isoformat()
-            if data.events.next_iftar
-            else None,
+            "sehri": today_sehri[0].isoformat() if today_sehri else None,
+            "iftar": today_iftar[0].isoformat() if today_iftar else None,
             "taraweeh": taraweeh[0].isoformat() if taraweeh else None,
             "taraweeh_text": data.effective.taraweeh_text,
         },

@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.5.0 — unreleased
+## 0.5.1 — unreleased
+
+- Keep published Sehri/Iftar times visible after their events on the final confirmed
+  Ramadan date, with “Passed” rather than an unavailable value. Future countdown
+  events remain separate from today's published information.
+- Align the final prayer row's borders and refresh bundled asset cache versions.
+
+## 0.5.0
 
 - Calculate next Salah beginning and next/previous Jamaat independently, using
   absolute timestamps and tomorrow’s actual timetable. Handle prayer boundaries,
