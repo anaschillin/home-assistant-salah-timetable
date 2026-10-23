@@ -75,3 +75,22 @@ manual PDF compatibility is established by the inspected layout, fixture tests
 and this live import check.
 Hosted GitHub Actions results were not readable from this environment and must be
 reviewed on GitHub before publishing a tested release. No release/tag was published.
+
+
+## Follow-up hardening after repository updates
+
+The maintainer's changes through `5966ab0` were pulled and preserved. Formatting
+was reconciled in `d876793` with parenthesized exception handlers retained.
+Upgrade/recovery and diagnostic hardening are recorded in `806776c`.
+
+The combined Python suite passed **569 tests**, with 94% aggregate integration
+coverage. New cases include literal historical schema-1/schema-2 fixtures, pending
+approval after migration, exact preservation/retry after failed migration writes,
+future-schema rejection and complete timetable-store restoration with stable entity
+IDs and Repair cleanup. This does not substitute for a full HA backup-archive restore.
+Diagnostics now distinguish unloaded entries from retained runtime objects and expose
+only allowlisted coverage/event flags.
+
+Local release-note preparation passed its seven tests and generated a ZIP, checksum
+and version-specific notes. The manual draft-release workflow was parsed and reviewed
+but was not triggered; GitHub API access remains blocked in this environment.

@@ -127,3 +127,28 @@ HACS installation, complete manual UI acceptance and real-device visual checks
 remain separate from the completed disposable HA smoke. Further PDF layouts, a
 broader migration/recovery review, reviewed release publication and submission to
 the HACS default catalogue remain follow-up work. This packaging increment does not complete Milestone 6.
+
+## Prepare a reviewed draft
+
+The **Prepare draft release** workflow is manually triggered with an existing
+`vMAJOR.MINOR.PATCH` tag. Create/review that tag only after choosing the exact commit;
+the workflow does not create or move tags. It requires the tagged commit to be on
+main and to have a successful **Validate** push run on main, then checks that the
+tag, manifest, project version, asset cache versions and changelog agree.
+
+A read-only preparation job builds the ZIP, checksum and notes. A separate job with
+release-write permission verifies the checksum and creates a **draft** with those
+assets. Existing releases are preserved; rerunning for an existing release fails.
+The workflow never publishes a release automatically. Complete the release checklist
+and review the draft before publishing through GitHub.
+
+For local asset review, without creating any GitHub tag or release:
+
+```sh
+uv run --frozen python -m scripts.prepare_release --tag v0.5.1 --output-dir /tmp/salah-release-review
+```
+
+Use the manifest's current version in the tag argument. Local preparation validates
+metadata and notes; the GitHub workflow additionally verifies tag existence,
+ancestry and hosted validation. It has not been triggered from this environment
+because the required tag and readable GitHub API are unavailable.

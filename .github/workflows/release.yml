@@ -1,0 +1,108 @@
+name: Prepare draft release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing reviewed tag, matching the integration version (for example v0.5.1)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: draft-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      tag: ${{ steps.review.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+      - name: Require an existing tag with successful validation on main
+        id: review
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Use an existing vMAJOR.MINOR.PATCH tag'; exit 1; }
+          release_sha=$(git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}")
+          git merge-base --is-ancestor "$release_sha" origin/main
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/workflows/validate.yml/runs?branch=main&event=push&status=success&head_sha=$release_sha&per_page=100" > "$RUNNER_TEMP/validate-runs.json"
+          python - "$release_sha" "$RUNNER_TEMP/validate-runs.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          sha, path = sys.argv[1:]
+          pages = json.loads(Path(path).read_text())
+          passed = any(
+              run.get("head_sha") == sha
+              and run.get("head_branch") == "main"
+              and run.get("event") == "push"
+              and run.get("status") == "completed"
+              and run.get("conclusion") == "success"
+              for page in pages
+              for run in page.get("workflow_runs", [])
+          )
+          if not passed:
+              raise SystemExit("The exact tagged commit needs a successful Validate push run on main")
+          PY
+          git checkout --detach "$release_sha"
+          printf 'tag=%s\n' "$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.14'
+      - name: Check release versions, changelog and runtime assets
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: python -m scripts.prepare_release --tag "$RELEASE_TAG" --output-dir dist
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: reviewed-release-assets
+          path: |
+            dist/*.zip
+            dist/*.zip.sha256
+            dist/release-notes.md
+          if-no-files-found: error
+          retention-days: 14
+
+  draft:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: reviewed-release-assets
+          path: dist
+      - name: Verify archive checksum
+        working-directory: dist
+        run: sha256sum --check *.zip.sha256
+      - name: Create a draft without publishing or overwriting a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --json id >/dev/null 2>&1; then
+            echo 'A release already exists for this tag; it will not be changed'
+            exit 1
+          fi
+          gh release create "$RELEASE_TAG" --draft --verify-tag \
+            --title "Salah Timetable $RELEASE_TAG" \
+            --notes-file dist/release-notes.md dist/*.zip dist/*.zip.sha256

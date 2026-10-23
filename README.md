@@ -14,8 +14,8 @@ Other mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layou
 The integration includes independent next-Salah/next-Jamaat events, confirmed-date
 Ramadan overrides and a graphical Lovelace card. A disposable Home Assistant runtime
 and real frontend have passed the [recorded checks](docs/validation.md). HACS
-installation and further release acceptance remain. See [milestones](docs/milestones.md)
-and the [release checklist](docs/releasing.md).
+installation and further release acceptance remain. See [milestones](docs/milestones.md),
+the [remaining work](docs/remaining-work.md), and the [release checklist](docs/releasing.md).
 
 ## Requirements and installation
 
@@ -285,5 +285,6 @@ GitHub Actions runs pytest, frontend tests, lint/format checks, hassfest and HAC
 validation, and builds an install archive with a checksum. Hosted validation must
 pass before release; adding a workflow does not prove its hosted run
 passed. See [architecture](docs/architecture.md), [milestones](docs/milestones.md),
-[dashboard documentation](docs/dashboard.md), and [contributing](CONTRIBUTING.md).
+[dashboard documentation](docs/dashboard.md), [support policy](docs/support.md),
+and [contributing](CONTRIBUTING.md).
 Licensed under [MIT](LICENSE).
