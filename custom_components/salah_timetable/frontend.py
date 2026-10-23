@@ -104,7 +104,13 @@ async def async_setup_frontend(hass: HomeAssistant) -> None:
             state.listening = True
         try:
             await _async_register_resource(hass)
-        except (HomeAssistantError, ZoneInfoNotFoundError, ValueError, TypeError, OSError):
+        except (
+            HomeAssistantError,
+            ZoneInfoNotFoundError,
+            ValueError,
+            TypeError,
+            OSError,
+        ):
             # A dashboard-storage error must not make valid prayer data unavailable.
             # Do not emit collection contents, which may include private URLs.
             _LOGGER.warning(

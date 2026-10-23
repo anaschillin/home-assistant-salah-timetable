@@ -104,9 +104,7 @@ async def test_yaml_resources_untouched_with_extra_module_fallback(hass):
     assert await async_setup_component(hass, "http", {})
     original = [{"url": "/local/user.js", "type": "module"}]
     resources = ResourceYAMLCollection(original)
-    hass.data["lovelace"] = SimpleNamespace(
-        resource_mode="yaml", resources=resources
-    )
+    hass.data["lovelace"] = SimpleNamespace(resource_mode="yaml", resources=resources)
     changes = Mock()
     manager = ha_frontend.UrlManager(changes, [])
     hass.data[ha_frontend.DATA_EXTRA_MODULE_URL] = manager
@@ -124,9 +122,7 @@ async def test_yaml_resources_untouched_with_extra_module_fallback(hass):
 async def test_yaml_fallback_waits_for_frontend_then_updates_only_own_urls(hass):
     assert await async_setup_component(hass, "http", {})
     resources = ResourceYAMLCollection([])
-    hass.data["lovelace"] = SimpleNamespace(
-        resource_mode="yaml", resources=resources
-    )
+    hass.data["lovelace"] = SimpleNamespace(resource_mode="yaml", resources=resources)
     await async_setup_frontend(hass)
     old = CARD_PATH + "?v=0.4.0"
     unrelated = "/local/user-module.js"

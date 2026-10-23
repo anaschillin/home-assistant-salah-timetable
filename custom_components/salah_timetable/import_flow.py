@@ -321,7 +321,10 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 except ValueError as err:
                     errors["base"] = "invalid_csv"
                     detail = _safe_text(str(err))
-                except (OSError, HomeAssistantError):
+                except (
+                    OSError,
+                    HomeAssistantError,
+                ):
                     errors["base"] = "save_failed"
                 else:
                     self._content = None
@@ -363,7 +366,10 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                     coordinator.async_update_listeners()
             except ValueError:
                 return self.async_abort(reason="stale_import")
-            except (OSError, HomeAssistantError):
+            except (
+                OSError,
+                HomeAssistantError,
+            ):
                 errors["base"] = "save_failed"
             else:
                 return self.async_create_entry(

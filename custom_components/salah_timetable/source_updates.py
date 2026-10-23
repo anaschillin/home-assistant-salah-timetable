@@ -197,7 +197,13 @@ class SourceUpdateManager:
                 return
             try:
                 await self.storage.async_load()
-            except (ValueError, KeyError, TypeError, OSError, HomeAssistantError):
+            except (
+                ValueError,
+                KeyError,
+                TypeError,
+                OSError,
+                HomeAssistantError,
+            ):
                 self._runtime_error = "storage_failed"
                 now = dt_util.utcnow()
                 for source in self.storage.remote_sources.values():
@@ -238,10 +244,16 @@ class SourceUpdateManager:
                     source.source_id, patch, expected_source=source
                 )
             )
-        except (ValueError, KeyError):
+        except (
+            ValueError,
+            KeyError,
+        ):
             # A setting changed or the profile was removed while downloading.
             return False
-        except (OSError, HomeAssistantError):
+        except (
+            OSError,
+            HomeAssistantError,
+        ):
             self._runtime_error = "storage_failed"
             return False
         self._runtime_error = None
@@ -273,7 +285,10 @@ class SourceUpdateManager:
                 source, {"status": "error", "last_checked": now, "error_code": err.code}
             )
             return
-        except (TimeoutError, OSError):
+        except (
+            TimeoutError,
+            OSError,
+        ):
             await self._record(
                 source,
                 {
@@ -289,7 +304,13 @@ class SourceUpdateManager:
         # awaiting the response. Refresh before both parsing and storage CAS.
         try:
             await self.storage.async_load()
-        except (ValueError, KeyError, TypeError, OSError, HomeAssistantError):
+        except (
+            ValueError,
+            KeyError,
+            TypeError,
+            OSError,
+            HomeAssistantError,
+        ):
             self._runtime_error = "storage_failed"
             return
         if self.storage.remote_sources.get(source.source_id) != source:
@@ -335,7 +356,10 @@ class SourceUpdateManager:
                 source, {"status": "pending", "last_checked": now, "error_code": None}
             )
             return
-        except (ImportValidationError, ValueError):
+        except (
+            ImportValidationError,
+            ValueError,
+        ):
             _LOGGER.warning(
                 "Downloaded timetable failed validation; approved data retained"
             )
@@ -348,7 +372,10 @@ class SourceUpdateManager:
                 },
             )
             return
-        except (OSError, HomeAssistantError):
+        except (
+            OSError,
+            HomeAssistantError,
+        ):
             self._runtime_error = "storage_failed"
             return
         await self._record(

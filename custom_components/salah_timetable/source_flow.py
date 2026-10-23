@@ -116,7 +116,11 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
             except ImportValidationError as err:
                 errors["base"] = "source_failed"
                 detail = _safe_text(str(err))
-            except (ValueError, OSError, HomeAssistantError):
+            except (
+                ValueError,
+                OSError,
+                HomeAssistantError,
+            ):
                 errors["base"] = "source_failed"
                 detail = "Download or validation failed. Use a public HTTPS URL and a supported file/layout. The active timetable is unchanged."
             else:
@@ -214,7 +218,10 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
             if user_input["action"] == "remove":
                 try:
                     await coordinator.storage.async_remove_remote_source(source_id)
-                except (OSError, HomeAssistantError):
+                except (
+                    OSError,
+                    HomeAssistantError,
+                ):
                     return self.async_abort(reason="source_save_failed")
                 coordinator.async_update_listeners()
             else:
