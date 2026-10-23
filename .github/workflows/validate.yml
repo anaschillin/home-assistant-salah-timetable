@@ -46,9 +46,24 @@ jobs:
         with:
           node-version: '24'
       - run: npm test
-      - run: npm run test:browser
-        env:
-          REQUIRE_BROWSER_TESTS: '1'
+      - name: Diagnose Chromium environment
+        run: |
+          echo "Browser executables:"
+          command -v chromium || true
+          command -v chromium-browser || true
+          command -v google-chrome || true
+
+          echo "Browser versions:"
+          chromium --version || true
+          chromium-browser --version || true
+          google-chrome --version || true
+
+          echo "Environment:"
+          node --version
+          uname -a
+            - run: npm run test:browser
+              env:
+                REQUIRE_BROWSER_TESTS: '1'
 
   hassfest:
     runs-on: ubuntu-latest
