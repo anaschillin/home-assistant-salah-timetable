@@ -78,7 +78,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
     """All source formats reuse persisted staging and explicit review."""
 
     async def async_step_init(self, user_input=None):
-        menu = ["import_url", "import_pdf", "import_csv", "settings"]
+        menu = ["import_url", "import_pdf", "import_csv", "ramadan", "settings"]
         coordinator = self._coordinator()
         if coordinator is not None:
             if coordinator.storage.staged is not None:

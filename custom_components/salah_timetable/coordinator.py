@@ -1,18 +1,29 @@
-"""Refresh date selection without writing countdowns into HA states."""
+"""Select effective daily data and absolute events at scheduled boundaries."""
 
 import logging
-from datetime import timedelta
+from dataclasses import dataclass
+from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
-from .model import DailyPrayers
+from .events import EventSnapshot, calculate_events
+from .ramadan import EffectiveTimetable, RamadanSettings, resolve_day
 from .storage import TimetableStorage
 
 
-class SalahCoordinator(DataUpdateCoordinator[DailyPrayers | None]):
+@dataclass(frozen=True)
+class SalahData:
+    day: date
+    effective: EffectiveTimetable
+    events: EventSnapshot
+    days: tuple[EffectiveTimetable, ...]
+
+
+class SalahCoordinator(DataUpdateCoordinator[SalahData]):
     def __init__(
         self, hass: HomeAssistant, entry, storage: TimetableStorage, zone: ZoneInfo
     ) -> None:
@@ -26,6 +37,57 @@ class SalahCoordinator(DataUpdateCoordinator[DailyPrayers | None]):
         )
         self.storage = storage
         self.zone = zone
+        self._boundary_unsub = None
 
-    async def _async_update_data(self) -> DailyPrayers | None:
-        return self.storage.for_date(dt_util.utcnow().astimezone(self.zone).date())
+    async def _async_update_data(self) -> SalahData:
+        now = dt_util.utcnow()
+        day = now.astimezone(self.zone).date()
+        settings = RamadanSettings.from_options(self.config_entry.options)
+        resolved = {
+            day + timedelta(days=offset): resolve_day(
+                day + timedelta(days=offset), self.storage.timetables, settings
+            )
+            for offset in (-1, 0, 1)
+        }
+        events = calculate_events(
+            now,
+            self.zone,
+            lambda key: resolved.get(key).row if key in resolved else None,
+            ramadan_lookup=lambda key: (
+                resolved[key].row
+                if key in resolved and resolved[key].ramadan_active
+                else None
+            ),
+        )
+        data = SalahData(day, resolved[day], events, tuple(resolved.values()))
+        boundaries = [
+            datetime.combine(day + timedelta(days=1), time.min, self.zone).astimezone(
+                timezone.utc
+            )
+        ]
+        boundaries.extend(
+            event.timestamp.astimezone(timezone.utc)
+            for event in (
+                events.next_salah,
+                events.next_jamaat,
+                events.next_sehri,
+                events.next_iftar,
+            )
+            if event is not None
+        )
+        if self._boundary_unsub is not None:
+            self._boundary_unsub()
+        self._boundary_unsub = async_track_point_in_utc_time(
+            self.hass, self._async_boundary, min(boundaries)
+        )
+        return data
+
+    async def _async_boundary(self, _now) -> None:
+        self._boundary_unsub = None
+        await self.async_refresh()
+
+    async def async_shutdown(self) -> None:
+        if self._boundary_unsub is not None:
+            self._boundary_unsub()
+            self._boundary_unsub = None
+        await super().async_shutdown()

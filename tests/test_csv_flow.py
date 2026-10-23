@@ -317,7 +317,7 @@ async def test_next_year_approval_preserves_current_year(
     } == {"annual-2026", "annual-2027"}
 
 
-async def test_ramadan_approval_does_not_apply_overrides(
+async def test_unconfirmed_ramadan_approval_does_not_apply_overrides(
     hass, populated, upload_client
 ):
     assert await hass.config_entries.async_setup(populated.entry_id)
@@ -326,7 +326,7 @@ async def test_ramadan_approval_does_not_apply_overrides(
     result = await stage_upload(
         hass, populated, upload_client, REPLACEMENT_CSV, kind="ramadan"
     )
-    assert "stored only" in result["description_placeholders"]["summary"]
+    assert "only on confirmed dates" in result["description_placeholders"]["summary"]
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"decision": "approve"}
     )
@@ -334,6 +334,8 @@ async def test_ramadan_approval_does_not_apply_overrides(
     await hass.async_block_till_done()
     assert "ramadan-2026" in populated.runtime_data.storage.approved_sources
     assert populated.runtime_data.storage.for_date(date(2026, 10, 21)) == previous
+    assert populated.runtime_data.data.effective.row == previous
+    assert populated.runtime_data.data.effective.ramadan_active is False
 
 
 async def test_fractional_year_does_not_consume_upload(hass, entry, upload_client):

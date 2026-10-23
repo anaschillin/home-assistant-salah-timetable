@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Add a mosque",
-        "description": "Choose a stable mosque ID (lowercase letters, numbers, underscores or hyphens). After setup, open Configure to import a CSV timetable.",
+        "description": "Choose a stable mosque ID (lowercase letters, numbers, underscores or hyphens). After setup, open Configure to add a timetable URL or upload a supported PDF/CSV.",
         "data": {
           "name": "Mosque name",
           "mosque_id": "Stable mosque ID",
@@ -32,7 +32,8 @@
           "import_url": "Add or replace a URL source (recommended)",
           "import_pdf": "Upload a supported PDF",
           "check_updates": "Check URL sources now",
-          "manage_sources": "Manage URL sources"
+          "manage_sources": "Manage URL sources",
+          "ramadan": "Ramadan settings"
         }
       },
       "settings": {
@@ -43,7 +44,7 @@
       },
       "import_csv": {
         "title": "Upload a CSV timetable",
-        "description": "Upload a UTF-8 CSV, at most 512 KiB, with a header row and ISO dates (YYYY-MM-DD) in the chosen year. Annual imports may be incomplete; missing dates and fields remain unavailable. Ramadan imports are stored separately; activation is not implemented yet.\n\n{detail}",
+        "description": "Upload a UTF-8 CSV, at most 512 KiB, with a header row and ISO dates (YYYY-MM-DD) in the chosen year. Annual imports may be incomplete; missing dates and fields remain unavailable. Ramadan sources override annual data only on confirmed dates or with explicit manual activation.\n\n{detail}",
         "data": {
           "file": "CSV file",
           "kind": "Timetable kind",
@@ -113,6 +114,17 @@
           "source_id": "Source",
           "action": "Action"
         }
+      },
+      "ramadan": {
+        "title": "Ramadan settings",
+        "description": "Use confirmed start/end dates for automatic activation, or explicitly turn Ramadan on/off. Dates are inclusive (at most 35 days); adjustment shifts the active window, never imported row dates. Manual On stays active until changed and ignores the date window. Ramadan fields override annual fields only on matching Gregorian dates. If Iftar is unpublished, Maghrib beginning is used. Without a published Taraweeh time, the card shows “After Isha Jamaat”. Clear both dates to remove confirmation.\n\n{detail}",
+        "data": {
+          "ramadan_mode": "Activation",
+          "ramadan_start": "Confirmed first date",
+          "ramadan_end": "Confirmed last date",
+          "ramadan_adjustment": "Adjust confirmed window (days)",
+          "ramadan_source_id": "Ramadan source"
+        }
       }
     },
     "error": {
@@ -121,7 +133,8 @@
       "invalid_mapping": "Select at least one prayer column. A source column cannot be reused or mapped as both a date and a prayer.",
       "save_failed": "Saving failed. The active timetable has not been replaced. Try again after checking Home Assistant storage and logs.",
       "invalid_pdf": "The PDF could not be validated. See details above.",
-      "source_failed": "The URL source could not be downloaded or parsed. See details above."
+      "source_failed": "The URL source could not be downloaded or parsed. See details above.",
+      "invalid_ramadan": "The Ramadan settings are invalid. See the details above."
     },
     "abort": {
       "integration_not_loaded": "The mosque integration must be loaded before importing. Check its setup error or change its settings first.",
@@ -194,6 +207,39 @@
           "pending_review": "Pending review",
           "error": "Check failed"
         }
+      },
+      "next_salah": {
+        "name": "Next Salah beginning"
+      },
+      "next_jamaat": {
+        "name": "Next Jamaat"
+      },
+      "previous_jamaat": {
+        "name": "Previous Jamaat"
+      },
+      "next_sehri": {
+        "name": "Next Sehri ends"
+      },
+      "next_iftar": {
+        "name": "Next Iftar"
+      },
+      "dashboard": {
+        "name": "Prayer timetable"
+      },
+      "ramadan_status": {
+        "name": "Ramadan status",
+        "state": {
+          "active": "Active",
+          "inactive": "Inactive"
+        }
+      },
+      "taraweeh_status": {
+        "name": "Taraweeh status",
+        "state": {
+          "inactive": "Inactive",
+          "scheduled": "Published time",
+          "after_isha_jamaat": "After Isha Jamaat"
+        }
       }
     }
   },
@@ -201,7 +247,7 @@
     "timetable_kind": {
       "options": {
         "annual": "Annual",
-        "ramadan": "Ramadan (storage only)"
+        "ramadan": "Ramadan"
       }
     },
     "time_format": {
@@ -233,6 +279,19 @@
         "check": "Check now",
         "remove": "Stop checks and remove URL source"
       }
+    },
+    "ramadan_mode": {
+      "options": {
+        "auto": "Automatic — confirmed dates only",
+        "on": "On — manual confirmation",
+        "off": "Off"
+      }
+    }
+  },
+  "issues": {
+    "invalid_storage": {
+      "title": "Stored timetable for {mosque} could not be loaded",
+      "description": "Salah Timetable found invalid stored data for {mosque} and stopped setup. The original stored timetable has not been replaced.\n\nRestore a known-working Home Assistant backup, then reload the mosque integration from Settings → Devices & services. Keep a backup of the affected storage before attempting recovery. Removing the integration deletes its timetable data and is not a recovery step.\n\nIf a backup cannot resolve the problem, report the Home Assistant and integration versions with redacted logs to the project issue tracker. Do not publish original storage, source URLs or imported timetable content. This issue clears automatically after valid storage loads successfully."
     }
   }
 }

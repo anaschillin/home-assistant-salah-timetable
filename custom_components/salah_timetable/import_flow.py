@@ -77,7 +77,7 @@ def import_summary(candidate, existing) -> str:
     )
     if table.kind == "ramadan":
         lines.append(
-            "**Ramadan source will be stored only. Ramadan activation and overrides are not implemented yet.**"
+            "**Ramadan overrides apply only on confirmed dates or with explicit manual activation in Ramadan settings.**"
         )
     if candidate.parser_id == "nms_annual_v1":
         lines.append(

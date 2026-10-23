@@ -7,6 +7,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import issue_registry as ir
 
 from .const import CONF_TIME_ZONE, DOMAIN
 from .coordinator import SalahCoordinator
@@ -23,9 +24,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> boo
     try:
         await storage.async_load()
     except (ValueError, TypeError, KeyError) as err:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            f"invalid_storage_{entry.entry_id}",
+            is_fixable=False,
+            is_persistent=True,
+            severity=ir.IssueSeverity.ERROR,
+            translation_key="invalid_storage",
+            translation_placeholders={"mosque": entry.title},
+        )
         raise ConfigEntryError(
             "Stored timetable is invalid; original storage retained"
         ) from err
+    ir.async_delete_issue(hass, DOMAIN, f"invalid_storage_{entry.entry_id}")
     coordinator = SalahCoordinator(hass, entry, storage, zone)
     coordinator.source_updates = SourceUpdateManager(hass, entry, storage, coordinator)
     entry.runtime_data = coordinator
@@ -56,3 +68,4 @@ async def async_unload_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> bo
 
 async def async_remove_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> None:
     await TimetableStorage(hass, entry.entry_id, ZoneInfo("UTC")).async_remove()
+    ir.async_delete_issue(hass, DOMAIN, f"invalid_storage_{entry.entry_id}")

@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .model import PrayerField
+from .presentation import dashboard_attributes
 
 DESCRIPTIONS = tuple(
     SensorEntityDescription(
@@ -29,6 +30,19 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 for description in DESCRIPTIONS
             ),
             SourceStatusSensor(entry.runtime_data, entry),
+            *(
+                EventSensor(entry.runtime_data, entry, key)
+                for key in (
+                    "next_salah",
+                    "next_jamaat",
+                    "previous_jamaat",
+                    "next_sehri",
+                    "next_iftar",
+                )
+            ),
+            RamadanStatusSensor(entry.runtime_data, entry),
+            TaraweehStatusSensor(entry.runtime_data, entry),
+            DashboardSensor(entry.runtime_data, entry),
         ]
     )
 
@@ -48,18 +62,18 @@ class SalahSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def native_value(self):
-        if self.coordinator.data is None:
+        if self.coordinator.data.effective.row is None:
             return None
-        values = self.coordinator.data.timestamps(
+        values = self.coordinator.data.effective.row.timestamps(
             PrayerField(self.entity_description.key), self.coordinator.zone
         )
         return values[0] if values else None
 
     @property
     def extra_state_attributes(self):
-        if self.coordinator.data is None:
+        if self.coordinator.data.effective.row is None:
             return {}
-        values = self.coordinator.data.timestamps(
+        values = self.coordinator.data.effective.row.timestamps(
             PrayerField(self.entity_description.key), self.coordinator.zone
         )
         return {
@@ -103,3 +117,94 @@ class SourceStatusSensor(CoordinatorEntity, SensorEntity):
             for key, value in self.coordinator.source_updates.status.items()
             if key != "status"
         }
+
+
+class EventSensor(CoordinatorEntity, SensorEntity):
+    """An absolute next/previous event; countdowns belong to the frontend."""
+
+    _attr_has_entity_name = True
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(self, coordinator, entry, key):
+        super().__init__(coordinator)
+        self.key = key
+        self._attr_translation_key = key
+        self._attr_unique_id = f"{entry.unique_id}_{key}"
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry.unique_id)})
+
+    @property
+    def available(self):
+        return super().available and self.native_value is not None
+
+    @property
+    def native_value(self):
+        event = getattr(self.coordinator.data.events, self.key)
+        return event.timestamp if event else None
+
+    @property
+    def extra_state_attributes(self):
+        event = getattr(self.coordinator.data.events, self.key)
+        return {"prayer": event.prayer, "field": event.field.value} if event else {}
+
+
+class RamadanStatusSensor(CoordinatorEntity, SensorEntity):
+    _attr_has_entity_name = True
+    _attr_translation_key = "ramadan_status"
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = ["active", "inactive"]
+
+    def __init__(self, coordinator, entry):
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.unique_id}_ramadan_status"
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry.unique_id)})
+
+    @property
+    def native_value(self):
+        return (
+            "active" if self.coordinator.data.effective.ramadan_active else "inactive"
+        )
+
+
+class TaraweehStatusSensor(RamadanStatusSensor):
+    _attr_translation_key = "taraweeh_status"
+    _attr_options = ["inactive", "scheduled", "after_isha_jamaat"]
+
+    def __init__(self, coordinator, entry):
+        super().__init__(coordinator, entry)
+        self._attr_unique_id = f"{entry.unique_id}_taraweeh_status"
+
+    @property
+    def native_value(self):
+        effective = self.coordinator.data.effective
+        if not effective.ramadan_active:
+            return "inactive"
+        return (
+            "scheduled"
+            if effective.row and PrayerField.TARAWEEH in effective.row.times
+            else "after_isha_jamaat"
+        )
+
+    @property
+    def extra_state_attributes(self):
+        return {"description": self.coordinator.data.effective.taraweeh_text}
+
+
+class DashboardSensor(CoordinatorEntity, SensorEntity):
+    _attr_has_entity_name = True
+    _attr_translation_key = "dashboard"
+
+    def __init__(self, coordinator, entry):
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.unique_id}_dashboard"
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry.unique_id)})
+        self.mosque_name = entry.title
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.day.isoformat()
+
+    @property
+    def extra_state_attributes(self):
+        return dashboard_attributes(
+            self.coordinator.data, self.coordinator.zone, self.mosque_name
+        )

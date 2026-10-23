@@ -10,6 +10,7 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import CONF_MOSQUE_ID, CONF_TIME_ZONE, DOMAIN
+from .ramadan import RamadanSettings
 from .source_flow import SourceOptionsFlow
 
 
@@ -71,7 +72,9 @@ class SalahOptionsFlow(SourceOptionsFlow):
         errors = {}
         if user_input is not None:
             if valid_zone(user_input[CONF_TIME_ZONE]):
-                return self.async_create_entry(title="", data=user_input)
+                return self.async_create_entry(
+                    title="", data={**self.config_entry.options, **user_input}
+                )
             errors[CONF_TIME_ZONE] = "invalid_time_zone"
         current = self.config_entry.options.get(
             CONF_TIME_ZONE, self.config_entry.data[CONF_TIME_ZONE]
@@ -82,4 +85,95 @@ class SalahOptionsFlow(SourceOptionsFlow):
                 {vol.Required(CONF_TIME_ZONE, default=current): selector.TextSelector()}
             ),
             errors=errors,
+        )
+
+    async def async_step_ramadan(self, user_input=None):
+        errors = {}
+        detail = ""
+        coordinator = getattr(self.config_entry, "runtime_data", None)
+        tables = coordinator.storage.timetables if coordinator else ()
+        sources = [table.timetable_id for table in tables if table.kind == "ramadan"]
+        if user_input is not None:
+            try:
+                values = dict(user_input)
+                if values.get("ramadan_source_id") == "__auto__":
+                    values["ramadan_source_id"] = None
+                settings = RamadanSettings.from_options(values)
+                if settings.source_id is not None and settings.source_id not in sources:
+                    raise ValueError("Select an imported Ramadan source")
+                if settings.source_id is None:
+                    dates = set()
+                    for table in tables:
+                        if table.kind != "ramadan":
+                            continue
+                        for row in table.days:
+                            if settings.is_active(row.day):
+                                if row.day in dates:
+                                    raise ValueError(
+                                        "Select a source because Ramadan timetables overlap"
+                                    )
+                                dates.add(row.day)
+            except ValueError as err:
+                errors["base"] = "invalid_ramadan"
+                detail = str(err)
+            else:
+                return self.async_create_entry(
+                    title="",
+                    data={**self.config_entry.options, **settings.as_options()},
+                )
+        try:
+            current = RamadanSettings.from_options(self.config_entry.options)
+        except ValueError:
+            current = RamadanSettings()
+        schema = {
+            vol.Required("ramadan_mode", default=current.mode): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=["auto", "on", "off"], translation_key="ramadan_mode"
+                )
+            ),
+            vol.Optional(
+                "ramadan_start",
+                description={
+                    "suggested_value": current.confirmed_start.isoformat()
+                    if current.confirmed_start
+                    else None
+                },
+            ): selector.DateSelector(),
+            vol.Optional(
+                "ramadan_end",
+                description={
+                    "suggested_value": current.confirmed_end.isoformat()
+                    if current.confirmed_end
+                    else None
+                },
+            ): selector.DateSelector(),
+            vol.Required(
+                "ramadan_adjustment", default=current.date_adjustment
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=-3, max=3, step=1, mode=selector.NumberSelectorMode.BOX
+                )
+            ),
+            vol.Required(
+                "ramadan_source_id",
+                default=current.source_id
+                if current.source_id in sources
+                else "__auto__",
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[
+                        {
+                            "value": "__auto__",
+                            "label": "Use the unique matching source",
+                        },
+                        *({"value": source, "label": source} for source in sources),
+                    ]
+                )
+            ),
+        }
+        return self.async_show_form(
+            step_id="ramadan",
+            data_schema=vol.Schema(schema),
+            errors=errors,
+            description_placeholders={"detail": detail},
         )

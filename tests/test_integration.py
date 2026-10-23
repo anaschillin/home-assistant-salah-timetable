@@ -14,7 +14,7 @@ async def test_empty_setup_and_unload(hass, entry):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entry.state == ConfigEntryState.LOADED
-    assert len(er.async_get(hass).entities) == len(PrayerField) + 1
+    assert len(er.async_get(hass).entities) == len(PrayerField) + 9
     assert (
         hass.states.get("sensor.example_mosque_fajr_beginning").state == "unavailable"
     )
@@ -109,7 +109,7 @@ async def test_two_mosques_are_isolated(hass, populated, freezer):
     second_id = registry.async_get_entity_id("sensor", DOMAIN, "other_fajr_begin")
     assert hass.states.get(first_id).state != "unavailable"
     assert hass.states.get(second_id).state == "unavailable"
-    assert len(registry.entities) == 2 * (len(PrayerField) + 1)
+    assert len(registry.entities) == 2 * (len(PrayerField) + 9)
 
 
 async def test_unchanged_data_does_not_write_states(hass, populated, freezer):
