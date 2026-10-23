@@ -246,13 +246,14 @@ async def test_nms_url_profile_and_changed_pdf_require_new_approval(hass, entry)
         == sha256(changed).hexdigest()
     )
 
-async def test_nms_monthly_pdf_ramadan_upload_approval_and_activation(hass, entry, nms_upload_client, freezer):
+
+async def test_nms_monthly_pdf_ramadan_upload_approval_and_activation(
+    hass, entry, nms_upload_client, freezer
+):
     """NMS monthly PDF can be approved and activated as a Ramadan source."""
     from datetime import time
 
-    monthly_fixture = (
-        Path(__file__).parent / "fixtures/pdf/nms ramadhan.pdf"
-    )
+    monthly_fixture = Path(__file__).parent / "fixtures/pdf/nms ramadhan.pdf"
 
     await setup(hass, entry)
 
@@ -311,10 +312,7 @@ async def test_nms_monthly_pdf_ramadan_upload_approval_and_activation(hass, entr
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert (
-        entry.runtime_data.storage.approved_sources["ramadan-2022"]
-        == ramadan
-    )
+    assert entry.runtime_data.storage.approved_sources["ramadan-2022"] == ramadan
 
     freezer.move_to("2022-05-01T12:00:00+00:00")
     await entry.runtime_data.async_refresh()
@@ -324,9 +322,7 @@ async def test_nms_monthly_pdf_ramadan_upload_approval_and_activation(hass, entr
     assert effective.ramadan_active
     assert effective.row is not None
     assert effective.row.times[PrayerField.IFTAR] == (time(20, 35),)
-    assert effective.row.times[PrayerField.MAGHRIB_BEGIN] == (
-        time(20, 32),
-    )
+    assert effective.row.times[PrayerField.MAGHRIB_BEGIN] == (time(20, 32),)
     assert PrayerField.TARAWEEH not in effective.row.times
 
     # Outside the confirmed window, Ramadan is inactive.
