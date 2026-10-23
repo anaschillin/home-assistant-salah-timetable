@@ -1,5 +1,9 @@
 # Salah Timetable
 
+[![Validate](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml)
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5)](#requirements-and-installation)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A Home Assistant custom integration for mosque prayer timetables.
 
 **Status: Milestones 1–5 implemented — imports, event calculations, Ramadan and a bundled dashboard card.**
