@@ -1,4 +1,4 @@
-import {countdown, discoverEntity, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, prayerName} from "./card-utils.js?v=0.5.3";
+import {countdown, discoverEntity, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, prayerName} from "./card-utils.js?v=0.5.4";
 
 const CSS = `
 :host{display:block;color:var(--primary-text-color);font-family:var(--paper-font-body1_-_font-family,inherit)}

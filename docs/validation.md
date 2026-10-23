@@ -153,3 +153,45 @@ No hosted Actions result, HACS installation, release or tag is claimed by these 
 The complete NMS Ramadan publication, full Zakariyya annual parsing and native
 cross-Gregorian-year PDF imports remain outside this change. See
 [Ramadan validation](ramadan_validation.md) and [remaining work](remaining-work.md).
+
+
+## Zakariyya annual tables and README badges — candidate 0.5.4
+
+The same maintainer-supplied `zak.pdf` now has a separate annual adapter:
+`zak_annual_v1`. It imports twelve complete monthly tables and excludes the
+separate Ramadan appendix. All **365 Gregorian dates and 3,770 published event
+values** match a separately constructed Poppler spatial-text CSV oracle; no
+production pypdf extraction or adapter helpers generated that oracle.
+
+Sehri is published on 120 dates, February–May; the other 245 dates retain no Sehri
+value. No Maghrib Jamaat, Jumu'ah, Iftar, Istewa or Taraweeh value is invented.
+November's pre-noon Dhuhr values remain 11:xx AM. All published timestamps validate
+in `Europe/London`, including both DST changes.
+
+The visually clipped first May date, “May …”, is interpreted as 2026-05-01 only
+with its printed May 2026 heading, Friday weekday, complete 31-row month and exact
+subsequent dates 2–31. The original token and explicit interpretation note persist,
+and the review screen calls this out before approval. May's printed Hijri 1446
+caption remains unchanged in the binary publication; it never changes Gregorian
+dates or confirms Ramadan activation.
+
+Native HA tests cover authenticated PDF upload, suggested mappings, review,
+approval/reload, original provenance, Friday column meanings and absent fields.
+They also cover URL profile persistence, separate Ramadan source confirmation,
+permitted effective Iftar fallback, text-only Taraweeh and post-Ramadan annual
+fallback without mutating sources. Exact UTC sensor states on March 29 and October
+25 pass; after Isha on March 28, next Salah uses March 29's actual printed Fajr
+across the clock change. Incorrect column reassignment remains unstaged and allows
+a corrected retry.
+
+**724 Python tests passed**, with 95% aggregate integration coverage. Ruff
+lint/format, **31 Node tests**, real Chromium smoke at 360/900 pixels, official
+hassfest and reproducible 0.5.4 release-asset/note preparation passed. PDF fixtures
+remain outside integration release archives.
+
+README badges now show dynamic Validate status for main, HACS **Custom** repository
+support and the code's MIT license. The GitHub badge endpoint was fetched and
+reported passing for main before these commits. This coarse status is not proof of
+validation for the new release commit: GitHub API access still returns Forbidden,
+so exact hosted results and the remaining release acceptance checks remain pending.
+A release badge is deferred until an actual tagged release is published.

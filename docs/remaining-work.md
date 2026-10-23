@@ -48,15 +48,14 @@ acceptance. The validated HA 2026.10.2 checks remain recorded separately.
 
 Ramadan import review now checks adjusted confirmed-window coverage, inherited and
 unavailable values, advisory time ordering and approval-time source ambiguity. The
-real NMS May–June 2022 and Zakariyya 2026 Ramadan-page fixtures have strict adapters
-and independent expected-value comparisons. See [Ramadan validation](ramadan_validation.md).
+real NMS May–June 2022 and Zakariyya 2026 annual/Ramadan fixtures have strict
+adapters and independent expected-value comparisons. See [Ramadan validation](ramadan_validation.md).
 
 1. Verify the NMS website's public HTTPS timetable URL and scheduled changes on a
    network that can access it. Its supplied HTTP URL remains intentionally rejected;
    manual import of the attached NMS PDF is tested.
-2. Add a complete NMS Ramadan publication and full Zakariyya annual support (the
-   contributed annual PDF has a truncated May date cell). Support native cross-year
-   Ramadan publications without changing printed dates; current imports use one
+2. Add a complete NMS Ramadan publication and additional inspected mosque editions.
+   Support native cross-year Ramadan publications without changing printed dates; current imports use one
    Gregorian year per source. Add further adapters only after obtaining inspectable,
    redistributable fixtures and an independent expected-results comparison. Unknown
    layouts and scanned/encrypted PDFs remain unsupported.

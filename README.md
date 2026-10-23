@@ -12,9 +12,9 @@ and approve a validated timetable in the Home Assistant UI. Changes are never
 activated automatically. No YAML sensors, templates or regex setup are required.
 
 **PDF compatibility is limited to documented layouts.** The inspected Nuneaton Muslim
-Society annual and monthly calendars, Zakariyya Masjid’s separate 2026 Ramadan page,
-and the synthetic sample layout are validated. Zakariyya’s annual tables and other
-mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layouts.md).
+Society annual and monthly calendars, Zakariyya Masjid’s 2026 annual tables and
+separate Ramadan page, and the synthetic sample layout are validated. Other editions
+and mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layouts.md).
 
 The integration includes independent next-Salah/next-Jamaat events, confirmed-date
 Ramadan overrides and a graphical Lovelace card. A disposable Home Assistant runtime
@@ -150,7 +150,9 @@ Only layouts listed in [PDF layouts](docs/pdf_layouts.md) are supported. Select
 Annual kind, year 2026 and 24-hour format. Date/prayer mappings are preselected; check
 the review before approval. Its 365 dates and 5,110 event values were compared with an
 independent extraction. Additional real fixtures validate the NMS May–June 2022
-monthly layout and the separate Ramadan page in Zakariyya’s 2026 calendar. The
+monthly layout, all twelve annual tables and the separate Ramadan page in
+Zakariyya’s 2026 calendar. Its annual adapter validates 365 dates and 3,770 published
+values; review explicitly explains the clipped May first-date label. The
 `pdf_table_v1` adapter remains a separate synthetic sample, not a general recognizer. Unknown
 layouts, scanned/image-only PDFs, encrypted and corrupt documents are rejected.
 There is no OCR or fallback that guesses a missing time.

@@ -12,7 +12,13 @@ from .import_flow import CsvImportOptionsFlow, _safe_text
 from .import_model import MAX_PDF_BYTES, ImportValidationError
 from .pdf_parser import PdfParser
 
-PDF_LAYOUTS = ["nms_annual_v1", "nms_monthly_v1", "zak_ramadan_v1", "pdf_table_v1"]
+PDF_LAYOUTS = [
+    "nms_annual_v1",
+    "nms_monthly_v1",
+    "zak_annual_v1",
+    "zak_ramadan_v1",
+    "pdf_table_v1",
+]
 
 
 def _year(value) -> int:

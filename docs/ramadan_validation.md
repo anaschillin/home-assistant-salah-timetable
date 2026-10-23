@@ -54,4 +54,5 @@ counts are not lunar-date validation. Users must confirm observed dates themselv
 Each import is still limited to one declared Gregorian year. A publication crossing
 December–January needs separate year-specific sources; native cross-year PDF
 imports require further work. The supplied NMS sample does not validate a complete
-Ramadan publication, and Zakariyya's annual tables remain unsupported.
+Ramadan publication. Zakariyya's annual and Ramadan tables use separate explicit
+layouts; neither source confirms observed Ramadan dates.

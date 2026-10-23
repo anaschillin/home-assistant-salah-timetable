@@ -101,6 +101,18 @@ def import_summary(candidate, existing, settings=None) -> str:
             "Maghrib beginning supplies default Iftar only when Ramadan is active. "
             "No Maghrib Jamaat, Jumu'ah or Taraweeh timestamp is supplied by this layout."
         )
+    if candidate.parser_id == "zak_annual_v1":
+        lines.append(
+            "Only Zakariyya's twelve annual tables are imported; the separate Ramadan page is not imported. "
+            "The clipped “May …” date cell is interpreted as **2026-05-01** only after checking "
+            "the printed May 2026 heading, Friday weekday and complete sequence of dates 2–31. "
+            "The original clipped date is retained. Check this interpretation before approval. "
+            "Sehri is published only for February–May; other source months have no Sehri value. "
+            "No Maghrib Jamaat, Iftar, Jumu'ah or Taraweeh timestamp is supplied by this layout. "
+            "Friday's Zohar Jamaat column keeps its published meaning. "
+            "May's Hijri caption is printed as 1446 AH; it is retained without changing the Gregorian 2026 dates. "
+            "Printed Hijri headings do not confirm Ramadan dates."
+        )
     lines.append("Preview (first three dates; all explicit times on those dates):")
     for row in table.days[:3]:
         values = "; ".join(

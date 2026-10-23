@@ -18,6 +18,7 @@ from .csv_parser import CsvParser
 from .import_model import MAX_PDF_BYTES, ImportCandidate, ImportValidationError
 from .nms_layout import NMS_COLUMNS, NmsLayout
 from .nms_monthly_layout import NMS_MONTHLY_COLUMNS, NmsMonthlyLayout
+from .zak_annual_layout import ZAK_ANNUAL_COLUMNS, ZakAnnualLayout
 from .zak_ramadan_layout import ZAK_RAMADAN_COLUMNS, ZakRamadanLayout
 
 MAX_PDF_PAGES = 16
@@ -106,6 +107,7 @@ _LAYOUTS: dict[str, PdfLayout] = {
     "nms_annual_v1": NmsLayout(),
     "nms_monthly_v1": NmsMonthlyLayout(),
     "zak_ramadan_v1": ZakRamadanLayout(),
+    "zak_annual_v1": ZakAnnualLayout(),
 }
 
 
@@ -183,12 +185,17 @@ class PdfParser:
             "nms_annual_v1": NMS_COLUMNS,
             "nms_monthly_v1": NMS_MONTHLY_COLUMNS,
             "zak_ramadan_v1": ZAK_RAMADAN_COLUMNS,
+            "zak_annual_v1": ZAK_ANNUAL_COLUMNS,
         }.get(self.layout_id)
         if self.layout_id == "nms_annual_v1" and kind != "annual":
             raise ImportValidationError("Use Annual kind for the NMS annual layout")
         if self.layout_id == "zak_ramadan_v1" and kind != "ramadan":
             raise ImportValidationError(
                 "Use Ramadan kind for the Zakariyya Ramadan page layout"
+            )
+        if self.layout_id == "zak_annual_v1" and kind != "annual":
+            raise ImportValidationError(
+                "Use Annual kind for the Zakariyya annual calendar layout"
             )
         if fixed_columns is not None and (
             date_column != "Date"

@@ -10,7 +10,13 @@ from .import_model import ImportValidationError
 from .model import PrayerField
 
 PDF_PARSER_IDS = frozenset(
-    {"pdf_table_v1", "nms_annual_v1", "nms_monthly_v1", "zak_ramadan_v1"}
+    {
+        "pdf_table_v1",
+        "nms_annual_v1",
+        "nms_monthly_v1",
+        "zak_ramadan_v1",
+        "zak_annual_v1",
+    }
 )
 CHECK_STATUSES = frozenset(
     {

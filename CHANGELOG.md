@@ -1,6 +1,18 @@
 # Changelog
 
-## 0.5.3 — unreleased
+## 0.5.4 — unreleased
+
+- Add live validation, HACS custom-repository and MIT license README badges.
+- Support the inspected Zakariyya 2026 annual PDF tables as a separate layout from
+  its Ramadan page. Validate all 365 dates and 3,770 published values against an
+  independent extraction; preserve missing Sehri fields and pre-noon Dhuhr values.
+- Document and show the clipped May first-date interpretation before approval,
+  retaining its original token. Never infer missing prayer times or activate
+  Ramadan from printed Hijri headings.
+- Test annual approval/reload, URL source profiles, separate Ramadan confirmation,
+  daylight saving changes and tomorrow's actual Fajr through Home Assistant.
+
+## 0.5.3
 
 - Validate the contributed NMS May–June 2022 monthly PDF and the separate Ramadan
   page in Zakariyya Masjid's 2026 calendar with strict layout adapters and independent

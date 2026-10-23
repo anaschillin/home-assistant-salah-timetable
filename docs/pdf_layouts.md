@@ -7,7 +7,8 @@ tests. There is no OCR, fuzzy layout guessing or fallback to calculated prayer t
 | --- | --- | --- |
 | `nms_annual_v1` | Supplied Nuneaton Muslim Society 2026 annual calendar | Cover + contact page + twelve complete monthly tables |
 | `nms_monthly_v1` | Maintainer-supplied NMS May–June **2022** pages | Complete consecutive monthly tables with explicit Gregorian headings |
-| `zak_ramadan_v1` | Maintainer-supplied Zakariyya 2026 calendar | Extracts only the separate final Ramadan page; annual tables remain unsupported |
+| `zak_annual_v1` | Maintainer-supplied Zakariyya 2026 calendar | Extracts twelve complete annual tables; separate Ramadan page excluded |
+| `zak_ramadan_v1` | Same publication, separate Ramadan page | Extracts only the final Ramadan table; annual tables use their own layout |
 | `pdf_table_v1` | Synthetic sample only | Text-based, pipe-delimited table described below |
 
 ## NMS monthly pages (`nms_monthly_v1`)
@@ -28,13 +29,47 @@ Ramadan kind is permitted for an explicitly confirmed exact-date override source
 Selecting 2026 for this 2022 file is rejected. No Taraweeh or extra Khutbah event
 is inferred. Only the inspected structure is supported.
 
+## Zakariyya annual calendar (`zak_annual_v1`)
+
+Select **Zakariyya Masjid — annual calendar, 2026 (v1)**, Annual kind and year
+**2026** for the supplied fourteen-page `zak.pdf`. The adapter imports its twelve
+annual tables only. The separate Ramadan page remains an independently approved
+Ramadan source; importing the annual tables never activates Ramadan.
+
+All **365 dates and 3,770 published values** match an independent Poppler extraction.
+The field meanings match the Ramadan mapping below, with **Sehri published only
+from February through May (120 dates)**. Other months have no published Sehri
+value. No Maghrib Jamaat, Iftar, Jumu'ah, Istewa or Taraweeh timestamp is invented.
+Friday's Arabic weekday cell does not turn the Zohar Jamaat column into Jumu'ah.
+
+The adapter recognizes the tested 2026 cover, twelve ordered Gregorian titles,
+known header variations, full month row counts, exact weekdays, ten/eleven physical
+time cells, the printed daily order and expected footers. Pre-noon **11:xx AM**
+Dhuhr values remain before noon, rather than being changed to 23:xx. Stored
+`Europe/London` timestamps validate the spring/autumn clock changes.
+
+One source date cell is visibly clipped to **“May …”**. It is accepted as
+**2026-05-01** only in the first row of the complete May 2026 table, with the
+printed Friday weekday and exact subsequent dates 2–31 all matching the calendar.
+Changing the heading, weekday, row position or date sequence is rejected. The
+original token and a date-interpretation note are preserved, and the import review
+explicitly calls out this interpretation for approval. This is a documented
+Gregorian-date reconstruction, not a calculated or repaired prayer time.
+
+May's printed Hijri caption says **1446 AH**, unlike adjacent months. The adapter
+preserves the publication; it does not correct that caption, change Gregorian
+2026 dates or use Hijri text to activate Ramadan. Binary source/checksum, raw
+physical time values, weekday, Hijri day and date interpretation survive approval
+and reload. Unknown clipping or missing time cells are rejected.
+
 ## Zakariyya Ramadan page (`zak_ramadan_v1`)
 
 Select **Zakariyya Masjid — separate Ramadan page, 2026 (v1)**, Ramadan kind and
 year **2026**. The supplied 3,213,250-byte, fourteen-page publication fits the bounded
 4 MiB input limit. The cover and twelve ordered monthly titles establish the known
 publication; only its final **Ramadhan 2026 / 1447 AH** table is imported. This does
-not establish support for its annual tables or other editions.
+not import its annual tables; use the annual layout above for those. Other editions
+remain unsupported.
 
 All **31 dates and 341 published event values** match an independent Poppler
 extraction. The table spans February 18–March 20, 2026, including a final Hijri-1
