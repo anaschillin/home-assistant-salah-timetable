@@ -188,7 +188,7 @@ try {
   assert.equal((await state("taraweeh_status")).state, "after_isha_jamaat");
   report.checks.push("confirmed_ramadan", "iftar_fallback", "taraweeh_text_without_timestamp");
   const second = await addMosque("second", "Second Mosque");
-  await until(() => request("/api/states"), value => value.filter(item => item.entity_id.startsWith("sensor.second_mosque_")).length === 25, "Second mosque sensors missing");
+  await until(() => request("/api/states"), value => value.filter(item => item.entity_id.startsWith("sensor.second_mosque_")).length === ids.length, "Second mosque sensors missing");
   await request(`/api/config/config_entries/entry/${second}`, undefined, {method: "DELETE"});
   assert.deepEqual((await request("/api/states")).filter(item => item.entity_id.startsWith("sensor.smoke_mosque_")).map(item => item.entity_id).sort(), ids);
   report.checks.push("two_mosques_independent_removal");
