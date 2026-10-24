@@ -44,8 +44,8 @@ entity IDs, real card picker/editor, display-control changes and page reload.
 The exact locked PDF dependency was explicitly preloaded; fresh dependency
 installation and authenticated HACS installation remain separate checks.
 See [recorded validation](validation.md#peer-review-follow-up--candidate-061).
-The original unfinished runner remains on `codex/live-smoke-runner` as historical
-context; its earlier generic timeout is not evidence of a storage defect.
+The current runner supersedes the earlier unfinished attempt; its earlier generic
+timeout is not evidence of a storage defect.
 
 ## Subsequent additions
 

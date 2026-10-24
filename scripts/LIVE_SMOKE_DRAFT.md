@@ -41,7 +41,7 @@ availability and match flags. Screenshots contain synthetic data. The ten-minute
 run deadline and scoped cleanup remain mandatory. Docker creates/copies can take
 several minutes in this environment.
 
-The original `codex/live-smoke-runner` branch preserves an earlier unsuccessful
-attempt. Its restart timeout was unresolved then; it is not proof of a storage bug.
+The current runner supersedes an earlier unsuccessful attempt. Its restart timeout
+was unresolved then; it is not proof of a storage bug.
 Authenticated HACS installation, physical-device checks and fresh dependency
 installation remain outside this manual-install result.
