@@ -186,13 +186,15 @@ countdown. The backend and card behavior have separate boundary tests.
 `frontend.py` registers the bundled directory at `/salah_timetable` through HA's
 asynchronous static-path API. For storage-mode Lovelace resources it creates or
 updates the integration's relative module URL, removes duplicate registrations and
-uses `?v=0.6.0` for cache changes. For YAML resources it uses HA's extra-JavaScript
+uses `?v=0.6.1` for cache changes. For YAML resources it uses HA's extra-JavaScript
 helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
 a resource-registration failure is logged without disabling valid prayer entities.
 
 The `custom:salah-timetable-card` custom element and graphical editor use the mosque's
 Prayer timetable entity. The card computes countdowns/elapsed time locally from
-absolute timestamps and ticks only its own DOM once per second. It stops its timer
+absolute timestamps and updates countdown/progress nodes in place once per second.
+Data/configuration changes and event-boundary transitions rebuild the card; ordinary
+ticks preserve its static table, focus and text selection. It stops its timer
 when disconnected from the DOM. Imported/user text is assigned through `textContent`.
 Time labels follow the mosque timezone and HA locale; responsive CSS uses HA theme
 variables without Card Mod. The editor emits standard `config-changed` events and

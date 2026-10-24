@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {waitForRunning, waitForEntry} from '../../scripts/live_readiness.mjs';
+import {waitForRunning, waitForEntry, pollUntil} from '../../scripts/live_readiness.mjs';
 
 async function poll(action, predicate, message) {
   for (let attempt = 0; attempt < 4; attempt++) {
@@ -35,4 +35,28 @@ for (const state of ['setup_error', 'migration_error', 'failed_unload']) {
 test('startup timeout is distinct from a timetable mismatch', async () => {
   await assert.rejects(waitForRunning(async () => ({state: 'STARTING'}), poll), /did not reach RUNNING/);
   await assert.rejects(waitForEntry(async () => [], poll, 'target'), /did not finish loading/);
+});
+
+
+for (const status of [401, 403, 404, 400, 500]) {
+  test(`readiness surfaces HTTP ${status} without retrying`, async () => {
+    let attempts = 0;
+    await assert.rejects(pollUntil(async () => { attempts++; throw Object.assign(new Error("HTTP failure"), {status}); }, Boolean, "timeout", {pause: async () => {}}), /HTTP failure/);
+    assert.equal(attempts, 1);
+  });
+}
+
+test("readiness retries refused connections and gateway startup errors", async () => {
+  const errors = [Object.assign(new Error("fetch failed"), {cause: {code: "ECONNREFUSED"}}), Object.assign(new Error("starting"), {status: 503})];
+  let attempts = 0;
+  assert.equal(await pollUntil(async () => { attempts++; if (errors.length) throw errors.shift(); return true; }, Boolean, "timeout", {pause: async () => {}}), true);
+  assert.equal(attempts, 3);
+});
+
+test("readiness never retries invalid JSON, assertions or cancellation", async () => {
+  for (const error of [new SyntaxError("bad response"), new Error("bad schema")]) {
+    await assert.rejects(pollUntil(async () => { throw error; }, Boolean, "timeout", {pause: async () => assert.fail("must not pause")}), error);
+  }
+  const abort = new AbortController(); abort.abort(new Error("cancelled"));
+  await assert.rejects(pollUntil(async () => assert.fail("must not request"), Boolean, "timeout", {signal: abort.signal, pause: async () => {}}), /cancelled/);
 });

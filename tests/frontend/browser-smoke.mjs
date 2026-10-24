@@ -64,7 +64,7 @@ test("real Chromium card and editor smoke", {skip, timeout: 45000}, async t => {
   const directory = await mkdtemp(join(tmpdir(), "salah-card-browser-"));
   const main = `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0}#result{display:none}</style></head><body><pre id="result">pending</pre><script>
 window.salahBrowserReports = []; window.addEventListener('message', event => { if(event.origin === location.origin && event.data.kind === 'salah-browser-result') { window.salahBrowserReports.push(event.data); document.querySelector('#result').textContent = JSON.stringify(window.salahBrowserReports); } });
-for (const width of [360, 900]) { const frame = document.createElement('iframe'); frame.style.cssText = 'display:block;border:0;height:1200px;width:'+width+'px'; frame.src = '/frame.html'; document.body.append(frame); }
+for (const width of [320, 360, 400, 900]) { const frame = document.createElement('iframe'); frame.style.cssText = 'display:block;border:0;height:1200px;width:'+width+'px'; frame.src = '/frame.html'; document.body.append(frame); }
 </script></body></html>`;
   const frame = '<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:8px;box-sizing:border-box;font-family:sans-serif}html{--primary-text-color:rgb(20,20,20);--primary-color:#387f8d;--secondary-text-color:#687478;--secondary-background-color:#f2f5f5;--divider-color:#ddd;--card-background-color:white}</style></head><body><script type="module" src="/tests/frontend/browser-harness.js"></script></body></html>';
   const files = new Map([
@@ -99,24 +99,25 @@ for (const width of [360, 900]) { const frame = document.createElement('iframe')
     for (let attempt = 0; attempt < 80; attempt++) {
       const evaluation = await debuggerSession.call("Runtime.evaluate", {expression: "JSON.stringify(window.salahBrowserReports || [])", returnByValue: true});
       reports = JSON.parse(evaluation.result?.value || "[]");
-      if (reports.length === 2) break;
+      if (reports.length === 4) break;
       await pause(100);
     }
-    assert.equal(reports.length, 2, `Browser did not finish both fixtures: ${JSON.stringify(reports)}\n${stderr}`);
-    for (const width of [360, 900]) await t.test(`${width}px native DOM, theme and editor`, () => {
+    assert.equal(reports.length, 4, `Browser did not finish all fixtures: ${JSON.stringify(reports)}\n${stderr}`);
+    for (const width of [320, 360, 400, 900]) await t.test(`${width}px native DOM, theme and editor`, () => {
       const report = reports.find(item => item.width === width);
       assert.ok(report, `No report for ${width}px: ${JSON.stringify(reports)}`);
       assert.equal(report.status, "passed", report.error);
-      assert.equal(report.checks.length, 21);
+      for (const name of ["card contains 200% text without overflowing", "Gregorian and calculated Hijri dates are visible", "future countdowns show bounded progress", "countdown tick preserves table keyboard focus"]) assert.ok(report.checks.includes(name), `Missing browser check: ${name}`);
     });
     if (process.env.BROWSER_SCREENSHOT_DIR) {
+      await debuggerSession.call("Runtime.evaluate", {expression: "window.scrollTo(0,0);for(const frame of document.querySelectorAll('iframe'))frame.contentWindow.scrollTo(0,0)"});
       await debuggerSession.call("Runtime.evaluate", {expression: "new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))", awaitPromise: true});
       const output = resolve(process.env.BROWSER_SCREENSHOT_DIR);
       await mkdir(output, {recursive: true});
-      const rectangles = await debuggerSession.call("Runtime.evaluate", {expression: "JSON.stringify([...document.querySelectorAll('iframe')].map(frame => {const bounds=frame.getBoundingClientRect(); const card=frame.contentDocument.querySelector('salah-timetable-card').getBoundingClientRect();return {x:bounds.x+card.x,y:bounds.y+card.y,width:card.width,height:card.height,scale:1}}))", returnByValue: true});
+      const rectangles = await debuggerSession.call("Runtime.evaluate", {expression: "JSON.stringify([...document.querySelectorAll('iframe')].map(frame => {const bounds=frame.getBoundingClientRect(); const card=frame.contentDocument.querySelector('salah-timetable-card').getBoundingClientRect();return {x:bounds.x+window.scrollX+card.x,y:bounds.y+window.scrollY+card.y,width:card.width,height:card.height,scale:1}}))", returnByValue: true});
       for (const [index, clip] of JSON.parse(rectangles.result.value).entries()) {
         const screenshot = await debuggerSession.call("Page.captureScreenshot", {format: "png", captureBeyondViewport: true, clip});
-        await writeFile(join(output, `salah-card-${[360, 900][index]}.png`), Buffer.from(screenshot.data, "base64"));
+        await writeFile(join(output, `salah-card-${[320, 360, 400, 900][index]}.png`), Buffer.from(screenshot.data, "base64"));
       }
     }
   } finally {

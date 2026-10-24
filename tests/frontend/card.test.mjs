@@ -174,7 +174,7 @@ test("dashboard controls hide panels and details without hiding published prayer
   assert.equal(find(card.shadowRoot, "table").length, 1);
   assert.match(find(card.shadowRoot, "table")[0].textContent, /05:45\s*am/i);
   assert.equal(find(card.shadowRoot, "header")[0].textContent.includes("Hijri"), false);
-  assert.equal(find(card.shadowRoot, "p").length, 0);
+  assert.equal(find(card.shadowRoot, "p").filter(element => element.className !== "note scroll-help").length, 0);
   assert.equal(find(card.shadowRoot, "tr")[1].attributes["aria-current"], "true");
 });
 
@@ -211,4 +211,38 @@ test("all main countdown visibility combinations keep the timetable and both dat
     assert.equal(find(card.shadowRoot, "table").length, 1);
     assert.match(find(card.shadowRoot, "header")[0].textContent, /Hijri \(calculated\)/);
   }
+});
+
+
+test("ordinary ticks update clocks and progress without rebuilding the table", () => {
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = hass();
+  card._render(Date.parse("2026-10-21T04:40:00Z"));
+  const table = find(card.shadowRoot, "table")[0]; const style = find(card.shadowRoot, "style")[0];
+  const clocks = find(card.shadowRoot, "div").filter(element => element.className === "count");
+  card._tick(Date.parse("2026-10-21T04:40:01Z"));
+  assert.equal(find(card.shadowRoot, "table")[0], table); assert.equal(find(card.shadowRoot, "style")[0], style);
+  assert.equal(find(card.shadowRoot, "div").find(element => element.className === "count"), clocks[0]);
+  assert.equal(clocks[0].textContent, "00:04:59");
+  card._tick(Date.parse("2026-10-21T05:15:00Z"));
+  assert.notEqual(find(card.shadowRoot, "table")[0], table);
+  assert.equal(find(card.shadowRoot, "tr")[1].className, "past-prayer");
+});
+
+test("ordinary ticks advance previous elapsed, progress and Ramadan clocks in place", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "previous"});
+  card.hass = hass({...attributes, ramadan: {active: true, sehri: "2026-10-21T04:30:00Z", iftar: "2026-10-21T17:00:00Z"}});
+  card._render(Date.parse("2026-10-21T04:20:00Z"));
+  const table = find(card.shadowRoot, "table")[0];
+  const clocks = find(card.shadowRoot, "div").filter(element => element.className === "count");
+  card._tick(Date.parse("2026-10-21T04:20:01Z"));
+  assert.equal(find(card.shadowRoot, "table")[0], table);
+  assert.equal(clocks[1].textContent, "09:20:01 elapsed");
+  assert.equal(clocks[2].textContent, "00:09:59");
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "upcoming"});
+  card._render(Date.parse("2026-10-21T04:20:00Z"));
+  const bar = find(card.shadowRoot, "progress")[0]; const before = bar.value;
+  card._tick(Date.parse("2026-10-21T04:20:01Z"));
+  assert.equal(find(card.shadowRoot, "progress")[0], bar);
+  assert.ok(bar.value > before);
 });

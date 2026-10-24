@@ -61,7 +61,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await call("Page.navigate", {url: `${base}/salah-smoke/smoke`});
     await until(expression(`const card=${findCard};return card?.shadowRoot?.textContent?.includes('Smoke Mosque')`), "Bundled card did not render in real HA");
     console.log("Real HA frontend loaded the bundled card");
-    for (const width of [360, 900]) {
+    for (const width of [320, 360, 400, 900]) {
       await call("Emulation.setDeviceMetricsOverride", {width, height: 1100, deviceScaleFactor: 1, mobile: width === 360}); await pause(250);
       assert.equal(await evaluate(expression(`const card=${findCard};const content=card.shadowRoot.querySelector('.content');return content.scrollWidth<=content.clientWidth+1&&card.getBoundingClientRect().right<=innerWidth+1`)), true, `Card overflows at ${width}px`);
       if (output) { await mkdir(output, {recursive: true}); await pause(500); const image = await call("Page.captureScreenshot", {format: "png"}); await writeFile(join(output, `ha-${width}.png`), Buffer.from(image.data, "base64")); }
@@ -91,10 +91,24 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await call("Input.dispatchKeyEvent", {type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9});
     await call("Input.dispatchKeyEvent", {type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9});
     assert.equal(await evaluate("window.salahEditor.shadowRoot.activeElement===window.salahEditor.shadowRoot.querySelector('#mosque-title')"), false, "Tab did not leave title field");
+    const originalData = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.entity);const data=card._hass.states[card._config.entity].attributes;return {prayers:data.prayers,active:data.ramadan.active}"));
+    const selected = {layout: "compact", time_format: "12h", hijri_adjustment: 2, show_hijri_date: true, show_salah_countdown: false, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: false, show_iftar_countdown: false, show_timezone_note: false};
+    for (const [key, target] of Object.entries(selected)) for (const value of typeof target === "boolean" ? [!target, target] : [target]) {
+      await evaluate(`(()=>{const control=window.salahEditor.shadowRoot.querySelector('[data-option="${key}"]');if(!control)throw new Error('Missing editor control');${typeof value === "boolean" ? `control.checked=${value};` : `control.value=${JSON.stringify(String(value))};`}control.dispatchEvent(new Event('change',{bubbles:true}));return true})()`);
+      await until(`window.salahEditor._config[${JSON.stringify(key)}]===${JSON.stringify(value)}`, `Editor option did not update: ${key}`);
+    }
     await until(expression("const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');const save=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='ha-button'&&element.getAttribute('slot')==='primaryAction');if(!save)return false;save.click();return true"), "Real card editor Save button missing");
     await until(expression("return deep().filter(element=>element.localName==='salah-timetable-card').some(card=>card.shadowRoot.textContent.includes('Keyboard smoke title'))"), "Saved edited card did not appear on dashboard");
+    await call("Page.reload", {ignoreCache: true});
+    await until(expression("return deep().filter(element=>element.localName==='salah-timetable-card').some(card=>card.shadowRoot?.textContent.includes('Keyboard smoke title'))"), "Saved card missing after page reload");
+    const restored = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.title==='Keyboard smoke title');return card?{config:card._config,panels:card.shadowRoot.querySelectorAll('.panel').length,compact:!!card.shadowRoot.querySelector('.content.compact'),hijri:card.shadowRoot.querySelector('.hijri')?.textContent,data:{prayers:card._hass.states[card._config.entity].attributes.prayers,active:card._hass.states[card._config.entity].attributes.ramadan.active},times:[...card.shadowRoot.querySelectorAll('tbody td')].map(cell=>cell.textContent)}:null"));
+    for (const [key, value] of Object.entries(selected)) assert.equal(restored.config[key], value, `Saved option did not survive reload: ${key}`);
+    assert.deepEqual(restored.data, originalData, "Display controls changed prayer data or Ramadan activation");
+    assert.equal(restored.panels, 1); assert.equal(restored.compact, true);
+    assert.match(restored.hijri, /Hijri \(calculated\)/);
+    assert.ok(restored.times.some(value => /[ap]m/i.test(value)), "Reloaded card does not use 12-hour times");
     console.log("Real card picker, mode radio, keyboard title, focus, themes and 200% text scale passed");
-    return {viewports: [360, 900], picker: true, editor: true, keyboard: true, themes: ["light", "dark"], root_text_scale: "200%"};
+    return {viewports: [320, 360, 400, 900], configuration_reload: true, picker: true, editor: true, keyboard: true, themes: ["light", "dark"], root_text_scale: "200%"};
   } finally {
     clearTimeout(deadline); signal.removeEventListener("abort", stop); socket?.close(); stop();
     await pause(100); await rm(profile, {recursive: true, force: true});

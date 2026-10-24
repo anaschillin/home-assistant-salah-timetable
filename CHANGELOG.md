@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.1 — unreleased
+
+- Update countdown text and progress in place between event boundaries, preserving
+  timetable nodes, keyboard focus and text selection during ordinary ticks.
+- Explain the agreed beginning-to-beginning/Jamaat-to-Jamaat progress intervals;
+  clarify missing-Jamaat highlighting through the final daily prayer.
+- Add narrow-table scrolling guidance and browser checks at 320/360/400/900 pixels,
+  including 200% text, themes, text selection and editor configuration persistence.
+- Fail live readiness polling immediately for authentication/API/response errors;
+  retry only expected transient startup transport failures.
+- Extend real HA editor acceptance to display controls and page reload. Record
+  successful minimum-version HA restart acceptance separately from HACS installation.
+
 ## 0.6.0 — unreleased
 
 - Highlight the prayer awaiting Jamaat, keep completed rows readable and align

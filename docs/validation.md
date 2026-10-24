@@ -274,3 +274,57 @@ Existing screenshots remain labelled historical. New browser screenshots, real H
 editor acceptance, physical-device checks and hosted validation for the eventual
 0.6.0 release commit remain required. The earlier hosted result applies only to
 `9642db3`, not these local dashboard changes.
+
+
+## Peer-review follow-up — candidate 0.6.1
+
+Reviewed all six findings against `dd184154` and the local follow-up tree. These
+results describe the local 0.6.1 follow-up tree based on that commit; they do not
+establish hosted validation for a future release commit.
+
+| Review finding | Disposition and evidence |
+| --- | --- |
+| A: missing-Jamaat highlight | Not reproduced in 0.6.0: the latest begun row already returned before future-row selection. Simplified that rule and added missing middle/final Jamaat, exact next-beginning, end-of-day and next-local-day regressions. No timetable values changed. |
+| B: progress interval ambiguity | Retained the agreed beginning-to-beginning / Jamaat-to-Jamaat policy. Each bar now visibly explains its interval; multiple Friday congregations, overnight and DST cases pass. |
+| C: full DOM rebuild on every tick | Routine ticks now update existing clock/progress nodes. Structural changes rebuild at event boundaries or data/config changes. Native Chromium verifies stable table nodes, retained text selection and keyboard focus. |
+| D: narrow-table scrolling | Retained accessible scrolling and added visible swipe/keyboard guidance on narrow cards. Chromium passes 320/360/400/900px, 200% text and scrolling without card overflow. |
+| E: polling masks errors | Polling fails immediately for auth/API errors, invalid JSON, assertions and cancellation; only expected transient startup failures retry. Regression tests cover both paths. |
+| F: live editor feature coverage | The real HA editor exercised layout, both time formats, Hijri adjustment and every visibility control. Saved options survived page reload; rendered layout/times and unchanged prayer data/Ramadan activation were checked. |
+
+### Automated and browser results
+
+- **725 Python tests passed**, with 95% aggregate integration coverage. The isolated
+  PDF worker remains outside coverage instrumentation. This full run preceded the
+  metadata-only 0.6.1 version bump; **23 focused frontend/packaging/release tests**
+  passed again afterward.
+- **70 Node tests passed**. Ruff lint/format, JavaScript syntax, whitespace checks,
+  offline lock consistency and 0.6.1 release-note/archive/checksum preparation passed.
+- Native Chromium passed all four width fixtures, including themes, 200% root text,
+  date/time rendering, progress, text selection, scrolling guidance and editor focus.
+  Fresh synthetic screenshots are linked from [dashboard](dashboard.md#preview).
+- These runs used socket-enabled execution. The earlier sandbox-denied results
+  above remain historical; they no longer block these specific completed checks.
+
+### Disposable minimum-version Home Assistant
+
+The official HA **2026.10.0** image, ID
+`sha256:e5ee66f11f90f86c50c1b7641e558b707ccc3d2bb354daf05c296e58382945e2`,
+ran a fresh loopback-only manual installation of the local **0.6.1** candidate.
+The runner passed **19 acceptance checks**, including onboarding, URL-independent
+CSV upload/mapping/approval, 25 sensors, separate-mosque removal, automatic resource
+registration, confirmed Ramadan, Iftar fallback and text-only Taraweeh.
+
+After HA reached RUNNING, restart preserved the approved timetable, staged proposal,
+Ramadan settings, entity IDs and single resource registration. Rejection retained
+approved Fajr. The actual frontend passed picker/editor, keyboard focus/title,
+light/dark themes and phone/tablet checks. Every display setting was changed through
+its real editor control and checked after save/page reload. Prayer data and Ramadan
+activation remained unchanged. Reports contained only sanitized flags; generated
+private configuration and task containers were removed after execution.
+
+The exact locked `pypdf==6.21.1` was explicitly preloaded into the container. This is
+not certification of fresh dependency installation through the proxy, an
+authenticated HACS installation, physical devices, a full HA backup restore, or
+upgrade from a previously published release. Those acceptance items, asset provenance,
+hosted checks for the final commit and reviewed release publication remain pending.
+No tag or GitHub release was created by this follow-up.

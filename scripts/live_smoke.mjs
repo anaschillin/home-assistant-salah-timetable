@@ -7,7 +7,7 @@ import {tmpdir} from "node:os";
 import {createServer} from "node:net";
 import {basename, join, resolve} from "node:path";
 import {fileURLToPath} from "node:url";
-import {waitForRunning, waitForEntry} from "./live_readiness.mjs";
+import {waitForRunning, waitForEntry, pollUntil} from "./live_readiness.mjs";
 import {runBrowserSmoke} from "./live_browser.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -64,17 +64,12 @@ async function request(path, data, {auth = true, method = data === undefined ? "
   const headers = auth && tokens ? {Authorization: `Bearer ${tokens.access_token}`} : {};
   if (data !== undefined && !form) headers["Content-Type"] = "application/json";
   const response = await fetch(base + path, {method, headers, body: data === undefined ? undefined : form ? data : JSON.stringify(data), signal: AbortSignal.any([abort.signal, AbortSignal.timeout(90000)])});
-  if (!response.ok) throw new Error(`${method} ${path} returned HTTP ${response.status}`);
+  if (!response.ok) throw Object.assign(new Error(`${method} ${path} returned HTTP ${response.status}`), {status: response.status});
   return response.status === 204 ? null : response.json();
 }
 
 async function until(action, predicate, message, attempts = 90) {
-  for (let attempt = 0; attempt < attempts; attempt++) {
-    abort.signal.throwIfAborted();
-    try { const result = await action(); if (predicate(result)) return result; } catch (error) { if (attempt === attempts - 1) throw error; }
-    await pause(1000);
-  }
-  throw new Error(message);
+  return pollUntil(action, predicate, message, {attempts, pause, signal: abort.signal});
 }
 
 async function websocket() {

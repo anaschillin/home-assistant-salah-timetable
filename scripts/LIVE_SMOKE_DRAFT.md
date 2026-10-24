@@ -1,8 +1,9 @@
-# Live smoke runner — work in progress
+# Opt-in live Home Assistant acceptance runner
 
-This is an experimental opt-in Docker/Chromium acceptance runner.
-Its readiness helpers have automated coverage; the full runner has not passed live acceptance. No credentials, private HA
-configuration or source timetables are included.
+The runner is manual-only; it is not a required hosted CI job. It creates a
+disposable official HA container and synthetic timetable, runs authenticated APIs
+and the real frontend, and removes its container and private configuration afterward.
+No user configuration or credentials are checked into the repository.
 
 Requirements: Docker, Node.js 24 and Chromium/Chrome. Example:
 
@@ -11,42 +12,36 @@ node scripts/live_smoke.mjs --ha-version 2026.10.0 --output-dir /tmp/salah-live-
 ```
 
 The optional `--preload-pypdf` supplies the exact manifest-pinned pure-Python
-package/metadata from the repository's development venv to the disposable image.
-It is an explicit workaround for this test environment's proxy CA, not proof that
-fresh dependency installation works. TLS verification remains enabled.
+package and metadata from the repository's development venv. It is an explicit
+workaround for the test environment's proxy CA, not proof that fresh dependency
+installation works. TLS verification remains enabled.
 
-Latest observations:
+## Observed acceptance — 24 October 2026
 
-- HA 2026.10.0 starts, onboarding/configuration/import/approval work, 25 sensors
-  appear, Ramadan defaults work, and removing a second mosque preserves the first.
-- Docker's automatic published port changed on restart. The runner now allocates
-  a host loopback port and publishes it explicitly, preserving the origin.
-- The next run still failed to confirm approved Fajr after restart. Investigate HA
-  startup readiness, persisted config-entry state and reload/setup errors. Wait
-  for HA RUNNING before testing shutdown; do not infer a storage defect from the
-  runner's current generic timeout alone.
-- The full real picker/theme/keyboard driver is implemented but has not been
-  reached by this runner. Previous main-branch HA 2026.10.2 card/editor smoke is
-  recorded separately in docs/validation.md.
-- Docker uses costly image copies in this environment; creating/cleaning a single
-  HA container can take over a minute. Keep one large test image at a time and
-  retain enough free disk space. Cleanup is scoped to the generated container and
-  temporary directory. Completed runs remove private configuration/tokens.
+The local 0.6.1 candidate passed 19 checks against HA 2026.10.0, with explicit
+locked-dependency preloading. Approved and pending imports, Ramadan options,
+entity IDs and resource registration survived restart. The actual card picker,
+keyboard title/focus, themes and phone/tablet viewports passed. Every display
+control was exercised; saved settings survived page reload, changed the rendered
+card, and preserved prayer data and Ramadan activation. See
+[validation](../docs/validation.md#peer-review-follow-up--candidate-061).
 
-Next: improve sanitized failure diagnostics and startup/readiness checks, finish
-minimum-version restart plus real picker acceptance, then review cleanup/cancel
-paths before adding a manual-only CI workflow. Rebase on current main first.
+## Readiness and reporting
 
-## Readiness hardening — 24 October 2026
+Wait for HA `RUNNING` before configuration and shutdown. After restart, wait for
+`RUNNING` and the specific mosque entry before checking timetable values. Terminal
+setup/migration errors fail separately. Polling retries refused/reset connections,
+transport timeouts and HTTP 502/503/504; authentication failures, incompatible APIs,
+invalid JSON and assertions fail immediately. A fixed loopback host port preserves
+the origin across restart. Browser startup uses bounded debugger discovery.
 
-The runner now waits for `/api/config` to report `RUNNING` before configuring
-mosques and before restarting. After restart it waits for `RUNNING` and the
-specific mosque entry to load before asserting Fajr. Terminal setup/migration
-errors are reported separately from missing or mismatched timetable state. The
-JSON result records only presence, availability and match flags for restart Fajr,
-without exporting prayer values or configuration. Browser startup uses the same
-bounded debugger discovery as the existing Chromium harness.
+Reports contain acceptance flags and version/image identity, never tokens, private
+configuration or imported values. Restart Fajr diagnostics expose only presence,
+availability and match flags. Screenshots contain synthetic data. The ten-minute
+run deadline and scoped cleanup remain mandatory. Docker creates/copies can take
+several minutes in this environment.
 
-Docker socket access is blocked in the current workspace sandbox, so these changes
-have not resolved or reproduced the original live restart failure. No minimum-version
-acceptance is claimed. Run the command above in an environment with Docker access.
+The original `codex/live-smoke-runner` branch preserves an earlier unsuccessful
+attempt. Its restart timeout was unresolved then; it is not proof of a storage bug.
+Authenticated HACS installation, physical-device checks and fresh dependency
+installation remain outside this manual-install result.

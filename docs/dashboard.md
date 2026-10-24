@@ -4,15 +4,20 @@ The **Salah Timetable** card is bundled with the integration. It uses the mosque
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
 template sensors or YAML configuration.
 
-## Historical preview
+## Preview
 
-These historical screenshots predate the 0.6.0 dashboard changes and show synthetic timetable data in the real Home Assistant 2026.10.2
-frontend, running integration 0.5.1. They are viewport checks, not physical-device
-certification.
+These candidate 0.6.1 screenshots show synthetic data in the isolated Chromium
+fixture with Home Assistant control stand-ins. They cover phone/tablet card layout;
+they are not screenshots of a HACS installation or physical-device certification.
+Real Home Assistant runtime/editor acceptance is recorded separately in
+[validation](validation.md).
 
-<img src="images/card-mobile.png" alt="Salah Timetable in Home Assistant at phone width, with prayer times and Ramadan information" width="260">
+<img src="images/card-mobile-0.6.1.png" alt="Candidate Salah Timetable at phone width, showing dual countdowns, Hijri date and accessible table scrolling" width="260">
 
-[Tablet-width screenshot](images/card-tablet.png)
+[Tablet-width screenshot](images/card-tablet-0.6.1.png)
+
+The older [0.5.1 phone](images/card-mobile.png) and
+[tablet](images/card-tablet.png) screenshots are retained as historical references.
 
 ## Add the card
 
@@ -43,10 +48,13 @@ entry per mosque, and each card follows the selected entity's mosque timezone.
 
 The layout adapts to narrow screens and uses Home Assistant's light/dark theme
 variables. Times use the configured mosque timezone, even when the browser is in
-another timezone. Countdowns update locally once per second from absolute event
-timestamps; they do not write Home Assistant sensor states or call services. At
-large text sizes, the prayer table stays inside a labelled, keyboard-focusable
-scroll region so its columns remain readable without widening the card.
+another timezone. Countdown text and progress update in place once per second
+from absolute event timestamps; the static DOM is rebuilt only when data/configuration or an event
+boundary changes. Ordinary ticks retain table nodes, focus and text selection. They
+do not write Home Assistant sensor states or call services. At large text sizes, the prayer table stays inside a labelled, keyboard-focusable
+scroll region so its columns remain readable without widening the card. Narrow
+cards show explicit swipe/scroll and keyboard guidance; scrolling is intentional
+when the columns cannot fit.
 
 ## Jamaat modes and boundaries
 
@@ -83,7 +91,9 @@ its own meaning. Neither labels nor highlighting change source data.
 Countdowns sit side by side when the card has enough room and stack on narrow cards
 or at enlarged text sizes. Compact layout reduces spacing and number sizes; it does
 not hide information. Progress uses elapsed absolute time, including clock changes,
-and is hidden when a valid preceding event is unavailable.
+and is hidden when a valid preceding event is unavailable. Each bar explicitly
+labels its interval: **Since previous Salah beginning** or **Since previous Jamaat**.
+The Jamaat bar measures congregation-to-congregation, not beginning-to-Jamaat.
 
 ## Dates and customization
 
@@ -152,7 +162,7 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.6.0
+/salah_timetable/salah-timetable-card.js?v=0.6.1
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an

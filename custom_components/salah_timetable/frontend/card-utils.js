@@ -158,12 +158,16 @@ export function highlightedPrayer(attributes, now = Date.now()) {
   const rows = (attributes?.prayers || []).filter(row => row && typeof row === "object");
   const begun = rows.filter(row => timestamp(row.begin) !== null && timestamp(row.begin) <= now)
     .sort((a, b) => timestamp(a.begin) - timestamp(b.begin)).at(-1);
-  if (begun && !(begun.jamaat || []).some(value => timestamp(value) !== null)) return begun.key;
-  if (begun && (begun.jamaat || []).some(value => timestamp(value) !== null && timestamp(value) > now)) return begun.key;
+  if (begun) {
+    const published = (Array.isArray(begun.jamaat) ? begun.jamaat : []).map(timestamp).filter(value => value !== null);
+    // A missing congregation has no implied end. Keep this row until another
+    // published beginning supersedes it, including after the final daily prayer.
+    if (!published.length || published.some(value => value > now)) return begun.key;
+  }
   const future = rows.filter(row => timestamp(row.begin) !== null && timestamp(row.begin) > now)
     .sort((a, b) => timestamp(a.begin) - timestamp(b.begin))[0];
   if (future) return future.key;
-  return begun && !(begun.jamaat || []).some(value => timestamp(value) !== null) ? begun.key : null;
+  return null;
 }
 
 export function prayerIsPast(row, now = Date.now()) {

@@ -70,3 +70,16 @@ test("display calculations do not mutate imported event payloads", () => {
   highlightedPrayer(copy, at("12:15")); eventProgress(copy, true, {timestamp: stamp("12:30")}, at("12:15"));
   assert.equal(JSON.stringify(copy), before);
 });
+
+
+test("missing middle and final Jamaats remain current until the next real beginning", () => {
+  const missing = {prayers: [row("fajr", "05:00", "05:30"), row("dhuhr", "12:00"), row("asr", "15:00", "15:30"), row("isha", "19:00")]};
+  for (const [time, expected] of [["11:59", "dhuhr"], ["12:00", "dhuhr"], ["14:59", "dhuhr"], ["15:00", "asr"], ["19:00", "isha"], ["23:59", "isha"]]) assert.equal(highlightedPrayer(missing, at(time)), expected);
+  assert.equal(highlightedPrayer({prayers: [{key: "fajr", begin: "2026-10-24T05:00:00Z", jamaat: []}]}, Date.parse("2026-10-24T00:00:00Z")), "fajr");
+});
+
+test("progress remains congregation-to-congregation for multiple Friday events", () => {
+  assert.equal(eventProgress(data, true, {timestamp: stamp("13:30")}, at("13:00")), 50);
+  const overnight = {jamaat_events: [{prayer: "isha", timestamp: "2026-10-23T19:30:00Z"}, {prayer: "fajr", timestamp: "2026-10-24T05:30:00Z"}]};
+  assert.equal(eventProgress(overnight, true, overnight.jamaat_events[1], Date.parse("2026-10-24T00:30:00Z")), 50);
+});

@@ -1,4 +1,4 @@
-import {eventProgress, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, prayerName} from "./card-utils.js?v=0.6.0";
+import {eventProgress, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, prayerName} from "./card-utils.js?v=0.6.1";
 
 const CSS = `
 :host{display:block;container-type:inline-size;color:var(--primary-text-color);font-family:var(--paper-font-body1_-_font-family,inherit)}
@@ -8,12 +8,14 @@ ha-card{display:block;overflow:hidden;background:var(--ha-card-background,var(--
 .table-scroll{max-width:100%;overflow-x:auto}thead th{overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;font-size:.97rem}th,td{padding:10px 6px;border-bottom:1px solid var(--divider-color);text-align:right;font-variant-numeric:tabular-nums}th:first-child,td:first-child{text-align:left}th{color:var(--secondary-text-color);font-size:.83rem;font-weight:500}tr:last-child td,tr:last-child th{border-bottom:0}.ramadan{border-top:1px solid var(--divider-color);margin-top:14px;padding-top:14px}.ramadan h3{font-size:1rem;margin:0 0 12px}.ramadan-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.ramadan .count{font-size:1.1rem}.note{color:var(--secondary-text-color);font-size:.83rem;margin:12px 0 0}.empty{padding:22px;color:var(--secondary-text-color);line-height:1.5}.disconnected{color:var(--error-color);font-size:.85rem;margin:8px 0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:420px){.content{padding:14px}.panels{gap:8px}.panel{padding:10px}.count{font-size:1.6rem}.ramadan-grid{grid-template-columns:1fr 1fr}.ramadan-grid>:last-child{grid-column:1/-1}th,td{padding:9px 3px;font-size:.9rem}}
 
+.progress-help{font-size:.72rem;color:var(--secondary-text-color);margin-top:5px}.scroll-help{display:none;font-size:.75rem}
 .event,.absolute,.date,.label{overflow-wrap:anywhere}
+progress::-webkit-progress-bar{background:var(--divider-color)}progress::-webkit-progress-value{background:var(--primary-color)}progress::-moz-progress-bar{background:var(--primary-color)}
 progress{display:block;width:100%;height:4px;margin-top:12px;border:0;accent-color:var(--primary-color)}
 .next-prayer{background:color-mix(in srgb,var(--primary-color) 12%,transparent)}.next-prayer th,.next-prayer td{font-weight:700;font-size:1.05em}.past-prayer{color:var(--secondary-text-color)}
 .congregation-time{white-space:nowrap}.hijri{flex-basis:100%}.compact{padding:12px}.compact th,.compact td{padding-top:6px;padding-bottom:6px}.compact .panel{padding:10px}.compact .count{font-size:1.6rem}
 table{table-layout:fixed;min-width:22rem}th:first-child{width:30%}.panels:has(>:only-child){grid-template-columns:1fr}
-@container(max-width:26rem){.panels{grid-template-columns:1fr}.count{font-size:1.7rem}.ramadan-grid{grid-template-columns:1fr 1fr}.ramadan-grid>:last-child{grid-column:1/-1}}
+@container(max-width:26rem){.scroll-help{display:block}.panels{grid-template-columns:1fr}.count{font-size:1.7rem}.ramadan-grid{grid-template-columns:1fr 1fr}.ramadan-grid>:last-child{grid-column:1/-1}}
 
 `;
 
@@ -24,14 +26,22 @@ function node(tag, text, className) {
   return element;
 }
 
+function congregationProgressLabel(label) {
+  return label === "Next Salah Begins" ? "Since previous Salah beginning" : "Since previous Jamaat";
+}
+
 function panel(label, event, clock, zone, locale, timeFormat, progress) {
   const result = node("section", undefined, "panel");
-  result.append(node("div", label, "label"), node("div", prayerName(event), "event"), node("div", clock, "count"));
+  result.clock = node("div", clock, "count");
+  result.append(node("div", label, "label"), node("div", prayerName(event), "event"), result.clock);
   result.append(node("div", event ? formatTime(event.timestamp, zone, locale, timeFormat) : "No published event", "absolute"));
   if (progress !== null && progress !== undefined) {
     const bar = node("progress"); bar.max = 100; bar.value = progress;
     bar.setAttribute("aria-label", `${label}: progress between published events`);
-    result.append(bar);
+    result.progressBar = bar;
+    const description = congregationProgressLabel(label);
+    bar.title = description;
+    result.append(bar, node("div", description, "progress-help"));
   }
   return result;
 }
@@ -52,7 +62,7 @@ export class SalahTimetableCard extends HTMLElement {
   getGridOptions() { return {columns: 12, rows: this.getCardSize(), min_columns: 6, min_rows: 4}; }
 
   connectedCallback() {
-    if (this._timer === null) this._timer = window.setInterval(() => this._render(), 1000);
+    if (this._timer === null) this._timer = window.setInterval(() => this._tick(), 1000);
     this._render();
   }
   disconnectedCallback() {
@@ -61,8 +71,25 @@ export class SalahTimetableCard extends HTMLElement {
   }
   _state() { return this._hass?.states?.[this._config.entity]; }
 
+  _selection(data, now) {
+    const next = nextSalah(data, now);
+    const congregation = jamaatPanel(data, this._config.mode, now);
+    return JSON.stringify([next, congregation, highlightedPrayer(data, now),
+      data.prayers.map(row => row && prayerIsPast(row, now)),
+      ...["sehri", "iftar"].map(kind => { const value = nextRamadanEvent(data, kind, now); return [value, countdown(value, now) === "Passed"]; })]);
+  }
+
+  _tick(now = Date.now()) {
+    const live = this._live;
+    if (!live) return;
+    if (this._selection(live.data, now) !== live.selection) { this._render(now); return; }
+    for (const update of live.updates) update(now);
+  }
+
   _render(now = Date.now()) {
     if (!this.shadowRoot) return;
+    this._live = null;
+    const updates = [];
     const style = node("style", CSS);
     const card = node("ha-card");
     const state = this._state();
@@ -88,8 +115,23 @@ export class SalahTimetableCard extends HTMLElement {
     const next = nextSalah(data, now);
     const congregation = jamaatPanel(data, this._config.mode, now);
     const panels = node("div", undefined, "panels");
-    if (this._config.show_salah_countdown) panels.append(panel("Next Salah Begins", next, countdown(next?.timestamp, now), zone, locale, timeFormat, eventProgress(data, false, next, now)));
-    if (this._config.show_jamaat_countdown) panels.append(panel(congregation.mode === "upcoming" ? "Next Jamaat" : "Previous Jamaat", congregation.event, congregation.mode === "upcoming" ? countdown(congregation.event?.timestamp, now) : congregation.event ? `${elapsed(congregation.event.timestamp, now)} elapsed` : "Unavailable", zone, locale, timeFormat, congregation.mode === "upcoming" ? eventProgress(data, true, congregation.event, now) : null));
+    if (this._config.show_salah_countdown) {
+      const box = panel("Next Salah Begins", next, countdown(next?.timestamp, now), zone, locale, timeFormat, eventProgress(data, false, next, now));
+      updates.push(instant => {
+        box.clock.textContent = countdown(next?.timestamp, instant);
+        if (box.progressBar) box.progressBar.value = eventProgress(data, false, next, instant);
+      });
+      panels.append(box);
+    }
+    if (this._config.show_jamaat_countdown) {
+      const clock = instant => congregation.mode === "upcoming" ? countdown(congregation.event?.timestamp, instant) : congregation.event ? `${elapsed(congregation.event.timestamp, instant)} elapsed` : "Unavailable";
+      const box = panel(congregation.mode === "upcoming" ? "Next Jamaat" : "Previous Jamaat", congregation.event, clock(now), zone, locale, timeFormat, congregation.mode === "upcoming" ? eventProgress(data, true, congregation.event, now) : null);
+      updates.push(instant => {
+        box.clock.textContent = clock(instant);
+        if (box.progressBar) box.progressBar.value = eventProgress(data, true, congregation.event, instant);
+      });
+      panels.append(box);
+    }
     if (panels.children.length) content.append(panels);
     const highlighted = highlightedPrayer(data, now);
     const table = node("table");
@@ -119,12 +161,18 @@ export class SalahTimetableCard extends HTMLElement {
     tableRegion.tabIndex = 0;
     tableRegion.setAttribute("role", "region");
     tableRegion.setAttribute("aria-label", "Prayer beginning and Jamaat times");
-    tableRegion.append(table); content.append(tableRegion);
+    const scrollHelp = node("p", "Swipe or scroll horizontally for all prayer times. Keyboard: focus the table and use the arrow keys.", "note scroll-help");
+    tableRegion.append(table); content.append(tableRegion, scrollHelp);
     if (data.ramadan?.active && this._config.show_ramadan_details) {
       const ramadan = node("section", undefined, "ramadan"); ramadan.append(node("h3", "Ramadan"));
       const grid = node("div", undefined, "ramadan-grid");
       for (const [label, value] of [["Sehri ends", nextRamadanEvent(data, "sehri", now)], ["Iftar", nextRamadanEvent(data, "iftar", now)]]) {
-        const box = node("div"); box.append(node("div", label, "label"), node("div", formatTime(value, zone, locale, timeFormat), "event"), ...(this._config[label === "Sehri ends" ? "show_sehri_countdown" : "show_iftar_countdown"] ? [node("div", countdown(value, now), "count")] : [])); grid.append(box);
+        const box = node("div"); box.append(node("div", label, "label"), node("div", formatTime(value, zone, locale, timeFormat), "event"));
+        if (this._config[label === "Sehri ends" ? "show_sehri_countdown" : "show_iftar_countdown"]) {
+          const clock = node("div", countdown(value, now), "count"); box.append(clock);
+          updates.push(instant => { clock.textContent = countdown(value, instant); });
+        }
+        grid.append(box);
       }
       const taraweeh = node("div"); taraweeh.append(node("div", "Taraweeh", "label"), node("div", data.ramadan.taraweeh ? formatTime(data.ramadan.taraweeh, zone, locale, timeFormat) : data.ramadan.taraweeh_text || "No published time", "event")); grid.append(taraweeh);
       ramadan.append(grid); content.append(ramadan);
@@ -133,6 +181,7 @@ export class SalahTimetableCard extends HTMLElement {
     card.append(content); this.shadowRoot.replaceChildren(style, card);
     tableRegion.scrollLeft = scrollLeft;
     if (regionFocused) tableRegion.focus({preventScroll: true});
+    this._live = {data, updates, selection: this._selection(data, now)};
   }
 }
 
@@ -197,6 +246,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       if (choices) for (const choice of choices) { const option = node("option", String(choice)); option.value = String(choice); control.append(option); }
       else control.type = "checkbox";
       control.setAttribute("aria-label", label);
+      control.setAttribute("data-option", key);
       control.addEventListener("change", () => this._changed({[key]: choices ? key === "hijri_adjustment" ? Number(control.value) : control.value : control.checked}));
       this._extraControls[key] = {control, checkbox: !choices}; field.append(control); extras.push(field);
     }

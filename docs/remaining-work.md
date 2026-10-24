@@ -8,7 +8,7 @@ complete only when its stated evidence exists. See [recorded validation](validat
 | Work | Status | Completion evidence |
 | --- | --- | --- |
 | Hosted validation | Passed for `9642db3` ([run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/39998754702)); rerun for the final release commit | Successful Validate run for the exact release commit, including HACS and hassfest |
-| Minimum HA version | HA 2026.10.0 setup/import work; restart acceptance is unresolved | HA 2026.10.0 configuration, import, persistence, card and real editor checks pass |
+| Minimum HA version | Passed disposable HA 2026.10.0 manual-install/runtime/editor acceptance for local 0.6.1 candidate; dependency preloaded | HA 2026.10.0 configuration, import, persistence, card and real editor checks pass |
 | HACS custom-repository installation | Pending | Install with a maintainer's GitHub authorization in disposable HA; verify bundled assets, restart, update and removal |
 | Physical mobile/tablet checks | Pending | Test narrow displays, themes, text scaling, touch and keyboard access on real devices |
 | Complete backup restoration | Pending | Restore a full HA backup archive, including configuration entries and timetable storage, then verify identities and approved/pending data |
@@ -37,15 +37,15 @@ HACS installation of this repository.
   validation for its exact commit on main; it neither creates tags nor publishes
   or overwrites releases.
 
-The experimental repeatable live runner is available in `scripts/live_smoke.mjs`
-with startup/readiness gates and privacy-safe restart state flags. Docker execution
-is currently blocked by the workspace sandbox; these improvements have unit coverage
-but do not establish live acceptance. The original runner is preserved on the
-[`codex/live-smoke-runner` branch](https://github.com/anaschillin/home-assistant-salah-timetable/tree/codex/live-smoke-runner).
-It reached configuration, import, Ramadan and two-mosque checks on HA 2026.10.0,
-but did not confirm the expected prayer state after restart. Complete startup/state
-diagnostics before treating that result as a storage defect or claiming minimum-version
-acceptance. The validated HA 2026.10.2 checks remain recorded separately.
+The opt-in live runner is available in `scripts/live_smoke.mjs`. With socket access
+enabled it passed 19 checks on disposable HA 2026.10.0 for the local 0.6.1 candidate,
+including RUNNING/config-entry readiness, approved/pending/Ramadan restart state,
+entity IDs, real card picker/editor, display-control changes and page reload.
+The exact locked PDF dependency was explicitly preloaded; fresh dependency
+installation and authenticated HACS installation remain separate checks.
+See [recorded validation](validation.md#peer-review-follow-up--candidate-061).
+The original unfinished runner remains on `codex/live-smoke-runner` as historical
+context; its earlier generic timeout is not evidence of a storage defect.
 
 ## Subsequent additions
 

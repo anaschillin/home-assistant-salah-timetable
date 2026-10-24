@@ -62,13 +62,25 @@ try {
   check("single visible panel fills width", card.shadowRoot.querySelectorAll(".panel").length === 1);
   check("12-hour absolute times", /am/i.test(card.shadowRoot.querySelector("tbody").textContent));
   card.setConfig({entity: "sensor.example_prayer_timetable"}); card._render(Date.parse(time(4, 40)));
-  const scrollRegion = card.shadowRoot.querySelector(".table-scroll"); scrollRegion.focus(); card._render(Date.parse(time(4, 40)));
+  card._render(Date.parse(time(4, 41)));
+  const scrollRegion = card.shadowRoot.querySelector(".table-scroll"); scrollRegion.focus();
+  const stableTable = card.shadowRoot.querySelector("table");
+  const range = document.createRange(); range.selectNodeContents(stableTable.querySelector("tbody th"));
+  const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
+  card._tick(Date.parse(time(4, 41)) + 1000);
+  check("ordinary ticks retain table nodes and text selection", card.shadowRoot.querySelector("table") === stableTable && selection.toString() === "Fajr");
+  selection.removeAllRanges();
   check("countdown tick preserves table keyboard focus", card.shadowRoot.activeElement === card.shadowRoot.querySelector(".table-scroll"));
   const width = window.innerWidth;
   check("card fits its viewport", card.getBoundingClientRect().width <= width && document.documentElement.scrollWidth <= width);
   document.documentElement.style.fontSize = "200%";
   const scaledContent = card.shadowRoot.querySelector(".content");
   const fitsScaledText = scaledContent.scrollWidth <= scaledContent.clientWidth + 1;
+  const scaledRegion = card.shadowRoot.querySelector(".table-scroll");
+  const overflowing = scaledRegion.scrollWidth > scaledRegion.clientWidth + 1;
+  check("overflow has visible scrolling guidance", !overflowing || getComputedStyle(card.shadowRoot.querySelector(".scroll-help")).display !== "none");
+  scaledRegion.scrollLeft = 50;
+  check("overflow region can scroll without widening the card", !overflowing || scaledRegion.scrollLeft > 0);
   document.documentElement.style.fontSize = "";
   check("card contains 200% text without overflowing", fitsScaledText);
   const columns = getComputedStyle(card.shadowRoot.querySelector(".ramadan-grid")).gridTemplateColumns.split(" ").length;
@@ -95,7 +107,7 @@ try {
   check("real browser resource registration", customElements.get("salah-timetable-card") === SalahTimetableCard && window.customCards.some(item => item.type === "salah-timetable-card"));
   card.remove(); check("disconnected card clears local timer", card._timer === null);
   // Keep a static native-DOM preview for optional CDP screenshots.
-  document.body.prepend(card); card.disconnectedCallback(); card._render(Date.parse(time(4, 40)));
+  document.body.prepend(card); card.disconnectedCallback(); card._render(Date.parse(time(4, 40))); card.shadowRoot.querySelector(".table-scroll").scrollLeft = 0;
   parent.postMessage({kind: "salah-browser-result", status: "passed", width, checks}, location.origin);
 } catch (error) {
   parent.postMessage({kind: "salah-browser-result", status: "failed", width: window.innerWidth, checks, error: error.stack || String(error)}, location.origin);

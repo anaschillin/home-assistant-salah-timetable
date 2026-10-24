@@ -149,7 +149,7 @@ and review the draft before publishing through GitHub.
 For local asset review, without creating any GitHub tag or release:
 
 ```sh
-uv run --frozen python -m scripts.prepare_release --tag v0.6.0 --output-dir /tmp/salah-release-review
+uv run --frozen python -m scripts.prepare_release --tag v0.6.1 --output-dir /tmp/salah-release-review
 ```
 
 Use the manifest's current version in the tag argument. Local preparation validates
