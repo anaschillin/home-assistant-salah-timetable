@@ -3,16 +3,21 @@
 The [remaining-work checklist](remaining-work.md) tracks release blockers separately
 from later feature additions.
 
-Milestones 1–5 are implemented; the current candidate is 0.6.1. Keep follow-up work in focused PRs
-with its own tests and documentation. A disposable HA 2026.10.2 runtime/frontend smoke check passed. Release acceptance
-still includes hosted validation, HACS installation and physical-device checks.
+Milestones 1–5 are implemented; the current candidate is 0.6.1. Keep follow-up work
+in focused PRs with its own tests and documentation. Disposable HA 2026.10.2 and
+minimum-version HA 2026.10.0 manual-install/runtime/frontend checks have passed
+within the limits in the validation record. Release acceptance still includes
+successful hosted validation for the exact release commit, fresh runtime dependency
+installation, authenticated HACS installation, full HA backup restoration and
+physical-device checks.
 
 ## Milestone 1 — foundation (implemented)
 
 HACS layout, manifest, Config Flow and Options Flow, per-mosque device, immutable
 prayer vocabulary, persistent multi-year storage, timestamp sensors, tests and CI.
-Release acceptance: hosted hassfest/HACS checks pass, then review an installation
-in a disposable Home Assistant instance. No import or dashboard claims.
+Release acceptance includes hosted hassfest/HACS checks and an installation in a
+disposable Home Assistant instance. Import and dashboard behavior are covered in
+later milestones.
 
 ## Milestone 2 — validated manual CSV import (implemented)
 
@@ -58,6 +63,11 @@ the recognized layout for CI; the uploaded original is not redistributed. Manual
 upload/approval/reload and changed-source staging are tested. Live access to the
 website's HTTPS equivalent is unverified; HTTP downloads remain unsupported.
 
+Subsequent inspected layouts add NMS May–June 2022 monthly pages and Zakariyya's
+2026 annual tables and separate Ramadan page. Their independent expected-value
+comparisons and publication-specific limits are documented in
+[PDF layouts](pdf_layouts.md).
+
 Acceptance: only tested layouts are listed as supported; changes never auto-activate.
 
 ## Milestone 4 — event engine and Ramadan (implemented)
@@ -68,7 +78,8 @@ Acceptance: only tested layouts are listed as supported; changes never auto-acti
 2. Define exact-boundary behavior and context states before beginning, between
    beginning/Jamaat, and after Jamaat. Offer previous/upcoming display modes.
 3. Add confirmed Ramadan date ranges, manual activation/date adjustments and a
-   separate effective override layer. Only confirmed dates receive Ramadan data.
+   separate effective override layer. Ramadan data applies only within the confirmed
+   active window or while explicit manual activation is on.
 4. Default effective Iftar to published Maghrib beginning when no separate published
    Iftar exists. Default Taraweeh to the text “After Isha Jamaat”, never a fabricated
    timestamp. Expose Ramadan status and absolute Sehri/Iftar events for countdowns.
@@ -100,7 +111,8 @@ event and midnight callbacks with a one-minute fallback.
    details. Use absolute backend timestamps and browser-local ticking countdowns;
    do not write sensor states every second.
 3. Add responsive mobile/tablet layouts, HA theme variables, accessibility, empty and
-   error states, localization, resource lifecycle and upgrade/cache handling.
+   error states, locale-aware dates/times, resource lifecycle and upgrade/cache
+   handling. Card interface labels are currently English.
 4. Add frontend unit and browser tests for editor round trips, all event contexts,
    disconnections, countdown boundaries, theme switching and narrow screens.
 
@@ -115,9 +127,10 @@ Node tests and an isolated headless Chromium harness cover event contexts, edito
 round trips, local ticking/timer cleanup, safe text, disconnections, theme changes
 and narrow layouts. HA elements are stand-ins in that harness. A separate disposable
 HA 2026.10.2 manual installation verified real card/editor components and viewport
-rendering. Complete manual picker workflows, HACS installation and physical-device
-checks remain release acceptance work; see the [validation record](validation.md)
-and [dashboard setup](dashboard.md).
+rendering. The candidate 0.6.1 HA 2026.10.0 check also exercised the actual picker,
+editor controls and saved configuration after page reload. Authenticated HACS
+installation and physical-device checks remain release acceptance work; see the
+[validation record](validation.md) and [dashboard setup](dashboard.md).
 
 Candidate 0.6.0 extends the card with prayer emphasis, independent countdown progress,
 calculated Umm al-Qura dates and graphical layout/visibility/time-format controls.
@@ -128,15 +141,18 @@ Current validation limits are recorded in [validation](validation.md).
 
 Implemented: actionable Repairs for invalid stored records, reproducible manual-install
 ZIPs with checksums, runtime-asset inclusion checks and synchronized manifest/project/
-frontend cache versions. A real HA 2026.10.2 manual-install smoke also covers import,
-restart/pending review, two-mosque isolation/removal, resource upgrade and actual
-frontend/editor rendering. See the [validation record](validation.md) and
+frontend cache versions, historical schema-1/schema-2 migration tests and timetable
+store recovery tests. Real HA 2026.10.2 and 2026.10.0 manual-install checks also cover
+import, restart/pending review, two-mosque isolation/removal, resource registration
+and actual frontend/editor rendering within their recorded scopes. See the
+[validation record](validation.md) and
 [release preparation and manual checks](releasing.md).
 
 1. Exercise install, graphical setup, restart, upgrade and removal in a disposable
    HA instance installed through HACS; check real mobile/tablet rendering and themes.
-2. Extend migration/backup recovery coverage. Invalid-record Repairs, allowlisted
-   diagnostics and schema 1/2 migrations already exist.
+2. Restore a complete HA backup archive and verify config entries, registries,
+   entity IDs and approved/pending timetable data. Existing migration and
+   timetable-store recovery tests cover a narrower scope.
 3. Review all network/import paths and resource limits, and add independently tested,
    redistributable fixtures before supporting further PDF layouts.
 4. Verify hosted pytest/frontend/lint, hassfest and HACS jobs; finalize the support

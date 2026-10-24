@@ -4,6 +4,12 @@ Use Python 3.14.2+ and `uv sync --frozen --group dev`. Run `uv run --frozen pyte
 `uv run --frozen ruff check .` and `uv run --frozen ruff format --check .` before
 opening a focused pull request. Tests must not require network access or a live HA
 installation. Update the lockfile intentionally with dependency changes.
+Run the full suite on Linux/POSIX: the isolated PDF worker uses process resource
+limits that native Windows does not provide.
+
+The locked `pytest-homeassistant-custom-component` package supplies Home Assistant
+test fixtures. These tests and the HACS validation action do not establish an
+authenticated HACS installation; that remains a separate live acceptance check.
 
 Use Node.js 24 for frontend checks. Run `npm test` and `npm run test:browser`; there
 are no npm dependencies and no install step. The browser harness requires Chromium

@@ -4,6 +4,8 @@
 
 - Update countdown text and progress in place between event boundaries, preserving
   timetable nodes, keyboard focus and text selection during ordinary ticks.
+- Skip card rebuilds for equivalent timetable and unrelated Home Assistant updates,
+  while refreshing changed timetable data, locale, timezone and availability.
 - Explain the agreed beginning-to-beginning/Jamaat-to-Jamaat progress intervals;
   clarify missing-Jamaat highlighting through the final daily prayer.
 - Add narrow-table scrolling guidance and browser checks at 320/360/400/900 pixels,
@@ -12,6 +14,10 @@
   retry only expected transient startup transport failures.
 - Extend real HA editor acceptance to display controls and page reload. Record
   successful minimum-version HA restart acceptance separately from HACS installation.
+- Check each visibility control independently off and on in the native browser
+  fixture; add the same per-toggle preview checks to the opt-in live HA script.
+- Upgrade the SHA-pinned `actions/setup-python` action to v7.0.0 in validation and
+  draft-release workflows, with Python 3.14 retained.
 
 ## 0.6.0 — unreleased
 

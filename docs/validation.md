@@ -1,9 +1,41 @@
-# Validation record — 23 October 2026
+# Validation record
+
+## Current recorded status — 24 October 2026
+
+The most recent recorded hosted result is successful **Validate** run
+[40111247359](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40111247359)
+for `505f970dc2c2a5cccb0a4ec0a95bec568739b763` (candidate 0.6.1).
+All four jobs passed: Python tests/build, frontend, hassfest and HACS validation.
+The logs record **725 Python tests**, **95% aggregate integration line coverage**,
+**75 Node tests**, and the native Chrome smoke test with four width fixtures
+(320, 360, 400 and 900px). Both Python workflows use the SHA-pinned
+`actions/setup-python` v7.0.0 action with Python 3.14.
+
+The card now avoids a rebuild for equivalent timetable/irrelevant Home Assistant
+updates, while retaining updates for changed timetable data, display context and
+availability. Node regressions cover those paths. The native browser fixture checks
+each of the seven visibility options independently off and on. The live HA browser
+script now also checks each toggle's preview effect, but that newer live script has
+not been rerun against HA; its earlier recorded 19-check run remains the live evidence.
+
+Fresh HA-managed dependency installation, authenticated HACS installation, a full HA
+backup-archive restore and physical phone/tablet verification remain pending. HACS
+CI validates repository structure; it does not prove an authenticated installation.
+The earlier live checks explicitly preloaded the locked PDF dependency. A tested
+release still needs successful hosted validation for its own exact commit and the
+[remaining acceptance](remaining-work.md).
+
+The obsolete `codex/live-smoke-runner` and merged Dependabot setup-python branches
+were deleted after their review and the successful v7 upgrade. Historical entries
+below retain the test counts, versions and environment limitations observed at the
+time; they are not current acceptance status.
+
+## Initial validation — 23 October 2026
 
 Source tested: `9c613caae88fe66e86a09f44ee86f8749241afdb` (integration 0.5.1).
 This records observed results, not certification of every supported installation.
 
-## Automated checks
+### Automated checks
 
 - `uv run --frozen pytest`: **551 passed**, 94% aggregate integration line coverage.
   PDF worker behavior is tested through its subprocess; the isolated worker does
@@ -19,7 +51,7 @@ This records observed results, not certification of every supported installation
   verify required assets, private-file exclusion, version consistency, checksums
   and reproducibility across source timestamps/permissions.
 
-## Disposable Home Assistant runtime
+### Disposable Home Assistant runtime
 
 The official `ghcr.io/home-assistant/home-assistant:2026.10.2` image ran with a
 fresh temporary configuration and loopback-only HTTP access. The integration was
@@ -66,7 +98,7 @@ container’s normal global site-packages directory. TLS verification and integr
 validates runtime behavior with that dependency present, not fresh dependency
 installation through the affected proxy.
 
-## Remaining acceptance
+### Remaining acceptance at that time
 
 The [release checklist](releasing.md) still requires the HACS custom-repository
 installation route, upgrades from a previous release, minimum-version checks and
@@ -105,9 +137,10 @@ A separate minimum-version runner started HA 2026.10.0 and completed configurati
 CSV approval, Ramadan and independent-mosque checks. Its first restart failed because
 Docker reassigned an automatic host port; an explicit stable port corrected that
 runner issue. A subsequent attempt still did not confirm expected Fajr after restart.
-Full minimum-version acceptance remains unverified. The draft runner is preserved
-on `codex/live-smoke-runner` for startup/state investigation, and is not included in
-main-branch validation tooling. Task containers and private configurations were removed.
+At this point, full minimum-version acceptance remained unverified. The draft runner
+was preserved separately for startup/state investigation and was not yet included in
+main-branch validation tooling. The later runner and restart results are recorded
+below. Task containers and private configurations were removed.
 
 
 Final candidate 0.5.2 checks after merging the maintainer updates: **569 Python

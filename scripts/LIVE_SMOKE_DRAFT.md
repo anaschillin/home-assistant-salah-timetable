@@ -15,16 +15,24 @@ The optional `--preload-pypdf` supplies the exact manifest-pinned pure-Python
 package and metadata from the repository's development venv. It is an explicit
 workaround for the test environment's proxy CA, not proof that fresh dependency
 installation works. TLS verification remains enabled.
+The default omits this preload and lets HA resolve the manifest requirement.
+For fresh-install acceptance, also verify the dependency was absent initially and
+that HA installed the pinned version; `dependency_preloaded: false` alone does not
+prove the base image did not already contain it.
 
 ## Observed acceptance — 24 October 2026
 
-The local 0.6.1 candidate passed 19 checks against HA 2026.10.0, with explicit
+An earlier local 0.6.1 candidate passed 19 checks against HA 2026.10.0, with explicit
 locked-dependency preloading. Approved and pending imports, Ramadan options,
 entity IDs and resource registration survived restart. The actual card picker,
 keyboard title/focus, themes and phone/tablet viewports passed. Every display
 control was exercised; saved settings survived page reload, changed the rendered
 card, and preserved prayer data and Ramadan activation. See
 [validation](../docs/validation.md#peer-review-follow-up--candidate-061).
+Since that run, the browser script gained a visible-preview assertion for each
+Boolean option as it changes. Those newer live assertions have not been rerun
+against HA. The separate native browser fixture passes each toggle independently
+at all four widths in hosted CI; it uses HA control stand-ins.
 
 ## Readiness and reporting
 
@@ -35,11 +43,12 @@ transport timeouts and HTTP 502/503/504; authentication failures, incompatible A
 invalid JSON and assertions fail immediately. A fixed loopback host port preserves
 the origin across restart. Browser startup uses bounded debugger discovery.
 
-Reports contain acceptance flags and version/image identity, never tokens, private
-configuration or imported values. Restart Fajr diagnostics expose only presence,
-availability and match flags. Screenshots contain synthetic data. The ten-minute
-run deadline and scoped cleanup remain mandatory. Docker creates/copies can take
-several minutes in this environment.
+Reports contain acceptance flags, source/version/image identity and failure
+messages. Restart Fajr diagnostics expose only presence, availability and match
+flags. Screenshots and failed assertions can contain synthetic fixture values;
+private configuration files and authenticated-session logs are not exported. The
+ten-minute run deadline and scoped cleanup remain mandatory. Docker creates/copies
+can take several minutes in this environment.
 
 The current runner supersedes an earlier unsuccessful attempt. Its restart timeout
 was unresolved then; it is not proof of a storage bug.

@@ -23,7 +23,9 @@ Ramadan table includes March 20, after its Ramadan rows; source coverage never c
 excluded from integration release archives. Publisher permissions for repository
 redistribution remain part of the maintainer's asset-provenance review.
 
-Run `python tests/fixtures/pdf/generate.py` to deterministically recreate fixtures.
+Run `python tests/fixtures/pdf/generate.py` to deterministically recreate only the
+two synthetic sample PDFs and `sample_table.expected.csv`. This generator does not
+recreate the contributed publications or their independent CSV oracles.
 `sample_table.pdf` is a two-page, text-based table; `sample_table.expected.csv` is
 its golden extraction. `unsupported_layout.pdf` is deliberately free-form text.
 

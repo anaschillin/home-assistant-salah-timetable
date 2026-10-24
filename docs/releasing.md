@@ -3,9 +3,11 @@
 The packaging checks below are automated. A successful build does not certify a
 live Home Assistant/HACS installation or publish a GitHub release. The remaining
 manual checks are release acceptance work; record their results for each release.
-The current [validation record](validation.md) includes a disposable HA 2026.10.2
-manual installation and real frontend smoke, with explicit limits and a dependency
-preload required by the test environment’s proxy certificate.
+The [validation record](validation.md) includes earlier disposable HA 2026.10.2 and
+minimum-version 2026.10.0 manual-install/frontend checks, with explicit limits and a
+dependency preload required by the test environment’s proxy certificate. Hosted
+validation is recorded separately for exact commit SHAs. Newer changes still need
+their applicable live release checks.
 
 ## Build a distributable archive
 
@@ -70,6 +72,9 @@ where possible. Record the HA/integration versions and browser/device used.
 - Install through the documented HACS custom-repository route on the minimum
   supported HA version and a current stable HA version. Add two distinct mosques
   through the UI; check one device/config entry per mosque and stable entity IDs.
+- Start with a clean runtime and let HA install the manifest-pinned PDF dependency.
+  Record the installed version and confirm it was not preloaded. A successful
+  development `uv sync` or preloaded live run does not complete this check.
 - Exercise URL-first import and manual PDF/CSV upload, graphical column mapping,
   preview, approval and rejection. Check the supported NMS annual layout against
   its publication. Confirm an unsupported PDF fails with a useful message.
@@ -102,6 +107,10 @@ where possible. Record the HA/integration versions and browser/device used.
 - Exercise URL failure and changed-content staging. Confirm last approved times
   remain available and a changed file requires approval. Restore the test backup
   and verify recoverability before documenting a recovery procedure.
+- Restore a complete HA backup archive into a clean test configuration. Verify
+  config entries, registries, entity IDs, approved/pending imports and Ramadan
+  options. Restoring only the integration's timetable-store bytes is narrower
+  coverage and does not complete full backup restoration.
 - Download diagnostics and inspect logs for accidental mosque identity, URLs,
   HTTP validators or imported content. Review fixture, icon and other asset
   licensing before distribution.
@@ -154,5 +163,6 @@ uv run --frozen python -m scripts.prepare_release --tag v0.6.1 --output-dir /tmp
 
 Use the manifest's current version in the tag argument. Local preparation validates
 metadata and notes; the GitHub workflow additionally verifies tag existence,
-ancestry and hosted validation. It has not been triggered from this environment
-because the required tag and readable GitHub API are unavailable.
+ancestry and hosted validation. No execution of the draft-release workflow is
+recorded. GitHub API access and successful Validate runs are now available; creating
+or reviewing the release tag and running the draft workflow remain release work.

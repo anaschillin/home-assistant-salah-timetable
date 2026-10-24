@@ -193,8 +193,10 @@ a resource-registration failure is logged without disabling valid prayer entitie
 The `custom:salah-timetable-card` custom element and graphical editor use the mosque's
 Prayer timetable entity. The card computes countdowns/elapsed time locally from
 absolute timestamps and updates countdown/progress nodes in place once per second.
-Data/configuration changes and event-boundary transitions rebuild the card; ordinary
-ticks preserve its static table, focus and text selection. It stops its timer
+Changes to the selected sensor's state or consumed attributes, HA locale, effective
+timezone, connection status or card configuration rebuild the card, as do event-boundary
+transitions. Equivalent sensor replacements, unrelated HA updates and ordinary ticks
+preserve its static table, focus and text selection. It stops its timer
 when disconnected from the DOM. Imported/user text is assigned through `textContent`.
 Time labels follow the mosque timezone and HA locale; responsive CSS uses HA theme
 variables without Card Mod. The editor emits standard `config-changed` events and
@@ -206,8 +208,11 @@ Node tests cover helpers, rendering, safe text and editor round trips. An isolat
 headless Chromium harness checks real custom-element rendering with HA element
 stand-ins, narrow layouts, theme changes and editor interactions. These checks do not
 prove installation in a live HA frontend or visual behavior on real phones/tablets.
-A separate disposable HA 2026.10.2 manual-install smoke verified the actual frontend
-and editor, including a 0.5.0-to-0.5.1 resource upgrade. See the
+An earlier disposable HA 2026.10.2 manual-install smoke verified the actual frontend
+and editor, including a 0.5.0-to-0.5.1 resource upgrade. Candidate 0.6.1 also passed a
+manual-install smoke on the minimum HA 2026.10.0 version, including the actual card
+picker/editor and saved display options after page reload. That run explicitly
+preloaded the locked PDF dependency; fresh dependency installation remains unverified. See the
 [validation record](validation.md) and [dashboard setup](dashboard.md).
 
 ## Remaining limitations

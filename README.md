@@ -25,17 +25,25 @@ the [remaining work](docs/remaining-work.md), and the [release checklist](docs/r
 ## Requirements and installation
 
 Home Assistant **2026.10.0 or newer**. Development uses Python **3.14.2+** and is
-tested against Home Assistant 2026.10.2. No API keys are needed. URL sources require HTTPS Internet access. PDF extraction
+tested against Home Assistant 2026.10.2. The integration requires no API keys;
+setting up HACS requires its separate GitHub authorization. URL sources require
+HTTPS Internet access. PDF extraction
 requires Linux/POSIX process resource limits (as provided by supported HA systems).
 
-1. In HACS, open **Custom repositories**.
+Install and configure HACS first, following its
+[initial setup guide](https://www.hacs.xyz/docs/use/configuration/basic/).
+Then use its [custom repository route](https://www.hacs.xyz/docs/faq/custom_repositories/):
+
+1. In HACS, open the three-dot menu and choose **Custom repositories**.
 2. Add `https://github.com/anaschillin/home-assistant-salah-timetable` with type **Integration**.
 3. Download **Salah Timetable** and restart Home Assistant.
 4. Open **Settings → Devices & services → Add integration → Salah Timetable**.
 5. Enter a mosque name, a stable mosque ID and an IANA timezone such as `Europe/London`.
 
 The repository uses the HACS integration layout; it is not claimed to be in the
-default HACS catalogue. For manual installation, copy `custom_components/salah_timetable`
+default HACS catalogue. Authenticated HACS installation of this integration remains
+an acceptance check; the recorded live tests used manual installation.
+For manual installation, copy `custom_components/salah_timetable`
 into Home Assistant's `config/custom_components/` directory and restart.
 
 Each distinct mosque ID creates one config entry and one device. IDs use letters,
@@ -113,9 +121,12 @@ The card shows Gregorian and calculated Umm al-Qura Hijri dates, independent Sal
 and Jamaat countdowns with progress, highlighted prayer rows and active Ramadan details.
 Its editor offers compact/expanded layouts, individual countdown visibility, 12/24-hour
 times, a Hijri display-day adjustment and additional-detail controls. The Hijri
-adjustment is independent of Ramadan activation and never changes timetable data. Countdowns run in the browser from absolute
-timestamps, without per-second Home Assistant state writes. It follows HA's theme
-and uses responsive layouts. See [dashboard setup and behavior](docs/dashboard.md)
+adjustment is independent of Ramadan activation and never changes timetable data.
+Countdowns run in the browser from absolute timestamps, without per-second Home
+Assistant state writes. The card follows HA's theme
+and uses responsive layouts. Ordinary ticks update clocks and progress in place;
+unrelated Home Assistant updates preserve the rendered card. See
+[dashboard setup and behavior](docs/dashboard.md)
 for resource troubleshooting and the event boundary rules.
 
 ## URL checking and approval
@@ -166,7 +177,8 @@ Khutbah notes are not imported as congregation times, and Hijri dates do not con
 Ramadan activation. No Taraweeh time is invented. The adapter documents its fixed
 morning/noon/evening interpretation of the printed 12-hour columns.
 
-The attachment validates manual PDF import. The website's live HTTPS availability
+The supplied reference PDF validates manual import. The website's live HTTPS
+availability
 has not been verified; the supplied HTTP URL is not accepted by the secure downloader.
 
 PDF input is limited to **4 MiB, 16 pages and 256 KiB extracted text**. Extraction
@@ -228,9 +240,12 @@ consider active Ramadan dates only. The dashboard sensor contains the local date
 absolute event data; select it in the card editor instead of an individual prayer.
 
 Next Salah beginning and next Jamaat are calculated independently. In context mode,
-the card shows the previous Jamaat before a prayer begins, its upcoming Jamaat after
-beginning, and the previous Jamaat with elapsed time once that scheduled event occurs.
-At the exact Jamaat time it becomes previous; Jamaat has no start/end interval.
+the card follows the latest published prayer beginning: it shows the next
+congregation for that prayer and date while one remains, otherwise the previous
+Jamaat with elapsed time. This includes successive Jumu'ah congregations.
+At an exact Jamaat time that event becomes previous, while a later congregation
+for the same prayer can keep the context panel upcoming. Jamaat has no start/end
+interval.
 After Isha, next Salah uses tomorrow's actual Fajr. Calculations inspect yesterday,
 today and tomorrow; missing future data stays unavailable rather than extrapolated.
 

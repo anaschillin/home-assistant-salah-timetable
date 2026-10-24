@@ -7,8 +7,9 @@ complete only when its stated evidence exists. See [recorded validation](validat
 
 | Work | Status | Completion evidence |
 | --- | --- | --- |
-| Hosted validation | Passed for `9642db3` ([run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/39998754702)); rerun for the final release commit | Successful Validate run for the exact release commit, including HACS and hassfest |
-| Minimum HA version | Passed disposable HA 2026.10.0 manual-install/runtime/editor acceptance for local 0.6.1 candidate; dependency preloaded | HA 2026.10.0 configuration, import, persistence, card and real editor checks pass |
+| Hosted validation | Passed for `505f970` ([run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40111247359)); rerun if the final release commit differs | Successful Validate run for the exact release commit, including HACS and hassfest |
+| Minimum HA version | Passed disposable HA 2026.10.0 manual-install/runtime/editor checks for an earlier local 0.6.1 candidate; dependency preloaded | Rerun configuration, import, persistence, card and real editor checks for the final candidate |
+| Fresh runtime dependency installation | Pending | Start clean supported HA without `--preload-pypdf`; verify HA installs the exact manifest-pinned dependency, rather than using a supplied copy |
 | HACS custom-repository installation | Pending | Install with a maintainer's GitHub authorization in disposable HA; verify bundled assets, restart, update and removal |
 | Physical mobile/tablet checks | Pending | Test narrow displays, themes, text scaling, touch and keyboard access on real devices |
 | Complete backup restoration | Pending | Restore a full HA backup archive, including configuration entries and timetable storage, then verify identities and approved/pending data |
@@ -38,12 +39,14 @@ HACS installation of this repository.
   or overwrites releases.
 
 The opt-in live runner is available in `scripts/live_smoke.mjs`. With socket access
-enabled it passed 19 checks on disposable HA 2026.10.0 for the local 0.6.1 candidate,
+enabled an earlier local 0.6.1 candidate passed 19 checks on disposable HA 2026.10.0,
 including RUNNING/config-entry readiness, approved/pending/Ramadan restart state,
 entity IDs, real card picker/editor, display-control changes and page reload.
 The exact locked PDF dependency was explicitly preloaded; fresh dependency
 installation and authenticated HACS installation remain separate checks.
 See [recorded validation](validation.md#peer-review-follow-up--candidate-061).
+The newer per-toggle live preview assertions have not been rerun against HA; the
+native browser fixture verifies each visibility option independently in CI.
 The current runner supersedes the earlier unfinished attempt; its earlier generic
 timeout is not evidence of a storage defect.
 

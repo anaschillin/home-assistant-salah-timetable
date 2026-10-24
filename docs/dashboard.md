@@ -49,9 +49,12 @@ entry per mosque, and each card follows the selected entity's mosque timezone.
 The layout adapts to narrow screens and uses Home Assistant's light/dark theme
 variables. Times use the configured mosque timezone, even when the browser is in
 another timezone. Countdown text and progress update in place once per second
-from absolute event timestamps; the static DOM is rebuilt only when data/configuration or an event
-boundary changes. Ordinary ticks retain table nodes, focus and text selection. They
-do not write Home Assistant sensor states or call services. At large text sizes, the prayer table stays inside a labelled, keyboard-focusable
+from absolute event timestamps. Changes to the timetable, card configuration,
+locale, effective timezone, availability or connection status can rebuild the card,
+as can an event boundary. Equivalent timetable updates and unrelated HA entity
+updates retain the existing DOM. Ordinary ticks retain table nodes, focus and text
+selection. They do not write Home Assistant sensor states or call services. At large
+text sizes, the prayer table stays inside a labelled, keyboard-focusable
 scroll region so its columns remain readable without widening the card. Narrow
 cards show explicit swipe/scroll and keyboard guidance; scrolling is intentional
 when the columns cannot fit.
@@ -60,15 +63,16 @@ when the columns cannot fit.
 
 | Mode | Jamaat panel |
 | --- | --- |
-| Context aware | Previous Jamaat before a prayer begins; upcoming Jamaat after beginning and before its congregation; previous Jamaat with elapsed time from its scheduled instant onward |
+| Context aware | Previous Jamaat before a prayer begins; next congregation of the current prayer after beginning while one remains; previous Jamaat with elapsed time after its final congregation |
 | Previous Jamaat | Most recent known congregation at or before the current instant |
 | Upcoming Jamaat (default) | Next known congregation strictly after the current instant |
 
 Next Salah beginning is calculated independently in every mode. For example, after
 Fajr beginning but before Fajr Jamaat, the card counts down to Fajr Jamaat while
-showing Dhuhr as the next Salah beginning. At the exact Jamaat instant it becomes
-the previous event with zero elapsed time. A congregation is a single scheduled
-event, without an end time.
+showing Dhuhr as the next Salah beginning. At the exact Jamaat instant that event
+becomes previous with zero elapsed time. If the same prayer has another published
+congregation, context mode counts down to it; otherwise it displays the previous
+event. A congregation is a single scheduled event, without an end time.
 
 After Isha, the next Salah uses tomorrow's actual Fajr record. Missing tomorrow data
 shows an unavailable result; the integration never repeats today's Fajr. Events are
@@ -116,14 +120,15 @@ All options are available in the graphical editor and apply independently to eac
 | `show_hijri_date` | `true` |
 | `hijri_adjustment` | Whole days −3 through +3; default `0` |
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
-| `show_sehri_countdown` | `true`; hiding retains the published time |
-| `show_iftar_countdown` | `true`; hiding retains the published time |
-| `show_timezone_note` | `true`; controls timezone/help text |
+| `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
+| `show_iftar_countdown` | `true`; hiding retains the displayed absolute time |
+| `show_timezone_note` | `true`; controls the timezone and missing-time note |
 
 Hiding either main countdown removes its panel; the remaining panel fills the width.
-Hiding both leaves the header and timetable. Connection warnings remain visible even
-when help text is hidden. Taraweeh belongs to the Ramadan details section. Countdown
-durations always use hours/minutes/seconds, independent of 12/24-hour time format.
+Hiding both leaves the header and timetable. Connection warnings and narrow-card
+scrolling guidance remain available when the timezone note is hidden. Taraweeh
+belongs to the Ramadan details section. Countdown durations use hours/minutes/seconds
+with a day prefix when needed, independent of 12/24-hour time format.
 Existing explicitly configured Jamaat modes remain unchanged. Cards that omit `mode`
 now use the upcoming congregation.
 
@@ -194,9 +199,12 @@ with the selected mosque's actual entity ID.
 ## Validation limits
 
 Backend event/flow tests, Node frontend tests and an isolated headless Chromium
-harness cover the implemented behavior. That harness uses stand-ins for HA elements.
-A separate disposable HA 2026.10.2 manual installation also verified actual card
-loading, real selector/editor interactions, resource upgrades and phone/tablet
-viewports. HACS installation, complete manual picker workflows and physical-device
-visual checks remain release work. See the [validation record](validation.md) and
+harness cover the implemented behavior, including every visibility switch off and
+on independently. That harness uses stand-ins for HA elements. Separate disposable
+manual-install checks used HA 2026.10.2 and HA 2026.10.0; the latter exercised the
+actual card picker, editor controls, keyboard title/focus, saved configuration after
+page reload, themes and phone/tablet viewports for candidate 0.6.1. These checks used
+an explicitly preloaded PDF dependency. Authenticated HACS installation, fresh
+runtime dependency installation and physical-device visual checks remain release
+work. See the [validation record](validation.md) and
 [Milestone 6](milestones.md#milestone-6--release-hardening-partially-implemented).

@@ -9,11 +9,14 @@ versions and the scope of each check. Supported Home Assistant OS/Container syst
 provide the Linux/POSIX process resource limits required for isolated PDF extraction.
 Other installation methods are not part of the recorded acceptance matrix.
 
-PDF support covers only the documented Nuneaton Muslim Society annual adapter and
-synthetic sample layout. CSV provides the alternative for unsupported publications.
-Missing data remains unavailable. Confirm Ramadan dates explicitly; the integration
-does not calculate lunar dates. See [PDF layouts](pdf_layouts.md) and the README for
-file, timezone, network and parsing limits.
+PDF support covers the inspected Nuneaton Muslim Society annual and May–June 2022
+monthly layouts, Zakariyya Masjid's 2026 annual tables and separate Ramadan page,
+and the synthetic sample layout. Other editions and layouts remain unsupported;
+CSV provides the alternative for unsupported publications. Missing data remains
+unavailable. Confirm Ramadan dates explicitly: the card's calculated Umm al-Qura
+Hijri date is display-only and never activates Ramadan. See
+[PDF layouts](pdf_layouts.md) and the README for file, timezone, network and parsing
+limits.
 
 For bugs, open a GitHub issue with integration/HA versions, installation method,
 mosque timezone, relevant source layout, expected behavior and redacted logs or
