@@ -228,6 +228,101 @@ test("ordinary ticks update clocks and progress without rebuilding the table", (
   assert.equal(find(card.shadowRoot, "tr")[1].className, "past-prayer");
 });
 
+test("equivalent timetable and unrelated HA updates retain nodes and ticking clocks", t => {
+  const now = Date.parse("2026-10-21T04:40:00Z"); t.mock.method(Date, "now", () => now);
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = hass();
+  const table = find(card.shadowRoot, "table")[0]; const style = find(card.shadowRoot, "style")[0];
+  const clock = find(card.shadowRoot, "div").find(element => element.className === "count");
+  const update = hass({...structuredClone(attributes), friendly_name: "New HA name", icon: "mdi:mosque"});
+  update.states["sensor.other"] = {state: "on"};
+  update.states["sensor.mosque_prayer_timetable"].last_updated = "2026-10-21T04:40:01Z";
+  card.hass = update;
+  assert.equal(card._hass, update);
+  assert.equal(find(card.shadowRoot, "table")[0], table); assert.equal(find(card.shadowRoot, "style")[0], style);
+  card._tick(now + 1000);
+  assert.equal(find(card.shadowRoot, "div").find(element => element.className === "count"), clock);
+  assert.equal(clock.textContent, "00:04:59");
+});
+
+test("timetable edits rebuild visible data even when HA reuses its objects", t => {
+  t.mock.method(Date, "now", () => Date.parse("2026-10-21T04:40:00Z"));
+  const current = hass(structuredClone(attributes)); const data = current.states["sensor.mosque_prayer_timetable"].attributes;
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = current;
+  const edits = [
+    [() => { data.mosque_name = "Renamed Mosque"; }, () => assert.equal(find(card.shadowRoot, "h2")[0].textContent, "Renamed Mosque")],
+    [() => { data.date = "2026-10-22"; }, () => assert.match(find(card.shadowRoot, "header")[0].textContent, /22 October/)],
+    [() => { data.prayers[0].jamaat[0] = "2026-10-21T05:25:00Z"; }, () => assert.match(find(card.shadowRoot, "tbody")[0].textContent, /06:25/)],
+    [() => { data.ramadan = {active: true, taraweeh_text: "After Isha Jamaat"}; }, () => assert.match(card.shadowRoot.textContent, /After Isha Jamaat/)],
+  ];
+  for (const [edit, verify] of edits) {
+    const table = find(card.shadowRoot, "table")[0]; edit(); card.hass = current;
+    assert.notEqual(find(card.shadowRoot, "table")[0], table); verify();
+  }
+});
+
+test("new future prayer and Ramadan publications refresh countdowns without row changes", t => {
+  t.mock.method(Date, "now", () => Date.parse("2026-10-21T04:40:00Z"));
+  const current = hass({...structuredClone(attributes), prayers: [], ramadan: {active: true, sehri: "2026-10-21T04:50:00Z"}});
+  const data = current.states["sensor.mosque_prayer_timetable"].attributes;
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "context"}); card.hass = current;
+  const clocks = () => find(card.shadowRoot, "div").filter(element => element.className === "count");
+  data.next_salah = {timestamp: "2026-10-21T05:00:00Z", prayer: "fajr"}; card.hass = current;
+  assert.equal(clocks()[0].textContent, "00:20:00");
+  data.context_mode = "upcoming";
+  data.context_jamaat = {timestamp: "2026-10-21T04:55:00Z", prayer: "fajr"}; card.hass = current;
+  assert.equal(clocks()[1].textContent, "00:15:00");
+  data.context_mode = "previous"; card.hass = current;
+  assert.equal(clocks()[1].textContent, "09:40:00 elapsed");
+  data.sehri_events = [{timestamp: "2026-10-21T04:45:00Z"}]; card.hass = current;
+  assert.equal(clocks()[2].textContent, "00:05:00");
+  data.next_iftar = {timestamp: "2026-10-21T17:00:00Z"}; card.hass = current;
+  assert.equal(clocks()[3].textContent, "12:20:00");
+});
+
+test("HA locale, effective timezone and connection changes refresh the display", t => {
+  t.mock.method(Date, "now", () => Date.parse("2026-10-21T04:40:00Z"));
+  const current = hass({...structuredClone(attributes), time_zone: null});
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = current;
+  current.config.time_zone = "UTC"; card.hass = current;
+  assert.match(find(card.shadowRoot, "tbody")[0].textContent, /04:45/);
+  current.locale.language = "fr"; card.hass = current;
+  assert.match(find(card.shadowRoot, "header")[0].textContent, /mercredi/);
+  delete current.locale; current.language = "en-GB"; card.hass = current;
+  assert.match(find(card.shadowRoot, "header")[0].textContent, /Wednesday/);
+  current.connection.connected = false; card.hass = current;
+  assert.match(card.shadowRoot.textContent, /Home Assistant disconnected/);
+  current.connection.connected = true; card.hass = current;
+  assert.doesNotMatch(card.shadowRoot.textContent, /Home Assistant disconnected/);
+  current.states["sensor.mosque_prayer_timetable"].attributes.time_zone = "Europe/London"; card.hass = current;
+  const table = find(card.shadowRoot, "table")[0]; current.config.time_zone = "Europe/Paris"; card.hass = current;
+  assert.equal(find(card.shadowRoot, "table")[0], table, "The mosque timezone takes precedence over HA's timezone");
+});
+
+test("availability recovery and entity configuration changes invalidate the rendered data", t => {
+  t.mock.method(Date, "now", () => Date.parse("2026-10-21T04:40:00Z"));
+  const current = hass(structuredClone(attributes)); const state = current.states["sensor.mosque_prayer_timetable"];
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = current;
+  for (const value of ["unavailable", "unknown"]) {
+    state.state = value; card.hass = current;
+    assert.match(card.shadowRoot.textContent, /Timetable unavailable/);
+  }
+  delete current.states["sensor.mosque_prayer_timetable"]; card.hass = current;
+  assert.match(card.shadowRoot.textContent, /entity was not found/);
+  state.state = "2026-10-21"; current.states["sensor.mosque_prayer_timetable"] = state; card.hass = current;
+  assert.equal(find(card.shadowRoot, "table").length, 1);
+  state.attributes.prayers = null; card.hass = current;
+  assert.match(card.shadowRoot.textContent, /Timetable unavailable/);
+  state.attributes.prayers = structuredClone(attributes.prayers); card.hass = current;
+  assert.equal(find(card.shadowRoot, "table").length, 1);
+  current.states["sensor.other_mosque"] = {...state, attributes: {...state.attributes, mosque_name: "Other Mosque"}};
+  card.setConfig({entity: "sensor.other_mosque", title: "Selected Mosque"});
+  assert.equal(find(card.shadowRoot, "h2")[0].textContent, "Selected Mosque");
+  const table = find(card.shadowRoot, "table")[0]; card.hass = current;
+  assert.equal(find(card.shadowRoot, "table")[0], table);
+  current.states["sensor.other_mosque"].attributes.prayers = []; card.hass = current;
+  assert.equal(find(card.shadowRoot, "tbody")[0].children.length, 0);
+});
+
 test("ordinary ticks advance previous elapsed, progress and Ramadan clocks in place", () => {
   const card = new SalahTimetableCard();
   card.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "previous"});

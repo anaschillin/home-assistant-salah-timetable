@@ -96,6 +96,22 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     for (const [key, target] of Object.entries(selected)) for (const value of typeof target === "boolean" ? [!target, target] : [target]) {
       await evaluate(`(()=>{const control=window.salahEditor.shadowRoot.querySelector('[data-option="${key}"]');if(!control)throw new Error('Missing editor control');${typeof value === "boolean" ? `control.checked=${value};` : `control.value=${JSON.stringify(String(value))};`}control.dispatchEvent(new Event('change',{bubbles:true}));return true})()`);
       await until(`window.salahEditor._config[${JSON.stringify(key)}]===${JSON.stringify(value)}`, `Editor option did not update: ${key}`);
+      if (typeof value === "boolean") await until(expression(`
+        const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');
+        const card=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='salah-timetable-card');
+        if(!card?.shadowRoot||card._config[${JSON.stringify(key)}]!==${value})return false;
+        const root=card.shadowRoot;const panels=[...root.querySelectorAll('.panels > .panel')];
+        const nodes={
+          show_hijri_date:root.querySelector('.hijri'),
+          show_salah_countdown:panels.find(panel=>panel.querySelector('.label').textContent==='Next Salah Begins'),
+          show_jamaat_countdown:panels.find(panel=>/^(Next|Previous) Jamaat$/.test(panel.querySelector('.label').textContent)),
+          show_ramadan_details:root.querySelector('.ramadan'),
+          show_sehri_countdown:root.querySelector('.ramadan-grid > :nth-child(1) .count'),
+          show_iftar_countdown:root.querySelector('.ramadan-grid > :nth-child(2) .count'),
+          show_timezone_note:root.querySelector('.content > .note:not(.scroll-help)')
+        };
+        return Boolean(nodes[${JSON.stringify(key)}]?.getClientRects().length)===${value};
+      `), `Editor option did not change preview visibility: ${key}=${value}`);
     }
     await until(expression("const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');const save=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='ha-button'&&element.getAttribute('slot')==='primaryAction');if(!save)return false;save.click();return true"), "Real card editor Save button missing");
     await until(expression("return deep().filter(element=>element.localName==='salah-timetable-card').some(card=>card.shadowRoot.textContent.includes('Keyboard smoke title'))"), "Saved edited card did not appear on dashboard");

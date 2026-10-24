@@ -1,5 +1,12 @@
 import {eventProgress, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, prayerName} from "./card-utils.js?v=0.6.1";
 
+// Keep HA bookkeeping and unrelated entity updates out of the render decision.
+const RENDER_ATTRIBUTES = [
+  "mosque_name", "date", "time_zone", "prayers", "beginning_events", "jamaat_events",
+  "next_salah", "next_jamaat", "previous_jamaat", "context_jamaat", "context_mode",
+  "ramadan", "sehri_events", "iftar_events", "next_sehri", "next_iftar",
+];
+
 const CSS = `
 :host{display:block;container-type:inline-size;color:var(--primary-text-color);font-family:var(--paper-font-body1_-_font-family,inherit)}
 ha-card{display:block;overflow:hidden;background:var(--ha-card-background,var(--card-background-color));border-radius:var(--ha-card-border-radius,12px)}
@@ -57,7 +64,10 @@ export class SalahTimetableCard extends HTMLElement {
   static getConfigElement() { return document.createElement("salah-timetable-card-editor"); }
   static getStubConfig(hass) { return normalizeConfig({entity: discoverEntity(hass)}); }
   setConfig(config) { this._config = normalizeConfig(config); this._render(); }
-  set hass(value) { this._hass = value; this._render(); }
+  set hass(value) {
+    this._hass = value;
+    if (this._hassRenderKey() !== this._renderedHassKey) this._render();
+  }
   getCardSize() { return (this._config.layout === "compact" ? 4 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
   getGridOptions() { return {columns: 12, rows: this.getCardSize(), min_columns: 6, min_rows: 4}; }
 
@@ -70,6 +80,18 @@ export class SalahTimetableCard extends HTMLElement {
     this._timer = null;
   }
   _state() { return this._hass?.states?.[this._config.entity]; }
+
+  _hassRenderKey() {
+    const state = this._state();
+    const data = state?.attributes;
+    return JSON.stringify([
+      Boolean(state), state?.state,
+      ...RENDER_ATTRIBUTES.map(key => data?.[key]),
+      data?.time_zone || this._hass?.config?.time_zone || "UTC",
+      this._hass?.locale?.language || this._hass?.language,
+      this._hass?.connection?.connected === false,
+    ]);
+  }
 
   _selection(data, now) {
     const next = nextSalah(data, now);
@@ -88,6 +110,7 @@ export class SalahTimetableCard extends HTMLElement {
 
   _render(now = Date.now()) {
     if (!this.shadowRoot) return;
+    this._renderedHassKey = this._hassRenderKey();
     this._live = null;
     const updates = [];
     const style = node("style", CSS);

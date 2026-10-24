@@ -20,6 +20,20 @@ if (!customElements.get("ha-selector")) customElements.define("ha-selector", Sel
 
 const checks = [];
 function check(name, assertion) { if (!assertion) throw new Error(name); checks.push(name); }
+function visibility(card) {
+  const root = card.shadowRoot;
+  const panels = [...root.querySelectorAll(".panels > .panel")];
+  const nodes = {
+    show_hijri_date: root.querySelector(".hijri"),
+    show_salah_countdown: panels.find(panel => panel.querySelector(".label").textContent === "Next Salah Begins"),
+    show_jamaat_countdown: panels.find(panel => /^(Next|Previous) Jamaat$/.test(panel.querySelector(".label").textContent)),
+    show_ramadan_details: root.querySelector(".ramadan"),
+    show_sehri_countdown: root.querySelector(".ramadan-grid > :nth-child(1) .count"),
+    show_iftar_countdown: root.querySelector(".ramadan-grid > :nth-child(2) .count"),
+    show_timezone_note: root.querySelector(".content > .note:not(.scroll-help)"),
+  };
+  return Object.fromEntries(Object.entries(nodes).map(([key, node]) => [key, Boolean(node?.getClientRects().length)]));
+}
 const time = (hour, minute = 0) => `2026-10-21T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00Z`;
 const event = (timestamp, prayer) => ({timestamp, prayer, field: `${prayer}_jamaat`});
 const prayers = [
@@ -92,7 +106,7 @@ try {
 
   const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "sensor.example_prayer_timetable", mode: "context"}); editor.hass = hass; document.body.append(editor);
   let lastConfig;
-  editor.addEventListener("config-changed", event => { lastConfig = event.detail.config; editor.setConfig(event.detail.config); });
+  editor.addEventListener("config-changed", event => { lastConfig = event.detail.config; editor.setConfig(event.detail.config); card.setConfig(event.detail.config); card._render(Date.parse(time(4, 40))); });
   const input = editor.shadowRoot.querySelector("input#mosque-title");
   input.focus(); input.value = "My Mosque"; input.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
   check("graphical title editor emits configuration", lastConfig?.title === "My Mosque");
@@ -101,6 +115,17 @@ try {
   check("hass state updates preserve focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
   const mode = editor.shadowRoot.querySelectorAll("ha-selector")[1]; mode.value = "upcoming"; mode.select.dispatchEvent(new Event("change"));
   check("graphical mode editor round trip", lastConfig.mode === "upcoming" && mode.value === "upcoming");
+  const visibilityOptions = Object.keys(visibility(card));
+  for (const key of visibilityOptions) {
+    const control = editor.shadowRoot.querySelector(`[data-option="${key}"]`);
+    for (const value of [false, true]) {
+      control.click();
+      const expected = Object.fromEntries(visibilityOptions.map(option => [option, true]));
+      expected[key] = value;
+      if (key === "show_ramadan_details") expected.show_sehri_countdown = expected.show_iftar_countdown = value;
+      check(`editor ${key}=${value} changes the expected visible content`, lastConfig[key] === value && Object.entries(visibility(card)).every(([option, visible]) => visible === expected[option]));
+    }
+  }
   const restored = new SalahTimetableCardEditor(); restored.setConfig(lastConfig); restored.hass = hass;
   check("restored graphical configuration", restored.shadowRoot.querySelector("input#mosque-title").value === "My Mosque" && restored.shadowRoot.querySelectorAll("ha-selector")[1].value === "upcoming");
   check("countdowns never write HA service or state", serviceCalls === 0);

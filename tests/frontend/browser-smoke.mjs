@@ -111,6 +111,7 @@ for (const width of [320, 360, 400, 900]) { const frame = document.createElement
       assert.ok(report, `No report for ${width}px: ${JSON.stringify(reports)}`);
       assert.equal(report.status, "passed", report.error);
       for (const name of ["card contains 200% text without overflowing", "Gregorian and calculated Hijri dates are visible", "future countdowns show bounded progress", "countdown tick preserves table keyboard focus"]) assert.ok(report.checks.includes(name), `Missing browser check: ${name}`);
+      for (const option of ["show_hijri_date", "show_salah_countdown", "show_jamaat_countdown", "show_ramadan_details", "show_sehri_countdown", "show_iftar_countdown", "show_timezone_note"]) for (const value of [false, true]) assert.ok(report.checks.includes(`editor ${option}=${value} changes the expected visible content`), `Missing browser visibility check: ${option}=${value}`);
     });
     if (process.env.BROWSER_SCREENSHOT_DIR) {
       await debuggerSession.call("Runtime.evaluate", {expression: "window.scrollTo(0,0);for(const frame of document.querySelectorAll('iframe'))frame.contentWindow.scrollTo(0,0)"});
