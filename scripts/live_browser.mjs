@@ -46,7 +46,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
   const expression = body => `(()=>{${deep};${body}})()`;
   const findCard = "deep().find(element=>element.localName==='salah-timetable-card')";
   try {
-    const port = await waitForDebuggerPort(child, profile, {stderr: () => stderr});
+    const port = await waitForDebuggerPort(child, profile, {timeoutMs: 30000, stderr: () => stderr});
     const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`, {signal: AbortSignal.timeout(5000)})).json();
     socket = new WebSocket(targets.find(target => target.type === "page").webSocketDebuggerUrl);
     await new Promise((resolve, reject) => { socket.addEventListener("open", resolve, {once: true}); socket.addEventListener("error", reject, {once: true}); });

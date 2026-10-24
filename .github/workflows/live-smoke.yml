@@ -1,0 +1,69 @@
+name: Home Assistant live smoke
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/live-smoke.yml
+      - scripts/live_*.mjs
+      - custom_components/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-smoke-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  live-smoke:
+    name: Home Assistant ${{ matrix.ha-version }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    strategy:
+      fail-fast: false
+      matrix:
+        ha-version:
+          - '2026.10.0' # Minimum supported Core version
+          - '2026.10.3' # Current October stable patch
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+
+      - name: Verify runtime prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker version
+          for candidate in google-chrome chromium chromium-browser; do
+            if command -v "$candidate" >/dev/null 2>&1; then
+              echo "CHROME_BIN=$(command -v "$candidate")" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          done
+          echo "::error::Chromium/Chrome is missing on the runner"
+          exit 1
+
+      - name: Run real Home Assistant onboarding and browser smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          # No --preload-pypdf: the test must exercise a fresh HA-managed
+          # installation of the dependency pinned in manifest.json.
+          node scripts/live_smoke.mjs \
+            --ha-version "${{ matrix.ha-version }}" \
+            --output-dir "$RUNNER_TEMP/salah-live-results"
+
+      - name: Preserve synthetic smoke evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: ha-live-smoke-${{ matrix.ha-version }}
+          path: ${{ runner.temp }}/salah-live-results/
+          if-no-files-found: ignore
+          retention-days: 7
