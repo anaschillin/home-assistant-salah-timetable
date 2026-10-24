@@ -42,7 +42,9 @@ def days(count, first=TODAY):
         ((table(days(9)),), "covered", True, True, TODAY + timedelta(days=8), 8),
     ],
 )
-def test_coverage_status_boundaries(tables, status, today, tomorrow, through, remaining):
+def test_coverage_status_boundaries(
+    tables, status, today, tomorrow, through, remaining
+):
     result = calculate_coverage(TODAY, tables, RamadanSettings())
     assert result.status == status
     assert result.attributes() == {
@@ -99,13 +101,20 @@ def test_ramadan_dates_extend_coverage_only_when_they_are_active_and_selected():
     )
     assert calculate_coverage(TODAY, tables, shifted).status == "missing_tomorrow"
     selected_other = RamadanSettings(mode="on", source_id="another-source")
-    assert calculate_coverage(TODAY, tables, selected_other).status == "missing_tomorrow"
-    assert calculate_coverage(TODAY, tables, RamadanSettings(mode="on")).days_remaining == 2
+    assert (
+        calculate_coverage(TODAY, tables, selected_other).status == "missing_tomorrow"
+    )
+    assert (
+        calculate_coverage(TODAY, tables, RamadanSettings(mode="on")).days_remaining
+        == 2
+    )
 
 
 def test_rows_without_any_published_fields_do_not_supply_coverage():
     empty = Timetable("annual-2026", "annual", (DailyPrayers(TODAY, {}, {}),))
-    assert calculate_coverage(TODAY, (empty,), RamadanSettings()).status == "missing_today"
+    assert (
+        calculate_coverage(TODAY, (empty,), RamadanSettings()).status == "missing_today"
+    )
 
 
 def test_calendar_end_does_not_overflow():
@@ -140,7 +149,9 @@ async def test_empty_setup_exposes_a_stable_diagnostic(hass, entry, freezer):
     assert coverage_state(hass).entity_id == state.entity_id
 
 
-async def test_pending_replacement_does_not_extend_approved_coverage(hass, entry, freezer):
+async def test_pending_replacement_does_not_extend_approved_coverage(
+    hass, entry, freezer
+):
     freezer.move_to("2026-10-21T12:00:00+00:00")
     storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
     await storage.async_replace((table([TODAY]),))
