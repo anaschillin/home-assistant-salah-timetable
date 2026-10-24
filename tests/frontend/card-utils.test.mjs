@@ -77,7 +77,7 @@ test("missing/malformed values remain unavailable", () => {
 });
 
 test("configuration validates modes/entities while allowing graphical setup", () => {
-  assert.equal(normalizeConfig({}).mode, "context");
+  assert.equal(normalizeConfig({}).mode, "upcoming");
   assert.throws(() => normalizeConfig({mode: "interval"}));
   assert.throws(() => normalizeConfig({entity: "light.example"}));
   assert.throws(() => normalizeConfig({title: "a".repeat(101)}));

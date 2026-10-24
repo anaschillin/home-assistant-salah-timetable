@@ -4,9 +4,9 @@ The **Salah Timetable** card is bundled with the integration. It uses the mosque
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
 template sensors or YAML configuration.
 
-## Preview
+## Historical preview
 
-These screenshots show synthetic timetable data in the real Home Assistant 2026.10.2
+These historical screenshots predate the 0.6.0 dashboard changes and show synthetic timetable data in the real Home Assistant 2026.10.2
 frontend, running integration 0.5.1. They are viewport checks, not physical-device
 certification.
 
@@ -22,18 +22,20 @@ certification.
 3. In the graphical editor, choose that mosque's **Prayer timetable** sensor. Its
    entity ID typically ends in `_prayer_timetable`; HA permits users to rename it.
    Individual beginning/Jamaat sensors do not contain the full card data.
-4. Choose **Context aware**, **Previous Jamaat** or **Upcoming Jamaat**. Optionally
-   enter a title, then save.
+4. Optionally set a title and choose compact/expanded layout, countdown visibility,
+   time format, Hijri adjustment and additional details, then save.
+   **Upcoming Jamaat** is the default; **Context aware** and **Previous Jamaat** remain available.
 
 Create a separate card for each mosque. The integration creates one device/config
 entry per mosque, and each card follows the selected entity's mosque timezone.
 
 ## What the card shows
 
-- Mosque name and local date, or your optional title.
-- Next Salah beginning with its absolute time and countdown.
-- A Jamaat panel with a countdown to an upcoming event or elapsed time since a
-  previous event.
+- Mosque name or your optional title, Gregorian date and calculated Hijri date.
+- **Next Salah Begins** and **Next Jamaat**, with prominent independent countdowns,
+  absolute times and progress between consecutive published events of each kind.
+- Optional context/previous Jamaat modes retain elapsed-time behaviour. Progress is
+  hidden for previous events or when the preceding published event is unavailable.
 - Fajr, Dhuhr, Asr, Maghrib and Isha beginning/Jamaat times. Published Friday Jumu'ah
   congregations appear in the Dhuhr row and retain their event identity.
 - When Ramadan is active: Sehri and Iftar countdowns, plus published Taraweeh time
@@ -50,9 +52,9 @@ scroll region so its columns remain readable without widening the card.
 
 | Mode | Jamaat panel |
 | --- | --- |
-| Context aware (default) | Previous Jamaat before a prayer begins; upcoming Jamaat after beginning and before its congregation; previous Jamaat with elapsed time from its scheduled instant onward |
+| Context aware | Previous Jamaat before a prayer begins; upcoming Jamaat after beginning and before its congregation; previous Jamaat with elapsed time from its scheduled instant onward |
 | Previous Jamaat | Most recent known congregation at or before the current instant |
-| Upcoming Jamaat | Next known congregation strictly after the current instant |
+| Upcoming Jamaat (default) | Next known congregation strictly after the current instant |
 
 Next Salah beginning is calculated independently in every mode. For example, after
 Fajr beginning but before Fajr Jamaat, the card counts down to Fajr Jamaat while
@@ -65,6 +67,55 @@ shows an unavailable result; the integration never repeats today's Fajr. Events 
 drawn from yesterday, today and tomorrow, including year/leap-day boundaries. The
 browser uses the supplied timeline for local boundary transitions while HA also
 refreshes at event boundaries and local midnight.
+
+## Prayer emphasis and layout
+
+The prayer awaiting Jamaat stays highlighted through its final published congregation.
+Once that congregation occurs, the next prayer is highlighted. Without a published
+Jamaat, the current row remains highlighted until the next known beginning. Completed
+rows use secondary text while staying visible. Tomorrow's Fajr never highlights today's
+completed Fajr row. A missing beginning cannot be inferred from its congregation.
+
+Beginning and Jamaat use consistent columns. Multiple congregations stack within the
+Jamaat cell; actual Jumu’ah events are labelled there while the Dhuhr beginning keeps
+its own meaning. Neither labels nor highlighting change source data.
+
+Countdowns sit side by side when the card has enough room and stack on narrow cards
+or at enlarged text sizes. Compact layout reduces spacing and number sizes; it does
+not hide information. Progress uses elapsed absolute time, including clock changes,
+and is hidden when a valid preceding event is unavailable.
+
+## Dates and customization
+
+The Hijri header uses the browser's **Umm al-Qura** calendar to convert the mosque's
+Gregorian timetable date. It advances at mosque-local midnight, not at sunset.
+The optional −3 to +3 day adjustment changes only the displayed Hijri date. It does
+not shift imported records, prayer events, Ramadan confirmation or Ramadan's separate
+date adjustment. The date is labelled calculated; unsupported browsers show
+**Hijri date unavailable** rather than silently substituting another calendar.
+
+All options are available in the graphical editor and apply independently to each card:
+
+| YAML option | Values and default |
+| --- | --- |
+| `layout` | `expanded` (default), `compact` |
+| `mode` | `upcoming` (default), `context`, `previous` |
+| `time_format` | `24h` (default), `12h`; applies to every absolute time |
+| `show_salah_countdown` | `true` |
+| `show_jamaat_countdown` | `true` |
+| `show_hijri_date` | `true` |
+| `hijri_adjustment` | Whole days −3 through +3; default `0` |
+| `show_ramadan_details` | `true`; controls the entire Ramadan section |
+| `show_sehri_countdown` | `true`; hiding retains the published time |
+| `show_iftar_countdown` | `true`; hiding retains the published time |
+| `show_timezone_note` | `true`; controls timezone/help text |
+
+Hiding either main countdown removes its panel; the remaining panel fills the width.
+Hiding both leaves the header and timetable. Connection warnings remain visible even
+when help text is hidden. Taraweeh belongs to the Ramadan details section. Countdown
+durations always use hours/minutes/seconds, independent of 12/24-hour time format.
+Existing explicitly configured Jamaat modes remain unchanged. Cards that omit `mode`
+now use the upcoming congregation.
 
 ## Ramadan controls
 
@@ -101,7 +152,7 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.5.5
+/salah_timetable/salah-timetable-card.js?v=0.6.0
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an
@@ -119,7 +170,11 @@ For reference, the card's optional YAML representation is:
 ```yaml
 type: custom:salah-timetable-card
 entity: sensor.example_mosque_prayer_timetable
-mode: context
+mode: upcoming
+layout: expanded
+time_format: 24h
+show_hijri_date: true
+hijri_adjustment: 0
 ```
 
 The graphical editor produces this configuration. `mode` accepts `context`,

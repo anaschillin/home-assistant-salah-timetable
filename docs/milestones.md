@@ -3,7 +3,7 @@
 The [remaining-work checklist](remaining-work.md) tracks release blockers separately
 from later feature additions.
 
-Milestones 1–5 are implemented; the current candidate is 0.5.5. Keep follow-up work in focused PRs
+Milestones 1–5 are implemented; the current candidate is 0.6.0. Keep follow-up work in focused PRs
 with its own tests and documentation. A disposable HA 2026.10.2 runtime/frontend smoke check passed. Release acceptance
 still includes hosted validation, HACS installation and physical-device checks.
 
@@ -118,6 +118,11 @@ HA 2026.10.2 manual installation verified real card/editor components and viewpo
 rendering. Complete manual picker workflows, HACS installation and physical-device
 checks remain release acceptance work; see the [validation record](validation.md)
 and [dashboard setup](dashboard.md).
+
+Candidate 0.6.0 extends the card with prayer emphasis, independent countdown progress,
+calculated Umm al-Qura dates and graphical layout/visibility/time-format controls.
+These are display features; imported records and Ramadan activation remain unchanged.
+Current validation limits are recorded in [validation](validation.md).
 
 ## Milestone 6 — release hardening (partially implemented)
 

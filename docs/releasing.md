@@ -93,6 +93,9 @@ where possible. Record the HA/integration versions and browser/device used.
 - Add the bundled card through the real graphical picker/editor. Select each
   mosque, change modes/title and reopen the editor. Check automatic loading in
   storage-resource and YAML-resource dashboard modes without editing YAML.
+- Check compact/expanded layouts, individual countdown/detail switches, both time
+  formats and calculated Hijri adjustment without altering Ramadan activation.
+  Verify emphasis through the final congregation and independent progress bars.
 - Check narrow mobile and tablet displays, light/dark themes, text zoom, keyboard
   access, unavailable data and a disconnected browser. Confirm ticking countdowns
   do not cause per-second sensor writes.
@@ -109,8 +112,9 @@ tests pass.
 
 ## Current support limits
 
-Only the inspected Nuneaton Muslim Society annual layout and the documented
-synthetic PDF layout are supported. There is no general PDF recognizer, OCR,
+Only inspected editions of the Nuneaton Muslim Society annual/monthly calendars,
+Zakariyya 2026 annual tables and Ramadan appendix, and the synthetic PDF layout are
+supported; see [PDF layouts](pdf_layouts.md). There is no general PDF recognizer, OCR,
 scanned/encrypted-PDF support or invented-time fallback. The NMS website's live
 HTTPS availability remains unverified; its supplied HTTP URL is unsupported.
 Downloads require public HTTPS and do not support environment proxies. Ambiguous
@@ -145,7 +149,7 @@ and review the draft before publishing through GitHub.
 For local asset review, without creating any GitHub tag or release:
 
 ```sh
-uv run --frozen python -m scripts.prepare_release --tag v0.5.5 --output-dir /tmp/salah-release-review
+uv run --frozen python -m scripts.prepare_release --tag v0.6.0 --output-dir /tmp/salah-release-review
 ```
 
 Use the manifest's current version in the tag argument. Local preparation validates

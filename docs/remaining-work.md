@@ -7,7 +7,7 @@ complete only when its stated evidence exists. See [recorded validation](validat
 
 | Work | Status | Completion evidence |
 | --- | --- | --- |
-| Hosted validation | Unverified here: GitHub API access returns Forbidden | Successful Validate run for the exact release commit, including HACS and hassfest |
+| Hosted validation | Passed for `9642db3` ([run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/39998754702)); rerun for the final release commit | Successful Validate run for the exact release commit, including HACS and hassfest |
 | Minimum HA version | HA 2026.10.0 setup/import work; restart acceptance is unresolved | HA 2026.10.0 configuration, import, persistence, card and real editor checks pass |
 | HACS custom-repository installation | Pending | Install with a maintainer's GitHub authorization in disposable HA; verify bundled assets, restart, update and removal |
 | Physical mobile/tablet checks | Pending | Test narrow displays, themes, text scaling, touch and keyboard access on real devices |
@@ -37,7 +37,10 @@ HACS installation of this repository.
   validation for its exact commit on main; it neither creates tags nor publishes
   or overwrites releases.
 
-The unfinished repeatable live runner is preserved on the
+The experimental repeatable live runner is available in `scripts/live_smoke.mjs`
+with startup/readiness gates and privacy-safe restart state flags. Docker execution
+is currently blocked by the workspace sandbox; these improvements have unit coverage
+but do not establish live acceptance. The original runner is preserved on the
 [`codex/live-smoke-runner` branch](https://github.com/anaschillin/home-assistant-salah-timetable/tree/codex/live-smoke-runner).
 It reached configuration, import, Ramadan and two-mosque checks on HA 2026.10.0,
 but did not confirm the expected prayer state after restart. Complete startup/state

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0 — unreleased
+
+- Highlight the prayer awaiting Jamaat, keep completed rows readable and align
+  Beginning/Jamaat columns with individually labelled Jumu’ah congregations.
+- Show independent Next Salah Begins and Next Jamaat countdowns by default,
+  with larger numbers, published-event progress and card-width responsive layout.
+  Explicit context/previous modes remain supported.
+- Add Gregorian and calculated Umm al-Qura Hijri dates with a per-card −3 to +3
+  display adjustment, independent of Ramadan activation and source timetables.
+- Add graphical compact/expanded layout, 12/24-hour time format, individual
+  countdown visibility and Ramadan/timezone detail controls.
+- Reconcile current dashboard, PDF support, fixture licensing and release guidance.
+
 ## 0.5.5 — unreleased
 
 - Label published Jumu'ah congregation times in the daily Dhuhr row while retaining

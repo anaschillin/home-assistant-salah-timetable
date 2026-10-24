@@ -186,7 +186,7 @@ countdown. The backend and card behavior have separate boundary tests.
 `frontend.py` registers the bundled directory at `/salah_timetable` through HA's
 asynchronous static-path API. For storage-mode Lovelace resources it creates or
 updates the integration's relative module URL, removes duplicate registrations and
-uses `?v=0.5.5` for cache changes. For YAML resources it uses HA's extra-JavaScript
+uses `?v=0.6.0` for cache changes. For YAML resources it uses HA's extra-JavaScript
 helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
 a resource-registration failure is logged without disabling valid prayer entities.
 
@@ -196,7 +196,9 @@ absolute timestamps and ticks only its own DOM once per second. It stops its tim
 when disconnected from the DOM. Imported/user text is assigned through `textContent`.
 Time labels follow the mosque timezone and HA locale; responsive CSS uses HA theme
 variables without Card Mod. The editor emits standard `config-changed` events and
-supports context, previous and upcoming modes plus an optional title.
+supports upcoming (default), context and previous modes, optional title, compact/expanded
+layout, countdown/detail visibility and 12/24-hour times. The calculated Umm al-Qura
+header has a per-card day adjustment and never participates in Ramadan activation.
 
 Node tests cover helpers, rendering, safe text and editor round trips. An isolated
 headless Chromium harness checks real custom-element rendering with HA element
@@ -208,11 +210,11 @@ and editor, including a 0.5.0-to-0.5.1 resource upgrade. See the
 
 ## Remaining limitations
 
-Only the inspected Nuneaton Muslim Society annual layout and the synthetic sample
-layout are supported. Other mosque layouts, OCR and scanned PDFs remain unsupported.
+Only the documented Nuneaton Muslim Society annual/monthly, Zakariyya 2026
+annual/Ramadan and synthetic sample layouts are supported. Other mosque layouts, OCR and scanned PDFs remain unsupported.
 The live NMS HTTPS source is unverified. DST gaps and ambiguous folds are rejected
 rather than guessed; explicit fold handling needs a separately reviewed source model.
-Automatic lunar-date calculation is intentionally absent; users confirm Ramadan.
+The calculated Hijri header is display-only; users explicitly confirm Ramadan.
 
 Release hardening still needs a manual HACS/HA installation and upgrade/removal
 exercise, real-device frontend checks and further security and migration review.

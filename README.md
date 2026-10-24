@@ -107,11 +107,13 @@ month’s dates. See [Ramadan validation](docs/ramadan_validation.md).
 
 The integration bundles the **Salah Timetable** Lovelace card and its graphical
 editor. After importing a timetable, edit a dashboard, add the card and choose the
-mosque's **Prayer timetable** sensor. Select **Context aware**, **Previous Jamaat**
-or **Upcoming Jamaat**. No separate card download or Card Mod is required.
+mosque's **Prayer timetable** sensor. Choose **Upcoming Jamaat** (default), **Context aware** or **Previous Jamaat**. No separate card download or Card Mod is required.
 
-The card shows the mosque/date, next Salah beginning, Jamaat context, five daily
-prayers and active Ramadan details. Countdowns run in the browser from absolute
+The card shows Gregorian and calculated Umm al-Qura Hijri dates, independent Salah
+and Jamaat countdowns with progress, highlighted prayer rows and active Ramadan details.
+Its editor offers compact/expanded layouts, individual countdown visibility, 12/24-hour
+times, a Hijri display-day adjustment and additional-detail controls. The Hijri
+adjustment is independent of Ramadan activation and never changes timetable data. Countdowns run in the browser from absolute
 timestamps, without per-second Home Assistant state writes. It follows HA's theme
 and uses responsive layouts. See [dashboard setup and behavior](docs/dashboard.md)
 for resource troubleshooting and the event boundary rules.
@@ -294,7 +296,9 @@ exact boundaries, Friday congregations, DST and year/leap-day transitions. Front
 tests use Node and an isolated headless Chromium harness with HA element stand-ins.
 A separate real HA runtime/frontend smoke check also passed; physical-device checks
 and HACS installation remain separate acceptance work.
-Parser fixtures are synthetic and redistributable under this repository's MIT license.
+Synthetic parser fixtures use this repository's MIT license. Contributed real
+publications have separate provenance and require redistribution review; see the
+[fixture notes](tests/fixtures/pdf/README.md).
 
 GitHub Actions runs pytest, frontend tests, lint/format checks, hassfest and HACS
 validation, and builds an install archive with a checksum. Hosted validation must

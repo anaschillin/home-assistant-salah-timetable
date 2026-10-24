@@ -1,0 +1,72 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {eventProgress, formatHijriDate, formatTime, highlightedPrayer, normalizeConfig, prayerIsPast} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+const stamp = clock => `2026-10-23T${clock}:00Z`;
+const at = clock => Date.parse(stamp(clock));
+const row = (key, begin, ...jamaat) => ({key, begin: stamp(begin), jamaat: jamaat.map(stamp)});
+const data = {prayers: [row("fajr", "05:00", "05:30"), row("dhuhr", "12:00", "12:30", "13:30"), row("asr", "15:00", "15:30"), row("isha", "19:00", "19:30")]};
+
+test("highlight crosses beginning and final congregation boundaries", () => {
+  for (const [time, key] of [["04:00", "fajr"], ["05:00", "fajr"], ["05:29", "fajr"], ["05:30", "dhuhr"], ["12:30", "dhuhr"], ["13:30", "asr"], ["19:29", "isha"], ["19:30", null]]) assert.equal(highlightedPrayer(data, at(time)), key, time);
+  assert.equal(prayerIsPast(data.prayers[0], at("05:30")), true);
+  assert.equal(prayerIsPast(data.prayers[1], at("12:30")), false);
+});
+
+test("missing congregation stays highlighted until next published beginning", () => {
+  const missing = {prayers: [row("fajr", "05:00"), row("dhuhr", "12:00", "12:30")]};
+  assert.equal(highlightedPrayer(missing, at("11:59")), "fajr");
+  assert.equal(highlightedPrayer(missing, at("12:00")), "dhuhr");
+  assert.equal(highlightedPrayer({prayers: []}, at("12:00")), null);
+});
+
+test("tomorrow's event never highlights today's completed prayer", () => {
+  assert.equal(highlightedPrayer({...data, next_salah: {prayer: "fajr", timestamp: "2026-10-24T05:01:00Z"}}, at("23:00")), null);
+});
+
+test("progress measures consecutive real events independently", () => {
+  assert.equal(eventProgress(data, false, {timestamp: stamp("12:00")}, at("08:30")), 50);
+  assert.equal(eventProgress(data, true, {timestamp: stamp("12:30")}, at("09:00")), 50);
+  assert.equal(eventProgress(data, false, {timestamp: stamp("05:00")}, at("04:00")), null);
+  assert.equal(eventProgress(data, false, {timestamp: stamp("12:00")}, at("12:00")), null);
+  assert.equal(eventProgress({}, false, null, at("12:00")), null);
+});
+
+test("progress follows elapsed instants across DST and year boundaries", () => {
+  for (const [start, middle, end] of [
+    ["2026-10-25T00:00:00+01:00", "2026-10-25T01:00:00+01:00", "2026-10-25T01:00:00+00:00"],
+    ["2026-12-31T23:00:00Z", "2027-01-01T00:00:00Z", "2027-01-01T01:00:00Z"]
+  ]) {
+    const attrs = {beginning_events: [{timestamp: start}, {timestamp: end}]};
+    assert.equal(eventProgress(attrs, false, {timestamp: end}, Date.parse(middle)), 50);
+  }
+});
+
+test("Umm al-Qura display adjusts dates across months without host timezone effects", () => {
+  assert.equal(formatHijriDate("2026-02-18", 0, "en-GB"), "1 Ramadan 1447 AH");
+  assert.equal(formatHijriDate("2026-02-18", -1, "en-GB"), formatHijriDate("2026-02-17", 0, "en-GB"));
+  for (const adjustment of [-3, 3]) assert.equal(formatHijriDate("2026-12-31", adjustment, "en-GB"), formatHijriDate(new Date(Date.parse("2026-12-31T12:00Z") + adjustment * 86400000).toISOString().slice(0, 10), 0, "en-GB"));
+  assert.equal(formatHijriDate("2026-02-30"), "Hijri date unavailable");
+  const original = Intl.DateTimeFormat;
+  try {
+    Intl.DateTimeFormat = class { resolvedOptions() { return {calendar: "gregory"}; } format() { return "fallback"; } };
+    assert.equal(formatHijriDate("2026-02-18"), "Hijri date unavailable");
+  } finally { Intl.DateTimeFormat = original; }
+});
+
+test("time formats retain mosque timezone and missing-value marker", () => {
+  assert.equal(formatTime(stamp("12:30"), "Europe/London", "en-GB", "24h"), "13:30");
+  assert.match(formatTime(stamp("12:30"), "Europe/London", "en-GB", "12h"), /01:30\s*pm/i);
+  assert.equal(formatTime(null, "UTC", "en", "12h"), "—");
+});
+
+test("config validates new types and preserves explicit old Jamaat modes", () => {
+  assert.equal(normalizeConfig({}).mode, "upcoming");
+  for (const mode of ["context", "previous", "upcoming"]) assert.equal(normalizeConfig({mode}).mode, mode);
+  for (const invalid of [{layout: "tiny"}, {time_format: "auto"}, {hijri_adjustment: 4}, {hijri_adjustment: 0.5}, {hijri_adjustment: "1"}, {show_hijri_date: "false"}]) assert.throws(() => normalizeConfig(invalid));
+});
+
+test("display calculations do not mutate imported event payloads", () => {
+  const copy = structuredClone(data); const before = JSON.stringify(copy);
+  highlightedPrayer(copy, at("12:15")); eventProgress(copy, true, {timestamp: stamp("12:30")}, at("12:15"));
+  assert.equal(JSON.stringify(copy), before);
+});

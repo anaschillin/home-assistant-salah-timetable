@@ -219,3 +219,58 @@ selected local binary was `/usr/bin/chromium`. **26 focused Python tests** cover
 the maintainer's NMS flow and frontend/packaging/release preparation also passed,
 as did Ruff lint/format. The new hosted Actions run remains to be checked after push;
 these local results do not establish its outcome.
+
+## Release runner follow-up — 24 October 2026
+
+The connected GitHub API confirmed that Validate run
+[39998754702](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/39998754702)
+completed successfully for `9642db372d439f44ec6783f1c7f4ad7561199438`.
+This establishes hosted validation for that commit only; subsequent changes need
+validation on their own exact release commit.
+
+The experimental live runner from `codex/live-smoke-runner` is now available in
+`scripts/`, with explicit HA RUNNING and config-entry readiness gates. Restart
+results distinguish setup/migration failures from a missing or mismatched Fajr
+state, recording only presence/availability/match flags. The real browser driver
+uses the existing bounded debugger discovery helper. The runner remains opt-in;
+no CI acceptance or minimum-version success is claimed.
+
+`node --test --test-isolation=none tests/frontend/*.test.mjs` passed all **46 tests**,
+including six readiness regressions. Script syntax, CLI help and whitespace checks
+passed. Docker socket access was denied by the workspace sandbox. The Chromium
+smoke attempt aborted inside Node's native `InternalCallbackScope::Close` assertion,
+before producing a browser acceptance result. These environment limitations leave
+live HA 2026.10.0 restart and real picker acceptance pending.
+
+## Dashboard refresh — candidate 0.6.0
+
+The card now highlights the prayer awaiting its final congregation, shows independent
+upcoming Salah/Jamaat panels with elapsed-interval progress, and adds a calculated
+Umm al-Qura date. Compact/expanded layouts, 12/24-hour times and independent
+countdown/detail visibility are configured in the graphical editor. The Hijri
+adjustment is display-only and never changes Ramadan activation or imported values.
+
+Observed locally:
+
+- **59 Node tests passed**, including date conversion/adjustment and calendar fallback,
+  missing times, multiple congregations, exact highlighting boundaries, tomorrow's
+  Fajr, elapsed progress across DST/year boundaries, all main-panel visibility
+  combinations and new editor round trips. Source payloads remain unchanged.
+- Ruff lint and formatting passed; JavaScript syntax and whitespace checks passed.
+- `uv lock --offline --check` resolved the unchanged 169-package dependency graph.
+  Project/manifest/resource versions and virtual-project lock metadata agree on 0.6.0.
+- Release consistency validated 33 runtime files. Draft-note preparation produced
+  the integration archive and SHA-256 sidecar without publishing a tag or release.
+
+The Chromium fixture now covers the new date, highlighting, progress, 12-hour
+formatting, single-panel layout and keyboard-focus preservation through ticks.
+It could not run here: Node aborted in `InternalCallbackScope::Close`, and a direct
+Chromium startup reported `setsockopt: Operation not permitted`. The focused Python
+suite likewise stalled in HA fixture setup; a diagnostic traceback showed asyncio's
+self-pipe send denied with `PermissionError: Operation not permitted`. Bounded
+attempts were stopped; neither suite is reported as passing.
+
+Existing screenshots remain labelled historical. New browser screenshots, real HA
+editor acceptance, physical-device checks and hosted validation for the eventual
+0.6.0 release commit remain required. The earlier hosted result applies only to
+`9642db3`, not these local dashboard changes.

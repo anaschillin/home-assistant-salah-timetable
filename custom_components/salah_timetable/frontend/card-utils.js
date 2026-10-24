@@ -34,11 +34,11 @@ export function prayerName(event) {
   return event ? NAMES[event.prayer] || NAMES[String(event.field || "").replace(/_(?:begin|jamaat)$/, "")] || "Prayer" : "Unavailable";
 }
 
-export function formatTime(value, timeZone = "UTC", locale) {
+export function formatTime(value, timeZone = "UTC", locale, timeFormat = "24h") {
   const instant = timestamp(value);
   if (instant === null) return "—";
   try {
-    return new Intl.DateTimeFormat(locale, {hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone}).format(instant);
+    return new Intl.DateTimeFormat(locale, {hour: "2-digit", minute: "2-digit", hourCycle: timeFormat === "12h" ? "h12" : "h23", timeZone}).format(instant);
   } catch { return "—"; }
 }
 
@@ -52,11 +52,17 @@ export function formatDate(value, locale) {
 
 export function normalizeConfig(config) {
   if (!config || typeof config !== "object" || Array.isArray(config)) throw new Error("A card configuration is required");
-  const mode = config.mode || "context";
+  const mode = config.mode || "upcoming";
   if (!MODES.includes(mode)) throw new Error("Choose context, previous or upcoming Jamaat mode");
   if (config.entity && (typeof config.entity !== "string" || !/^sensor\.[a-z0-9_]+$/.test(config.entity))) throw new Error("Choose a timetable sensor");
   if (config.title !== undefined && (typeof config.title !== "string" || config.title.length > 100)) throw new Error("Title must be at most 100 characters");
-  return {...config, type: "custom:salah-timetable-card", entity: config.entity || "", mode};
+  const defaults = {layout: "expanded", time_format: "24h", hijri_adjustment: 0, show_hijri_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true};
+  const result = {...defaults, ...config};
+  if (!["expanded", "compact"].includes(result.layout)) throw new Error("Choose compact or expanded layout");
+  if (!["12h", "24h"].includes(result.time_format)) throw new Error("Choose 12h or 24h time format");
+  if (!Number.isInteger(result.hijri_adjustment) || Math.abs(result.hijri_adjustment) > 3) throw new Error("Hijri adjustment must be a whole day from −3 to +3");
+  for (const key of Object.keys(defaults).filter(key => key.startsWith("show_"))) if (typeof result[key] !== "boolean") throw new Error(`${key} must be true or false`);
+  return {...result, type: "custom:salah-timetable-card", entity: config.entity || "", mode};
 }
 
 export function isTimetableState(state) {
@@ -126,4 +132,41 @@ export function nextRamadanEvent(attributes, kind, now = Date.now()) {
   const timeline = kind === "sehri" ? attributes?.sehri_events : attributes?.iftar_events;
   const future = (Array.isArray(timeline) ? timeline : []).filter(event => eventOf(event) && timestamp(event.timestamp) > now).sort((first, second) => timestamp(first.timestamp) - timestamp(second.timestamp))[0];
   return future?.timestamp || attributes?.[`next_${kind}`]?.timestamp || attributes?.ramadan?.[kind] || null;
+}
+
+/** Calculated display date only; never used for Ramadan activation. */
+export function formatHijriDate(value, adjustment = 0, locale) {
+  if (formatDate(value, "en") === "Date unavailable") return "Hijri date unavailable";
+  try {
+    const formatter = new Intl.DateTimeFormat(locale, {calendar: "islamic-umalqura", day: "numeric", month: "long", year: "numeric", timeZone: "UTC"});
+    if (formatter.resolvedOptions().calendar !== "islamic-umalqura") return "Hijri date unavailable";
+    return formatter.format(Date.parse(`${value}T12:00:00Z`) + adjustment * 86400000);
+  } catch { return "Hijri date unavailable"; }
+}
+
+export function eventProgress(attributes, congregation, event, now = Date.now()) {
+  const end = timestamp(event?.timestamp);
+  if (end === null || end <= now) return null;
+  const previous = events(attributes, congregation).filter(item => timestamp(item.timestamp) < end).at(-1);
+  const start = timestamp(previous?.timestamp);
+  if (start === null || start > now) return null;
+  return Math.min(100, Math.max(0, (now - start) / (end - start) * 100));
+}
+
+/** One current row, anchored to today's published events. */
+export function highlightedPrayer(attributes, now = Date.now()) {
+  const rows = (attributes?.prayers || []).filter(row => row && typeof row === "object");
+  const begun = rows.filter(row => timestamp(row.begin) !== null && timestamp(row.begin) <= now)
+    .sort((a, b) => timestamp(a.begin) - timestamp(b.begin)).at(-1);
+  if (begun && !(begun.jamaat || []).some(value => timestamp(value) !== null)) return begun.key;
+  if (begun && (begun.jamaat || []).some(value => timestamp(value) !== null && timestamp(value) > now)) return begun.key;
+  const future = rows.filter(row => timestamp(row.begin) !== null && timestamp(row.begin) > now)
+    .sort((a, b) => timestamp(a.begin) - timestamp(b.begin))[0];
+  if (future) return future.key;
+  return begun && !(begun.jamaat || []).some(value => timestamp(value) !== null) ? begun.key : null;
+}
+
+export function prayerIsPast(row, now = Date.now()) {
+  const times = [row.begin, ...(Array.isArray(row.jamaat) ? row.jamaat : [])].map(timestamp).filter(value => value !== null);
+  return times.length > 0 && Math.max(...times) <= now;
 }
