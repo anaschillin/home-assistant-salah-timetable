@@ -46,26 +46,43 @@ jobs:
         with:
           node-version: '24'
       - run: npm test
-      - name: Diagnose Chromium environment
+      - name: Diagnose Chrome headless startup
         run: |
-          echo "Browser executables:"
-          command -v chromium || true
-          command -v chromium-browser || true
-          command -v google-chrome || true
+          mkdir -p /tmp/chrome-debug-test
 
-          echo "Browser versions:"
-          chromium --version || true
-          chromium-browser --version || true
-          google-chrome --version || true
+          timeout 20s google-chrome \
+            --headless \
+            --no-sandbox \
+            --disable-dev-shm-usage \
+            --disable-gpu \
+            --disable-background-networking \
+            --no-first-run \
+            --user-data-dir=/tmp/chrome-debug-test \
+            --remote-debugging-port=9222 \
+            about:blank \
+            > /tmp/chrome.log 2>&1 &
 
-          echo "Environment:"
-          node --version
-          uname -a
+          CHROME_PID=$!
 
-      - run: npm run test:browser
+          for i in $(seq 1 15); do
+            if curl -fsS http://127.0.0.1:9222/json/version; then
+              echo "Chrome debugger is ready"
+              kill "$CHROME_PID" 2>/dev/null || true
+              exit 0
+            fi
+            sleep 1
+          done
+
+          cat /tmp/chrome.log
+          kill "$CHROME_PID" 2>/dev/null || true
+          exit 1
+
+      - name: Run browser smoke tests
+        run: npm run test:browser
         env:
-          REQUIRE_BROWSER_TESTS: '1'
+          REQUIRE_BROWSER_TESTS: "1"
           CHROME_BIN: /usr/bin/google-chrome
+          DBUS_SESSION_BUS_ADDRESS: /dev/null
 
   hassfest:
     runs-on: ubuntu-latest

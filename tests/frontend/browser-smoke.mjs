@@ -87,7 +87,10 @@ for (const width of [320, 360, 400, 900]) { const frame = document.createElement
     child = spawn(browser, args, {detached: process.platform !== "win32", stdio: ["ignore", "ignore", "pipe"]});
     child.stderr.on("data", value => { stderr = (stderr + value).slice(-4000); });
     deadline = setTimeout(() => stopBrowser(child), 40000);
-    const port = await waitForDebuggerPort(child, directory, {stderr: () => stderr});
+    const port = await waitForDebuggerPort(child, directory, {
+      timeoutMs: 30000,
+      stderr: () => stderr
+    });
     const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`, {signal: AbortSignal.timeout(3000)})).json();
     const page = targets.find(target => target.type === "page");
     assert.ok(page?.webSocketDebuggerUrl, "Browser did not expose a page debugger");
