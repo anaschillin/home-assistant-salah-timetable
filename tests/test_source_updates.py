@@ -167,6 +167,31 @@ async def test_pending_review_defers_all_new_downloads(manager):
     fetch.assert_not_awaited()
     assert manager.storage.staged == before
     assert manager.storage.timetables == ()
+    # A restart must not allow downloads to bypass pending review.
+    restored = TimetableStorage(
+        manager.hass,
+        manager.entry.entry_id,
+        ZoneInfo("Europe/London"),
+    )
+    await restored.async_load()
+
+    restarted = SourceUpdateManager(
+        manager.hass,
+        manager.entry,
+        restored,
+        MagicMock(),
+    )
+
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(),
+    ) as fetch:
+        await restarted.async_check_all()
+
+    fetch.assert_not_awaited()
+    assert restarted.storage.staged == before
+    assert restarted.storage.timetables == ()
+    assert restarted.status["status"] == "pending_review"
 
 
 @pytest.mark.parametrize(

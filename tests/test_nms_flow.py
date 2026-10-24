@@ -170,7 +170,9 @@ async def test_nms_upload_default_mapping_approval_and_weekday_sensors(
     )
 
 
-async def test_nms_url_profile_and_changed_pdf_require_new_approval(hass, entry):
+async def test_nms_url_profile_and_changed_pdf_require_new_approval(
+    hass, entry, freezer
+):
     await setup(hass, entry)
     content = FIXTURE.read_bytes()
     result = await menu_step(hass, entry, "import_url")
@@ -202,6 +204,9 @@ async def test_nms_url_profile_and_changed_pdf_require_new_approval(hass, entry)
     assert profile.time_format == "24h"
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
+    freezer.move_to("2026-01-01T10:00:00+00:00")
+    await entry.runtime_data.async_refresh()
+    previous_fajr_state = entity_state(hass, "fajr_begin")
     storage = entry.runtime_data.storage
     assert storage.remote_sources["annual-2026"] == profile
     assert storage.approved_sources["annual-2026"].sha256 == sha256(content).hexdigest()
@@ -238,12 +243,50 @@ async def test_nms_url_profile_and_changed_pdf_require_new_approval(hass, entry)
         == "05:07"
     )
     assert entity_state(hass, "source_status") == "pending_review"
+    assert entity_state(hass, "fajr_begin") == previous_fajr_state
+
+    # A pending update must survive reload without changing the active timetable.
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
+
     assert entry.runtime_data.storage.timetables == previous
     assert (
         entry.runtime_data.storage.staged.candidate.sha256
         == sha256(changed).hexdigest()
+    )
+    assert entity_state(hass, "fajr_begin") == previous_fajr_state
+
+    # Explicit approval activates the updated timetable.
+    result = await menu_step(hass, entry, "review")
+    assert result["step_id"] == "review"
+    await approve(hass, result)
+
+    updated = entry.runtime_data.storage.for_date(date(2026, 1, 1))
+    assert updated.times[PrayerField.FAJR_BEGIN][0].strftime("%H:%M") == "05:08"
+
+    # The live sensor must now reflect the approved change.
+    assert entity_state(hass, "fajr_begin") == as_state(
+        updated,
+        PrayerField.FAJR_BEGIN,
+        entry.runtime_data.zone,
+    )
+    assert entity_state(hass, "fajr_begin") != previous_fajr_state
+    assert entry.runtime_data.storage.staged is None
+    assert entity_state(hass, "source_status") == "up_to_date"
+
+    # The approved update must survive another Home Assistant reload.
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entry.runtime_data.storage.staged is None
+    assert (
+        entry.runtime_data.storage.approved_sources["annual-2026"].sha256
+        == sha256(changed).hexdigest()
+    )
+    assert entity_state(hass, "fajr_begin") == as_state(
+        updated,
+        PrayerField.FAJR_BEGIN,
+        entry.runtime_data.zone,
     )
 
 
