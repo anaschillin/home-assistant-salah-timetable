@@ -7,8 +7,9 @@ Milestones 1–5 are implemented; the current candidate is 0.6.2. Keep follow-up
 in focused PRs with its own tests and documentation. Disposable HA 2026.10.2 and
 minimum-version HA 2026.10.0 manual-install/runtime/frontend checks have passed
 within the limits in the validation record. Release acceptance still includes
-successful hosted validation for the exact release commit, authenticated HACS
-installation, full HA backup restoration and provenance review. Local 0.6.2 acceptance
+successful hosted validation for the exact release commit, HACS removal/re-addition
+checks, full HA backup restoration and provenance review. HACS installation, restart
+and updates are user-confirmed complete. Local 0.6.2 acceptance
 verified fresh dependency installation; physical-device checks are user-confirmed
 complete for their latest installation.
 
@@ -18,19 +19,37 @@ Milestone 6 remains the release gate for every increment. Feature development ca
 continue while an external acceptance check is unavailable, but a passing unit test
 does not complete that check. Milestone numbers do not promise a release version.
 
-| Increment | Deliverable | Dependencies |
-| --- | --- | --- |
-| 7A | Adhan, Jamaat and Sehri automation blueprints | Existing timestamp sensors |
-| 7B | Approved-date coverage monitoring and opt-in health alerts | Effective timetable resolver; 7A's blueprint pattern |
-| 8 | Native prayer calendar | Approved, explicitly dated records and event engine |
-| 9 | Supported-publication source profiles | Existing secure download, parsing and approval flows |
-| 10 | Translations and right-to-left card layout | Stable entity/config keys and current UI |
-| 11 | Minimum/current HA compatibility lanes and scheduled validation | Existing CI and reproducible dependency lock |
+The enhancement review uses the official
+[MAWAQIT Home Assistant integration](https://github.com/mawaqit/home-assistant)
+as a reference. Planned capabilities below are additions to this integration;
+their completion requires implementation and the stated acceptance evidence.
 
-Implement 7A and 7B first. Milestone 11 can proceed in parallel; milestones 8 and 9
-can be developed independently once their data contracts are agreed. Each increment
-needs focused tests, user documentation, successful CI for its exact commit and the
-applicable live checks before release.
+| Increment | Deliverable | Status | Dependencies |
+| --- | --- | --- | --- |
+| 7A | Adhan, Jamaat and Sehri automation blueprints | Implemented | Existing timestamp sensors |
+| 7B | Approved-date coverage monitoring and opt-in health alerts | Implemented | Effective timetable resolver; blueprint pattern |
+| 8 | Native prayer calendar | Planned | Approved dated records and event engine |
+| 9 | Supported-publication setup profiles | Planned | Secure downloads, inspected layouts and approval flows |
+| 10 | Translations, bilingual labels and RTL layout | Planned | Stable entity/config keys and current UI |
+| 11 | Minimum/current compatibility tests and weekly validation | In progress | Existing CI and reproducible dependency lock |
+| 12 | Richer Adhan playback controls | Planned | 7A; calendar triggers from 8 when available |
+| 13 | Pause/resume media around prayer events | Planned | Published event timestamps; 7A/8 automation patterns |
+| 14 | Calculated night midpoint and last third | Planned | Actual Maghrib and next-day Fajr timestamps |
+| 15 | Mosque display mode, branding and announcements | Planned | Existing card; localization conventions from 10 |
+| 16 | Published Eid and other special prayer events | Planned | Explicit dated event storage/approval; calendar from 8 |
+| 17 | Before/after import change review | Planned | Existing durable staging and source replacement scope |
+
+With 7A/7B implemented, the recommended sequence is **8 → 12 → 13 → 9**: calendar,
+richer Adhan controls, media automation, then easier publication setup. Continue
+11 in parallel. Milestone 17 can proceed independently to improve import approval;
+10 and 14–16 remain subsequent increments. Existing milestone numbers and links
+are retained; numbering does not set execution order.
+
+Every increment needs focused tests, user documentation, successful CI for its
+exact commit and applicable live checks before release. Imported values stay
+immutable, missing published times stay unavailable, and timetable changes require
+explicit approval. Derived night periods are labelled calculated. The calculated
+Hijri display never confirms Ramadan or an Eid date.
 
 ## Milestone 1 — foundation (implemented)
 
@@ -150,7 +169,8 @@ and narrow layouts. HA elements are stand-ins in that harness. A separate dispos
 HA 2026.10.2 manual installation verified real card/editor components and viewport
 rendering. The candidate 0.6.1 HA 2026.10.0 check also exercised the actual picker,
 editor controls and saved configuration after page reload. Authenticated HACS
-installation remains release acceptance work. Physical-device checks are
+installation, restart and updates are user-confirmed complete; removal/re-addition
+in a test instance remains outstanding. Physical-device checks are
 user-confirmed complete for their latest installation; see the
 [validation record](validation.md) and [dashboard setup](dashboard.md).
 
@@ -170,9 +190,9 @@ and actual frontend/editor rendering within their recorded scopes. See the
 [validation record](validation.md) and
 [release preparation and manual checks](releasing.md).
 
-1. Exercise install, graphical setup, restart, upgrade and removal in a disposable
-   HA instance installed through HACS. Physical-device checks are recorded as
-   user-confirmed complete; retain them as a regression check for later UI changes.
+1. Installation, restart and updates through HACS are user-confirmed complete.
+   Verify removal/re-addition in a disposable test instance. Physical-device checks
+   are also user-confirmed complete; retain them as a regression check for later UI changes.
 2. Restore a complete HA backup archive and verify config entries, registries,
    entity IDs and approved/pending timetable data. Existing migration and
    timetable-store recovery tests cover a narrower scope.
@@ -238,7 +258,9 @@ Expose a calendar per mosque built from approved, explicitly dated effective
 records. Publish beginning and Jamaat as distinct scheduled events, including all
 Friday congregations and active-Ramadan Sehri/Iftar. Query only the requested date
 range; omit absent values and pending proposals. Reuse the existing timezone and
-Ramadan rules without inventing a prayer duration.
+Ramadan rules without inventing a prayer duration. Cover all approved dates,
+including explicitly imported future years, rather than imposing a current/next-month
+limit. Later calculated and special events retain their own identities.
 
 Acceptance: stable event identifiers across reload and UI-language changes;
 bounded range queries; DST, leap-day and year boundaries; every Friday congregation;
@@ -261,7 +283,7 @@ HTTPS/redirect restrictions and no automatic activation of changed source data.
 
 Translate integration forms/entities and bundled card/editor labels, starting with
 Arabic and additional languages with reviewed translations. Provide English
-fallback and right-to-left layout support. Stored field names, blueprint inputs,
+fallback, optional bilingual prayer labels and right-to-left layout support. Stored field names, blueprint inputs,
 unique IDs and event identifiers remain stable when the UI language changes.
 
 Acceptance: translation-key completeness, fallback behavior, readable long labels,
@@ -290,3 +312,87 @@ testing the same HA release twice. Upstream failures produce actionable logs.
 Review support and dependency changes before promoting a newer version into the
 release gate. Introduce type checking and additional lint rules in focused follow-up
 changes once the existing modules have an agreed baseline.
+
+## Milestone 12 — richer Adhan playback controls (planned)
+
+Extend the existing playback blueprint with a separate optional Fajr recording,
+per-prayer enable/volume settings, configurable quiet hours and optional restoration
+of the speaker's previous volume. Continue using user-selected accessible media.
+Keep the existing basic playback configuration valid. Quiet hours use an explicit,
+documented timezone; they can span midnight. Reuse calendar triggers from 8 when
+available without requiring users to migrate their working timestamp automations.
+
+Acceptance: real HA automation tests verify each selected recording/prayer/player,
+disabled prayers, quiet-hour midnight/DST transitions, unavailable speakers and
+overlapping playback. Optional restoration must not overwrite a user's later volume
+change or another active playback operation. Restart/reload must not replay missed
+Adhans, and playback remains through HA media players rather than browser autoplay.
+
+## Milestone 13 — pause/resume media around prayers (planned)
+
+Add an optional blueprint that pauses only selected players currently playing and
+resumes only those paused by that automation. Users select the published event
+anchors and an explicit resume delay. A delay is an automation policy; Jamaat
+remains a scheduled instant and gains no inferred prayer duration.
+
+Acceptance: test initially playing/paused/stopped players, manual intervention,
+multiple mosques using the same player, overlapping prayer operations, restart and
+cancellation. Missing event anchors must not create guessed times or leave an
+indefinite pause. Do not resume media that a user stopped or replaced meanwhile.
+
+## Milestone 14 — calculated night periods (planned)
+
+Expose optional calculated timestamps for the night midpoint and start of its last
+third. Derive them from the actual published Maghrib beginning on one date and Fajr
+beginning on the next date. Keep calculated outputs and their provenance separate
+from imported prayer fields, and make them usable by HA time-trigger automations.
+They do not change prayer times, Ramadan activation or the Hijri display.
+
+Acceptance: calculate using elapsed absolute time across DST, midnight and year
+boundaries; omit results when either endpoint is missing, invalid or out of order.
+Test leap dates, changed approvals, independent mosques and rollover at the next
+Fajr. Clearly label the calculation in entity descriptions and documentation;
+never reuse a previous day's Fajr to fill a missing endpoint.
+
+## Milestone 15 — mosque display mode and announcements (planned)
+
+Add an optional wall-tablet/full-screen card presentation with a large clock,
+prominent countdowns and readable prayer columns. Allow user-provided mosque image
+or logo and dated text announcements, with clear mosque-local activation/expiry.
+Announcements are managed separately from prayer data. Existing compact/expanded
+cards and ordinary Home Assistant authentication continue to work.
+
+Acceptance: test phone/tablet landscape and portrait, large text, keyboard focus,
+light/dark themes, long/bilingual/RTL text and offline/stale-data indication. Render
+announcement text safely, expire it at the configured local date boundary and
+preserve settings through reload/restart. Keep countdown ticks local and efficient;
+use supplied branding/announcements rather than assuming an external mosque feed.
+
+## Milestone 16 — published special prayer events (planned)
+
+Support explicitly dated Eid and other special prayer events, including multiple
+published congregations, through graphical entry or a documented import path with
+preview/approval. Preserve published labels, dates, times and provenance. Extend
+8's calendar and appropriate dashboard details without changing ordinary daily
+prayer records or inventing event durations.
+
+Acceptance: stable event identities, explicit year/timezone, multiple congregations,
+DST/year boundaries, missing dates, replacement/removal, rejection and restart.
+Pending events remain inactive. Eid dates must be supplied or explicitly confirmed;
+they are never inferred from the calculated Hijri header or a predicted Ramadan end.
+
+## Milestone 17 — import change comparison (planned)
+
+Extend import review with a date/field comparison between the approved source being
+replaced and its pending proposal. Show old/new published times, added and removed
+dates, changed availability and multiple Jumu’ah congregations. Identify the exact
+source kind/year and whole-source replacement scope. Keep source-value changes
+separate from calculated/effective Ramadan fallback and display formatting.
+
+Acceptance: compare canonical values rather than byte hashes alone; retain access
+to original tokens/provenance and distinguish formatting-only changes. Test first
+imports, unchanged values, partial replacements that remove dates, absent fields,
+multiple congregations, different years/kinds and large paged comparisons. Rejecting
+or cancelling preserves approved data; restart preserves the proposal. Stale review
+identities cannot approve a different proposal. Diagnostics must not expose imported
+values, private URLs or file contents.

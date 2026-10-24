@@ -140,8 +140,8 @@ issue with backup/reload guidance while preserving the affected file. Automated
 tests verify safe issue content, clearing after successful recovery and clearing
 on removal. Broader migration and backup/recovery acceptance remains necessary.
 
-Authenticated HACS installation and complete release UI acceptance remain separate
-from the disposable HA smoke. Physical-device checks are user-confirmed complete
+HACS installation, restart and updates are user-confirmed separately from the
+disposable HA smoke; removal/re-addition and complete release UI acceptance remain. Physical-device checks are user-confirmed complete
 for their latest installation, as recorded in the validation log. Further PDF layouts, a
 broader migration/recovery review, reviewed release publication and submission to
 the HACS default catalogue remain follow-up work. This packaging increment does not complete Milestone 6.

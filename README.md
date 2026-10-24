@@ -19,7 +19,7 @@ and mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layouts
 The integration includes independent next-Salah/next-Jamaat events, confirmed-date
 Ramadan overrides and a graphical Lovelace card. A disposable Home Assistant runtime
 and real frontend have passed the [recorded checks](docs/validation.md). HACS
-installation and further release acceptance remain. See [milestones](docs/milestones.md),
+installation and updates are user-confirmed; further release acceptance remains. See [milestones](docs/milestones.md),
 the [remaining work](docs/remaining-work.md), and the [release checklist](docs/releasing.md).
 
 ## Requirements and installation
@@ -41,8 +41,8 @@ Then use its [custom repository route](https://www.hacs.xyz/docs/faq/custom_repo
 5. Enter a mosque name, a stable mosque ID and an IANA timezone such as `Europe/London`.
 
 The repository uses the HACS integration layout; it is not claimed to be in the
-default HACS catalogue. Authenticated HACS installation of this integration remains
-an acceptance check; the recorded live tests used manual installation.
+default HACS catalogue. HACS installation, restart and updates are user-confirmed;
+removal/re-addition remains an acceptance check; the recorded live tests used manual installation.
 For manual installation, copy `custom_components/salah_timetable`
 into Home Assistant's `config/custom_components/` directory and restart.
 
@@ -320,8 +320,8 @@ tests use Node and an isolated headless Chromium harness with HA element stand-i
 The required live HA matrix checks the minimum/current supported runtime versions;
 local 0.6.2 acceptance also verified fresh dependency installation and real editor
 controls. Physical-device checks are user-confirmed complete on their latest
-installation. Authenticated HACS installation remains separate acceptance work;
-see the [validation record](docs/validation.md).
+installation. HACS installation, restart and updates are also user-confirmed;
+removal/re-addition remains acceptance work. See the [validation record](docs/validation.md).
 Synthetic parser fixtures use this repository's MIT license. Contributed real
 publications have separate provenance and require redistribution review; see the
 [fixture notes](tests/fixtures/pdf/README.md).

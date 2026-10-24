@@ -13,11 +13,10 @@ toggle and saved configuration after reload passed. See the
 [0.6.2 evidence](#repository-review-and-milestone-7--candidate-062).
 
 The latest recorded hosted **Validate** result is
-[40132027518](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40132027518)
-for baseline `c9b42f3`. The earlier hosted live matrix passed both HA 2026.10.0 and
-2026.10.3 on the same source tree as that baseline. These results do not replace
-hosted validation for the subsequent 0.6.2 commit. Validate now requires the real
-live matrix with strict dependency proof; that live matrix also runs weekly.
+[40138323440](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40138323440)
+for pushed **0.6.2 commit `b7b0c74`**. It completed successfully, including the real
+minimum/current HA matrix with strict dependency proof. The reusable live matrix
+also runs weekly. Later release commits still need their own required checks.
 
 **Physical-device checks are complete by user confirmation on 24 October 2026.**
 The user reported updating their installation to the latest available version.
@@ -25,9 +24,10 @@ Specific hardware, browsers and HA/integration version numbers were not supplied
 this records their completed checks without assigning them to the previously
 unpublished local 0.6.2 tree.
 
-Authenticated HACS installation, full HA backup-archive restoration, asset
-provenance review and reviewed release publication remain pending. HACS CI
-validates repository structure and is not proof of an authenticated installation.
+HACS installation, restart and updates are user-confirmed complete through the
+custom-repository route. Removal/re-addition in a test instance, full HA backup
+restoration, asset provenance and reviewed release publication remain pending.
+HACS CI is repository validation; the installation confirmation is separate evidence.
 See the [current acceptance checklist](remaining-work.md). Dated sections below
 retain the results and limitations observed at that time; this summary supersedes
 their older pending statuses.
@@ -441,3 +441,12 @@ updated installation. Device/browser models, HA/integration version numbers and
 individual scenario results were not specified. This confirmation does not by
 itself establish the HACS installation route, full backup restoration, a published
 0.6.2 release or hosted CI success for a new commit.
+
+
+## User-confirmed HACS installation and updates — 24 October 2026
+
+The user confirmed installing and updating through Home Assistant's HACS custom
+repository route, including the documented restart. HACS installation/restart/update
+checks are recorded as complete for their installation. This does not establish
+removal/re-addition in a test instance or full HA backup restoration; those remain
+separate acceptance work.

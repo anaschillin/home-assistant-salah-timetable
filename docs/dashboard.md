@@ -208,6 +208,7 @@ an explicitly preloaded PDF dependency. The later local 0.6.2 HA 2026.10.0 run
 passed 20 checks, including fresh dependency installation without a package preload,
 per-toggle visible previews and saved settings after reload. Physical-device checks
 are user-confirmed complete on their latest installation; device/version details
-were not recorded. Authenticated HACS installation and final-commit hosted checks
-remain release work. See the [validation record](validation.md) and
+were not recorded. HACS installation, restart and updates are also user-confirmed;
+removal/re-addition remains release work. The pushed 0.6.2 commit passed its hosted
+checks; later release commits require their own checks. See the [validation record](validation.md) and
 [Milestone 6](milestones.md#milestone-6--release-hardening-partially-implemented).

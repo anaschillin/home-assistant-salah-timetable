@@ -13,10 +13,10 @@ for each published increment.
 
 | Work | Status | Completion evidence |
 | --- | --- | --- |
-| Hosted validation | Passed for baseline `c9b42f3` ([run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40132027518)); the new 0.6.2 candidate requires its own run | Successful Validate run for the exact release commit, including HACS and hassfest |
+| Hosted validation | Passed for `b7b0c74` ([run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40138323440)); rerun if the release commit changes | Successful Validate run for the exact release commit, including HACS and hassfest |
 | Minimum HA version | Passed 20 disposable HA 2026.10.0 checks for the local 0.6.2 candidate, including fresh dependency, import, restart and actual editor | Rerun configuration, import, persistence, card and real editor checks for the final candidate |
 | Fresh runtime dependency installation | Passed locally on HA 2026.10.0: absent baseline and imported/installed `6.21.1` verified, no preload; trusted CA bundle supplied for the session proxy | Start clean supported HA without `--preload-pypdf`; verify HA installs the exact manifest-pinned dependency, rather than using a supplied copy |
-| HACS custom-repository installation | Pending | Install with a maintainer's GitHub authorization in disposable HA; verify bundled assets, restart, update and removal |
+| HACS custom-repository installation | Installation, restart and updates user-confirmed complete; test-instance removal/re-addition pending | Verify removal/re-addition preserves expected behavior without affecting another mosque |
 | Physical mobile/tablet checks | Complete — user-confirmed on 24 October 2026 after updating to latest | User-reported completion; hardware, browser and exact version details were not recorded ([record](validation.md#user-confirmed-physical-device-acceptance--24-october-2026)) |
 | Complete backup restoration | Pending | Restore a full HA backup archive, including configuration entries and timetable storage, then verify identities and approved/pending data |
 | Asset provenance | Maintainer review needed | Confirm redistribution rights for contributed branding and real NMS/Zakariyya PDF fixtures; publications are excluded from integration release archives |
@@ -53,8 +53,9 @@ real card picker/editor and each display toggle. See the
 An earlier hosted live run passed HA 2026.10.0 and 2026.10.3 on the same source tree
 as baseline main `c9b42f3`; that result does not certify the subsequent local fixes.
 Validate now requires the reusable minimum/current live matrix, with explicit
-fresh-dependency proof; the live matrix also runs weekly. The new workflow must pass after
-these changes are committed. Authenticated HACS installation remains separate.
+fresh-dependency proof; the live matrix also runs weekly. Validate passed for the
+pushed `b7b0c74` commit. HACS installation, restart and updates are user-confirmed;
+removal/re-addition remains to be checked in a test instance.
 
 ## Subsequent additions
 
@@ -71,9 +72,12 @@ adapters and independent expected-value comparisons. See [Ramadan validation](ra
    Gregorian year per source. Add further adapters only after obtaining inspectable,
    redistributable fixtures and an independent expected-results comparison. Unknown
    layouts and scanned/encrypted PDFs remain unsupported.
-3. Continue [Milestones 8–11](milestones.md#next-increments): a native calendar,
-   source profiles, translations/RTL and broader compatibility
-   unit tests. The live compatibility matrix and weekly checks are implemented;
-   separate minimum/current unit-test environments and typing/lint baselines remain.
+3. Follow the expanded [Milestones 8–17](milestones.md#next-increments): calendar,
+   richer Adhan controls, pause/resume media, publication profiles, Arabic/bilingual
+   RTL support, broader compatibility tests, calculated night periods, wall-tablet
+   display/announcements, published special events and import change comparisons.
+   Recommended next sequence: **8 → 12 → 13 → 9**, with 11 continuing in parallel
+   and 17 available as an independent approval-workflow improvement. These additions
+   are planned, not currently implemented.
 4. Consider the HACS default catalogue after the full user workflow and release
    process are established. Custom-repository support is the current route.

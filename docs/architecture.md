@@ -230,9 +230,9 @@ The live NMS HTTPS source is unverified. DST gaps and ambiguous folds are reject
 rather than guessed; explicit fold handling needs a separately reviewed source model.
 The calculated Hijri header is display-only; users explicitly confirm Ramadan.
 
-Release hardening still needs a manual HACS/HA installation and upgrade/removal
-exercise, full HA backup restoration, provenance review and final-commit hosted
-validation. Physical-device completion is recorded separately from automated checks.
+HACS installation, restart and updates are user-confirmed. Release hardening still
+needs removal/re-addition in a test instance, full HA backup restoration, provenance
+review and hosted validation for each final release commit. Physical-device completion is recorded separately from automated checks.
 Invalid stored records already have actionable Repair guidance. Reproducible install
 archives and synchronized metadata/cache versions are checked by release tooling. Hosted GitHub validation must be checked before release; local
 tests and workflow definitions alone do not establish that it passed.
