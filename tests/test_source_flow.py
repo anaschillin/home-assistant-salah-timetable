@@ -393,3 +393,47 @@ async def test_source_status_changes_when_daily_timetable_stays_equal(hass, entr
         entry.runtime_data.storage.remote_checks["annual-2026"]["status"] == "rejected"
     )
     assert_source_status(hass, entry, "up_to_date")
+
+
+async def test_reject_changed_source_preserves_live_sensor_after_reload(hass, entry):
+    """Rejecting changed prayer times must retain the approved sensor value."""
+    await setup_mosque(hass, entry)
+
+    result = await stage_url(hass, entry)
+    await approve(hass, result)
+
+    registry = er.async_get(hass)
+    entity_id = registry.async_get_entity_id("sensor", DOMAIN, "example_fajr_begin")
+    assert entity_id is not None
+
+    original_state = hass.states.get(entity_id).state
+    original_timetables = entry.runtime_data.storage.timetables
+
+    changed_csv = (
+        b"Date,Fajr Start,Fajr Jamaat\n2026-01-01,06:00,06:15\n2026-01-02,06:02,06:15\n"
+    )
+
+    result = await stage_url(hass, entry, content=changed_csv)
+    await hass.async_block_till_done()
+
+    assert_source_status(hass, entry, "pending_review", pending=True)
+    assert hass.states.get(entity_id).state == original_state
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "reject"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+
+    assert entry.runtime_data.storage.staged is None
+    assert entry.runtime_data.storage.timetables == original_timetables
+    assert hass.states.get(entity_id).state == original_state
+    assert_source_status(hass, entry, "up_to_date")
+
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entry.runtime_data.storage.staged is None
+    assert entry.runtime_data.storage.timetables == original_timetables
+    assert hass.states.get(entity_id).state == original_state
+    assert_source_status(hass, entry, "up_to_date")
