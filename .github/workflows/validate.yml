@@ -100,3 +100,62 @@ jobs:
         with:
           category: integration
           comment: false
+
+  homeassistant-integration:
+    name: Home Assistant integration smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Prepare Home Assistant configuration
+        run: |
+          mkdir -p test_configuration/custom_components
+
+          cp -a custom_components/salah_timetable \
+            test_configuration/custom_components/
+
+          cat > test_configuration/configuration.yaml <<'YAML'
+          default_config:
+          logger:
+            default: warning
+            logs:
+              custom_components.salah_timetable: debug
+          YAML
+
+      - name: Start Home Assistant
+        id: homeassistant
+        uses: ludeeus/setup-homeassistant@99fb43bcb03063c22ee53a9fac782800910cc29b # 21.11.0
+        with:
+          tag: stable
+          config-dir: test_configuration
+
+      - name: Verify Home Assistant is running
+        env:
+          HA_URL: ${{ steps.homeassistant.outputs.url }}
+          HA_TOKEN: ${{ steps.homeassistant.outputs.token }}
+        run: |
+          curl --fail --silent --show-error \
+            --retry 3 \
+            -H "Authorization: Bearer $HA_TOKEN" \
+            "$HA_URL/api/config" > /tmp/ha-config.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          config = json.loads(
+              Path("/tmp/ha-config.json").read_text()
+          )
+
+          assert config["state"] == "RUNNING", config
+          print("Home Assistant startup verified")
+          PY
+
+      - name: Show Home Assistant logs on failure
+        if: failure() && steps.homeassistant.outputs.containername != ''
+        env:
+          HA_CONTAINER: ${{ steps.homeassistant.outputs.containername }}
+        run: docker logs "$HA_CONTAINER"
