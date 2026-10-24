@@ -101,6 +101,7 @@ jobs:
           category: integration
           comment: false
 
+  
   homeassistant-integration:
     name: Home Assistant integration smoke test
     runs-on: ubuntu-latest
@@ -125,37 +126,45 @@ jobs:
               custom_components.salah_timetable: debug
           YAML
 
-      - name: Start Home Assistant
-        id: homeassistant
-        uses: ludeeus/setup-homeassistant@99fb43bcb03063c22ee53a9fac782800910cc29b # 21.11.0
-        with:
-          tag: stable
-          config-dir: test_configuration
-
-      - name: Verify Home Assistant is running
-        env:
-          HA_URL: ${{ steps.homeassistant.outputs.url }}
-          HA_TOKEN: ${{ steps.homeassistant.outputs.token }}
+      - name: Validate Home Assistant configuration
         run: |
-          curl --fail --silent --show-error \
-            --retry 3 \
-            -H "Authorization: Bearer $HA_TOKEN" \
-            "$HA_URL/api/config" > /tmp/ha-config.json
+          docker run --rm \
+            -v "$PWD/test_configuration:/config" \
+            ghcr.io/home-assistant/home-assistant:2026.10.3 \
+            python -m homeassistant --script check_config -c /config
 
-          python - <<'PY'
-          import json
-          from pathlib import Path
+      - name: Start Home Assistant
+        run: |
+          docker run -d \
+            --name homeassistant-test \
+            --network host \
+            -v "$PWD/test_configuration:/config" \
+            ghcr.io/home-assistant/home-assistant:2026.10.3
 
-          config = json.loads(
-              Path("/tmp/ha-config.json").read_text()
-          )
+      - name: Wait for Home Assistant startup
+        run: |
+          for i in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:8123/ >/dev/null; then
+              echo "Home Assistant HTTP server is responding"
+              exit 0
+            fi
 
-          assert config["state"] == "RUNNING", config
-          print("Home Assistant startup verified")
-          PY
+            if [ "$(docker inspect -f '{{.State.Running}}' homeassistant-test)" != "true" ]; then
+              docker logs homeassistant-test
+              exit 1
+            fi
 
-      - name: Show Home Assistant logs on failure
-        if: failure() && steps.homeassistant.outputs.containername != ''
-        env:
-          HA_CONTAINER: ${{ steps.homeassistant.outputs.containername }}
-        run: docker logs "$HA_CONTAINER"
+            sleep 2
+          done
+
+          echo "Home Assistant startup timed out"
+          docker logs homeassistant-test
+          exit 1
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker logs homeassistant-test || true
+
+      - name: Stop test container
+        if: always()
+        run: docker rm -f homeassistant-test || true
