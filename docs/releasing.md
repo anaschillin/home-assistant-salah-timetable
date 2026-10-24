@@ -5,9 +5,11 @@ live Home Assistant/HACS installation or publish a GitHub release. The remaining
 manual checks are release acceptance work; record their results for each release.
 The [validation record](validation.md) includes earlier disposable HA 2026.10.2 and
 minimum-version 2026.10.0 manual-install/frontend checks, with explicit limits and a
-dependency preload required by the test environment’s proxy certificate. Hosted
-validation is recorded separately for exact commit SHAs. Newer changes still need
-their applicable live release checks.
+dependency preload used by those earlier runs. The later local 0.6.2 run verified
+fresh dependency installation using a trusted CA bundle for the proxy, without
+preloading packages. Physical-device checks are user-confirmed complete for their
+latest installation. Hosted validation is recorded separately for exact commit
+SHAs; a final release commit still needs its own successful required jobs.
 
 ## Build a distributable archive
 
@@ -57,6 +59,8 @@ Require the validation workflow to pass on the exact commit being released:
 - Node frontend tests and the required Chromium smoke harness.
 - Official hassfest and HACS integration validation.
 - The release consistency check and archive build.
+- The reusable minimum/current HA live matrix, including strict before/after
+  dependency proof, actual configuration/import/restart and editor acceptance.
 
 The isolated Chromium harness uses stand-in Home Assistant controls. Its result
 cannot replace a check of real HA selectors, card discovery or resource loading.
@@ -136,8 +140,9 @@ issue with backup/reload guidance while preserving the affected file. Automated
 tests verify safe issue content, clearing after successful recovery and clearing
 on removal. Broader migration and backup/recovery acceptance remains necessary.
 
-HACS installation, complete manual UI acceptance and real-device visual checks
-remain separate from the completed disposable HA smoke. Further PDF layouts, a
+Authenticated HACS installation and complete release UI acceptance remain separate
+from the disposable HA smoke. Physical-device checks are user-confirmed complete
+for their latest installation, as recorded in the validation log. Further PDF layouts, a
 broader migration/recovery review, reviewed release publication and submission to
 the HACS default catalogue remain follow-up work. This packaging increment does not complete Milestone 6.
 
@@ -158,7 +163,7 @@ and review the draft before publishing through GitHub.
 For local asset review, without creating any GitHub tag or release:
 
 ```sh
-uv run --frozen python -m scripts.prepare_release --tag v0.6.1 --output-dir /tmp/salah-release-review
+uv run --frozen python -m scripts.prepare_release --tag v0.6.2 --output-dir /tmp/salah-release-review
 ```
 
 Use the manifest's current version in the tag argument. Local preparation validates

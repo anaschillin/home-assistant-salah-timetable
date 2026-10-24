@@ -53,6 +53,7 @@ def test_coverage_status_boundaries(
         "available_through": through.isoformat() if through else None,
         "days_remaining": remaining,
         "warning_days": 7,
+        "unresolved_date": None,
     }
 
 
@@ -221,3 +222,91 @@ async def test_ramadan_options_reload_updates_coverage(hass, entry, freezer):
     await hass.async_block_till_done()
     assert coverage_state(hass).state == "expiring"
     assert coverage_state(hass).attributes["days_remaining"] == 2
+
+
+def test_future_legacy_ramadan_conflict_stops_verified_coverage_until_selected():
+    conflict_day = TODAY + timedelta(days=3)
+    tables = (
+        table(days(5)),
+        table([conflict_day], kind="ramadan", source_id="legacy-first"),
+        table([conflict_day], kind="ramadan", source_id="legacy-second"),
+    )
+    original = [item.as_dict() for item in tables]
+    result = calculate_coverage(TODAY, tables, RamadanSettings(mode="on"))
+    assert result.status == "expiring"
+    assert result.today_available is True
+    assert result.tomorrow_available is True
+    assert result.available_through == TODAY + timedelta(days=2)
+    assert result.days_remaining == 2
+    assert result.unresolved_date == conflict_day
+    assert result.attributes()["unresolved_date"] == conflict_day.isoformat()
+    assert "legacy" not in str(result.attributes())
+    selected = calculate_coverage(
+        TODAY, tables, RamadanSettings(mode="on", source_id="legacy-first")
+    )
+    assert selected.available_through == TODAY + timedelta(days=4)
+    assert selected.days_remaining == 4
+    assert selected.unresolved_date is None
+    assert selected.attributes()["unresolved_date"] is None
+    assert [item.as_dict() for item in tables] == original
+
+
+@pytest.mark.parametrize("offset", [0, 1])
+def test_live_window_ramadan_conflicts_still_raise(offset):
+    conflict_day = TODAY + timedelta(days=offset)
+    tables = (
+        table(days(5)),
+        table([conflict_day], kind="ramadan", source_id="legacy-first"),
+        table([conflict_day], kind="ramadan", source_id="legacy-second"),
+    )
+    with pytest.raises(ValueError, match="Select a Ramadan source"):
+        calculate_coverage(TODAY, tables, RamadanSettings(mode="on"))
+
+
+async def test_future_legacy_conflict_preserves_live_sensors_and_clears_on_selection(
+    hass, entry, freezer
+):
+    freezer.move_to("2026-10-21T12:00:00+00:00")
+    conflict_day = TODAY + timedelta(days=3)
+    approved = (
+        Timetable(
+            "annual-2026",
+            "annual",
+            tuple(
+                DailyPrayers(day, {PrayerField.FAJR_BEGIN: (time(5, 45),)}, {})
+                for day in days(5)
+            ),
+        ),
+        table([conflict_day], kind="ramadan", source_id="legacy-first"),
+        table([conflict_day], kind="ramadan", source_id="legacy-second"),
+    )
+    storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
+    await storage.async_replace(approved)
+    hass.config_entries.async_update_entry(entry, options={"ramadan_mode": "on"})
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    coverage = coverage_state(hass)
+    assert coverage.state == "expiring"
+    assert coverage.attributes["unresolved_date"] == conflict_day.isoformat()
+    assert coverage.attributes["available_through"] == "2026-10-23"
+    assert coverage.attributes["today_available"] is True
+    assert coverage.attributes["tomorrow_available"] is True
+    registry = er.async_get(hass)
+    fajr = registry.async_get_entity_id("sensor", DOMAIN, "example_fajr_begin")
+    next_salah = registry.async_get_entity_id("sensor", DOMAIN, "example_next_salah")
+    assert hass.states.get(fajr).state == "2026-10-21T04:45:00+00:00"
+    assert hass.states.get(next_salah).state == "2026-10-22T04:45:00+00:00"
+    assert entry.runtime_data.storage.timetables == approved
+    hass.config_entries.async_update_entry(
+        entry,
+        options={"ramadan_mode": "on", "ramadan_source_id": "legacy-first"},
+    )
+    await hass.async_block_till_done()
+    selected = coverage_state(hass)
+    assert selected.entity_id == coverage.entity_id
+    assert selected.attributes["unresolved_date"] is None
+    assert selected.attributes["available_through"] == "2026-10-25"
+    assert selected.attributes["days_remaining"] == 4
+    assert hass.states.get(fajr).state == "2026-10-21T04:45:00+00:00"
+    assert hass.states.get(next_salah).state == "2026-10-22T04:45:00+00:00"
+    assert entry.runtime_data.storage.timetables == approved

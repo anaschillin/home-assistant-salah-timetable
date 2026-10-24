@@ -19,6 +19,7 @@ class CoverageSnapshot:
     available_through: date | None
     days_remaining: int
     warning_days: int = WARNING_DAYS
+    unresolved_date: date | None = None
 
     def attributes(self) -> dict:
         return {
@@ -29,6 +30,9 @@ class CoverageSnapshot:
             else None,
             "days_remaining": self.days_remaining,
             "warning_days": self.warning_days,
+            "unresolved_date": self.unresolved_date.isoformat()
+            if self.unresolved_date
+            else None,
         }
 
 
@@ -53,12 +57,25 @@ def calculate_coverage(
                     Timetable(table.timetable_id, table.kind, (row,))
                 )
 
+    tomorrow = today + timedelta(days=1) if today < date.max else None
+    unresolved = None
+
     def available(day: date) -> bool:
-        row = resolve_day(day, tuple(indexed.get(day, ())), settings).row
+        nonlocal unresolved
+        try:
+            row = resolve_day(day, tuple(indexed.get(day, ())), settings).row
+        except ValueError:
+            # Coverage looks further ahead than the live event window. A legacy
+            # future source conflict must not disable valid current sensors, but
+            # cannot count as verified coverage either. Live-window conflicts
+            # remain errors rather than silently choosing a timetable.
+            if tomorrow is None or day <= tomorrow:
+                raise
+            unresolved = day
+            return False
         return row is not None and bool(row.times)
 
     today_available = available(today)
-    tomorrow = today + timedelta(days=1) if today < date.max else None
     tomorrow_available = tomorrow is not None and available(tomorrow)
     through = today if today_available else None
     if through is not None:
@@ -77,5 +94,10 @@ def calculate_coverage(
     else:
         status = "covered"
     return CoverageSnapshot(
-        status, today_available, tomorrow_available, through, remaining
+        status,
+        today_available,
+        tomorrow_available,
+        through,
+        remaining,
+        unresolved_date=unresolved,
     )

@@ -129,6 +129,14 @@ unrelated Home Assistant updates preserve the rendered card. See
 [dashboard setup and behavior](docs/dashboard.md)
 for resource troubleshooting and the event boundary rules.
 
+## Automations and coverage alerts
+
+Import the optional Adhan, before-Jamaat, Sehri and timetable-health blueprints
+through Home Assistant's Blueprints screen. Select the mosque's timestamp sensors,
+your own recording/speakers or reminder actions. The **Timetable coverage** diagnostic
+reports consecutive approved dates and warns when coverage is missing or nearing
+its end; pending proposals never extend it. See [setup and behavior](docs/automations.md).
+
 ## URL checking and approval
 
 Configured URL sources are checked daily, with persisted check times used to catch
@@ -220,7 +228,7 @@ Unmapped columns and original imported strings remain stored alongside parsed va
 
 ## Entities and event behavior
 
-Each mosque creates 25 sensors. Sixteen expose **today's effective event timestamps** in the mosque timezone.
+Each mosque creates 26 sensors. Sixteen expose **today's effective event timestamps** in the mosque timezone.
 Home Assistant stores/displays these according to its standard timestamp behavior.
 
 | Prayer or event | Sensors |
@@ -235,8 +243,8 @@ Home Assistant stores/displays these according to its standard timestamp behavio
 
 The remaining sensors are **Next Salah**, **Next Jamaat**, **Previous Jamaat**,
 **Next Sehri**, **Next Iftar**, **Ramadan status**, **Taraweeh status**, the diagnostic
-**Source status**, and **Prayer timetable** for the bundled card. Next Sehri/Iftar
-consider active Ramadan dates only. The dashboard sensor contains the local date and
+**Source status**, diagnostic **Timetable coverage**, and **Prayer timetable** for
+the bundled card. Next Sehri/Iftar consider active Ramadan dates only. The dashboard sensor contains the local date and
 absolute event data; select it in the card editor instead of an individual prayer.
 
 Next Salah beginning and next Jamaat are calculated independently. In context mode,
@@ -309,8 +317,11 @@ production HA instance. Worker execution is black-box tested; its isolated proce
 intentionally does not inherit coverage/environment instrumentation. Event tests cover
 exact boundaries, Friday congregations, DST and year/leap-day transitions. Frontend
 tests use Node and an isolated headless Chromium harness with HA element stand-ins.
-A separate real HA runtime/frontend smoke check also passed; physical-device checks
-and HACS installation remain separate acceptance work.
+The required live HA matrix checks the minimum/current supported runtime versions;
+local 0.6.2 acceptance also verified fresh dependency installation and real editor
+controls. Physical-device checks are user-confirmed complete on their latest
+installation. Authenticated HACS installation remains separate acceptance work;
+see the [validation record](docs/validation.md).
 Synthetic parser fixtures use this repository's MIT license. Contributed real
 publications have separate provenance and require redistribution review; see the
 [fixture notes](tests/fixtures/pdf/README.md).

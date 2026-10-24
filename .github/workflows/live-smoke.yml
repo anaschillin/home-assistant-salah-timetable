@@ -1,12 +1,10 @@
 name: Home Assistant live smoke
 
 on:
-  pull_request:
-    paths:
-      - .github/workflows/live-smoke.yml
-      - scripts/live_*.mjs
-      - custom_components/**
+  workflow_call:
   workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * 0' # Weekly Sunday compatibility check, UTC
 
 permissions:
   contents: read
@@ -57,6 +55,7 @@ jobs:
           # installation of the dependency pinned in manifest.json.
           node scripts/live_smoke.mjs \
             --ha-version "${{ matrix.ha-version }}" \
+            --require-fresh-dependency \
             --output-dir "$RUNNER_TEMP/salah-live-results"
 
       - name: Preserve synthetic smoke evidence

@@ -4,20 +4,20 @@ Milestones 1–5 are implemented. Release hardening is in progress; an item belo
 complete only when its stated evidence exists. See [recorded validation](validation.md).
 
 The next feature increments are specified in the [implementation plan](milestones.md#next-increments).
-Milestone 7 starts with prayer automation blueprints and approved-date coverage
-alerts. Calendar support, source profiles, localization/RTL and compatibility CI
-follow as separately testable milestones. Release acceptance below remains required
+Milestone 7 now has implemented prayer automation blueprints, approved-date coverage
+monitoring and real automation-engine acceptance tests. Calendar support, source
+profiles, localization/RTL and broader compatibility tests follow separately. Release acceptance below remains required
 for each published increment.
 
 ## Before a tested public release
 
 | Work | Status | Completion evidence |
 | --- | --- | --- |
-| Hosted validation | Passed for `505f970` ([run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40111247359)); rerun if the final release commit differs | Successful Validate run for the exact release commit, including HACS and hassfest |
-| Minimum HA version | Passed disposable HA 2026.10.0 manual-install/runtime/editor checks for an earlier local 0.6.1 candidate; dependency preloaded | Rerun configuration, import, persistence, card and real editor checks for the final candidate |
-| Fresh runtime dependency installation | Pending | Start clean supported HA without `--preload-pypdf`; verify HA installs the exact manifest-pinned dependency, rather than using a supplied copy |
+| Hosted validation | Passed for baseline `c9b42f3` ([run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40132027518)); the new 0.6.2 candidate requires its own run | Successful Validate run for the exact release commit, including HACS and hassfest |
+| Minimum HA version | Passed 20 disposable HA 2026.10.0 checks for the local 0.6.2 candidate, including fresh dependency, import, restart and actual editor | Rerun configuration, import, persistence, card and real editor checks for the final candidate |
+| Fresh runtime dependency installation | Passed locally on HA 2026.10.0: absent baseline and imported/installed `6.21.1` verified, no preload; trusted CA bundle supplied for the session proxy | Start clean supported HA without `--preload-pypdf`; verify HA installs the exact manifest-pinned dependency, rather than using a supplied copy |
 | HACS custom-repository installation | Pending | Install with a maintainer's GitHub authorization in disposable HA; verify bundled assets, restart, update and removal |
-| Physical mobile/tablet checks | Pending | Test narrow displays, themes, text scaling, touch and keyboard access on real devices |
+| Physical mobile/tablet checks | Complete — user-confirmed on 24 October 2026 after updating to latest | User-reported completion; hardware, browser and exact version details were not recorded ([record](validation.md#user-confirmed-physical-device-acceptance--24-october-2026)) |
 | Complete backup restoration | Pending | Restore a full HA backup archive, including configuration entries and timetable storage, then verify identities and approved/pending data |
 | Asset provenance | Maintainer review needed | Confirm redistribution rights for contributed branding and real NMS/Zakariyya PDF fixtures; publications are excluded from integration release archives |
 | Release publication | Pending | Review release notes, validation and checklist, then publish the prepared draft |
@@ -44,17 +44,17 @@ HACS installation of this repository.
   validation for its exact commit on main; it neither creates tags nor publishes
   or overwrites releases.
 
-The opt-in live runner is available in `scripts/live_smoke.mjs`. With socket access
-enabled an earlier local 0.6.1 candidate passed 19 checks on disposable HA 2026.10.0,
-including RUNNING/config-entry readiness, approved/pending/Ramadan restart state,
-entity IDs, real card picker/editor, display-control changes and page reload.
-The exact locked PDF dependency was explicitly preloaded; fresh dependency
-installation and authenticated HACS installation remain separate checks.
-See [recorded validation](validation.md#peer-review-follow-up--candidate-061).
-The newer per-toggle live preview assertions have not been rerun against HA; the
-native browser fixture verifies each visibility option independently in CI.
-The current runner supersedes the earlier unfinished attempt; its earlier generic
-timeout is not evidence of a storage defect.
+The live runner is available in `scripts/live_smoke.mjs`. The local 0.6.2 candidate
+passed 20 checks on disposable HA 2026.10.0, including fresh dependency installation,
+RUNNING/config-entry readiness, approved/pending/Ramadan restart state, 26 entities,
+real card picker/editor and each display toggle. See the
+[latest validation](validation.md#repository-review-and-milestone-7--candidate-062).
+
+An earlier hosted live run passed HA 2026.10.0 and 2026.10.3 on the same source tree
+as baseline main `c9b42f3`; that result does not certify the subsequent local fixes.
+Validate now requires the reusable minimum/current live matrix, with explicit
+fresh-dependency proof; the live matrix also runs weekly. The new workflow must pass after
+these changes are committed. Authenticated HACS installation remains separate.
 
 ## Subsequent additions
 
@@ -71,8 +71,9 @@ adapters and independent expected-value comparisons. See [Ramadan validation](ra
    Gregorian year per source. Add further adapters only after obtaining inspectable,
    redistributable fixtures and an independent expected-results comparison. Unknown
    layouts and scanned/encrypted PDFs remain unsupported.
-3. Deliver [Milestones 7–11](milestones.md#next-increments): ready-made automations,
-   coverage alerts, a calendar, source profiles, translations/RTL and compatibility
-   CI. Start the CI work in parallel with the user-facing features.
+3. Continue [Milestones 8–11](milestones.md#next-increments): a native calendar,
+   source profiles, translations/RTL and broader compatibility
+   unit tests. The live compatibility matrix and weekly checks are implemented;
+   separate minimum/current unit-test environments and typing/lint baselines remain.
 4. Consider the HACS default catalogue after the full user workflow and release
    process are established. Custom-repository support is the current route.

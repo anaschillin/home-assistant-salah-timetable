@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.2 — unreleased
+
+- Keep calendar-date subclass support while rejecting datetime values that cannot
+  round-trip through timetable storage.
+- Stop future coverage at an ambiguous source date without disabling valid current
+  prayer data; expose the unresolved date separately from absent publication data.
+- Exercise shipped automation blueprints through Home Assistant's actual scheduler
+  and document sensor selection, offsets and health-alert behavior.
+- Require the real minimum/current Home Assistant matrix in Validate, with a
+  weekly compatibility run and explicit before/after runtime dependency proof.
+- Refresh asset cache versions after the maintainer's rendering changes and retain
+  all per-toggle preview, import approval and restart regression coverage.
+
 ## 0.6.1 — unreleased
 
 - Update countdown text and progress in place between event boundaries, preserving

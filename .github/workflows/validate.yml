@@ -2,6 +2,8 @@ name: Validate
 
 on:
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 
@@ -70,70 +72,8 @@ jobs:
           category: integration
           comment: false
 
-  
   homeassistant-integration:
-    name: Home Assistant integration smoke test
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Prepare Home Assistant configuration
-        run: |
-          mkdir -p test_configuration/custom_components
-
-          cp -a custom_components/salah_timetable \
-            test_configuration/custom_components/
-
-          cat > test_configuration/configuration.yaml <<'YAML'
-          default_config:
-          logger:
-            default: warning
-            logs:
-              custom_components.salah_timetable: debug
-          YAML
-
-      - name: Validate Home Assistant configuration
-        run: |
-          docker run --rm \
-            -v "$PWD/test_configuration:/config" \
-            ghcr.io/home-assistant/home-assistant:2026.10.3 \
-            python -m homeassistant --script check_config -c /config
-
-      - name: Start Home Assistant
-        run: |
-          docker run -d \
-            --name homeassistant-test \
-            --network host \
-            -v "$PWD/test_configuration:/config" \
-            ghcr.io/home-assistant/home-assistant:2026.10.3
-
-      - name: Wait for Home Assistant startup
-        run: |
-          for i in $(seq 1 90); do
-            if curl -fsS http://127.0.0.1:8123/ >/dev/null; then
-              echo "Home Assistant HTTP server is responding"
-              exit 0
-            fi
-
-            if [ "$(docker inspect -f '{{.State.Running}}' homeassistant-test)" != "true" ]; then
-              docker logs homeassistant-test
-              exit 1
-            fi
-
-            sleep 2
-          done
-
-          echo "Home Assistant startup timed out"
-          docker logs homeassistant-test
-          exit 1
-
-      - name: Show logs on failure
-        if: failure()
-        run: docker logs homeassistant-test || true
-
-      - name: Stop test container
-        if: always()
-        run: docker rm -f homeassistant-test || true
+    name: Home Assistant live acceptance
+    uses: ./.github/workflows/live-smoke.yml
+    permissions:
+      contents: read

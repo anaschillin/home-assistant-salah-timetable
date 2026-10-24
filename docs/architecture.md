@@ -1,4 +1,4 @@
-# Architecture — Milestones 1–5
+# Architecture
 
 ## Boundaries
 
@@ -21,9 +21,13 @@
   selection, independent of storage, UI and HA scheduling.
 - `coordinator.py`: resolve yesterday/today/tomorrow in the mosque timezone, calculate
   events and schedule boundary refreshes, with no network calls.
+- `coverage.py`: consecutive effective approved dates, cached by date/sources/Ramadan
+  settings. Pending proposals never extend coverage; ambiguous dates beyond the live
+  horizon stop coverage and expose `unresolved_date` without disabling valid current
+  prayer events.
 - `presentation.py`: serialize effective dates and absolute event timelines for the
   card without adding ticking countdown state.
-- `sensor.py`: 25 entities per mosque with stable `{mosque_id}_{field}` unique IDs
+- `sensor.py`: 26 entities per mosque with stable `{mosque_id}_{field}` unique IDs
   and HA registry persistence; the card's unique ID uses `{mosque_id}_dashboard`.
 - `frontend.py` and `frontend/`: serve/register versioned bundled JavaScript and
   provide the responsive card, pure display helpers and graphical editor.
@@ -174,8 +178,8 @@ Approval triggers a refresh; options changes reload the config entry. Unload can
 the boundary callback along with HA's coordinator timers.
 
 Sixteen daily timestamps, five next/previous timestamps, Ramadan/Taraweeh enums, the
-source-status diagnostic and the Prayer timetable sensor make 25 entities per
-mosque. Daily sensors expose effective rows. Missing event values are unavailable,
+source-status and coverage diagnostics, and the Prayer timetable sensor make
+26 entities per mosque. Daily sensors expose effective rows. Missing event values are unavailable,
 apart from the explicit Iftar default. The Prayer timetable sensor's date state and
 attributes carry five prayer rows, yesterday/today/tomorrow absolute event arrays,
 current next/previous selections and Ramadan details. No entity stores a per-second
@@ -186,7 +190,7 @@ countdown. The backend and card behavior have separate boundary tests.
 `frontend.py` registers the bundled directory at `/salah_timetable` through HA's
 asynchronous static-path API. For storage-mode Lovelace resources it creates or
 updates the integration's relative module URL, removes duplicate registrations and
-uses `?v=0.6.1` for cache changes. For YAML resources it uses HA's extra-JavaScript
+uses `?v=0.6.2` for cache changes. For YAML resources it uses HA's extra-JavaScript
 helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
 a resource-registration failure is logged without disabling valid prayer entities.
 
@@ -212,7 +216,10 @@ An earlier disposable HA 2026.10.2 manual-install smoke verified the actual fron
 and editor, including a 0.5.0-to-0.5.1 resource upgrade. Candidate 0.6.1 also passed a
 manual-install smoke on the minimum HA 2026.10.0 version, including the actual card
 picker/editor and saved display options after page reload. That run explicitly
-preloaded the locked PDF dependency; fresh dependency installation remains unverified. See the
+preloaded the locked PDF dependency. The subsequent 0.6.2 minimum-version run passed
+20 checks, with before/after proof of fresh pinned dependency installation and no
+package preload. Physical-device checks are user-confirmed complete for their latest
+installation. See the
 [validation record](validation.md) and [dashboard setup](dashboard.md).
 
 ## Remaining limitations
@@ -224,7 +231,8 @@ rather than guessed; explicit fold handling needs a separately reviewed source m
 The calculated Hijri header is display-only; users explicitly confirm Ramadan.
 
 Release hardening still needs a manual HACS/HA installation and upgrade/removal
-exercise, real-device frontend checks and further security and migration review.
+exercise, full HA backup restoration, provenance review and final-commit hosted
+validation. Physical-device completion is recorded separately from automated checks.
 Invalid stored records already have actionable Repair guidance. Reproducible install
 archives and synchronized metadata/cache versions are checked by release tooling. Hosted GitHub validation must be checked before release; local
 tests and workflow definitions alone do not establish that it passed.

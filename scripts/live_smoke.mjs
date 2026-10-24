@@ -8,22 +8,26 @@ import {createServer} from "node:net";
 import {basename, join, resolve} from "node:path";
 import {fileURLToPath} from "node:url";
 import {waitForRunning, waitForEntry, pollUntil} from "./live_readiness.mjs";
+import {dependencyEvidence, dependencyProbe} from "./live_dependency.mjs";
 import {runBrowserSmoke} from "./live_browser.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const options = {version: "2026.10.0", output: null, preload: false};
+const options = {version: "2026.10.0", output: null, preload: false, requireFresh: false, caBundle: null};
 for (let index = 2; index < process.argv.length; index++) {
   const argument = process.argv[index];
   if (argument === "--ha-version") options.version = process.argv[++index];
   else if (argument === "--output-dir") options.output = resolve(process.argv[++index]);
+  else if (argument === "--require-fresh-dependency") options.requireFresh = true;
+  else if (argument === "--ca-bundle") options.caBundle = resolve(process.argv[++index]);
   else if (argument === "--preload-pypdf") options.preload = true;
   else if (argument === "--help") {
-    console.log("node scripts/live_smoke.mjs [--ha-version 2026.10.0] [--output-dir PATH] [--preload-pypdf]\nRequires Docker, Node.js 24 and Chromium/Chrome (CHROME_BIN optional). Creates and removes its own container/configuration. --preload-pypdf explicitly supplies the locked local dependency instead of testing fresh installation.");
+    console.log("node scripts/live_smoke.mjs [--ha-version 2026.10.0] [--output-dir PATH] [--preload-pypdf | --require-fresh-dependency] [--ca-bundle PATH]\nRequires Docker, Node.js 24 and Chromium/Chrome (CHROME_BIN optional). Creates and removes its own container/configuration. --preload-pypdf explicitly supplies the locked local dependency instead of testing fresh installation. --require-fresh-dependency verifies absence before and the manifest-pinned import after setup. --ca-bundle mounts a trusted combined CA bundle read-only for dependency installation; TLS verification remains enabled.");
     process.exit(0);
   } else throw new Error(`Unknown argument: ${argument}`);
 }
 assert.match(options.version || "", /^\d{4}\.\d+\.\d+$/, "Use an explicit stable HA version");
 
+assert.ok(!(options.preload && options.requireFresh), "Cannot require fresh installation while preloading pypdf");
 const abort = new AbortController();
 for (const signal of ["SIGINT", "SIGTERM"]) process.once(signal, () => abort.abort(new Error("Smoke test interrupted")));
 const limit = setTimeout(() => abort.abort(new Error("Smoke test exceeded ten minutes")), 600000);
@@ -132,15 +136,23 @@ try {
   await writeFile(join(config, "configuration.yaml"), "homeassistant:\n  name: Salah Smoke\n  time_zone: UTC\n  country: GB\n  latitude: 52.5\n  longitude: -1.5\n  elevation: 0\n  unit_system: metric\ndefault_config:\nlogger:\n  default: error\n", {mode: 0o600});
   try { await command("docker", ["image", "inspect", image]); }
   catch { console.log(`Pulling official HA ${options.version} image`); await command("docker", ["pull", image]); }
-  await command("docker", ["create", "--name", container, "--publish", `127.0.0.1:${hostPort}:8123`, "--mount", `type=bind,src=${config},dst=/config`, "--mount", `type=bind,src=${join(root, "custom_components")},dst=/config/custom_components,readonly`, image]);
+  const manifest = JSON.parse(await readFile(join(root, "custom_components/salah_timetable/manifest.json"), "utf8"));
+  const expected = manifest.requirements.find(value => value.startsWith("pypdf==")).split("==")[1];
+  const baseline = JSON.parse(await command("docker", ["run", "--rm", "--entrypoint", "python", image, "-I", "-c", dependencyProbe]));
+  report.dependency_baseline = {version: baseline.version, module_version: baseline.module_version};
+  if (options.requireFresh) {
+    assert.equal(baseline.version, null, "Base image already contains pypdf metadata; cannot establish fresh installation");
+    assert.equal(baseline.module_version, null, "Base image already imports pypdf; cannot establish fresh installation");
+  }
+  const trust = options.caBundle ? ["--mount", `type=bind,src=${options.caBundle},dst=/run/salah-ca-bundle.pem,readonly`, "--env", "SSL_CERT_FILE=/run/salah-ca-bundle.pem", "--env", "PIP_CERT=/run/salah-ca-bundle.pem"] : [];
+  report.custom_ca_bundle = Boolean(options.caBundle);
+  await command("docker", ["create", ...trust, "--name", container, "--publish", `127.0.0.1:${hostPort}:8123`, "--mount", `type=bind,src=${config},dst=/config`, "--mount", `type=bind,src=${join(root, "custom_components")},dst=/config/custom_components,readonly`, image]);
   created = true;
   if (options.preload) {
-    const manifest = JSON.parse(await readFile(join(root, "custom_components/salah_timetable/manifest.json"), "utf8"));
-    const expected = manifest.requirements.find(value => value.startsWith("pypdf==")).split("==")[1];
     const discovery = "import importlib.metadata,importlib.util,json,pathlib; d=importlib.metadata.distribution('pypdf'); print(json.dumps({'version':d.version,'package':str(pathlib.Path(importlib.util.find_spec('pypdf').origin).parent),'metadata':str(d.locate_file(next(p.parts[0] for p in d.files if p.parts[0].endswith('.dist-info'))))}))";
     const dependency = JSON.parse(await command(join(root, ".venv/bin/python"), ["-c", discovery]));
     assert.equal(dependency.version, expected, "Local pypdf must match the integration requirement");
-    const site = await command("docker", ["run", "--rm", "--entrypoint", "python", image, "-I", "-c", "import sysconfig; print(sysconfig.get_path('purelib'))"]);
+    const site = baseline.site;
     assert.match(site, /^\/usr\/local\/lib\/python\d+\.\d+\/site-packages$/);
     await command("docker", ["cp", dependency.package, `${container}:${site}/pypdf`]);
     await command("docker", ["cp", dependency.metadata, `${container}:${site}/${basename(dependency.metadata)}`]);
@@ -162,6 +174,9 @@ try {
   await waitForRunning(request, until);
   report.checks.push("onboarding", "ha_running_before_configuration");
   const entry = await addMosque("smoke", "Smoke Mosque");
+  const installed = JSON.parse(await command("docker", ["exec", container, "python", "-I", "-c", dependencyProbe]));
+  report.dependency = dependencyEvidence(baseline, installed, expected, {preloaded: options.preload, requireFresh: options.requireFresh});
+  if (report.dependency.fresh_install_verified) report.checks.push("fresh_manifest_dependency_installation");
   const today = new Date().toISOString().slice(0, 10);
   // Keep annual sources within their explicit year, including a December 31 run.
   const next = new Date(Date.parse(`${today}T12:00:00Z`) + 86400000).toISOString().slice(0, 10);

@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, datetime, time, timezone
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -81,3 +81,21 @@ def test_invalid_single_prayer(times):
 def test_duplicate_dates(timetable):
     with pytest.raises(ValueError):
         Timetable("duplicate", "annual", (timetable.days[0], timetable.days[0]))
+
+
+def test_date_subclasses_preserve_calendar_date_round_trip():
+    class CalendarDate(date):
+        pass
+
+    row = DailyPrayers(CalendarDate(2026, 10, 24), {}, {})
+    assert row.as_dict()["date"] == "2026-10-24"
+    assert DailyPrayers.from_dict(row.as_dict()) == row
+
+
+@pytest.mark.parametrize(
+    "day",
+    [datetime(2026, 10, 24, 12), datetime(2026, 10, 24, tzinfo=timezone.utc)],
+)
+def test_datetime_is_not_a_canonical_calendar_date(day):
+    with pytest.raises(ValueError, match="calendar date"):
+        DailyPrayers(day, {}, {})

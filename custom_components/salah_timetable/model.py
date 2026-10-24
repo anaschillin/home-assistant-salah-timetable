@@ -63,7 +63,7 @@ class DailyPrayers:
     original: Mapping[str, str]
 
     def __post_init__(self) -> None:
-        if not isinstance(self.day, date):
+        if not isinstance(self.day, date) or isinstance(self.day, datetime):
             raise ValueError("A calendar date is required")
         times = {}
         for field, values in self.times.items():

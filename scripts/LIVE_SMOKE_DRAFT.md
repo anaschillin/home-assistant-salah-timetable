@@ -1,6 +1,7 @@
 # Opt-in live Home Assistant acceptance runner
 
-The runner is manual-only; it is not a required hosted CI job. It creates a
+The runner is used by the required minimum/current HA matrix in Validate and can
+also run manually. The reusable live workflow runs weekly as a compatibility check. It creates a
 disposable official HA container and synthetic timetable, runs authenticated APIs
 and the real frontend, and removes its container and private configuration afterward.
 No user configuration or credentials are checked into the repository.
@@ -16,9 +17,16 @@ package and metadata from the repository's development venv. It is an explicit
 workaround for the test environment's proxy CA, not proof that fresh dependency
 installation works. TLS verification remains enabled.
 The default omits this preload and lets HA resolve the manifest requirement.
-For fresh-install acceptance, also verify the dependency was absent initially and
-that HA installed the pinned version; `dependency_preloaded: false` alone does not
-prove the base image did not already contain it.
+`--require-fresh-dependency` verifies that both pypdf metadata and import are absent
+in the base image and match the manifest pin after the mosque has loaded. It fails
+rather than treating a pre-existing/preloaded package as fresh-install evidence.
+CI uses this flag. Reports record before/after versions and
+`dependency.fresh_install_verified`.
+
+When a test environment uses a private outbound proxy CA, pass
+`--ca-bundle /path/to/combined-ca-bundle.pem`. The bundle is mounted read-only and
+selected with `SSL_CERT_FILE`/`PIP_CERT`; normal TLS verification stays enabled.
+This opt-in trust setup is separate from preloading and supplies no package files.
 
 ## Observed acceptance — 24 October 2026
 
@@ -29,10 +37,16 @@ keyboard title/focus, themes and phone/tablet viewports passed. Every display
 control was exercised; saved settings survived page reload, changed the rendered
 card, and preserved prayer data and Ramadan activation. See
 [validation](../docs/validation.md#peer-review-follow-up--candidate-061).
-Since that run, the browser script gained a visible-preview assertion for each
-Boolean option as it changes. Those newer live assertions have not been rerun
-against HA. The separate native browser fixture passes each toggle independently
-at all four widths in hosted CI; it uses HA control stand-ins.
+The subsequent hosted live run
+[40131759984](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40131759984)
+passed HA 2026.10.0 and 2026.10.3, including per-toggle visible preview checks, on
+source tree `27aa4b9348bed4160550106c37919fe86f9c3bb3` (the same tree as main
+`c9b42f3`). It did not preload pypdf, but did not yet record before/after package
+provenance. The local 0.6.2 candidate then passed 20 checks on HA 2026.10.0 with strict fresh
+installation: metadata/import were absent in the base image and both matched
+`6.21.1` after setup. No package was preloaded. A combined CA bundle was mounted
+read-only for this environment's proxy, with TLS verification enabled. The new
+required hosted matrix still needs its own run for the final candidate commit.
 
 ## Readiness and reporting
 
@@ -52,5 +66,6 @@ can take several minutes in this environment.
 
 The current runner supersedes an earlier unsuccessful attempt. Its restart timeout
 was unresolved then; it is not proof of a storage bug.
-Authenticated HACS installation, physical-device checks and fresh dependency
-installation remain outside this manual-install result.
+Authenticated HACS installation remains outside this manual-install result.
+Physical-device completion is recorded separately as user-confirmed acceptance. Fresh dependency installation is now explicitly verified
+within the local 0.6.2 minimum-version run described above.

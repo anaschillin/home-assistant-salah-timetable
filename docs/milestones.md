@@ -3,13 +3,14 @@
 The [remaining-work checklist](remaining-work.md) tracks release blockers separately
 from later feature additions.
 
-Milestones 1–5 are implemented; the current candidate is 0.6.1. Keep follow-up work
+Milestones 1–5 are implemented; the current candidate is 0.6.2. Keep follow-up work
 in focused PRs with its own tests and documentation. Disposable HA 2026.10.2 and
 minimum-version HA 2026.10.0 manual-install/runtime/frontend checks have passed
 within the limits in the validation record. Release acceptance still includes
-successful hosted validation for the exact release commit, fresh runtime dependency
-installation, authenticated HACS installation, full HA backup restoration and
-physical-device checks.
+successful hosted validation for the exact release commit, authenticated HACS
+installation, full HA backup restoration and provenance review. Local 0.6.2 acceptance
+verified fresh dependency installation; physical-device checks are user-confirmed
+complete for their latest installation.
 
 ## Next increments
 
@@ -149,7 +150,8 @@ and narrow layouts. HA elements are stand-ins in that harness. A separate dispos
 HA 2026.10.2 manual installation verified real card/editor components and viewport
 rendering. The candidate 0.6.1 HA 2026.10.0 check also exercised the actual picker,
 editor controls and saved configuration after page reload. Authenticated HACS
-installation and physical-device checks remain release acceptance work; see the
+installation remains release acceptance work. Physical-device checks are
+user-confirmed complete for their latest installation; see the
 [validation record](validation.md) and [dashboard setup](dashboard.md).
 
 Candidate 0.6.0 extends the card with prayer emphasis, independent countdown progress,
@@ -169,7 +171,8 @@ and actual frontend/editor rendering within their recorded scopes. See the
 [release preparation and manual checks](releasing.md).
 
 1. Exercise install, graphical setup, restart, upgrade and removal in a disposable
-   HA instance installed through HACS; check real mobile/tablet rendering and themes.
+   HA instance installed through HACS. Physical-device checks are recorded as
+   user-confirmed complete; retain them as a regression check for later UI changes.
 2. Restore a complete HA backup archive and verify config entries, registries,
    entity IDs and approved/pending timetable data. Existing migration and
    timetable-store recovery tests cover a narrower scope.
@@ -181,7 +184,13 @@ and actual frontend/editor rendering within their recorded scopes. See the
 5. Submit to the HACS default catalogue only once the complete user workflow is
    verified. The custom-repository installation remains the documented route.
 
-## Milestone 7 — ready-made automations and coverage monitoring (in progress)
+## Milestone 7 — ready-made automations and coverage monitoring (implemented; release acceptance pending)
+
+Implementation and real automation-engine acceptance are covered in
+`tests/test_blueprints.py`; pure/coordinator coverage cases are in
+`tests/test_coverage.py`. [User setup](automations.md) documents sensor selection,
+no catch-up, pending-review deduplication and unresolved future coverage. These
+local checks do not replace Milestone 6's release gate.
 
 ### 7A — prayer automation blueprints
 
@@ -208,7 +217,9 @@ Add a diagnostic Timetable coverage sensor showing no approved timetable, missin
 today, missing tomorrow, approaching expiry or adequate coverage. Count consecutive
 effective approved dates from the mosque-local date, stopping at the first gap.
 An intentionally unpublished prayer field does not make the entire date missing.
-Pending proposals never extend approved coverage. Warn when seven or fewer future
+Pending proposals never extend approved coverage. A source ambiguity beyond
+tomorrow stops verified coverage and exposes an `unresolved_date`; it does not
+disable valid current prayer data or pretend the uncertain date is unpublished. Warn when seven or fewer future
 dates remain, and expose the final consecutive date and remaining-day count.
 
 Provide a fourth blueprint that runs user-selected actions when coverage enters a
@@ -258,7 +269,14 @@ RTL keyboard/focus order, both time formats, mosque-timezone dates and narrow
 layouts at 200% text scale. Record real-device acceptance separately from browser
 emulation and add translated setup guidance as it becomes available.
 
-## Milestone 11 — compatibility and scheduled validation (planned)
+## Milestone 11 — compatibility and scheduled validation (in progress)
+
+Implemented: Validate now calls the real HA 2026.10.0/2026.10.3 live matrix; the
+reusable workflow also supports manual runs and weekly validation. Each runtime
+version is asserted, and strict dependency proof compares base-image absence to
+the manifest-pinned import after setup. The reproducible Python suite remains
+locked to HA 2026.10.2. Separate compatibility unit-test environments covering
+migrations and the typing/lint follow-ups below remain to be implemented.
 
 Add separate tests for the declared minimum HA version and the supported locked
 version, plus a weekly scheduled compatibility run. Make each job report and verify

@@ -167,7 +167,7 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.6.1
+/salah_timetable/salah-timetable-card.js?v=0.6.2
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an
@@ -204,7 +204,10 @@ on independently. That harness uses stand-ins for HA elements. Separate disposab
 manual-install checks used HA 2026.10.2 and HA 2026.10.0; the latter exercised the
 actual card picker, editor controls, keyboard title/focus, saved configuration after
 page reload, themes and phone/tablet viewports for candidate 0.6.1. These checks used
-an explicitly preloaded PDF dependency. Authenticated HACS installation, fresh
-runtime dependency installation and physical-device visual checks remain release
-work. See the [validation record](validation.md) and
+an explicitly preloaded PDF dependency. The later local 0.6.2 HA 2026.10.0 run
+passed 20 checks, including fresh dependency installation without a package preload,
+per-toggle visible previews and saved settings after reload. Physical-device checks
+are user-confirmed complete on their latest installation; device/version details
+were not recorded. Authenticated HACS installation and final-commit hosted checks
+remain release work. See the [validation record](validation.md) and
 [Milestone 6](milestones.md#milestone-6--release-hardening-partially-implemented).

@@ -2,28 +2,35 @@
 
 ## Current recorded status — 24 October 2026
 
-The most recent recorded hosted result is successful **Validate** run
-[40111247359](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40111247359)
-for `505f970dc2c2a5cccb0a4ec0a95bec568739b763` (candidate 0.6.1).
-All four jobs passed: Python tests/build, frontend, hassfest and HACS validation.
-The logs record **725 Python tests**, **95% aggregate integration line coverage**,
-**75 Node tests**, and the native Chrome smoke test with four width fixtures
-(320, 360, 400 and 900px). Both Python workflows use the SHA-pinned
-`actions/setup-python` v7.0.0 action with Python 3.14.
+The current candidate is **0.6.2**. Its local verification passed **758 Python
+tests** (95% aggregate integration coverage), **81 Node tests**, native Chromium
+at 320/360/400/900px, and **20 live HA 2026.10.0 checks**. The expanded blueprint
+reload check also passed in an eight-case focused rerun. The live run verified
+pypdf absent before setup and manifest-pinned 6.21.1 installed/imported afterward,
+with no package preloading. A trusted combined CA bundle was mounted read-only for
+the session proxy, with TLS verification enabled. Actual card/editor, each display
+toggle and saved configuration after reload passed. See the
+[0.6.2 evidence](#repository-review-and-milestone-7--candidate-062).
 
-The card now avoids a rebuild for equivalent timetable/irrelevant Home Assistant
-updates, while retaining updates for changed timetable data, display context and
-availability. Node regressions cover those paths. The native browser fixture checks
-each of the seven visibility options independently off and on. The live HA browser
-script now also checks each toggle's preview effect, but that newer live script has
-not been rerun against HA; its earlier recorded 19-check run remains the live evidence.
+The latest recorded hosted **Validate** result is
+[40132027518](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40132027518)
+for baseline `c9b42f3`. The earlier hosted live matrix passed both HA 2026.10.0 and
+2026.10.3 on the same source tree as that baseline. These results do not replace
+hosted validation for the subsequent 0.6.2 commit. Validate now requires the real
+live matrix with strict dependency proof; that live matrix also runs weekly.
 
-Fresh HA-managed dependency installation, authenticated HACS installation, a full HA
-backup-archive restore and physical phone/tablet verification remain pending. HACS
-CI validates repository structure; it does not prove an authenticated installation.
-The earlier live checks explicitly preloaded the locked PDF dependency. A tested
-release still needs successful hosted validation for its own exact commit and the
-[remaining acceptance](remaining-work.md).
+**Physical-device checks are complete by user confirmation on 24 October 2026.**
+The user reported updating their installation to the latest available version.
+Specific hardware, browsers and HA/integration version numbers were not supplied;
+this records their completed checks without assigning them to the previously
+unpublished local 0.6.2 tree.
+
+Authenticated HACS installation, full HA backup-archive restoration, asset
+provenance review and reviewed release publication remain pending. HACS CI
+validates repository structure and is not proof of an authenticated installation.
+See the [current acceptance checklist](remaining-work.md). Dated sections below
+retain the results and limitations observed at that time; this summary supersedes
+their older pending statuses.
 
 The obsolete `codex/live-smoke-runner` and merged Dependabot setup-python branches
 were deleted after their review and the successful v7 upgrade. Historical entries
@@ -361,3 +368,76 @@ authenticated HACS installation, physical devices, a full HA backup restore, or
 upgrade from a previously published release. Those acceptance items, asset provenance,
 hosted checks for the final commit and reviewed release publication remain pending.
 No tag or GitHub release was created by this follow-up.
+
+
+## Repository review and Milestone 7 — candidate 0.6.2
+
+Reviewed the 14 commits between `04af4d0` and baseline main `c9b42f3`, preserving
+maintainer changes to rendering, coverage, blueprints, approval/restart tests and
+CI. Hosted Validate run [40132027518](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40132027518)
+passed for `c9b42f3`. Hosted live run
+[40131759984](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40131759984)
+passed both HA 2026.10.0 and 2026.10.3 on `80d9eb3`; its tree
+`27aa4b9348bed4160550106c37919fe86f9c3bb3` exactly equals baseline main's tree.
+This is source-tree evidence, not an exact-commit run for the subsequent local fixes.
+
+### Confirmed fixes and completed acceptance
+
+- Reject datetime rows while retaining date-subclass round-tripping. Previously a
+  datetime serialized a full timestamp into a field the storage reader treats as
+  an ISO calendar date.
+- A legacy Ramadan conflict on a later date could fail coverage calculation and
+  disable otherwise valid current sensors. Coverage now stops conservatively at
+  the unresolved future date and exposes `unresolved_date`. Real HA tests preserve
+  today's Fajr/tomorrow's Next Salah and clear the marker after source selection,
+  without changing approved data or entity IDs. Live-window ambiguity still fails.
+- Actual HA blueprint validation/substitution and the automation scheduler exercise
+  Adhan media/targets/optional volume, changed approved times, successive Friday
+  events, pre-midnight Sehri, unavailable times, independent mosques, reload/re-enable
+  without catch-up, and health-alert startup/refresh suppression and recovery.
+  No production blueprint bug was reproduced in these scenarios.
+- Required Validate now reuses the real minimum/current live matrix rather than an
+  HTTP-only empty-configuration check. Manual and weekly execution remain available.
+  CI requires explicit fresh-dependency proof instead of assuming no-preload means
+  the base image lacked the dependency.
+- Asset/project/manifest/lock versions advance to 0.6.2 so the maintainer's newer
+  rendering code is not served under the earlier 0.6.1 cache token.
+
+### Local results
+
+The full Python suite passed **758 tests**, with **95%** aggregate integration
+coverage; **8 blueprint cases** passed again after extending the real reload check.
+All **81 Node tests** passed. Required Chromium passed at **320/360/400/900px**,
+including editor controls, both time formats, themes and 200% text. Ruff lint/format,
+JavaScript syntax, whitespace, offline lock checks and 0.6.2 release-asset preparation
+passed. Isolated worker coverage limitations remain unchanged.
+
+The local tree based on `c9b42f3` ran against official HA **2026.10.0** image
+`sha256:e5ee66f11f90f86c50c1b7641e558b707ccc3d2bb354daf05c296e58382945e2`
+and passed **20 live acceptance checks**. The baseline reported no pypdf metadata
+or import. After HA loaded the mosque, both the installed distribution and imported
+module reported manifest-pinned **6.21.1**, with
+`dependency.fresh_install_verified: true` and `dependency_preloaded: false`.
+A session combined CA bundle was mounted read-only for HA's installer; TLS checking
+remained enabled, and no package files were supplied.
+
+The runtime created 26 sensors, approved a synthetic CSV, preserved approved/pending
+and Ramadan data through restart, kept entity IDs/resource registration stable,
+and passed actual picker/editor and per-toggle preview/reload checks. Generated
+containers and private configuration were cleaned up. This is a manual installation,
+not an authenticated HACS installation or physical-device certification.
+
+The final candidate still needs hosted validation on its own commit, including the
+new required live matrix. HACS installation, full HA backup-archive restoration,
+physical devices, asset provenance and reviewed release publication remain pending.
+No release or tag was created by this review.
+
+
+## User-confirmed physical-device acceptance — 24 October 2026
+
+After the local 0.6.2 review, the user confirmed: “Physical device checks done,
+updated to latest.” Physical-device acceptance is recorded as complete for their
+updated installation. Device/browser models, HA/integration version numbers and
+individual scenario results were not specified. This confirmation does not by
+itself establish the HACS installation route, full backup restoration, a published
+0.6.2 release or hosted CI success for a new commit.
