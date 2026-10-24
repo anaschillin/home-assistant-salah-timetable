@@ -3,6 +3,12 @@
 Milestones 1–5 are implemented. Release hardening is in progress; an item below is
 complete only when its stated evidence exists. See [recorded validation](validation.md).
 
+The next feature increments are specified in the [implementation plan](milestones.md#next-increments).
+Milestone 7 starts with prayer automation blueprints and approved-date coverage
+alerts. Calendar support, source profiles, localization/RTL and compatibility CI
+follow as separately testable milestones. Release acceptance below remains required
+for each published increment.
+
 ## Before a tested public release
 
 | Work | Status | Completion evidence |
@@ -65,6 +71,8 @@ adapters and independent expected-value comparisons. See [Ramadan validation](ra
    Gregorian year per source. Add further adapters only after obtaining inspectable,
    redistributable fixtures and an independent expected-results comparison. Unknown
    layouts and scanned/encrypted PDFs remain unsupported.
-3. Expand language translations and test additional accessibility combinations.
+3. Deliver [Milestones 7–11](milestones.md#next-increments): ready-made automations,
+   coverage alerts, a calendar, source profiles, translations/RTL and compatibility
+   CI. Start the CI work in parallel with the user-facing features.
 4. Consider the HACS default catalogue after the full user workflow and release
    process are established. Custom-repository support is the current route.

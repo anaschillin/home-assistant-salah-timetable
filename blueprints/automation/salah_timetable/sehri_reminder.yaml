@@ -1,0 +1,53 @@
+blueprint:
+  name: Salah Timetable - Sehri reminder
+  description: >-
+    Run your chosen actions before the next Sehri ending in an explicitly active
+    Ramadan date. Select Next Sehri, not the daily Sehri ends entity. Next Sehri
+    already follows confirmed Ramadan dates or manual activation, including a
+    reminder before midnight for the following morning. Missing times are not
+    estimated and missed reminders are not replayed.
+  domain: automation
+  source_url: https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/sehri_reminder.yaml
+  homeassistant:
+    min_version: 2026.10.0
+  input:
+    next_sehri:
+      name: Next Sehri sensor
+      selector:
+        entity:
+          filter:
+            integration: salah_timetable
+            domain: sensor
+            device_class: timestamp
+    offset:
+      name: Reminder offset (minutes)
+      description: Use a negative number, such as -30 for thirty minutes before Sehri ends.
+      default: -30
+      selector:
+        number:
+          min: -180
+          max: -1
+          step: 1
+          mode: box
+          unit_of_measurement: min
+    reminder_actions:
+      name: Reminder actions
+      description: Choose a notification, light or other action. The scheduled_time variable is available.
+      selector:
+        action:
+
+triggers:
+  - trigger: time
+    at:
+      entity_id: !input next_sehri
+      offset:
+        minutes: !input offset
+
+variables:
+  next_sehri: !input next_sehri
+  scheduled_time: "{{ states(next_sehri) }}"
+
+actions: !input reminder_actions
+
+mode: queued
+max: 10

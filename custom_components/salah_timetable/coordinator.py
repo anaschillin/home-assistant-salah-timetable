@@ -10,6 +10,7 @@ from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
+from .coverage import CoverageSnapshot, calculate_coverage
 from .events import EventSnapshot, calculate_events
 from .ramadan import EffectiveTimetable, RamadanSettings, resolve_day
 from .storage import TimetableStorage
@@ -21,6 +22,7 @@ class SalahData:
     effective: EffectiveTimetable
     events: EventSnapshot
     days: tuple[EffectiveTimetable, ...]
+    coverage: CoverageSnapshot
 
 
 class SalahCoordinator(DataUpdateCoordinator[SalahData]):
@@ -38,14 +40,23 @@ class SalahCoordinator(DataUpdateCoordinator[SalahData]):
         self.storage = storage
         self.zone = zone
         self._boundary_unsub = None
+        self._coverage_key = None
+        self._coverage = None
 
     async def _async_update_data(self) -> SalahData:
         now = dt_util.utcnow()
         day = now.astimezone(self.zone).date()
         settings = RamadanSettings.from_options(self.config_entry.options)
+        tables = self.storage.timetables
+        coverage_key = (day, tables, settings)
+        if coverage_key != self._coverage_key:
+            self._coverage = await self.hass.async_add_executor_job(
+                calculate_coverage, day, tables, settings
+            )
+            self._coverage_key = coverage_key
         resolved = {
             day + timedelta(days=offset): resolve_day(
-                day + timedelta(days=offset), self.storage.timetables, settings
+                day + timedelta(days=offset), tables, settings
             )
             for offset in (-1, 0, 1)
         }
@@ -59,7 +70,9 @@ class SalahCoordinator(DataUpdateCoordinator[SalahData]):
                 else None
             ),
         )
-        data = SalahData(day, resolved[day], events, tuple(resolved.values()))
+        data = SalahData(
+            day, resolved[day], events, tuple(resolved.values()), self._coverage
+        )
         boundaries = [
             datetime.combine(day + timedelta(days=1), time.min, self.zone).astimezone(
                 timezone.utc

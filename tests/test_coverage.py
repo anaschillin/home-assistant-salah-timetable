@@ -1,0 +1,212 @@
+"""Approved date coverage and its real HA diagnostic entity."""
+
+from datetime import date, datetime, time, timedelta, timezone
+from zoneinfo import ZoneInfo
+
+import pytest
+from homeassistant.helpers import entity_registry as er
+from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+from custom_components.salah_timetable.const import DOMAIN
+from custom_components.salah_timetable.coverage import calculate_coverage
+from custom_components.salah_timetable.csv_parser import CsvParser
+from custom_components.salah_timetable.model import DailyPrayers, PrayerField, Timetable
+from custom_components.salah_timetable.ramadan import RamadanSettings
+from custom_components.salah_timetable.storage import TimetableStorage
+
+TODAY = date(2026, 10, 21)
+
+
+def row(day):
+    # Coverage promises published dates, not a complete set of prayer fields.
+    return DailyPrayers(day, {PrayerField.SUNRISE: (time(7),)}, {})
+
+
+def table(days, *, kind="annual", source_id="annual-2026"):
+    return Timetable(source_id, kind, tuple(row(day) for day in days))
+
+
+def days(count, first=TODAY):
+    return [first + timedelta(days=offset) for offset in range(count)]
+
+
+@pytest.mark.parametrize(
+    ("tables", "status", "today", "tomorrow", "through", "remaining"),
+    [
+        ((), "not_configured", False, False, None, 0),
+        ((table([TODAY - timedelta(days=1)]),), "missing_today", False, False, None, 0),
+        ((table([TODAY + timedelta(days=1)]),), "missing_today", False, True, None, 0),
+        ((table([TODAY]),), "missing_tomorrow", True, False, TODAY, 0),
+        ((table(days(2)),), "expiring", True, True, TODAY + timedelta(days=1), 1),
+        ((table(days(8)),), "expiring", True, True, TODAY + timedelta(days=7), 7),
+        ((table(days(9)),), "covered", True, True, TODAY + timedelta(days=8), 8),
+    ],
+)
+def test_coverage_status_boundaries(tables, status, today, tomorrow, through, remaining):
+    result = calculate_coverage(TODAY, tables, RamadanSettings())
+    assert result.status == status
+    assert result.attributes() == {
+        "today_available": today,
+        "tomorrow_available": tomorrow,
+        "available_through": through.isoformat() if through else None,
+        "days_remaining": remaining,
+        "warning_days": 7,
+    }
+
+
+def test_a_later_publication_cannot_hide_a_gap():
+    dates = days(3) + days(30, TODAY + timedelta(days=4))
+    result = calculate_coverage(TODAY, (table(dates),), RamadanSettings())
+    assert result.status == "expiring"
+    assert result.available_through == TODAY + timedelta(days=2)
+    assert result.days_remaining == 2
+
+
+def test_consecutive_coverage_crosses_sources_and_calendar_years():
+    start = date(2026, 12, 30)
+    tables = (
+        table(days(2, start)),
+        table(days(10, date(2027, 1, 1)), source_id="annual-2027"),
+    )
+    before = [item.as_dict() for item in tables]
+    result = calculate_coverage(start, tables, RamadanSettings())
+    assert result.status == "covered"
+    assert result.available_through == date(2027, 1, 10)
+    assert result.days_remaining == 11
+    assert [item.as_dict() for item in tables] == before
+
+
+def test_ramadan_dates_extend_coverage_only_when_they_are_active_and_selected():
+    tables = (
+        table([TODAY]),
+        table(days(3), kind="ramadan", source_id="ramadan-2026"),
+    )
+    for settings in (RamadanSettings(), RamadanSettings(mode="off")):
+        result = calculate_coverage(TODAY, tables, settings)
+        assert result.status == "missing_tomorrow"
+    settings = RamadanSettings(
+        confirmed_start=TODAY,
+        confirmed_end=TODAY + timedelta(days=2),
+        source_id="ramadan-2026",
+    )
+    result = calculate_coverage(TODAY, tables, settings)
+    assert result.available_through == TODAY + timedelta(days=2)
+    assert result.days_remaining == 2
+    shifted = RamadanSettings(
+        confirmed_start=TODAY,
+        confirmed_end=TODAY + timedelta(days=2),
+        date_adjustment=3,
+    )
+    assert calculate_coverage(TODAY, tables, shifted).status == "missing_tomorrow"
+    selected_other = RamadanSettings(mode="on", source_id="another-source")
+    assert calculate_coverage(TODAY, tables, selected_other).status == "missing_tomorrow"
+    assert calculate_coverage(TODAY, tables, RamadanSettings(mode="on")).days_remaining == 2
+
+
+def test_rows_without_any_published_fields_do_not_supply_coverage():
+    empty = Timetable("annual-2026", "annual", (DailyPrayers(TODAY, {}, {}),))
+    assert calculate_coverage(TODAY, (empty,), RamadanSettings()).status == "missing_today"
+
+
+def test_calendar_end_does_not_overflow():
+    result = calculate_coverage(date.max, (table([date.max]),), RamadanSettings())
+    assert result.status == "missing_tomorrow"
+    assert result.available_through == date.max
+    assert result.days_remaining == 0
+
+
+def coverage_state(hass, key="example"):
+    entity_id = er.async_get(hass).async_get_entity_id(
+        "sensor", DOMAIN, f"{key}_coverage_status"
+    )
+    assert entity_id is not None
+    result = hass.states.get(entity_id)
+    assert result is not None
+    return result
+
+
+async def test_empty_setup_exposes_a_stable_diagnostic(hass, entry, freezer):
+    freezer.move_to("2026-10-21T12:00:00+00:00")
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    state = coverage_state(hass)
+    assert state.state == "not_configured"
+    assert state.attributes["today_available"] is False
+    assert state.attributes["available_through"] is None
+    registry_entry = er.async_get(hass).async_get(state.entity_id)
+    assert registry_entry.entity_category.value == "diagnostic"
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert coverage_state(hass).entity_id == state.entity_id
+
+
+async def test_pending_replacement_does_not_extend_approved_coverage(hass, entry, freezer):
+    freezer.move_to("2026-10-21T12:00:00+00:00")
+    storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
+    await storage.async_replace((table([TODAY]),))
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert coverage_state(hass).state == "missing_tomorrow"
+    coordinator = entry.runtime_data
+    proposal = CsvParser().parse(
+        b"Date,Fajr Begin\n2026-10-21,06:00\n2026-10-22,06:01\n",
+        timetable_id="annual-2026",
+        kind="annual",
+        year=2026,
+        date_column="Date",
+        columns={"Fajr Begin": "fajr_begin"},
+    )
+    stage_id = await coordinator.storage.async_stage(proposal)
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert coverage_state(hass).state == "missing_tomorrow"
+    assert coverage_state(hass).attributes["available_through"] == "2026-10-21"
+    await coordinator.storage.async_approve(stage_id)
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    result = coverage_state(hass)
+    assert result.state == "expiring"
+    assert result.attributes["days_remaining"] == 1
+    assert result.attributes["available_through"] == "2026-10-22"
+    assert coordinator.storage.timetables == (proposal.timetable,)
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert coverage_state(hass).attributes["available_through"] == "2026-10-22"
+
+
+async def test_coverage_rolls_at_mosque_midnight_without_per_minute_state_writes(
+    hass, populated, freezer
+):
+    freezer.move_to("2026-10-21T22:58:00+00:00")
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    previous = coverage_state(hass)
+    assert previous.state == "expiring"
+    freezer.tick(60)
+    await populated.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert coverage_state(hass) is previous
+    freezer.move_to("2026-10-21T23:00:00+00:00")
+    async_fire_time_changed(hass, datetime(2026, 10, 21, 23, tzinfo=timezone.utc))
+    await hass.async_block_till_done()
+    result = coverage_state(hass)
+    assert result.state == "missing_tomorrow"
+    assert result.attributes["today_available"] is True
+    assert result.attributes["tomorrow_available"] is False
+    assert result.attributes["available_through"] == "2026-10-22"
+    assert result.attributes["days_remaining"] == 0
+
+
+async def test_ramadan_options_reload_updates_coverage(hass, entry, freezer):
+    freezer.move_to("2026-10-21T12:00:00+00:00")
+    storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
+    await storage.async_replace(
+        (table(days(3), kind="ramadan", source_id="ramadan-2026"),)
+    )
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert coverage_state(hass).state == "missing_today"
+    hass.config_entries.async_update_entry(entry, options={"ramadan_mode": "on"})
+    await hass.async_block_till_done()
+    assert coverage_state(hass).state == "expiring"
+    assert coverage_state(hass).attributes["days_remaining"] == 2

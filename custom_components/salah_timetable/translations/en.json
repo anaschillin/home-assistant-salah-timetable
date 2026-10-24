@@ -209,6 +209,16 @@
           "error": "Check failed"
         }
       },
+      "coverage_status": {
+        "name": "Timetable coverage",
+        "state": {
+          "not_configured": "No approved timetable",
+          "missing_today": "Today's timetable missing",
+          "missing_tomorrow": "Tomorrow's timetable missing",
+          "expiring": "Timetable running out",
+          "covered": "Covered"
+        }
+      },
       "next_salah": {
         "name": "Next Salah beginning"
       },

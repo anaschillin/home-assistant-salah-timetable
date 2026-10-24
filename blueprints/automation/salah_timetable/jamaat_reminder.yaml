@@ -1,0 +1,53 @@
+blueprint:
+  name: Salah Timetable - Before Jamaat reminder
+  description: >-
+    Run your chosen actions before the next published congregation, including
+    successive Friday congregations. Select the Next Jamaat timestamp entity.
+    Use a negative offset, such as -10 for ten minutes before. The next event
+    must be known before its reminder time; missed reminders are not replayed.
+  domain: automation
+  source_url: https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/jamaat_reminder.yaml
+  homeassistant:
+    min_version: 2026.10.0
+  input:
+    next_jamaat:
+      name: Next Jamaat sensor
+      selector:
+        entity:
+          filter:
+            integration: salah_timetable
+            domain: sensor
+            device_class: timestamp
+    offset:
+      name: Reminder offset (minutes)
+      description: Use a negative number, such as -10 for ten minutes before Jamaat.
+      default: -10
+      selector:
+        number:
+          min: -180
+          max: -1
+          step: 1
+          mode: box
+          unit_of_measurement: min
+    reminder_actions:
+      name: Reminder actions
+      description: Choose a notification, light or other action. The prayer and scheduled_time variables are available.
+      selector:
+        action:
+
+triggers:
+  - trigger: time
+    at:
+      entity_id: !input next_jamaat
+      offset:
+        minutes: !input offset
+
+variables:
+  next_jamaat: !input next_jamaat
+  prayer: "{{ state_attr(next_jamaat, 'prayer') }}"
+  scheduled_time: "{{ states(next_jamaat) }}"
+
+actions: !input reminder_actions
+
+mode: queued
+max: 10

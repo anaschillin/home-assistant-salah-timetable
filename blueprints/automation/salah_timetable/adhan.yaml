@@ -1,0 +1,77 @@
+blueprint:
+  name: Salah Timetable - Adhan playback
+  description: >-
+    Play a recording at selected published prayer beginnings. Select the daily
+    Beginning timestamp entities from Salah Timetable, not Next Salah or Jamaat
+    entities. Missing or past timestamps do not trigger playback. The recording
+    must be accessible to the selected media players.
+  domain: automation
+  source_url: https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/adhan.yaml
+  homeassistant:
+    min_version: 2026.10.0
+  input:
+    prayer_sensors:
+      name: Prayer beginning sensors
+      description: Select the daily Fajr, Dhuhr, Asr, Maghrib or Isha Beginning entities.
+      selector:
+        entity:
+          multiple: true
+          filter:
+            integration: salah_timetable
+            domain: sensor
+            device_class: timestamp
+    media_players:
+      name: Media players
+      selector:
+        entity:
+          multiple: true
+          filter:
+            domain: media_player
+    adhan_media:
+      name: Adhan recording
+      description: Choose media available to your speakers, such as a recording in local media.
+      selector:
+        media:
+    set_volume:
+      name: Set playback volume
+      description: When enabled, the selected volume remains set after playback.
+      default: false
+      selector:
+        boolean:
+    volume:
+      name: Playback volume
+      default: 0.5
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.05
+          mode: slider
+
+triggers:
+  - trigger: time
+    at: !input prayer_sensors
+
+variables:
+  adhan_media: !input adhan_media
+  set_volume: !input set_volume
+
+actions:
+  - if:
+      - condition: template
+        value_template: "{{ set_volume }}"
+    then:
+      - action: media_player.volume_set
+        target:
+          entity_id: !input media_players
+        data:
+          volume_level: !input volume
+  - action: media_player.play_media
+    target:
+      entity_id: !input media_players
+    data:
+      media_content_id: "{{ adhan_media.media_content_id }}"
+      media_content_type: "{{ adhan_media.media_content_type }}"
+
+mode: single
+max_exceeded: silent

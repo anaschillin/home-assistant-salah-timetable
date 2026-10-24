@@ -11,6 +11,26 @@ successful hosted validation for the exact release commit, fresh runtime depende
 installation, authenticated HACS installation, full HA backup restoration and
 physical-device checks.
 
+## Next increments
+
+Milestone 6 remains the release gate for every increment. Feature development can
+continue while an external acceptance check is unavailable, but a passing unit test
+does not complete that check. Milestone numbers do not promise a release version.
+
+| Increment | Deliverable | Dependencies |
+| --- | --- | --- |
+| 7A | Adhan, Jamaat and Sehri automation blueprints | Existing timestamp sensors |
+| 7B | Approved-date coverage monitoring and opt-in health alerts | Effective timetable resolver; 7A's blueprint pattern |
+| 8 | Native prayer calendar | Approved, explicitly dated records and event engine |
+| 9 | Supported-publication source profiles | Existing secure download, parsing and approval flows |
+| 10 | Translations and right-to-left card layout | Stable entity/config keys and current UI |
+| 11 | Minimum/current HA compatibility lanes and scheduled validation | Existing CI and reproducible dependency lock |
+
+Implement 7A and 7B first. Milestone 11 can proceed in parallel; milestones 8 and 9
+can be developed independently once their data contracts are agreed. Each increment
+needs focused tests, user documentation, successful CI for its exact commit and the
+applicable live checks before release.
+
 ## Milestone 1 — foundation (implemented)
 
 HACS layout, manifest, Config Flow and Options Flow, per-mosque device, immutable
@@ -160,3 +180,95 @@ and actual frontend/editor rendering within their recorded scopes. See the
    building is automated; review fixture/asset licensing before publishing.
 5. Submit to the HACS default catalogue only once the complete user workflow is
    verified. The custom-repository installation remains the documented route.
+
+## Milestone 7 — ready-made automations and coverage monitoring (in progress)
+
+### 7A — prayer automation blueprints
+
+Deliver three importable Home Assistant automation forms:
+
+1. Play a user-selected Adhan recording on selected media players at published
+   prayer beginnings. Audio remains selected by the user rather than distributed
+   with the integration.
+2. Run selected reminder actions before the next published Jamaat, including each
+   successive Friday congregation.
+3. Run selected actions before the next Sehri event whose target date is active
+   Ramadan. Use the backend's Next Sehri event rather than today's Ramadan status,
+   so a reminder before midnight ahead of the first fast remains possible.
+
+Acceptance: exercise expanded blueprints with HA's actual automation engine;
+verify selected targets/actions, offset scheduling, unavailable timestamps, changed
+approved times, midnight boundaries, reload without catch-up and independent
+mosques. Document that a trigger must be loaded before its offset instant; daily
+beginning sensors cannot promise reminders before their date becomes available.
+
+### 7B — approved coverage and opt-in alerts
+
+Add a diagnostic Timetable coverage sensor showing no approved timetable, missing
+today, missing tomorrow, approaching expiry or adequate coverage. Count consecutive
+effective approved dates from the mosque-local date, stopping at the first gap.
+An intentionally unpublished prayer field does not make the entire date missing.
+Pending proposals never extend approved coverage. Warn when seven or fewer future
+dates remain, and expose the final consecutive date and remaining-day count.
+
+Provide a fourth blueprint that runs user-selected actions when coverage enters a
+warning state or an import first becomes pending review. It must avoid repeated
+notifications from ordinary timestamp/status-attribute updates and startup state
+restoration. Alerts never approve an import or alter stored records.
+
+Acceptance: cover internal date gaps, expired/empty imports, December/January,
+mosque-local midnight, Ramadan overrides and activation windows, approval/rejection,
+two mosques and alert recovery/re-entry. Verify partial daily records stay partial
+and invalid source settings still preserve the last approved data.
+
+## Milestone 8 — native prayer calendar (planned)
+
+Expose a calendar per mosque built from approved, explicitly dated effective
+records. Publish beginning and Jamaat as distinct scheduled events, including all
+Friday congregations and active-Ramadan Sehri/Iftar. Query only the requested date
+range; omit absent values and pending proposals. Reuse the existing timezone and
+Ramadan rules without inventing a prayer duration.
+
+Acceptance: stable event identifiers across reload and UI-language changes;
+bounded range queries; DST, leap-day and year boundaries; every Friday congregation;
+missing dates/fields; changed approvals; and correct HA calendar-trigger behavior.
+Add calendar-based automation examples after those semantics pass.
+
+## Milestone 9 — supported-publication source profiles (planned)
+
+Offer a curated profile picker that prefills known layout, timezone and mapping
+defaults for an inspected publication. Identify the exact supported edition and
+require an explicit year. Include a URL only after its public HTTPS source has
+been verified; a profile may support manual upload instead. Users can inspect or
+edit defaults before following the existing preview/approve/reject flow.
+
+Acceptance: versioned profile IDs, exact-edition fixtures, predictable updates to
+saved profiles, clear unsupported-edition errors, manual-import fallback, unchanged
+HTTPS/redirect restrictions and no automatic activation of changed source data.
+
+## Milestone 10 — localization and right-to-left layouts (planned)
+
+Translate integration forms/entities and bundled card/editor labels, starting with
+Arabic and additional languages with reviewed translations. Provide English
+fallback and right-to-left layout support. Stored field names, blueprint inputs,
+unique IDs and event identifiers remain stable when the UI language changes.
+
+Acceptance: translation-key completeness, fallback behavior, readable long labels,
+RTL keyboard/focus order, both time formats, mosque-timezone dates and narrow
+layouts at 200% text scale. Record real-device acceptance separately from browser
+emulation and add translated setup guidance as it becomes available.
+
+## Milestone 11 — compatibility and scheduled validation (planned)
+
+Add separate tests for the declared minimum HA version and the supported locked
+version, plus a weekly scheduled compatibility run. Make each job report and verify
+the HA/Python versions actually installed. Keep compatibility environments separate
+from the reproducible development/release lock, and retain required native Chrome,
+hassfest, HACS and exact-release-commit checks.
+
+Acceptance: both supported lanes exercise configuration, storage migration,
+imports, entities and resource registration; version assertions prevent accidentally
+testing the same HA release twice. Upstream failures produce actionable logs.
+Review support and dependency changes before promoting a newer version into the
+release gate. Introduce type checking and additional lint rules in focused follow-up
+changes once the existing modules have an agreed baseline.

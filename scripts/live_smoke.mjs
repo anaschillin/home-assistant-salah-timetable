@@ -172,7 +172,7 @@ try {
   await until(() => state("fajr_beginning"), value => value?.state === `${today}T06:00:00+00:00`, "Approved Fajr missing");
   let states = await request("/api/states");
   const ids = states.filter(item => item.entity_id.startsWith("sensor.smoke_mosque_")).map(item => item.entity_id).sort();
-  assert.equal(ids.length, 25); report.checks.push("mosque_config_flow", "authenticated_csv_upload_mapping_review_approval", "25_sensors");
+  assert.equal(ids.length, 26); report.checks.push("mosque_config_flow", "authenticated_csv_upload_mapping_review_approval", "26_sensors");
   let ws = await websocket();
   const version = JSON.parse(await readFile(join(root, "custom_components/salah_timetable/manifest.json"), "utf8")).version;
   const cardUrl = `/salah_timetable/salah-timetable-card.js?v=${version}`;

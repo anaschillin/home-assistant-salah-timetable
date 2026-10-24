@@ -1,0 +1,70 @@
+blueprint:
+  name: Salah Timetable - Timetable health alert
+  description: >-
+    Run your chosen actions when timetable coverage enters a missing or expiring
+    state, or a new import becomes pending review. Select the coverage and Source
+    status sensors for the same mosque. Existing warnings when the automation is
+    enabled and recovery from unavailable are not replayed; unchanged warnings do
+    not repeat on each coordinator refresh.
+  domain: automation
+  source_url: https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/timetable_health_alert.yaml
+  homeassistant:
+    min_version: 2026.10.0
+  input:
+    coverage_sensor:
+      name: Timetable coverage sensor
+      selector:
+        entity:
+          filter:
+            integration: salah_timetable
+            domain: sensor
+            device_class: enum
+    source_status_sensor:
+      name: Source status sensor
+      selector:
+        entity:
+          filter:
+            integration: salah_timetable
+            domain: sensor
+            device_class: enum
+    alert_actions:
+      name: Alert actions
+      description: >-
+        Choose a notification or other action. Variables alert_kind,
+        days_remaining, available_through and pending_review are available.
+      selector:
+        action:
+
+triggers:
+  - trigger: state
+    entity_id: !input coverage_sensor
+    to:
+      - missing_today
+      - missing_tomorrow
+      - expiring
+    id: coverage
+  - trigger: state
+    entity_id: !input source_status_sensor
+    attribute: pending_review
+    to: true
+    id: pending_review
+
+conditions:
+  - condition: template
+    value_template: >-
+      {{ trigger.from_state is not none
+         and trigger.from_state.state not in ['unknown', 'unavailable']
+         and trigger.to_state.state not in ['unknown', 'unavailable'] }}
+
+variables:
+  coverage_sensor: !input coverage_sensor
+  source_status_sensor: !input source_status_sensor
+  alert_kind: "{{ 'pending_review' if trigger.id == 'pending_review' else trigger.to_state.state }}"
+  days_remaining: "{{ state_attr(coverage_sensor, 'days_remaining') }}"
+  available_through: "{{ state_attr(coverage_sensor, 'available_through') }}"
+  pending_review: "{{ state_attr(source_status_sensor, 'pending_review') }}"
+
+actions: !input alert_actions
+
+mode: queued
+max: 10
