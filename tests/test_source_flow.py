@@ -311,9 +311,7 @@ async def test_monthly_upload_detects_pdf_and_stores_partial_annual_kind(
 ):
     await setup_mosque(hass, entry)
     result = await open_step(hass, entry, "import_pdf")
-    file_id, _ = await upload_pdf(
-        hass, source_upload_client, PDF_FIXTURE.read_bytes()
-    )
+    file_id, _ = await upload_pdf(hass, source_upload_client, PDF_FIXTURE.read_bytes())
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"file": file_id, "kind": "monthly", "year": 2026},
@@ -365,7 +363,10 @@ async def test_url_auto_detection_persists_concrete_parser_for_future_checks(
         },
     )
     assert result["step_id"] == "review"
-    assert entry.runtime_data.storage.remote_sources["annual-2026"].parser_id == "pdf_table_v1"
+    assert (
+        entry.runtime_data.storage.remote_sources["annual-2026"].parser_id
+        == "pdf_table_v1"
+    )
     await approve(hass, result)
     source = entry.runtime_data.storage.remote_sources["annual-2026"]
     assert source.kind == "annual"
