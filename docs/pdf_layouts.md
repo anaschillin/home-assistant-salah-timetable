@@ -10,7 +10,14 @@ The advanced layout dropdown permits an explicit override for a known edition.
 There is no OCR, fuzzy layout guessing or fallback to calculated prayer times.
 
 **Monthly** describes normal partial coverage and remains internal `annual`
-kind (with only published dates present). **Ramadan** creates a separate
+kind (with only published dates present). Unlike an ordinary `annual-YEAR`
+import, monthly PDFs use a unique source ID for their **exact first/last
+published dates**, e.g. `annual-2026-monthly-0101-0131`. This permits
+nonoverlapping months to coexist while retaining each original PDF's provenance.
+Reimporting the *same* span replaces that source; overlapping source dates
+are rejected, rather than silently deleting earlier rows. A previously
+configured monthly **URL update** cannot silently move into a different
+date span; import the new period separately. **Ramadan** creates a separate
 override source; its effective dates must still be confirmed explicitly.
 A PDF containing annual tables **and** a separate Ramadan page (Zakariyya)
 is handled according to the chosen import type and never activates both.
