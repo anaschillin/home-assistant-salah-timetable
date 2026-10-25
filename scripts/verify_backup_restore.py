@@ -49,10 +49,7 @@ def snapshot(config: Path) -> dict[str, Any]:
     entry_ids = set(entries)
     registry = _data(config, "core.entity_registry")
     for item in registry["entities"]:
-        if item.get("config_entry_id") in entry_ids or (
-            item.get("platform") == DOMAIN
-            and item.get("config_entry_id") in entry_ids
-        ):
+        if item.get("config_entry_id") in entry_ids:
             key = item["entity_id"]
             if key in result["entities"]:
                 raise ValueError("Duplicate entity in registry")
