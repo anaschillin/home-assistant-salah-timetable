@@ -5,6 +5,22 @@ and re-add** steps below are performed on a disposable Home Assistant instance
 and their results are recorded. HACS repository validation is *not* proof of
 install/uninstall UI behaviour.
 
+## Reported HACS remove/reinstall outcome — 25 October 2026
+
+**User-confirmed:** Removing and reinstalling the integration worked correctly
+in the user's installation. This is positive manual feedback covering the
+observed **removal/reinstallation outcome**; it is not merely the HACS
+repository-validation result.
+
+**Evidence details not yet recorded:** whether removal/reinstall was carried
+out specifically through the HACS UI, HA/HACS/integration versions, browser,
+a disposable installation, two independent mosque entries, preservation of
+the unaffected mosque, deleted entry storage and registry cleanup, resource
+uniqueness, and repeat-restart behavior. Do **not** infer passes for those
+checks from a general report that reinstall works. The complete acceptance
+sequence below remains the criterion for closing REV-06. Record the exact
+environment and checks when known.
+
 ## Automated preflight
 
 The live Home Assistant smoke matrix uses the actual integration and registry,
