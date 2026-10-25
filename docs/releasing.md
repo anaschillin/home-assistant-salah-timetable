@@ -26,7 +26,7 @@ in the current release gate unless they uncover a blocking regression.
 | REV-04 asset redistribution | [PR #9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9) merged; [asset inventory](asset-provenance.json) and [rights review](asset-provenance.md) available | **Blocking:** obtain documented rights for contributed PDFs/derived oracles, icon and screenshots, or replace with rights-cleared originals and assess public Git history; `python scripts/check_asset_provenance.py --require-cleared` must pass |
 | REV-05 full HAOS restore | [PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11) merged; real **Home Assistant Container** backup archive creation and isolated restore passed on Core 2026.10.0 and 2026.10.3 | **Blocking:** restore an actual *full HAOS/Supervisor* backup into a **second disposable HAOS instance**, verify entry/entity IDs, approved versus pending source data, Ramadan options, dashboard resources, Repairs and a second restart; record redacted evidence using the [restore procedure](backup-restore-acceptance.md) |
 | REV-06 HACS removal/re-addition | [PR #10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10) merged; real HA Container two-mosque isolation, config-entry removal/re-addition and frontend resource checks passed | **Blocking:** run *HACS UI* uninstall/reinstallation on disposable HA with two mosques and verify card/resource/device cleanup and recovery; record evidence per the [HACS acceptance guide](hacs-removal-acceptance.md) |
-| Required hosted validation | [Main Validate run 40194784544](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40194784544) succeeded for `12f6ae52e249ed2a4ba6d80b17989b0c5e781753`: **873 Python tests**, Ruff, frontend/browser, HACS, hassfest and both live HA versions | **Passed for that commit only;** run/review required CI again on the precise candidate release commit |
+| Required hosted validation | [Main Validate run 40195818111](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111) passed **all six jobs**, including **873 Python tests**, for `f962fdbd1f9ecf6d27c30eda94c432d7552bfba3` on **attempt 2**; first attempt had an intermittent calendar end-trigger failure ([issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)) | **Passed for that commit only;** investigate the timing failure and review fresh required CI on the exact future release commit |
 | Manual release acceptance | See [the UI/runtime checks below](#manual-home-assistant-and-hacs-acceptance) and [validation log](validation.md) | **Still requires recorded results** for every applicable real-world/UI scenario; a passing automated workflow is not a substitute |
 | Version, packaging and publication | Build/release scripts and draft workflow exist | **Pending:** match manifest/project/card/cache versions, changelog and notes; review existing tag, successful CI and prepared draft before publishing |
 
@@ -105,7 +105,13 @@ Require the validation workflow to pass on the exact commit being released:
 The isolated Chromium harness uses stand-in Home Assistant controls. Its result
 cannot replace a check of real HA selectors, card discovery or resource loading.
 Review the workflow results on GitHub, rather than assuming local checks establish
-hosted validation. Preserve the artifact checksum with the reviewed release notes.
+hosted validation. One calendar end-trigger timing test failed on the first attempt
+of [run 40195818111](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111)
+before the unchanged commit passed on attempt 2. Its root cause is unknown;
+[issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+tracks investigation. Review recurrence and release impact before sign-off; do not
+claim a green rerun alone resolved the underlying cause. Preserve the artifact
+checksum with the reviewed release notes.
 
 ## Manual Home Assistant and HACS acceptance
 
