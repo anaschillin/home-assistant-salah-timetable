@@ -227,6 +227,18 @@ try {
   report.checks.push("two_mosques_independent_removal");
   flow = await stage(entry, days, "06:11");
   if (options.verifyBackupRestore) {
+    // HA registries are persisted asynchronously; require the full source
+    // snapshot on disk before creating and comparing a real backup archive.
+    await until(
+      () => command("docker", ["exec", container, "python", "-c",
+        "from pathlib import Path; p=Path('/config/.storage'); "
+        + "required=['core.config_entries','core.entity_registry','core.device_registry',"
+        + JSON.stringify(`salah_timetable.${entry}`) + "]; "
+        + "print('ready' if all((p/n).is_file() for n in required) else 'pending')"]),
+      value => value === "ready",
+      "Home Assistant registries and timetable were not persisted before backup",
+      120,
+    );
     // backup.create is Home Assistant's real Container backup action. Exercise
     // official extraction in a *different* throwaway configuration volume.
     await request("/api/services/backup/create", {});
