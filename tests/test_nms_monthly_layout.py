@@ -205,7 +205,7 @@ def test_unknown_extra_footer_or_duplicate_heading_is_not_ignored(pages):
 
 def test_canonical_headers_are_distinct_and_no_taraweeh_is_fabricated(pages):
     rows = list(csv.DictReader(io.StringIO(NmsMonthlyLayout().to_csv(pages))))
-    assert len(rows[0]) == 31
+    assert len(rows[0]) == 32
     assert "Taraweeh" not in rows[0]
     assert set(NMS_MONTHLY_COLUMNS.values()) == {
         field.value for field in PrayerField
