@@ -8,7 +8,8 @@
         "data": {
           "name": "Mosque name",
           "mosque_id": "Stable mosque ID",
-          "time_zone": "Mosque timezone (for example Europe/London)"
+          "time_zone": "Mosque timezone (for example Europe/London)",
+          "show_hijri_date": "Show full calculated Hijri date on dashboards"
         }
       }
     },
@@ -40,7 +41,8 @@
       "settings": {
         "title": "Mosque settings",
         "data": {
-          "time_zone": "Mosque timezone"
+          "time_zone": "Mosque timezone",
+          "show_hijri_date": "Show full calculated Hijri date on dashboards"
         }
       },
       "import_csv": {
