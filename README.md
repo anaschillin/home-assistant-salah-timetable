@@ -156,8 +156,14 @@ its end; pending proposals never extend it. See [setup and behavior](docs/automa
 
 Configured URL sources are checked daily, with persisted check times used to catch
 up after restarts. **Configure → Check URL sources now** runs a manual check.
-The **Source status** diagnostic sensor reports configured/up-to-date/pending/error
-state and safe timestamps/counts. Failed downloads or parses preserve approved data.
+The **Source status** diagnostic sensor distinguishes `configured` (not yet
+verified), `up_to_date` (published bytes match the approved URL source),
+`pending_review`, `rejected_version` (the latest validated publication was
+explicitly rejected), `differs_from_approved` (validated published bytes have
+no matching approval), and `error`. For multiple URL sources it prioritizes
+pending review, errors, rejected content, unapproved differences, and unverified
+sources over `up_to_date`. It exposes only safe timestamps/counts, never URLs,
+checksums or source data. Failed downloads or parses preserve approved data.
 
 Checks use ETag/Last-Modified when a valid seen-file baseline exists, and compare
 SHA-256 bytes. Changed, valid content is staged, never auto-activated. A pending

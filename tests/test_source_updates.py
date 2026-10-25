@@ -100,8 +100,167 @@ async def test_rejected_unchanged_content_is_not_restaged(manager):
         await manager.async_check_all()
     assert manager.storage.staged is None
     assert manager.storage.timetables == ()
+    assert manager.status["status"] == "rejected_version"
+    check = manager.storage.remote_checks[source().source_id]
+    assert check["status"] == "unchanged"
+    assert check["rejected_sha256"] == sha256(CSV).hexdigest()
+
+
+async def test_approved_source_is_up_to_date_only_for_matching_publication(manager):
+    assert manager.status["status"] == "configured"
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=response()),
+    ):
+        await manager.async_check_all()
+    assert manager.status["status"] == "pending_review"
+    await manager.storage.async_approve(manager.storage.staged.stage_id)
     assert manager.status["status"] == "up_to_date"
-    assert manager.storage.remote_checks[source().source_id]["status"] == "unchanged"
+    assert manager.storage.remote_checks[source().source_id]["rejected_sha256"] is None
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=DownloadResult(None, "csv", '"v1"', None, None, True)),
+    ):
+        await manager.async_check_all()
+    assert manager.status["status"] == "up_to_date"
+
+
+async def test_unapproved_successful_check_never_claims_up_to_date(manager):
+    await manager.storage.async_record_check(
+        source().source_id,
+        {
+            "status": "unchanged",
+            "last_seen_sha256": sha256(CSV).hexdigest(),
+            "last_success": "2026-10-21T12:00:00+00:00",
+        },
+    )
+    assert manager.status["status"] == "differs_from_approved"
+    assert set(manager.status) == {
+        "status",
+        "configured_sources",
+        "pending_review",
+        "error_count",
+        "last_checked",
+        "last_success",
+    }
+    assert "example.com" not in repr(manager.status)
+    assert sha256(CSV).hexdigest() not in repr(manager.status)
+
+
+async def test_rejected_http_304_survives_restart_without_reprompt(manager):
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=response()),
+    ):
+        await manager.async_check_all()
+    await manager.storage.async_reject(manager.storage.staged.stage_id)
+
+    restored = TimetableStorage(
+        manager.hass, manager.entry.entry_id, ZoneInfo("Europe/London")
+    )
+    await restored.async_load()
+    restarted = SourceUpdateManager(manager.hass, manager.entry, restored, MagicMock())
+    assert restarted.status["status"] == "rejected_version"
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=DownloadResult(None, "csv", '"v1"', None, None, True)),
+    ) as fetch:
+        await restarted.async_check_all()
+    fetch.assert_awaited_once_with(
+        source().url, media_type="csv", etag='"v1"', last_modified=None
+    )
+    assert restarted.storage.staged is None
+    assert restarted.status["status"] == "rejected_version"
+    assert (
+        restarted.storage.remote_checks[source().source_id]["rejected_sha256"]
+        == sha256(CSV).hexdigest()
+    )
+
+
+async def test_legacy_rejected_check_is_upgraded_on_unchanged_check(manager):
+    digest = sha256(CSV).hexdigest()
+    await manager.storage.async_record_check(
+        source().source_id,
+        {
+            "status": "rejected",
+            "last_seen_sha256": digest,
+            "last_success": "2026-10-21T12:00:00+00:00",
+            "etag": '"v1"',
+        },
+    )
+    assert manager.status["status"] == "rejected_version"
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=DownloadResult(None, "csv", '"v1"', None, None, True)),
+    ):
+        await manager.async_check_all()
+    check = manager.storage.remote_checks[source().source_id]
+    assert check["status"] == "unchanged"
+    assert check["rejected_sha256"] == digest
+    assert manager.status["status"] == "rejected_version"
+
+
+async def test_rejected_change_retains_approval_and_stages_only_new_digest(manager):
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=response()),
+    ):
+        await manager.async_check_all()
+    await manager.storage.async_approve(manager.storage.staged.stage_id)
+    previous = manager.storage.timetables
+
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=response(UPDATED, '"v2"')),
+    ):
+        await manager.async_check_all()
+    assert manager.status["status"] == "pending_review"
+    await manager.storage.async_reject(manager.storage.staged.stage_id)
+    assert manager.status["status"] == "rejected_version"
+    assert manager.storage.timetables == previous
+
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=response(UPDATED, '"v2"')),
+    ):
+        await manager.async_check_all()
+    assert manager.storage.staged is None
+    assert manager.status["status"] == "rejected_version"
+
+    changed = b"Date,Fajr Begin\n2026-10-21,06:05\n"
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=response(changed, '"v3"')),
+    ):
+        await manager.async_check_all()
+    assert manager.status["status"] == "pending_review"
+    assert manager.storage.remote_checks[source().source_id]["rejected_sha256"] is None
+    assert manager.storage.timetables == previous
+    await manager.storage.async_approve(manager.storage.staged.stage_id)
+    assert manager.status["status"] == "up_to_date"
+    assert manager.storage.remote_checks[source().source_id]["rejected_sha256"] is None
+
+
+async def test_source_error_has_precedence_over_last_rejection(manager):
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=response()),
+    ):
+        await manager.async_check_all()
+    await manager.storage.async_reject(manager.storage.staged.stage_id)
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(side_effect=DownloadError("request_failed", "safe")),
+    ):
+        await manager.async_check_all()
+    assert manager.status["status"] == "error"
+    assert manager.storage.remote_checks[source().source_id]["rejected_sha256"]
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=response()),
+    ):
+        await manager.async_check_all()
+    assert manager.status["status"] == "rejected_version"
 
 
 async def test_not_modified_uses_only_saved_validators(manager):

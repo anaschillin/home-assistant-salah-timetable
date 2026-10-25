@@ -142,7 +142,15 @@ extracted canonical text and mapping remain distinct. Config entry options do no
 contain raw files. Candidate/profile/check writes stay atomic and off the event loop.
 
 The diagnostic source-status entity uses safe aggregate state; explicit notifications
-refresh it even when daily prayer data has not changed. `diagnostics.py` exports only
+refresh it even when daily prayer data has not changed. The latest validated
+checksum (`last_seen_sha256`), explicitly rejected checksum
+(`rejected_sha256`), approved candidate checksum, and last successful check
+are distinct. `up_to_date` requires identical validated and approved bytes
+for the same configured URL; a successful check alone does not imply approval.
+The rejected checksum survives unchanged/HTTP 304 checks (including restarts)
+and is cleared on a new staged version or approval. Existing schema-3 checks
+without a separate rejection digest stay readable; an existing `rejected`
+state is upgraded on the next unchanged check. `diagnostics.py` exports only
 allowlisted counts, kinds, years and error codes, never config-entry identity, source
 URLs, HTTP validators, imported rows or original content. Logs use fixed error codes.
 

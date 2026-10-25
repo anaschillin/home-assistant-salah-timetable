@@ -353,6 +353,7 @@ class TimetableStorage:
                         "last_checked": now,
                         "last_success": now,
                         "last_seen_sha256": candidate.sha256,
+                        "rejected_sha256": None,
                         "etag": candidate.etag,
                         "last_modified": candidate.last_modified,
                         "error_code": None,
@@ -445,7 +446,13 @@ class TimetableStorage:
         source = self.remote_sources.get(source_id)
         if source is not None and candidate.source_url == source.url:
             checks[source_id] = validate_check(
-                {**checks.get(source_id, {}), "status": status}
+                {
+                    **checks.get(source_id, {}),
+                    "status": status,
+                    "rejected_sha256": candidate.sha256
+                    if status == "rejected"
+                    else None,
+                }
             )
         return MappingProxyType(checks)
 

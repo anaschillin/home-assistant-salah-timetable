@@ -1,6 +1,6 @@
 # Code review follow-up action plan — 25 October 2026
 
-**Status:** Open; follow-up work not started by this document.
+**Status:** Active; REV-01 and REV-02 merged, REV-03 implemented for review.
 **Review baseline:** [`main` at `737b636`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/737b636dfc5ce934625dec0afc6eb5291ee43091) (candidate 0.7.0).
 **Purpose:** A durable, prioritized backlog from the 25 October repository review. This supplements [remaining work](remaining-work.md), [validation evidence](validation.md), and the [release checklist](releasing.md); it does not replace the feature [milestones](milestones.md).
 
@@ -10,16 +10,16 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 
 | ID | Priority | State | Action | Target |
 | --- | --- | --- | --- | --- |
-| REV-01 | P1 | [ ] In review ([PR #7](https://github.com/anaschillin/home-assistant-salah-timetable/pull/7)) | Resolve zero-duration calendar event compatibility | Before next public release |
-| REV-02 | P1 | [ ] In review ([PR #6](https://github.com/anaschillin/home-assistant-salah-timetable/pull/6)) | Ensure coordinator boundary timer is stopped on unload/reload | Before next public release |
-| REV-03 | P2 | [ ] Open | Make rejected-source status distinguishable from approved/up-to-date data | Before next public release |
+| REV-01 | P1 | [x] Merged ([PR #7](https://github.com/anaschillin/home-assistant-salah-timetable/pull/7), [`bbf4f1d`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/bbf4f1dddae4578dd9f00d8aee0d9526c9eab0bf)) | Resolve zero-duration calendar event compatibility | Before next public release |
+| REV-02 | P1 | [x] Merged ([PR #6](https://github.com/anaschillin/home-assistant-salah-timetable/pull/6), [`b175f89`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b175f89c8dea466103e4b654cd5e98c89b0c674e)) | Ensure coordinator boundary timer is stopped on unload/reload | Before next public release |
+| REV-03 | P2 | [ ] In review (`fix/rev-03-source-update-status`) | Make rejected-source status distinguishable from approved/up-to-date data | Before next public release |
 | REV-04 | P2 | [ ] Open | Verify redistribution rights of fixtures and branding | Release gate |
 | REV-05 | P2 | [ ] Open | Restore a full Home Assistant backup archive in a disposable instance | Release gate |
 | REV-06 | P2 | [ ] Open | Verify HACS removal/re-addition and multi-mosque isolation | Release gate |
 | REV-07 | P3 | [ ] Open | Expand version/upgrade compatibility evidence | Follow-up |
 | REV-08 | P3 | [ ] Open | Track localization/RTL and import change-diff usability | Subsequent milestones |
 
-**Implementation tracking (25 October):** REV-01 is proposed in draft PR #7 and REV-02 in PR #6. Both require green checks and review before their checkboxes can be closed. A merged PR should replace its in-review state with the actual merge commit and validation run.
+**Implementation tracking (25 October):** REV-02 was squash-merged as [`b175f89`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b175f89c8dea466103e4b654cd5e98c89b0c674e) and REV-01 as [`bbf4f1d`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/bbf4f1dddae4578dd9f00d8aee0d9526c9eab0bf); maintainer confirms both CI suites passed. REV-03 is proposed on a separate review branch; do not close it until CI and merge are complete.
 
 ## REV-01 — CalendarEvent start/end semantics
 
@@ -28,12 +28,12 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 **Risk:** Zero-length events have no active interval. UI rendering, calendar integrations, overlapping range queries and start/end-trigger semantics may be inconsistent even if current API smoke tests succeed. Prayer/Jamaat times themselves must remain exact instants—an event's display interval must not be presented as a religious or congregational duration.
 
 **Tasks**
-- [ ] Confirm the precise `CalendarEvent` invariants and consumer behaviour on supported HA versions.
-- [ ] Choose and document an explicit *calendar presentation interval* (e.g. 60 seconds), or a standards-compatible alternative. Do not infer prayer duration.
-- [ ] Update `_day_events()` and affected calendar descriptions/docs.
-- [ ] Audit `calendar_events()` for the Home Assistant range contract (overlap with the requested interval, not only start-within-range), including midnight boundaries and next-day indexing.
-- [ ] Recheck `PrayerCalendar.event` transitions and calendar start/end automation triggers.
-- [ ] Replace zero-length assertions with regression tests covering multiple Jumu'ah slots, precise start timestamps, DST, midnight and interval overlap.
+- [x] Confirm the precise `CalendarEvent` invariants and consumer behaviour on supported HA versions.
+- [x] Choose and document an explicit *calendar presentation interval* (e.g. 60 seconds), or a standards-compatible alternative. Do not infer prayer duration.
+- [x] Update `_day_events()` and affected calendar descriptions/docs.
+- [x] Audit `calendar_events()` for the Home Assistant range contract (overlap with the requested interval, not only start-within-range), including midnight boundaries and next-day indexing.
+- [x] Recheck `PrayerCalendar.event` transitions and calendar start/end automation triggers.
+- [x] Replace zero-length assertions with regression tests covering multiple Jumu'ah slots, precise start timestamps, DST, midnight and interval overlap.
 
 **Done when:** Calendar UI/API and start triggers work on the minimum/current supported Core versions, no published start time shifts, and the chosen representation is documented.
 
@@ -44,10 +44,10 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 **Risk / hypothesis to verify:** A callback registered independently of platform update listeners may survive unload and keep refreshing an obsolete coordinator after a reload.
 
 **Tasks**
-- [ ] Add a failing integration regression test: populate a schedule, unload, advance time across a boundary, and confirm the old coordinator does not refresh or reschedule.
-- [ ] On a successful unload, stop both the source-update manager and coordinator; preserve failure semantics when unloading platforms fails.
-- [ ] Check teardown on partial setup failure and repeated reloads; ensure no duplicate scheduled callbacks remain.
-- [ ] Verify normal boundary-based state changes still occur exactly once after reloading.
+- [x] Add a failing integration regression test: populate a schedule, unload, advance time across a boundary, and confirm the old coordinator does not refresh or reschedule.
+- [x] On a successful unload, stop both the source-update manager and coordinator; preserve failure semantics when unloading platforms fails.
+- [x] Check teardown on partial setup failure and repeated reloads; ensure no duplicate scheduled callbacks remain.
+- [x] Verify normal boundary-based state changes still occur exactly once after reloading.
 
 **Done when:** No stale timer is left after unload or reload, with tested cleanup on supported Core versions.
 
