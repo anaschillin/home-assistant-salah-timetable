@@ -100,12 +100,17 @@ it automatically. Profiles accept manual PDF uploads only because no current pub
 HTTPS source has been verified for them. Use ordinary import for other supported
 source defaults. See the [profile catalogue](docs/pdf_layouts.md#publication-setup-profiles).
 
-Each source is identified by kind and year (for example `annual-2026`). An approved
-import **replaces that entire source**, not just the uploaded dates. The preview
-reports the existing row count and canonical differences before replacement. A
-partial replacement can remove previously available dates; check **every page**
-of changes and coverage before approving. Other years remain
-stored, so next year's timetable can be imported in advance and selected by date.
+Annual and Ramadan sources use kind/year identities (such as `annual-2026`).
+When **Monthly** is selected in ordinary PDF/URL import, the source instead has
+a **distinct identity per exact published date span** (such as
+`annual-2026-monthly-0101-0131`); January and February then coexist without
+one upload deleting the other. Re-importing the same span replaces that source
+only. Overlapping ordinary annual dates are rejected, never guessed/merged.
+If an existing monthly URL starts serving a different date span, its scheduled
+update fails safely; import the new period as a separate source and retire the
+old URL check as appropriate. Other years remain stored, so next year's
+timetable can be imported in advance and selected by date. Every approval
+still replaces its **own** source: review the complete date/field comparison.
 A mosque must be successfully loaded to import; settings remain accessible if setup
 fails.
 
