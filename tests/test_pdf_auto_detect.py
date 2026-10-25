@@ -25,9 +25,7 @@ FIXTURES = Path(__file__).parent / "fixtures" / "pdf"
         ("sample_table.pdf", "ramadan", "pdf_table_v1"),
     ],
 )
-def test_detects_supported_pdf_and_retains_concrete_layout(
-    file, import_type, layout
-):
+def test_detects_supported_pdf_and_retains_concrete_layout(file, import_type, layout):
     content = (FIXTURES / file).read_bytes()
     parser = PdfParser(layout_id="auto", import_type=import_type)
     with patch.object(
