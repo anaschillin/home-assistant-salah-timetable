@@ -73,7 +73,6 @@ def published_second_khutbah(note: str) -> str | None:
     return f"{int(hour) % 12 + (12 if meridiem == 'pm' else 0):02d}:{minute}"
 
 
-
 def _compact_header(value: str) -> str:
     value = value.replace("’", "'").replace("Sun-\nrise", "Sunrise")
     return re.sub(r"\s+", "", value)
@@ -188,8 +187,7 @@ class NmsLayout:
                     "NMS table columns differ from the supported layout"
                 )
             notes = [
-                published_second_khutbah(line)
-                for line in lines[row_indices[-1] + 1 :]
+                published_second_khutbah(line) for line in lines[row_indices[-1] + 1 :]
             ]
             khutbah = next((note for note in notes if note is not None), "")
             prior: dict[int, int] = {}
@@ -229,8 +227,14 @@ class NmsLayout:
                 # Preserve physical-column ditto before splitting its canonical fields.
                 midday = ["", clocks[9]] if day.weekday() == 4 else [clocks[9], ""]
                 normalized = [*clocks[:9], *midday, *clocks[10:], clocks[11]]
-                writer.writerow([
-                    day.isoformat(), *normalized, *raw, weekday, hijri,
-                    khutbah if day.weekday() == 4 else "",
-                ])
+                writer.writerow(
+                    [
+                        day.isoformat(),
+                        *normalized,
+                        *raw,
+                        weekday,
+                        hijri,
+                        khutbah if day.weekday() == 4 else "",
+                    ]
+                )
         return output.getvalue()
