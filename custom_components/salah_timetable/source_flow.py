@@ -56,7 +56,8 @@ def source_fields(year, *, url=False):
     fields = {
         vol.Required("kind", default="annual"): selector.SelectSelector(
             selector.SelectSelectorConfig(
-                options=["annual", "monthly", "ramadan"], translation_key="timetable_kind"
+                options=["annual", "monthly", "ramadan"],
+                translation_key="timetable_kind",
             )
         ),
         vol.Required("year", default=year): selector.NumberSelector(
@@ -333,9 +334,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 self._download_result = result
                 self._source_format = user_input["media_type"]
                 self._parser_id = (
-                    parser.layout_id
-                    if self._source_format == "pdf"
-                    else "csv_v1"
+                    parser.layout_id if self._source_format == "pdf" else "csv_v1"
                 )
                 return await self.async_step_map_columns()
         return self.async_show_form(
