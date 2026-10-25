@@ -70,17 +70,26 @@ assertions; both were corrected. One Chromium-startup timeout occurred on a
 later branch attempt, and its failed job passed on rerun. The final
 **merged-main** run succeeded without those errors.
 
-**In development, not yet release-accepted:** [PR
+**Dashboard enhancement evidence (not release sign-off):** [PR
 #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16)
 adds a Fajr end display using the explicitly published Sunrise, NMS annual
-and monthly **second khutbah** footer extraction as Friday-only metadata, and
-a full calculated Hijri date visibility option at initial mosque setup and
-in later Options settings. The published Fajr, Dhuhr, Jumu’ah and Jamaat
-timestamps are unchanged; khutbah is **not** inserted into the event engine.
-The user-facing dashboard card retains its independent per-card hide switch.
-Final exact-commit CI, real PDF/source display, mobile/tablet and restart
-acceptance evidence must be recorded **after** checks actually pass. This
-paragraph records implementation scope, **not a completed acceptance gate**.
+and monthly **second khutbah** footer extraction as Friday-only metadata,
+and a full calculated Hijri date visibility option at initial mosque setup
+and in later Options settings. The published Fajr, Dhuhr, Jumu’ah and
+Jamaat timestamps are unchanged; khutbah is **not** inserted into the event
+engine. The user-facing card retains its independent per-card hide switch.
+
+The [PR validation run **40212080948**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212080948)
+succeeded for source commit `ed6733cc03a9c354dba6f233e37431140c8eda30`:
+**884 Python tests passed**, frontend Chromium, HACS, hassfest and disposable
+live HA 2026.10.0/2026.10.3 all passed. Early branch iterations caught
+Python formatting, browser DOM selection and the new NMS fixture's CSV
+header/column-count mismatches. These were corrected and not silently
+dismissed. Manual real-publication display, physical-device/editor/RTL
+and restart acceptance remain **unverified** and must be recorded against
+the final release candidate. The live matrix does not establish full HAOS
+restore or HACS UI uninstall/reinstallation. The exact merge commit will
+receive a separate `main` CI run.
 
 **Previously user-confirmed acceptance:** Physical-device checks and HACS
 custom-repository installation, restart and updates were reported complete
