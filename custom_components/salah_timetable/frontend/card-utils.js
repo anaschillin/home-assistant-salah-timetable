@@ -56,7 +56,7 @@ export function normalizeConfig(config) {
   if (!MODES.includes(mode)) throw new Error("Choose context, previous or upcoming Jamaat mode");
   if (config.entity && (typeof config.entity !== "string" || !/^sensor\.[a-z0-9_]+$/.test(config.entity))) throw new Error("Choose a timetable sensor");
   if (config.title !== undefined && (typeof config.title !== "string" || config.title.length > 100)) throw new Error("Title must be at most 100 characters");
-  const defaults = {layout: "expanded", time_format: "24h", hijri_adjustment: 0, show_hijri_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true};
+  const defaults = {layout: "expanded", time_format: "24h", hijri_adjustment: 0, show_hijri_date: true, show_gregorian_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true};
   const result = {...defaults, ...config};
   if (!["expanded", "compact"].includes(result.layout)) throw new Error("Choose compact or expanded layout");
   if (!["12h", "24h"].includes(result.time_format)) throw new Error("Choose 12h or 24h time format");
