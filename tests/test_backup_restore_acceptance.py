@@ -51,9 +51,7 @@ def make_disposable(config, *, changed=False):
     if changed:
         files[f"salah_timetable.{entry_id}"]["staged"] = None
     for name, data in files.items():
-        (storage / name).write_text(
-            json.dumps({"version": 1, "data": deepcopy(data)})
-        )
+        (storage / name).write_text(json.dumps({"version": 1, "data": deepcopy(data)}))
 
 
 def test_restored_backup_preserves_entry_ids_provenance_and_pending(tmp_path):
