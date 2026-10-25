@@ -37,6 +37,7 @@ CHECK_FIELDS = frozenset(
         "last_checked",
         "last_success",
         "last_seen_sha256",
+        "rejected_sha256",
         "etag",
         "last_modified",
         "error_code",
@@ -172,11 +173,12 @@ def validate_check(data: Mapping[str, Any]) -> Mapping[str, Any]:
                 raise ImportValidationError(
                     "Source check timestamp must have a timezone"
                 )
-    digest = result.get("last_seen_sha256")
-    if digest is not None and (
-        not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest)
-    ):
-        raise ImportValidationError("Invalid source check digest")
+    for field in ("last_seen_sha256", "rejected_sha256"):
+        digest = result.get(field)
+        if digest is not None and (
+            not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest)
+        ):
+            raise ImportValidationError("Invalid source check digest")
     for key in ("etag", "last_modified"):
         if key in result:
             validate_validator(result[key])
