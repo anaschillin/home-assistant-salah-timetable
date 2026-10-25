@@ -9,7 +9,7 @@ from homeassistant.helpers import selector
 from homeassistant.util import dt as dt_util
 
 from .download import DownloadError, async_download, validate_url
-from .import_flow import CsvImportOptionsFlow, _safe_text
+from .import_flow import PDF_LAYOUT_LABELS, CsvImportOptionsFlow, _safe_text
 from .import_model import MAX_PDF_BYTES, ImportValidationError
 from .pdf_parser import PdfParser
 from .publication_profiles import PROFILES, publication_profile
@@ -36,7 +36,7 @@ def _year(value) -> int:
     return int(value)
 
 
-def read_uploaded_pdf(hass, file_id, layout_id):
+def read_uploaded_pdf(hass, file_id, _layout_id):
     """Consume the one-use upload; the caller validates/detects its PDF type."""
     from homeassistant.components.file_upload import process_uploaded_file
 
@@ -251,11 +251,20 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 {"profile_id": profile.profile_id, "year": profile.year}
             )
         result = await super().async_step_map_columns(user_input)
-        if profile is not None and result.get("step_id") == "map_columns":
+        if result.get("step_id") == "map_columns":
             placeholders = result["description_placeholders"]
-            placeholders["detail"] = (
-                profile.summary + "\n\n" + placeholders.get("detail", "")
-            )
+            parser = getattr(self, "_parser", None)
+            if isinstance(parser, PdfParser):
+                detected = PDF_LAYOUT_LABELS.get(parser.layout_id, "Unknown PDF layout")
+                placeholders["detail"] = (
+                    f"Recognized PDF: **{detected}**. Confirm the printed year, "
+                    "date coverage and mapped columns before approval.\n\n"
+                    + placeholders.get("detail", "")
+                )
+            if profile is not None:
+                placeholders["detail"] = (
+                    profile.summary + "\n\n" + placeholders.get("detail", "")
+                )
         return result
 
     def _review_source_context(self, candidate, coordinator):
