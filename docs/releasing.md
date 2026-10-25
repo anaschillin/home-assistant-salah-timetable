@@ -26,7 +26,7 @@ in the current release gate unless they uncover a blocking regression.
 | REV-04 asset redistribution | [PR #9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9) merged; [asset inventory](asset-provenance.json) and [rights review](asset-provenance.md) available | **Blocking:** obtain documented rights for contributed PDFs/derived oracles, icon and screenshots, or replace with rights-cleared originals and assess public Git history; `python scripts/check_asset_provenance.py --require-cleared` must pass |
 | REV-05 full HAOS restore | [PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11) merged; real **Home Assistant Container** backup archive creation and isolated restore passed on Core 2026.10.0 and 2026.10.3 | **Blocking:** restore an actual *full HAOS/Supervisor* backup into a **second disposable HAOS instance**, verify entry/entity IDs, approved versus pending source data, Ramadan options, dashboard resources, Repairs and a second restart; record redacted evidence using the [restore procedure](backup-restore-acceptance.md) |
 | REV-06 HACS removal/re-addition | [PR #10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10) merged; real HA Container two-mosque isolation, config-entry removal/re-addition and frontend resource checks passed | **Blocking:** run *HACS UI* uninstall/reinstallation on disposable HA with two mosques and verify card/resource/device cleanup and recovery; record evidence per the [HACS acceptance guide](hacs-removal-acceptance.md) |
-| Required hosted validation | [Main Validate run 40195818111](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111) passed **all six jobs**, including **873 Python tests**, for `f962fdbd1f9ecf6d27c30eda94c432d7552bfba3` on **attempt 2**; first attempt had an intermittent calendar end-trigger failure ([issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)) | **Passed for that commit only;** investigate the timing failure and review fresh required CI on the exact future release commit |
+| Required hosted validation | [Main Validate run 40208986292](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292) passed **all six jobs**, including **880 Python tests**, on main commit `e48463d53417909809ff30c1708127d9917f1786` (Milestone 17). Earlier intermittent calendar end-trigger failure remains tracked in [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13) | **Passed for that commit only;** candidate dashboard changes in [PR #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16) require their **own green exact-commit CI** and live/manual acceptance before release |
 | Manual release acceptance | See [the UI/runtime checks below](#manual-home-assistant-and-hacs-acceptance) and [validation log](validation.md) | **Still requires recorded results** for every applicable real-world/UI scenario; a passing automated workflow is not a substitute |
 | Version, packaging and publication | Build/release scripts and draft workflow exist | **Pending:** match manifest/project/card/cache versions, changelog and notes; review existing tag, successful CI and prepared draft before publishing |
 
@@ -150,12 +150,23 @@ where possible. Record the HA/integration versions and browser/device used.
   storage-resource and YAML-resource dashboard modes without editing YAML.
 - Check compact/expanded layouts, individual countdown/detail switches, both time
   formats and calculated Hijri adjustment without altering Ramadan activation.
-  Verify emphasis through the final congregation and independent progress bars.
+  Enable and disable the **full Hijri date** during initial mosque setup and later
+  under **Configure → Mosque settings**; verify the per-card toggle can also hide
+  it, older entries default to visible, and preferences persist after restart.
+  On a published-source day, verify **Fajr ends at Sunrise** in the correct mosque
+  timezone (unavailable if the source omits Sunrise). On an NMS Friday, verify
+  the separately published **second khutbah** displays **only** as a note and
+  does not alter Dhuhr beginning or Jumu’ah Jamaat; compare an ordinary weekday
+  and a timetable without a recognized footer. Verify emphasis through the final
+  congregation and independent progress bars.
 - Check narrow mobile and tablet displays, light/dark themes, text zoom, keyboard
   access, unavailable data and a disconnected browser. Confirm ticking countdowns
   do not cause per-second sensor writes.
-- Exercise URL failure and changed-content staging. Confirm last approved times
-  remain available and a changed file requires approval. Restore the test backup
+- Exercise URL failure and changed-content staging. Review **all pages** of
+  Milestone 17's date/field comparison, including removed dates, multiple
+  Jumu’ah values and unchanged canonical values; return to review and explicitly
+  approve/reject. Confirm last approved times remain available and a changed
+  file requires approval. Restore the test backup
   and verify recoverability before documenting a recovery procedure.
 - Restore a complete HA backup archive into a clean test configuration. Verify
   config entries, registries, entity IDs, approved/pending imports and Ramadan
