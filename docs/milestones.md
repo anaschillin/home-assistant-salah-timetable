@@ -15,6 +15,10 @@ were subsequently squash-merged; their
 [post-merge main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119)
 passed all six jobs and **884 Python tests** on
 `c8e65bd01250af0b892782c0e1ef04b99072e37a` (first attempt).
+The subsequent 0.8.0 [main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40229412033)
+passed all six jobs and **936 tests**. The 0.8.1
+[feature-branch run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40242996936)
+passed all six jobs and **955 Python tests** (source `888e4cd`).
 Publication still requires final release-commit CI and manual acceptance.
 The earlier [calendar-trigger flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
 remains open despite passing on rerun.
