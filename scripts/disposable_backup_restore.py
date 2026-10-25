@@ -90,7 +90,29 @@ def compare_with_container(image: str, original: Path, config: Path) -> dict:
             ),
             None,
         )
-        raise ValueError(safe or "Restored configuration audit failed") from None
+        failure_type = next(
+            (
+                name
+                for name in (
+                    "FileNotFoundError",
+                    "KeyError",
+                    "PermissionError",
+                    "TypeError",
+                    "ImportError",
+                    "AttributeError",
+                    "ValueError",
+                    "RuntimeError",
+                )
+                if any(
+                    line.strip().startswith(f"{name}:")
+                    for line in err.stderr.splitlines()
+                )
+            ),
+            "UnknownError",
+        )
+        raise ValueError(
+            safe or f"Restored configuration audit raised {failure_type}"
+        ) from None
     return json.loads(output)
 
 
