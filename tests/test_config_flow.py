@@ -20,6 +20,7 @@ async def test_create_and_duplicate(hass):
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["title"] == "Test Mosque"
     assert result["result"].unique_id == "test"
+    assert result["result"].data["show_hijri_date"] is True
     duplicate = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}, data=data
     )
@@ -56,7 +57,35 @@ async def test_options(hass, entry):
         result["flow_id"], {"time_zone": "Asia/Riyadh"}
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
-    assert entry.options == {"time_zone": "Asia/Riyadh"}
+    assert entry.options == {"time_zone": "Asia/Riyadh", "show_hijri_date": True}
+
+
+async def test_hijri_mosque_setting_at_setup_and_afterwards(hass):
+    initial = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    created = await hass.config_entries.flow.async_configure(
+        initial["flow_id"],
+        {
+            "name": "Friday Mosque",
+            "mosque_id": "friday",
+            "time_zone": "Europe/London",
+            "show_hijri_date": False,
+        },
+    )
+    assert created["type"] == FlowResultType.CREATE_ENTRY
+    entry = created["result"]
+    assert entry.data["show_hijri_date"] is False
+    settings = await hass.config_entries.options.async_init(entry.entry_id)
+    settings = await hass.config_entries.options.async_configure(
+        settings["flow_id"], {"next_step_id": "settings"}
+    )
+    assert settings["step_id"] == "settings"
+    changed = await hass.config_entries.options.async_configure(
+        settings["flow_id"], {"time_zone": "Europe/London", "show_hijri_date": True}
+    )
+    assert changed["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.options["show_hijri_date"] is True
 
 
 async def test_config_flow_creates_loaded_entry_with_sensors(hass):
