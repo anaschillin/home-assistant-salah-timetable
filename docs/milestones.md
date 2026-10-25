@@ -5,14 +5,17 @@ is the single source of truth for release blockers; the
 [remaining-work backlog](remaining-work.md) tracks later feature additions.
 
 Milestones 1–5 are implemented; the current candidate is 0.7.0. Keep follow-up
-work in focused PRs with tests and documentation. After Milestone 17, the
-[merged-main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
-passed all six jobs and **880 Python tests**. The dashboard follow-up's
-[PR run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212080948)
-passed six jobs and **884 tests** on source `ed6733c`; publication still
-requires exact-release-commit CI and manual acceptance. The earlier
-[calendar-trigger flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-remains open despite a green rerun.
+work in focused PRs with tests and documentation. Milestone 17's
+[main Validate run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
+passed all six jobs and **880 Python tests**. Dashboard enhancements in
+[PR #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16)
+were subsequently squash-merged; their
+[post-merge main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119)
+passed all six jobs and **884 Python tests** on
+`c8e65bd01250af0b892782c0e1ef04b99072e37a` (first attempt).
+Publication still requires final release-commit CI and manual acceptance.
+The earlier [calendar-trigger flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+remains open despite passing on rerun.
 Earlier manual-install, dependency and physical-device evidence remains scoped to
 the versions and environments in the [validation record](validation.md).
 **Unfinished release acceptance** still includes asset redistribution rights,
@@ -48,9 +51,12 @@ their completion requires implementation and the stated acceptance evidence.
 
 The **8 → 12 → 13 → 9 → 17** sequence is implemented in candidate 0.7.0;
 exact-commit CI and applicable real-world release acceptance remain required.
-The subsequent dashboard enhancement adds published Fajr end (Sunrise),
-NMS Friday second-khutbah notes and a mosque-wide full-Hijri-date display
-preference (see [dashboard](dashboard.md)). Next pursue **10** (localization/RTL)
+The subsequent **merged** dashboard enhancement adds published Fajr end
+(Sunrise), NMS Friday second-khutbah notes and a mosque-wide full-Hijri-date
+display preference (see [dashboard](dashboard.md)). This addition is
+**implemented, with real-device/source and restart release acceptance pending**.
+REV-08's import-difference portion is fulfilled by Milestone 17, but its
+translation/RTL portion remains pending. Next pursue **10** (localization/RTL)
 with **11** (broader compatibility testing) in parallel; 14–16 follow.
 Milestone numbering does not set release order.
 
