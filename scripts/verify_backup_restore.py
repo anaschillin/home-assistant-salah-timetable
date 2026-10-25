@@ -38,9 +38,11 @@ def snapshot(config: Path) -> dict[str, Any]:
     }
     for entry_id in entries:
         store = _data(config, f"{DOMAIN}.{entry_id}")
-        if not isinstance(store.get("timetables"), list) or not isinstance(
-            store.get("approved_sources"), dict
-        ) or "staged" not in store:
+        if (
+            not isinstance(store.get("timetables"), list)
+            or not isinstance(store.get("approved_sources"), dict)
+            or "staged" not in store
+        ):
             raise ValueError("Invalid timetable store or missing stage")
         result["stores"][entry_id] = store
 
