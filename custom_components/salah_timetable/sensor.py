@@ -94,6 +94,8 @@ class SourceStatusSensor(CoordinatorEntity, SensorEntity):
         "not_configured",
         "configured",
         "up_to_date",
+        "rejected_version",
+        "differs_from_approved",
         "pending_review",
         "error",
     ]
