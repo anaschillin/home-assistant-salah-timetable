@@ -192,6 +192,18 @@ show_hijri_date: true
 hijri_adjustment: 0
 ```
 
+The Fajr row shows **Ends at sunrise** when the timetable publishes a Sunrise
+time. This is not calculated from Fajr or Fajr Jamaat, and stays unavailable when
+Sunrise is missing. Inspected NMS layouts also display the separately printed
+**Second Jumu’ah khutbah** time on Fridays as a note beneath the timetable,
+never as another Jamaat or a changed Dhuhr beginning.
+
+The header includes the **full calculated Umm al-Qura Hijri date** (day, month
+and year). During initial mosque setup, choose whether to show it. You can
+change this later through **Configure → Mosque settings**. The existing
+card-editor **Show calculated Hijri date** switch can hide it on an individual
+card as well. Hijri date calculation/adjustment never activates Ramadan.
+
 The graphical editor produces this configuration. `mode` accepts `context`,
 `previous` or `upcoming`; `title` is optional. The example entity ID must be replaced
 with the selected mosque's actual entity ID.
