@@ -26,6 +26,7 @@ def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
     def stamps(field):
         return row.timestamps(field, zone) if row else ()
 
+    sunrise = stamps(PrayerField.SUNRISE)
     prayers = []
     for key, name, beginning, congregations in PRAYERS:
         begin = stamps(beginning)
@@ -35,9 +36,7 @@ def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
                 "key": key,
                 "name": name,
                 "begin": begin[0].isoformat() if begin else None,
-                "end": (stamps(PrayerField.SUNRISE)[0].isoformat()
-                        if key == "fajr" and stamps(PrayerField.SUNRISE)
-                        else None),
+                "end": sunrise[0].isoformat() if key == "fajr" and sunrise else None,
                 "jamaat": [value.isoformat() for value in jamaat],
             }
         )
@@ -79,11 +78,14 @@ def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
         if published and data.day.weekday() == 4
         else None
     )
-    if not isinstance(khutbah, str) or not re.fullmatch(r"[0-2][0-9]:[0-5][0-9]", khutbah):
+    if (
+        not isinstance(khutbah, str)
+        or not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", khutbah)
+    ):
         khutbah = None
     khutbah_at = (
         datetime.combine(data.day, time.fromisoformat(khutbah), zone).isoformat()
-        if khutbah and int(khutbah[:2]) < 24
+        if khutbah
         else None
     )
     return {
