@@ -5,6 +5,7 @@ are read-only; temporary restored data is automatically removed on exit.
 """
 
 import argparse
+from contextlib import contextmanager
 import json
 import os
 import re
@@ -12,8 +13,6 @@ import subprocess
 import tempfile
 from pathlib import Path
 from uuid import uuid4
-
-from scripts.verify_backup_restore import compare
 
 IMAGE = "ghcr.io/home-assistant/home-assistant:{}"
 
@@ -30,6 +29,54 @@ def run(*args: str) -> str:
     return result.stdout.strip()
 
 
+@contextmanager
+def restored_directory(image: str):
+    """Remove root-owned files with Docker before Python removes the test root."""
+    with tempfile.TemporaryDirectory(prefix="salah-disposable-restore-") as temp:
+        try:
+            yield Path(temp)
+        finally:
+            run(
+                "run",
+                "--rm",
+                "--entrypoint",
+                "python",
+                "--mount",
+                f"type=bind,src={temp},dst=/cleanup",
+                image,
+                "-c",
+                "from pathlib import Path; import shutil; "
+                "p=Path('/cleanup'); "
+                "[(shutil.rmtree(c) if c.is_dir() and not c.is_symlink() "
+                "else c.unlink()) for c in p.iterdir()]",
+            )
+
+
+def compare_with_container(image: str, original: Path, config: Path) -> dict:
+    """Compare both read-only snapshots as root without exporting source secrets."""
+    project = Path(__file__).resolve().parents[1]
+    output = run(
+        "run",
+        "--rm",
+        "--entrypoint",
+        "python",
+        "--mount",
+        f"type=bind,src={original},dst=/before,readonly",
+        "--mount",
+        f"type=bind,src={config},dst=/after,readonly",
+        "--mount",
+        f"type=bind,src={project / 'scripts'},dst=/audit,readonly",
+        image,
+        "-c",
+        "import importlib.util,json; "
+        "spec=importlib.util.spec_from_file_location('audit','/audit/verify_backup_restore.py'); "
+        "m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); "
+        "from pathlib import Path; "
+        "print(json.dumps(m.compare(Path('/before'),Path('/after'))))",
+    )
+    return json.loads(output)
+
+
 def restore(backup: Path, original: Path, version: str, *, serve: bool) -> dict:
     """Use Home Assistant's *own* backup_restore module in a fresh container."""
     if not re.fullmatch(r"20[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}", version):
@@ -40,8 +87,7 @@ def restore(backup: Path, original: Path, version: str, *, serve: bool) -> dict:
         raise ValueError("Expected a real backup .tar and disposable HA config")
     image = IMAGE.format(version)
     # Never copy an archive or original config into the repository or CI artifact.
-    with tempfile.TemporaryDirectory(prefix="salah-disposable-restore-") as tmp:
-        path = Path(tmp)
+    with restored_directory(image) as path:
         config = path / "config"
         config.mkdir(mode=0o700)
         password = os.environ.get("SALAH_TEST_BACKUP_PASSWORD") or None
@@ -73,7 +119,7 @@ def restore(backup: Path, original: Path, version: str, *, serve: bool) -> dict:
         result = json.loads((config / ".HA_RESTORE_RESULT").read_text())
         if result.get("success") is not True:
             raise ValueError("Home Assistant reported a restore failure")
-        counts = compare(original, config)
+        counts = compare_with_container(image, original, config)
         if not serve:
             return counts
         name = f"salah-restored-{uuid4().hex[:10]}"
