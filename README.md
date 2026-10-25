@@ -264,10 +264,12 @@ the bundled card. Next Sehri/Iftar consider active Ramadan dates only. The dashb
 absolute event data; select it in the card editor instead of an individual prayer.
 
 The [calendar](docs/calendar.md) exposes approved dated beginnings and Jamaat as
-separate zero-duration events, including each Jumu’ah congregation and active Ramadan
-events. It supports Home Assistant calendar cards, event queries and start triggers.
-Its next event may use future approved dates beyond tomorrow; it never estimates a
-duration or fills a missing date.
+separate events, including each Jumu’ah congregation and active Ramadan
+events. Every event starts at the published instant and uses a 60-second
+calendar-only display interval (not a prayer duration). It supports Home Assistant
+calendar cards, event queries and start triggers. Its next event may use future
+approved dates beyond tomorrow; it never estimates prayer duration or fills a
+missing date.
 
 Next Salah beginning and next Jamaat are calculated independently. In context mode,
 the card follows the latest published prayer beginning: it shows the next
