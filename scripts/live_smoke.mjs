@@ -237,7 +237,7 @@ try {
       "Official Home Assistant backup archive was not finalized",
       120,
     );
-    assert.match(archiveName, /^[^/]+\\.tar$/, "Unsafe backup archive filename");
+    assert.match(archiveName, /^[^/]+\.tar$/, "Unsafe backup archive filename");
     const archive = join(working, "synthetic-ha-backup.tar");
     await command("docker", ["cp", `${container}:/config/backups/${archiveName}`, archive]);
     const output = await command("python3", [
