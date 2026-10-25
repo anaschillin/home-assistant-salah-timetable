@@ -27,6 +27,7 @@ jobs:
         with:
           version: '0.12.23'
       - run: uv sync --frozen --group dev
+      - run: python scripts/check_asset_provenance.py
       - run: uv run --frozen ruff check .
       - run: uv run --frozen ruff format --check .
       - run: uv run --frozen pytest
