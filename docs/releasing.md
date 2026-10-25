@@ -38,7 +38,7 @@ The [validation log](validation.md) is the evidence record, **not** a second
 checklist. The `--require-cleared` provenance audit deliberately blocks draft
 release preparation while rights remain unresolved; this is not a licence grant
 and must not be bypassed just because a release ZIP excludes the PDF fixtures.
-No GitHub release has been published for candidate 0.8.0 or its 0.7.0 predecessor; successful
+No GitHub release has been published for candidate 0.8.1 or its 0.8.0/0.7.0 predecessors; successful
 PR and main CI runs are implementation evidence, not publication or manual
 release acceptance.
 
