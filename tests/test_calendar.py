@@ -1,6 +1,6 @@
 """Native read-only prayer calendars, API queries and actual calendar triggers."""
 
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -72,7 +72,7 @@ async def approve_tables(hass, entry, tables, zone=LONDON):
     return storage
 
 
-def test_distinct_zero_duration_events_preserve_all_friday_congregations():
+def test_distinct_display_intervals_preserve_all_friday_congregations():
     tables = (
         table(
             row(
@@ -95,7 +95,10 @@ def test_distinct_zero_duration_events_preserve_all_friday_congregations():
         "Jumu’ah Jamaat 2",
         "Jumu’ah Jamaat 3",
     ]
-    assert all(event.start == event.end and not event.all_day for event in events)
+    assert all(
+        event.end - event.start == timedelta(minutes=1) and not event.all_day
+        for event in events
+    )
     assert len({event.uid for event in events}) == 7
     assert all(event.uid for event in events)
     assert len(events) == 7  # Absent Asr/Maghrib/Isha remain absent.
@@ -108,6 +111,43 @@ def test_query_start_inclusive_end_exclusive_and_equivalent_timezone_ranges():
     assert [event.summary for event in first] == ["Fajr beginning"]
     assert first == other
     assert query(tables, "2026-10-24T00:00Z", "2026-10-25T00:00Z") == []
+
+
+
+def test_calendar_queries_include_overlapping_intervals_not_only_starts():
+    tables = (table(row("2026-10-23", fajr_begin=["06:00"])),)
+    assert len(query(tables, "2026-10-23T06:00:30Z", "2026-10-23T06:00:40Z")) == 1
+    assert query(tables, "2026-10-23T06:01:00Z", "2026-10-23T06:02:00Z") == []
+    assert query(tables, "2026-10-23T05:59:00Z", "2026-10-23T06:00:00Z") == []
+
+
+def test_midnight_query_and_next_event_include_previous_days_active_interval():
+    tables = (table(row("2026-10-23", isha_jamaat=["23:59:30"])),)
+    overlap = query(tables, "2026-10-24T00:00:00Z", "2026-10-24T00:00:20Z")
+    assert len(overlap) == 1
+    assert overlap[0].start == instant("2026-10-23T23:59:30Z")
+    assert overlap[0].end == instant("2026-10-24T00:00:30Z")
+    assert query(tables, "2026-10-24T00:00:30Z", "2026-10-24T01:00:00Z") == []
+    assert _next_event(
+        "example", tables, RamadanSettings(), UTC, instant("2026-10-24T00:00:15Z")
+    ) == overlap[0]
+    assert (
+        _next_event(
+            "example", tables, RamadanSettings(), UTC, instant("2026-10-24T00:00:30Z")
+        )
+        is None
+    )
+
+
+def test_next_event_remains_current_until_display_interval_ends():
+    tables = (table(row("2026-10-23", fajr_begin=["06:00"], fajr_jamaat=["06:30"])),)
+    for now in ("2026-10-23T06:00:00Z", "2026-10-23T06:00:59Z"):
+        assert _next_event(
+            "example", tables, RamadanSettings(), UTC, instant(now)
+        ).start == instant("2026-10-23T06:00:00Z")
+    assert _next_event(
+        "example", tables, RamadanSettings(), UTC, instant("2026-10-23T06:01:00Z")
+    ).start == instant("2026-10-23T06:30:00Z")
 
 
 @pytest.mark.parametrize(
@@ -157,6 +197,11 @@ def test_timestamp_instants_follow_mosque_dst(day, expected):
     tables = (table(row(day, fajr_begin=["05:00"])),)
     events = query(tables, day + "T00:00Z", day + "T23:00Z", zone=LONDON)
     assert events[0].start.astimezone(timezone.utc).isoformat() == expected
+    assert (
+        events[0].end.astimezone(timezone.utc)
+        - events[0].start.astimezone(timezone.utc)
+        == timedelta(minutes=1)
+    )
 
 
 @pytest.mark.parametrize("day", ["2026-03-29", "2026-10-25"])
@@ -310,7 +355,7 @@ async def test_authenticated_calendar_api_and_reload_preserve_event_ids(
     assert events[0]["start"]["dateTime"] == "2026-10-23T05:00:00+00:00"
     assert instant(events[0]["start"]["dateTime"]) == calendar_entity(hass).event.start
     assert calendar_entity(hass).event.start.isoformat() == "2026-10-23T06:00:00+01:00"
-    assert events[0]["start"] == events[0]["end"]
+    assert events[0]["end"]["dateTime"] == "2026-10-23T05:01:00+00:00"
     uids = [event["uid"] for event in events]
     hass.config.language = "ar"
     assert await hass.config_entries.async_reload(entry.entry_id)
@@ -371,8 +416,13 @@ async def test_calendar_advances_at_sunrise_without_sensor_event_changes(
     await hass.async_block_till_done()
     assert entry.runtime_data.data == before
     state = hass.states.get(entity_id)
-    assert state.state == "off"  # A scheduled instant has no invented duration.
-    assert state.attributes["message"] == "Dhuhr beginning"
+    assert state.state == "on"  # Presentation interval, not prayer duration.
+    assert state.attributes["message"] == "Sunrise"
+    assert calendar_entity(hass).event.start == instant("2026-10-23T06:00Z")
+    freezer.move_to("2026-10-23T06:01:00Z")
+    async_fire_time_changed(hass, instant("2026-10-23T06:01:00Z"))
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == "off"
     assert calendar_entity(hass).event.start == instant("2026-10-23T11:00Z")
 
 
