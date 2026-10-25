@@ -132,7 +132,10 @@ where possible. Record the HA/integration versions and browser/device used.
   Record the installed version and confirm it was not preloaded. A successful
   development `uv sync` or preloaded live run does not complete this check.
 - Exercise URL-first import and manual PDF/CSV upload, graphical column mapping,
-  preview, approval and rejection. Check the supported NMS annual layout against
+  preview, approval and rejection. Test automatic known-PDF recognition and
+  Annual / Monthly / Ramadan choices; verify January and February monthly
+  approvals coexist without deleting earlier dates and that overlapping
+  month sources and changed monthly URL spans fail safely. Check the supported NMS annual layout against
   its publication. Confirm an unsupported PDF fails with a useful message.
 - Exercise the [publication-profile picker](pdf_layouts.md#publication-setup-profiles)
   with a matching inspected PDF and explicit printed year. Check prefilled mappings,
