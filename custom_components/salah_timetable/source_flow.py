@@ -329,6 +329,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 self._headers = headers
                 self._year = year
                 self._kind = canonical_kind(user_input["kind"])
+                self._monthly = user_input["kind"] == "monthly"
                 self._parser = parser
                 self._remote_url = url
                 self._download_result = result
@@ -382,6 +383,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
             else:
                 self._content, self._headers = content, headers
                 self._year, self._kind = year, canonical_kind(user_input["kind"])
+                self._monthly = user_input["kind"] == "monthly"
                 self._parser, self._source_format, self._parser_id = (
                     parser,
                     "pdf",
