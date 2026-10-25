@@ -6,10 +6,6 @@ from unittest.mock import patch
 import pytest
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
-from custom_components.salah_timetable import (
-    async_setup_entry,
-    async_unload_entry,
-)
 
 
 BOUNDARY = datetime.fromisoformat("2026-10-21T04:45:00+00:00")
@@ -61,6 +57,8 @@ async def test_repeated_reloads_leave_only_current_boundary(hass, populated, fre
 async def test_failed_platform_unload_preserves_running_coordinator(
     hass, populated, freezer
 ):
+    from custom_components.salah_timetable import async_unload_entry
+
     freezer.move_to("2026-10-21T04:44:20+00:00")
     assert await hass.config_entries.async_setup(populated.entry_id)
     await hass.async_block_till_done()
@@ -76,6 +74,8 @@ async def test_failed_platform_unload_preserves_running_coordinator(
 
 
 async def test_failed_platform_setup_cleans_up_boundary(hass, populated, freezer):
+    from custom_components.salah_timetable import async_setup_entry
+
     freezer.move_to("2026-10-21T04:44:20+00:00")
 
     with (
