@@ -113,7 +113,6 @@ def test_query_start_inclusive_end_exclusive_and_equivalent_timezone_ranges():
     assert query(tables, "2026-10-24T00:00Z", "2026-10-25T00:00Z") == []
 
 
-
 def test_calendar_queries_include_overlapping_intervals_not_only_starts():
     tables = (table(row("2026-10-23", fajr_begin=["06:00"])),)
     assert len(query(tables, "2026-10-23T06:00:30Z", "2026-10-23T06:00:40Z")) == 1
@@ -128,9 +127,12 @@ def test_midnight_query_and_next_event_include_previous_days_active_interval():
     assert overlap[0].start == instant("2026-10-23T23:59:30Z")
     assert overlap[0].end == instant("2026-10-24T00:00:30Z")
     assert query(tables, "2026-10-24T00:00:30Z", "2026-10-24T01:00:00Z") == []
-    assert _next_event(
-        "example", tables, RamadanSettings(), UTC, instant("2026-10-24T00:00:15Z")
-    ) == overlap[0]
+    assert (
+        _next_event(
+            "example", tables, RamadanSettings(), UTC, instant("2026-10-24T00:00:15Z")
+        )
+        == overlap[0]
+    )
     assert (
         _next_event(
             "example", tables, RamadanSettings(), UTC, instant("2026-10-24T00:00:30Z")
@@ -197,11 +199,9 @@ def test_timestamp_instants_follow_mosque_dst(day, expected):
     tables = (table(row(day, fajr_begin=["05:00"])),)
     events = query(tables, day + "T00:00Z", day + "T23:00Z", zone=LONDON)
     assert events[0].start.astimezone(timezone.utc).isoformat() == expected
-    assert (
-        events[0].end.astimezone(timezone.utc)
-        - events[0].start.astimezone(timezone.utc)
-        == timedelta(minutes=1)
-    )
+    assert events[0].end.astimezone(timezone.utc) - events[0].start.astimezone(
+        timezone.utc
+    ) == timedelta(minutes=1)
 
 
 @pytest.mark.parametrize("day", ["2026-03-29", "2026-10-25"])
