@@ -540,14 +540,14 @@ async def test_calendar_trigger_offset_before_local_midnight_uses_next_date(
     assert events[1].data == {"summary": "Fajr beginning", "phase": "end"}
     assert hass.states.get(calendar_id(hass)).state == "off"
 
-    automation_ids = [
-        state.entity_id for state in hass.states.async_all("automation")
-    ]
+    automation_ids = [state.entity_id for state in hass.states.async_all("automation")]
     await hass.services.async_call(
         "automation", "turn_off", {"entity_id": automation_ids}, blocking=True
     )
     await hass.async_block_till_done()
-    assert all(hass.states.get(entity_id).state == "off" for entity_id in automation_ids)
+    assert all(
+        hass.states.get(entity_id).state == "off" for entity_id in automation_ids
+    )
 
 
 async def test_calendars_keep_mosques_isolated_and_removal_preserves_other(
