@@ -357,9 +357,13 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                             f"annual-{self._year}-monthly-"
                             f"{first:%m%d}-{last:%m%d}"
                         )
-                        candidate = replace(
-                            candidate,
-                            timetable=replace(candidate.timetable, timetable_id=source_id),
+                        candidate = await self.hass.async_add_executor_job(
+                            lambda: replace(
+                                candidate,
+                                timetable=replace(
+                                    candidate.timetable, timetable_id=source_id
+                                ),
+                            )
                         )
                     remote_source = None
                     if self._remote_url is not None:
