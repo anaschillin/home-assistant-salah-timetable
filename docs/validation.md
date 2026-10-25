@@ -85,7 +85,7 @@ succeeded for source commit `ed6733cc03a9c354dba6f233e37431140c8eda30`:
 live HA 2026.10.0/2026.10.3 all passed. Early branch iterations caught
 Python formatting, browser DOM selection and the new NMS fixture's CSV
 header/column-count mismatches. These were corrected and not silently
-dismissed. Manual real-publication display, physical-device/editor/RTL
+dismissed. Manual real-publication display, physical-device/card-editor
 and restart acceptance remain **unverified** and must be recorded against
 the final release candidate. The live matrix does not establish full HAOS
 restore or HACS UI uninstall/reinstallation. The exact merge commit will
