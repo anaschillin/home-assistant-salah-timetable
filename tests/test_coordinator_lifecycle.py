@@ -3,7 +3,6 @@
 from datetime import datetime
 from unittest.mock import patch
 
-import pytest
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 BOUNDARY = datetime.fromisoformat("2026-10-21T04:45:00+00:00")
@@ -74,20 +73,21 @@ async def test_failed_platform_unload_preserves_running_coordinator(
 
 
 async def test_failed_platform_setup_cleans_up_boundary(hass, populated, freezer):
-    from custom_components.salah_timetable import async_setup_entry
-
     freezer.move_to("2026-10-21T04:44:20+00:00")
 
-    with (
-        patch("custom_components.salah_timetable.async_setup_frontend"),
-        patch.object(
-            hass.config_entries,
-            "async_forward_entry_setups",
-            side_effect=RuntimeError("test platform setup failure"),
-        ),
-        pytest.raises(RuntimeError, match="test platform setup failure"),
+    # Drive setup through HA's entry manager: the first refresh requires
+    # SETUP_IN_PROGRESS rather than a direct call on a NOT_LOADED entry.
+    with patch.object(
+        hass.config_entries,
+        "async_forward_entry_setups",
+        side_effect=RuntimeError("test platform setup failure"),
     ):
-        await async_setup_entry(hass, populated)
+        try:
+            result = await hass.config_entries.async_setup(populated.entry_id)
+        except RuntimeError as err:
+            assert str(err) == "test platform setup failure"
+        else:
+            assert result is False
 
     coordinator = populated.runtime_data
     assert coordinator._boundary_unsub is None
