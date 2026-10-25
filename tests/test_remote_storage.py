@@ -93,7 +93,9 @@ async def test_rejection_keeps_seen_digest_and_last_good(hass, entry):
     await current.async_reject(stage)
     restored = await storage(hass, entry)
     assert restored.remote_checks[profile.source_id]["status"] == "rejected"
-    assert restored.remote_checks[profile.source_id]["rejected_sha256"] == candidate.sha256
+    assert (
+        restored.remote_checks[profile.source_id]["rejected_sha256"] == candidate.sha256
+    )
     assert (
         restored.remote_checks[profile.source_id]["last_seen_sha256"]
         == candidate.sha256
