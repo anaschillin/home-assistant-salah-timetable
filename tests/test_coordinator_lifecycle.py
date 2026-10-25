@@ -6,7 +6,10 @@ from unittest.mock import patch
 import pytest
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
-from custom_components.salah_timetable import async_setup_entry, async_unload_entry
+from custom_components.salah_timetable import (
+    async_setup_entry,
+    async_unload_entry,
+)
 
 
 BOUNDARY = datetime.fromisoformat("2026-10-21T04:45:00+00:00")
