@@ -498,9 +498,7 @@ async def test_large_comparison_paginates_without_approving(hass, entry, upload_
     await hass.async_block_till_done()
     content = (
         "Date,Fajr Start,Fajr Jamaat\n"
-        + "".join(
-            f"2026-10-{day:02d},05:45,06:15\n" for day in range(1, 32)
-        )
+        + "".join(f"2026-10-{day:02d},05:45,06:15\n" for day in range(1, 32))
     ).encode()
     result = await stage_upload(hass, entry, upload_client, content)
     store = entry.runtime_data.storage
