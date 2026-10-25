@@ -15,8 +15,11 @@ The next feature increments are specified in the [implementation plan](milestone
 Milestone 7 now has implemented prayer automation blueprints, approved-date coverage
 monitoring and real automation-engine acceptance tests. Milestones 8, 9, 12 and 13
 add native calendar, inspected publication profiles, richer Adhan controls and media
-pause/resume. Candidate 0.8.0 combines Milestone 17's read-only paged canonical
+pause/resume. Candidate 0.8.0 combined Milestone 17's read-only paged canonical
 comparison with original-cell/provenance review and fresh-baseline approval checks.
+Candidate 0.8.1 adds Hijri-first dashboard rendering, independently optional
+Gregorian date and strict automatic known-PDF detection behind user-facing
+Annual / Monthly / Ramadan choices.
 These milestones are implemented, with release acceptance pending. Localization/RTL
 and broader compatibility tests follow separately. Applicable release acceptance
 is tracked in [the release guide](releasing.md), not in this feature backlog.
