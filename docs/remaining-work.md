@@ -57,13 +57,16 @@ sensors plus a calendar, and real card picker/editor toggles. See the
 [historical local validation](validation.md#calendar-publication-profiles-and-media--candidate-070).
 
 Historical local 0.7.0 checks are documented in [validation.md](validation.md).
-The [Milestone 17 main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
-passed six jobs and **880 Python tests**; the subsequent dashboard
-[PR #16 validation](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212080948)
-passed six jobs and **884 tests** on source `ed6733c`. The independent
+Milestone 17's [main Validate run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
+passed six jobs and **880 Python tests**. The subsequent dashboard
+[PR #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16)
+merged, and [post-merge main Validate run
+40212875119](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119)
+passed all six jobs and **884 Python tests on the first attempt** for
+`c8e65bd01250af0b892782c0e1ef04b99072e37a`. The independent
 [calendar-trigger timing flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-remains open despite passing on rerun. A green branch run is not a public
-release sign-off.
+remains open despite passing on rerun. Green main CI is not a public release
+sign-off.
 Hosted acceptance includes automated config-entry removal/re-addition and actual
 Home Assistant **Container** archive restoration. HACS UI uninstall/reinstallation
 and full **HAOS** archive restoration remain unverified release gates.
