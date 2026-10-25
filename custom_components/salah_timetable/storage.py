@@ -449,7 +449,9 @@ class TimetableStorage:
                 {
                     **checks.get(source_id, {}),
                     "status": status,
-                    "rejected_sha256": candidate.sha256 if status == "rejected" else None,
+                    "rejected_sha256": candidate.sha256
+                    if status == "rejected"
+                    else None,
                 }
             )
         return MappingProxyType(checks)
