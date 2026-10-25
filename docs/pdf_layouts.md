@@ -192,10 +192,9 @@ metadata and shown as a separate dashboard note. It is **never** an extra
 congregation event. Fajr's separate **Ends at sunrise** display uses the
 published Sunrise column, not a calculated dawn interval. The calendar's
 printed Hijri days and Ramadan notes remain subject to announcement/moonsighting:
-they do not
-activate Ramadan. There is no published Taraweeh timestamp. On Fridays Dhuhr Jamaat
-is absent while Jumu’ah is present; on other days Jumu’ah is absent. These intentional
-missing fields remain unavailable.
+they do not activate Ramadan. There is no published Taraweeh timestamp.
+On Fridays Dhuhr Jamaat is absent while Jumu’ah is present; on other days
+Jumu’ah is absent. These intentional missing fields remain unavailable.
 
 Original synthetic fixtures (`nms_synthetic_2026.pdf`, its golden CSV, and
 `nms_generate.py`) reflect the identified structure with fictional values. They are
