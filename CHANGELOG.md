@@ -10,7 +10,10 @@
 - Default PDF and HTTPS PDF import to strict automatic recognition of tested
   layouts. The user selects **Annual**, **Monthly** or **Ramadan**; the selected
   type disambiguates ordinary annual tables from a separate Ramadan page.
-  A monthly import remains a partial ordinary annual source internally.
+  A monthly import remains a partial ordinary annual source internally, but
+  has its own date-span identity so subsequent nonoverlapping months do not
+  delete earlier published rows. Monthly URL checks reject a silently
+  changed date span.
 - Fail closed for ambiguous, unsupported or mismatched publications; retain
   an advanced explicit-layout override and show recognized source/dates
   before approval. Persist the concrete detected parser for future URL checks,
