@@ -16,8 +16,8 @@ Milestone 7 now has implemented prayer automation blueprints, approved-date cove
 monitoring and real automation-engine acceptance tests. Candidate 0.7.0 adds
 Milestones 8, 9, 12 and 13: native calendar, inspected publication profiles, richer
 Adhan controls and media pause/resume. Localization/RTL, import change comparisons
-and broader compatibility tests follow separately. Release acceptance below remains
-required for each published increment.
+and broader compatibility tests follow separately. Applicable release acceptance
+is tracked in [the release guide](releasing.md), not in this feature backlog.
 
 ## Release readiness
 
@@ -49,19 +49,20 @@ this feature backlog as a separate release acceptance checklist.
   Their **separate release acceptance gates** remain open in
   [releasing.md](releasing.md#current-release-readiness--25-october-2026).
 
-The live runner is available in `scripts/live_smoke.mjs`. The local 0.7.0 candidate
-passed 24 checks on disposable HA 2026.10.0, including fresh dependency installation,
-calendar/profile checks, approved/pending/Ramadan restart state, 26 sensors plus
-a calendar, real card picker/editor and each display toggle. See the
-[latest validation](validation.md#calendar-publication-profiles-and-media--candidate-070).
+The live runner is available in `scripts/live_smoke.mjs`. An earlier local 0.7.0
+candidate passed 24 checks on disposable HA 2026.10.0, including fresh dependency
+installation, calendar/profile checks, approved/pending/Ramadan restart state, 26
+sensors plus a calendar, and real card picker/editor toggles. See the
+[historical local validation](validation.md#calendar-publication-profiles-and-media--candidate-070).
 
-Historical local 0.7.0 checks and an earlier hosted live run are documented
-in [validation.md](validation.md); they do not replace the latest combined
-[main Validate run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40194784544),
-which passed all six jobs and 873 Python tests after the REV-04–06 tooling merges.
-That run includes automated config-entry removal/re-addition and actual
+Historical local 0.7.0 checks are documented in [validation.md](validation.md).
+The latest recorded [main Validate run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111)
+passed all six jobs and 873 Python tests on **attempt 2**. Attempt 1 encountered
+one calendar-trigger timing failure, now tracked in
+[issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13).
+Hosted acceptance includes automated config-entry removal/re-addition and actual
 Home Assistant **Container** archive restoration. HACS UI uninstall/reinstallation
-and full **HAOS** archive restore are still unverified release gates.
+and full **HAOS** archive restoration remain unverified release gates.
 
 ## Subsequent additions
 
@@ -78,12 +79,12 @@ adapters and independent expected-value comparisons. See [Ramadan validation](ra
    Gregorian year per source. Add further adapters only after obtaining inspectable,
    redistributable fixtures and an independent expected-results comparison. Unknown
    layouts and scanned/encrypted PDFs remain unsupported.
-3. Follow the expanded [Milestones 8–17](milestones.md#next-increments): calendar,
-   richer Adhan controls, pause/resume media, publication profiles, Arabic/bilingual
-   RTL support, broader compatibility tests, calculated night periods, wall-tablet
-   display/announcements, published special events and import change comparisons.
-   Milestones **8, 9, 12 and 13** are implemented in candidate 0.7.0, with release
-   acceptance pending. Next pursue **17** (import change review) and **10**
-   (localization/RTL), with **11** continuing in parallel. Milestones 14–16 follow.
+3. Follow [the feature roadmap](milestones.md#next-increments). Milestones **8,
+   9, 12 and 13** are implemented in candidate 0.7.0 (release acceptance pending).
+   Next pursue **17** (import-change review) and **10** (localization and RTL),
+   with **11** (expanded compatibility and the
+   [calendar-trigger CI follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13))
+   continuing in parallel. Milestones **14–16** (night periods, wall-tablet
+   display and published special events) are subsequent additions.
 4. Consider the HACS default catalogue after the full user workflow and release
    process are established. Custom-repository support is the current route.
