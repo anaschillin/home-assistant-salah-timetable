@@ -260,6 +260,14 @@ class PdfParser:
             columns=columns,
             time_format=time_format,
         )
+        if re.fullmatch(r"annual-[0-9]{4}-monthly-[0-9]{4}-[0-9]{4}", timetable_id):
+            first, last = candidate.coverage.start_date, candidate.coverage.end_date
+            expected = f"annual-{year}-monthly-{first:%m%d}-{last:%m%d}"
+            if timetable_id != expected:
+                raise ImportValidationError(
+                    "This monthly URL source now covers different dates. Import the "
+                    "new period as a separate source so older dates are preserved."
+                )
         return replace(
             candidate,
             source_format="pdf",
