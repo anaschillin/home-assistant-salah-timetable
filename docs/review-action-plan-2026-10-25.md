@@ -10,14 +10,16 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 
 | ID | Priority | State | Action | Target |
 | --- | --- | --- | --- | --- |
-| REV-01 | P1 | [ ] Open | Resolve zero-duration calendar event compatibility | Before next public release |
-| REV-02 | P1 | [ ] Open | Ensure coordinator boundary timer is stopped on unload/reload | Before next public release |
+| REV-01 | P1 | [ ] In review ([PR #7](https://github.com/anaschillin/home-assistant-salah-timetable/pull/7)) | Resolve zero-duration calendar event compatibility | Before next public release |
+| REV-02 | P1 | [ ] In review ([PR #6](https://github.com/anaschillin/home-assistant-salah-timetable/pull/6)) | Ensure coordinator boundary timer is stopped on unload/reload | Before next public release |
 | REV-03 | P2 | [ ] Open | Make rejected-source status distinguishable from approved/up-to-date data | Before next public release |
 | REV-04 | P2 | [ ] Open | Verify redistribution rights of fixtures and branding | Release gate |
 | REV-05 | P2 | [ ] Open | Restore a full Home Assistant backup archive in a disposable instance | Release gate |
 | REV-06 | P2 | [ ] Open | Verify HACS removal/re-addition and multi-mosque isolation | Release gate |
 | REV-07 | P3 | [ ] Open | Expand version/upgrade compatibility evidence | Follow-up |
 | REV-08 | P3 | [ ] Open | Track localization/RTL and import change-diff usability | Subsequent milestones |
+
+**Implementation tracking (25 October):** REV-01 is proposed in draft PR #7 and REV-02 in PR #6. Both require green checks and review before their checkboxes can be closed. A merged PR should replace its in-review state with the actual merge commit and validation run.
 
 ## REV-01 — CalendarEvent start/end semantics
 
