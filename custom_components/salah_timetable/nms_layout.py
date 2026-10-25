@@ -59,14 +59,15 @@ _HEADER = (
 )
 _TABLE_MARKER = "Dates Beginning / End Times Jamaat Times"
 _SECOND_KHUTBAH = re.compile(
-    r"Second Jumu'ah Khutbah will commence at ([1-9]|1[0-2]):([0-5][0-9])(am|pm)"
-    r"(?: in the Masjid Dining Hall)?"
+    r"Second Jumu['’]ah Khutbah will commence at\s+"
+    r"([1-9]|1[0-2]):([0-5][0-9])\s*(am|pm)",
+    re.IGNORECASE,
 )
 
 
 def published_second_khutbah(note: str) -> str | None:
     """Read an explicit publisher note as local HH:MM, not a prayer event."""
-    match = _SECOND_KHUTBAH.fullmatch(note.strip())
+    match = _SECOND_KHUTBAH.search(note.strip())
     if not match:
         return None
     hour, minute, meridiem = match.groups()
@@ -186,10 +187,11 @@ class NmsLayout:
                 raise ImportValidationError(
                     "NMS table columns differ from the supported layout"
                 )
-            notes = [
-                published_second_khutbah(line) for line in lines[row_indices[-1] + 1 :]
-            ]
-            khutbah = next((note for note in notes if note is not None), "")
+            # The text worker can wrap or join PDF footer lines; recognize the
+            # explicit labelled time in footer text, never in dated Jamaat cells.
+            khutbah = published_second_khutbah(
+                " ".join(lines[row_indices[-1] + 1 :])
+            ) or ""
             prior: dict[int, int] = {}
             for expected_day, index in enumerate(row_indices, start=1):
                 match = _ROW_PATTERN.fullmatch(lines[index].strip())
