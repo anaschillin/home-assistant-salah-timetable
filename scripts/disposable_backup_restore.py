@@ -61,18 +61,18 @@ def compare_with_container(image: str, original: Path, config: Path) -> dict:
             "--rm",
             "--entrypoint",
             "python",
-        "--mount",
-        f"type=bind,src={original},dst=/before,readonly",
-        "--mount",
-        f"type=bind,src={config},dst=/after,readonly",
-        "--mount",
-        f"type=bind,src={project / 'scripts'},dst=/audit,readonly",
-        image,
-        "-c",
-        "import importlib.util,json; "
-        "spec=importlib.util.spec_from_file_location('audit','/audit/verify_backup_restore.py'); "
-        "m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); "
-        "from pathlib import Path; "
+            "--mount",
+            f"type=bind,src={original},dst=/before,readonly",
+            "--mount",
+            f"type=bind,src={config},dst=/after,readonly",
+            "--mount",
+            f"type=bind,src={project / 'scripts'},dst=/audit,readonly",
+            image,
+            "-c",
+            "import importlib.util,json; "
+            "spec=importlib.util.spec_from_file_location('audit','/audit/verify_backup_restore.py'); "
+            "m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); "
+            "from pathlib import Path; "
             "print(json.dumps(m.compare(Path('/before'),Path('/after'))))",
         )
     except subprocess.CalledProcessError as err:
