@@ -1,6 +1,6 @@
 # Code review follow-up action plan — 25 October 2026
 
-**Status:** Active; REV-01 and REV-02 merged, REV-03 implemented for review.
+**Status:** Active; REV-01, REV-02 and REV-03 merged. REV-04–06 acceptance hardening in review.
 **Review baseline:** [`main` at `737b636`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/737b636dfc5ce934625dec0afc6eb5291ee43091) (candidate 0.7.0).
 **Purpose:** A durable, prioritized backlog from the 25 October repository review. This supplements [remaining work](remaining-work.md), [validation evidence](validation.md), and the [release checklist](releasing.md); it does not replace the feature [milestones](milestones.md).
 
@@ -12,14 +12,14 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 | --- | --- | --- | --- | --- |
 | REV-01 | P1 | [x] Merged ([PR #7](https://github.com/anaschillin/home-assistant-salah-timetable/pull/7), [`bbf4f1d`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/bbf4f1dddae4578dd9f00d8aee0d9526c9eab0bf)) | Resolve zero-duration calendar event compatibility | Before next public release |
 | REV-02 | P1 | [x] Merged ([PR #6](https://github.com/anaschillin/home-assistant-salah-timetable/pull/6), [`b175f89`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b175f89c8dea466103e4b654cd5e98c89b0c674e)) | Ensure coordinator boundary timer is stopped on unload/reload | Before next public release |
-| REV-03 | P2 | [ ] In review (`fix/rev-03-source-update-status`) | Make rejected-source status distinguishable from approved/up-to-date data | Before next public release |
-| REV-04 | P2 | [ ] Open | Verify redistribution rights of fixtures and branding | Release gate |
-| REV-05 | P2 | [ ] Open | Restore a full Home Assistant backup archive in a disposable instance | Release gate |
-| REV-06 | P2 | [ ] Open | Verify HACS removal/re-addition and multi-mosque isolation | Release gate |
+| REV-03 | P2 | [x] Merged ([PR #8](https://github.com/anaschillin/home-assistant-salah-timetable/pull/8), [`423f4b8`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/423f4b8cf34ec6e6ada054310ed7922efbab2e39)) | Make rejected-source status distinguishable from approved/up-to-date data | Before next public release |
+| REV-04 | P2 | [ ] Rights pending; tooling [PR #9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9) | Verify redistribution rights of fixtures and branding | Release gate |
+| REV-05 | P2 | [ ] Full restore evidence pending; tooling [PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11) | Restore a full Home Assistant backup archive in a disposable instance | Release gate |
+| REV-06 | P2 | [ ] HACS UI evidence pending; automated preflight [PR #10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10) | Verify HACS removal/re-addition and multi-mosque isolation | Release gate |
 | REV-07 | P3 | [ ] Open | Expand version/upgrade compatibility evidence | Follow-up |
 | REV-08 | P3 | [ ] Open | Track localization/RTL and import change-diff usability | Subsequent milestones |
 
-**Implementation tracking (25 October):** REV-02 was squash-merged as [`b175f89`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b175f89c8dea466103e4b654cd5e98c89b0c674e) and REV-01 as [`bbf4f1d`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/bbf4f1dddae4578dd9f00d8aee0d9526c9eab0bf); maintainer confirms both CI suites passed. REV-03 is proposed on a separate review branch; do not close it until CI and merge are complete.
+**Implementation tracking (25 October):** REV-02 was squash-merged as [`b175f89`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b175f89c8dea466103e4b654cd5e98c89b0c674e) and REV-01 as [`bbf4f1d`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/bbf4f1dddae4578dd9f00d8aee0d9526c9eab0bf); maintainer confirms both CI suites passed. REV-03 was squash-merged as [`423f4b8`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/423f4b8cf34ec6e6ada054310ed7922efbab2e39) after green CI. REV-04/05/06 have proposed automation/acceptance tooling; none of the remaining rights, full HAOS restore or HACS UI acceptance gates is yet certified.
 
 ## REV-01 — CalendarEvent start/end semantics
 
@@ -58,10 +58,10 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 **Risk:** Users may read “up to date” as “the current publication has been approved and is active,” whereas it can mean only “the last download was successful.” The existing checksum suppression after a rejection is valuable and should be retained.
 
 **Tasks**
-- [ ] Define separate concepts: source reachable/checked, latest seen digest, approved digest and explicitly rejected digest.
-- [ ] Decide user-visible status wording (e.g. `rejected_version` / `differs_from_approved`), without exposing URLs or source content in public sensors/diagnostics.
-- [ ] Preserve the no-reprompt-until-content-changes rule and all approval safeguards.
-- [ ] Update status sensor translations/documentation and tests for new, unchanged, approved, rejected, pending and failed sources; verify persistence across restart.
+- [x] Define separate concepts: source reachable/checked, latest seen digest, approved digest and explicitly rejected digest.
+- [x] Decide user-visible status wording (e.g. `rejected_version` / `differs_from_approved`), without exposing URLs or source content in public sensors/diagnostics.
+- [x] Preserve the no-reprompt-until-content-changes rule and all approval safeguards.
+- [x] Update status sensor translations/documentation and tests for new, unchanged, approved, rejected, pending and failed sources; verify persistence across restart.
 
 **Done when:** Freshness never implies approval incorrectly, and rejected identical bytes remain suppressed until the published content changes.
 
