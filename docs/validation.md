@@ -11,7 +11,7 @@ and REV-04–06 release-assurance tooling were merged through PRs
 [#10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10)
 and [#11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11).
 
-The final combined [Validate run **40194784544**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40194784544)
+The first combined [Validate run **40194784544**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40194784544)
 for **main commit `12f6ae52e249ed2a4ba6d80b17989b0c5e781753`** completed
 successfully on 25 October 2026:
 
@@ -41,6 +41,21 @@ and executable evidence procedures in
 [HACS lifecycle acceptance](hacs-removal-acceptance.md).
 The strict asset-provenance release check deliberately fails until rights
 are established. No draft or published GitHub release was created.
+
+**Latest merged documentation validation:** [Validate run **40195818111**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111)
+for main commit `f962fdbd1f9ecf6d27c30eda94c432d7552bfba3`
+(doc archive/cleanup [PR #12](https://github.com/anaschillin/home-assistant-salah-timetable/pull/12))
+completed successfully on **attempt 2**, with all six jobs green and **873 Python
+tests passed**. On **attempt 1**, the Python job reported **872 passed,
+1 failed, 1 error**, with the observed failure in
+`tests/test_calendar.py::test_calendar_trigger_offset_before_local_midnight_uses_next_date`:
+the start-offset event fired, but the expected calendar presentation-end event
+was not observed at frozen time `2026-10-23T23:06:00Z` (actual event count 1,
+expected 2). The same source passed without changes on rerun. The cause and
+reproducibility are **not established**, and the pass is not a fix. Investigation
+is open in [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+under Milestone 11. The separate later-documentation and release CI must still
+pass for its own exact commit.
 
 **Previously user-confirmed acceptance:** Physical-device checks and HACS
 custom-repository installation, restart and updates were reported complete
