@@ -50,7 +50,7 @@
         "description": "Upload a UTF-8 CSV, at most 512 KiB, with a header row and ISO dates (YYYY-MM-DD) in the chosen year. Annual imports may be incomplete; missing dates and fields remain unavailable. Ramadan sources override annual data only on confirmed dates or with explicit manual activation.\n\n{detail}",
         "data": {
           "file": "CSV file",
-          "kind": "Timetable kind",
+          "kind": "Timetable type",
           "year": "Year"
         }
       },
@@ -94,23 +94,23 @@
       },
       "import_url": {
         "title": "Add a timetable URL",
-        "description": "Use a public HTTPS PDF or CSV URL. Downloads are validated and staged for review before approval. Select the documented PDF layout and printed year: NMS annual/monthly calendar pages, Zakariyya 2026 annual tables or its separate Ramadan page, or the synthetic sample table. Other layouts are unsupported. For CSV, the PDF layout choice is ignored. Ramadan activation requires separate confirmed dates or explicit manual activation.\n\n{detail}",
+        "description": "Use a public HTTPS PDF or CSV URL. Select Annual, Monthly or Ramadan and the printed Gregorian year; PDF format recognition defaults to Automatic for strictly supported publications (NMS annual/monthly, Zakariyya annual/Ramadan and the synthetic sample). If needed, select an inspected format manually. Monthly imports remain partial ordinary annual timetables; Ramadan only overrides confirmed dates. Unknown/ambiguous formats are rejected; all changes require preview and approval. The PDF choice is ignored for CSV.\n\n{detail}",
         "data": {
           "url": "Public HTTPS timetable URL",
           "media_type": "File type",
-          "kind": "Timetable kind",
+          "kind": "Timetable type",
           "year": "Year",
-          "pdf_layout": "PDF layout"
+          "pdf_layout": "PDF recognition (automatic or manual override)"
         }
       },
       "import_pdf": {
         "title": "Upload a supported PDF",
-        "description": "Upload a text PDF no larger than 4 MiB (at most 16 pages). Select its documented layout and printed year. Use Annual for the NMS or Zakariyya annual calendar; the NMS monthly layout also supports partial calendars. Use Ramadan for the separate Zakariyya Ramadan page. Scanned/encrypted files and unknown layouts are rejected; use CSV instead. Approval stores the source; Ramadan settings control activation.\n\n{detail}",
+        "description": "Upload a text PDF no larger than 4 MiB (at most 16 pages). Choose Annual, Monthly or Ramadan and the printed Gregorian year. The known layout is detected automatically by default; Advanced PDF recognition lets you select a known format manually if necessary. Monthly sources are stored as partial ordinary annual timetables. Ramadan overrides require separate confirmed dates. Unknown, ambiguous, scanned or encrypted publications are rejected rather than guessed. Review the detected format and dates before approval.\n\n{detail}",
         "data": {
           "file": "PDF file",
-          "kind": "Timetable kind",
+          "kind": "Timetable type",
           "year": "Year",
-          "pdf_layout": "PDF layout"
+          "pdf_layout": "PDF recognition (automatic or manual override)"
         }
       },
       "check_updates": {
@@ -288,6 +288,7 @@
     "timetable_kind": {
       "options": {
         "annual": "Annual",
+        "monthly": "Monthly",
         "ramadan": "Ramadan"
       }
     },
@@ -313,6 +314,7 @@
     },
     "pdf_layout": {
       "options": {
+        "auto": "Automatic — detect known PDF format",
         "pdf_table_v1": "Sample pipe-delimited text table (v1)",
         "nms_annual_v1": "Nuneaton Muslim Society annual calendar (v1)",
         "nms_monthly_v1": "Nuneaton Muslim Society monthly calendar pages (v1)",
