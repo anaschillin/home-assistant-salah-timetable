@@ -16,7 +16,9 @@ async def test_unload_cancels_old_coordinator_boundary(hass, populated, freezer)
     old = populated.runtime_data
     assert old._boundary_unsub is not None
 
-    with patch.object(old, "_async_update_data", wraps=old._async_update_data) as update:
+    with patch.object(
+        old, "_async_update_data", wraps=old._async_update_data
+    ) as update:
         assert await hass.config_entries.async_unload(populated.entry_id)
         assert old._boundary_unsub is None
 
