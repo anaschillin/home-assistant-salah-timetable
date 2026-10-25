@@ -59,8 +59,7 @@ def _full_row(row: DailyPrayers) -> tuple[str, ...]:
 def compare_timetables(proposed: Timetable, approved: Timetable | None) -> ImportDiff:
     """Compare only the exact replaced source, not effective/mixed year values."""
     if approved is not None and (
-        proposed.timetable_id != approved.timetable_id
-        or proposed.kind != approved.kind
+        proposed.timetable_id != approved.timetable_id or proposed.kind != approved.kind
     ):
         raise ValueError("Cannot compare different timetable source identities")
 
@@ -132,12 +131,13 @@ def render_diff_page(diff: ImportDiff, page: int) -> str:
     """A small explicit-values page: no source URLs or untrusted original tokens."""
     if not 0 <= page < diff.page_count:
         raise ValueError("Invalid comparison page")
-    lines = [diff_overview(diff), f"**Comparison page {page + 1} of {diff.page_count}**"]
+    lines = [
+        diff_overview(diff),
+        f"**Comparison page {page + 1} of {diff.page_count}**",
+    ]
     if not diff.changes:
         lines.append("No canonical date or field changes to display.")
-    for change in diff.changes[
-        page * DIFF_PAGE_SIZE : (page + 1) * DIFF_PAGE_SIZE
-    ]:
+    for change in diff.changes[page * DIFF_PAGE_SIZE : (page + 1) * DIFF_PAGE_SIZE]:
         day = change.day.isoformat()
         if change.kind == "date_added":
             lines.append(f"- **+ {day} (date added):** {'; '.join(change.after)}")
