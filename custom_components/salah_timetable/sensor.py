@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .model import PrayerField
+from .const import CONF_SHOW_HIJRI_DATE
 from .presentation import dashboard_attributes
 
 DESCRIPTIONS = tuple(
@@ -230,6 +231,7 @@ class DashboardSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{entry.unique_id}_dashboard"
         self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry.unique_id)})
         self.mosque_name = entry.title
+        self.entry = entry
 
     @property
     def native_value(self):
@@ -238,5 +240,11 @@ class DashboardSensor(CoordinatorEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         return dashboard_attributes(
-            self.coordinator.data, self.coordinator.zone, self.mosque_name
+            self.coordinator.data,
+            self.coordinator.zone,
+            self.mosque_name,
+            show_hijri_date=self.entry.options.get(
+                CONF_SHOW_HIJRI_DATE,
+                self.entry.data.get(CONF_SHOW_HIJRI_DATE, True),
+            ),
         )
