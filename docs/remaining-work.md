@@ -57,10 +57,13 @@ sensors plus a calendar, and real card picker/editor toggles. See the
 [historical local validation](validation.md#calendar-publication-profiles-and-media--candidate-070).
 
 Historical local 0.7.0 checks are documented in [validation.md](validation.md).
-The most recent validated [main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
-passed all six jobs and **880 Python tests** after Milestone 17. An earlier
+The [Milestone 17 main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
+passed six jobs and **880 Python tests**; the subsequent dashboard
+[PR #16 validation](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212080948)
+passed six jobs and **884 tests** on source `ed6733c`. The independent
 [calendar-trigger timing flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-remains under investigation despite passing on rerun.
+remains open despite passing on rerun. A green branch run is not a public
+release sign-off.
 Hosted acceptance includes automated config-entry removal/re-addition and actual
 Home Assistant **Container** archive restoration. HACS UI uninstall/reinstallation
 and full **HAOS** archive restoration remain unverified release gates.
