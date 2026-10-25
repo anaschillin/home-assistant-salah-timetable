@@ -56,6 +56,7 @@ jobs:
           node scripts/live_smoke.mjs \
             --ha-version "${{ matrix.ha-version }}" \
             --require-fresh-dependency \
+            --verify-backup-restore \
             --output-dir "$RUNNER_TEMP/salah-live-results"
 
       - name: Preserve synthetic smoke evidence
