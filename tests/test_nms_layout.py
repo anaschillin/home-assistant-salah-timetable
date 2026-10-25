@@ -171,7 +171,7 @@ def test_each_month_needs_explicit_first_jamaat():
 
 def test_no_duplicate_canonical_columns_or_inferred_fields():
     rows = list(csv.DictReader(io.StringIO(NmsLayout().to_csv(text_pages()))))
-    assert len(rows[0]) == 31
+    assert len(rows[0]) == 32
     assert "Taraweeh" not in rows[0]
     assert set(NMS_COLUMNS.values()) == {field.value for field in PrayerField} - {
         "taraweeh"
