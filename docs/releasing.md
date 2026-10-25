@@ -30,7 +30,7 @@ they uncover a blocking regression.
 | REV-04 asset redistribution | [PR #9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9) merged; [asset inventory](asset-provenance.json) and [rights review](asset-provenance.md) available | **Blocking:** obtain documented rights for contributed PDFs/derived oracles, icon and screenshots, or replace with rights-cleared originals and assess public Git history; `python scripts/check_asset_provenance.py --require-cleared` must pass |
 | REV-05 full HAOS restore | [PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11) merged; real **Home Assistant Container** backup archive creation and isolated restore passed on Core 2026.10.0 and 2026.10.3 | **Blocking:** restore an actual *full HAOS/Supervisor* backup into a **second disposable HAOS instance**, verify entry/entity IDs, approved versus pending source data, Ramadan options, dashboard resources, Repairs and a second restart; record redacted evidence using the [restore procedure](backup-restore-acceptance.md) |
 | REV-06 HACS removal/re-addition | [PR #10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10) merged; real HA Container two-mosque isolation and config-entry removal/re-addition passed. **On 25 October the user also confirmed removal and reinstallation worked** in their installation; [evidence and limits](hacs-removal-acceptance.md#reported-hacs-removereinstall-outcome--25-october-2026). | **Partially user-confirmed, full gate pending:** capture whether the UI route was HACS and the environment/version, then verify two-mosque isolation, deleted-entry cleanup, single frontend resource/device identity and restart in the documented disposable acceptance sequence. Do not equate a successful reinstall alone with full REV-06 sign-off. |
-| Required hosted validation | [Dashboard PR #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16) was squash-merged as `c8e65bd01250af0b892782c0e1ef04b99072e37a`. The matching [post-merge `main` Validate run **40212875119**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119) succeeded **on attempt 1** with **884 Python tests passed** and all six jobs green: frontend/Chromium, HACS, hassfest, Python and live HA 2026.10.0 / 2026.10.3. The earlier calendar timing flake remains tracked in [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13). | **CI passed on the dashboard merge commit**, not a final tagged release. Review required CI on the exact future release commit and complete manual dashboard and REV-04–06 acceptance before release sign-off. The combined 0.8.0 candidate corrects issue #13 test synchronization locally (20/20 normal/delayed cases); its new hosted result is still required. |
+| Required hosted validation | [Latest merged 0.8.0 main run 40229412033](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40229412033) passed six jobs with **936 Python tests**. For the new 0.8.1 features, [PR #21 branch run 40242996936](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40242996936) passed **955 Python tests**, frontend/Chromium, HACS, hassfest and disposable live HA 2026.10.0 / 2026.10.3 on source `888e4cd`. Earlier calendar timing flakiness remains tracked in [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13). | **Code/branch validation passed but not a tagged release:** verify exact future merge/release commit and manually accept Hijri-first rendering, monthly coexistence, real PDF sources and REV-04–06 gates before sign-off. |
 | Manual release acceptance | See [the UI/runtime checks below](#manual-home-assistant-and-hacs-acceptance) and [validation log](validation.md) | **Still requires recorded results** for every applicable real-world/UI scenario; a passing automated workflow is not a substitute |
 | Version, packaging and publication | Build/release scripts and draft workflow exist | **Pending:** match manifest/project/card/cache versions, changelog and notes; review existing tag, successful CI and prepared draft before publishing |
 
@@ -38,7 +38,7 @@ The [validation log](validation.md) is the evidence record, **not** a second
 checklist. The `--require-cleared` provenance audit deliberately blocks draft
 release preparation while rights remain unresolved; this is not a licence grant
 and must not be bypassed just because a release ZIP excludes the PDF fixtures.
-No GitHub release has been published for candidate 0.8.0 or its 0.7.0 predecessor; successful
+No GitHub release has been published for candidate 0.8.1 or its 0.8.0/0.7.0 predecessors; successful
 PR and main CI runs are implementation evidence, not publication or manual
 release acceptance.
 
@@ -132,7 +132,10 @@ where possible. Record the HA/integration versions and browser/device used.
   Record the installed version and confirm it was not preloaded. A successful
   development `uv sync` or preloaded live run does not complete this check.
 - Exercise URL-first import and manual PDF/CSV upload, graphical column mapping,
-  preview, approval and rejection. Check the supported NMS annual layout against
+  preview, approval and rejection. Test automatic known-PDF recognition and
+  Annual / Monthly / Ramadan choices; verify January and February monthly
+  approvals coexist without deleting earlier dates and that overlapping
+  month sources and changed monthly URL spans fail safely. Check the supported NMS annual layout against
   its publication. Confirm an unsupported PDF fails with a useful message.
 - Exercise the [publication-profile picker](pdf_layouts.md#publication-setup-profiles)
   with a matching inspected PDF and explicit printed year. Check prefilled mappings,

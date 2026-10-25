@@ -43,6 +43,8 @@ test("progress follows elapsed instants across DST and year boundaries", () => {
 
 test("Umm al-Qura display adjusts dates across months without host timezone effects", () => {
   assert.equal(formatHijriDate("2026-02-18", 0, "en-GB"), "1 Ramadan 1447 AH");
+  assert.doesNotMatch(formatHijriDate("2026-10-23", 0, "en-GB"), /October/i);
+  assert.match(formatHijriDate("2026-02-18", 0, "ar"), /رمضان/);
   assert.equal(formatHijriDate("2026-02-18", -1, "en-GB"), formatHijriDate("2026-02-17", 0, "en-GB"));
   for (const adjustment of [-3, 3]) assert.equal(formatHijriDate("2026-12-31", adjustment, "en-GB"), formatHijriDate(new Date(Date.parse("2026-12-31T12:00Z") + adjustment * 86400000).toISOString().slice(0, 10), 0, "en-GB"));
   assert.equal(formatHijriDate("2026-02-30"), "Hijri date unavailable");
@@ -61,6 +63,9 @@ test("time formats retain mosque timezone and missing-value marker", () => {
 
 test("config validates new types and preserves explicit old Jamaat modes", () => {
   assert.equal(normalizeConfig({}).mode, "upcoming");
+  assert.equal(normalizeConfig({}).show_gregorian_date, true);
+  assert.equal(normalizeConfig({show_gregorian_date: false}).show_hijri_date, true);
+  assert.throws(() => normalizeConfig({show_gregorian_date: "false"}));
   for (const mode of ["context", "previous", "upcoming"]) assert.equal(normalizeConfig({mode}).mode, mode);
   for (const invalid of [{layout: "tiny"}, {time_format: "auto"}, {hijri_adjustment: 4}, {hijri_adjustment: 0.5}, {hijri_adjustment: "1"}, {show_hijri_date: "false"}]) assert.throws(() => normalizeConfig(invalid));
 });

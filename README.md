@@ -59,15 +59,19 @@ allows users to rename entity IDs independently.
 ## Import a timetable
 
 1. Open the mosque's **Configure → Add or replace a URL source (recommended)**.
-2. Enter a public HTTPS URL, PDF/CSV type, explicit year and Annual/Ramadan kind.
-   Select a documented PDF layout. Alternatively use **Upload a supported PDF** or
+2. Enter a public HTTPS URL, PDF/CSV type, explicit Gregorian year and
+   **Annual**, **Monthly** or **Ramadan** timetable type. Supported PDFs default
+   to **Automatic** recognition; a manual inspected-layout choice remains available
+   as an advanced override. Alternatively use **Upload a supported PDF** or
    **Import CSV timetable**. For a named inspected edition, **Choose an inspected
-   publication profile** prefills its manual PDF setup. CSV does not use the
-   PDF-layout selection.
+   publication profile** prefills its manual PDF setup. CSV ignores PDF recognition.
+   Monthly coverage is stored as a partial ordinary annual source; Ramadan is a
+   separately confirmed override source.
 3. Select the date column and each published prayer column. Recognized headings are
    suggested, but check every mapping. Leave fields without published times unselected.
 4. Choose **24-hour HH:MM** or **Explicit HH:MM AM/PM**. No AM/PM is inferred.
-5. Review dates, missing fields, warnings, sample times, checksum and replacement scope.
+5. Review the **recognized PDF publication/layout**, actual date range, missing
+   fields, warnings, sample times, checksum and replacement scope.
 6. Choose **Compare changes before approval** to inspect each page of added/removed
    dates, time changes, previously absent fields and original-cell changes against
    this exact approved source. The comparison is read-only; return to review afterward.
@@ -96,12 +100,17 @@ it automatically. Profiles accept manual PDF uploads only because no current pub
 HTTPS source has been verified for them. Use ordinary import for other supported
 source defaults. See the [profile catalogue](docs/pdf_layouts.md#publication-setup-profiles).
 
-Each source is identified by kind and year (for example `annual-2026`). An approved
-import **replaces that entire source**, not just the uploaded dates. The preview
-reports the existing row count and canonical differences before replacement. A
-partial replacement can remove previously available dates; check **every page**
-of changes and coverage before approving. Other years remain
-stored, so next year's timetable can be imported in advance and selected by date.
+Annual and Ramadan sources use kind/year identities (such as `annual-2026`).
+When **Monthly** is selected in ordinary PDF/URL import, the source instead has
+a **distinct identity per exact published date span** (such as
+`annual-2026-monthly-0101-0131`); January and February then coexist without
+one upload deleting the other. Re-importing the same span replaces that source
+only. Overlapping ordinary annual dates are rejected, never guessed/merged.
+If an existing monthly URL starts serving a different date span, its scheduled
+update fails safely; import the new period as a separate source and retire the
+old URL check as appropriate. Other years remain stored, so next year's
+timetable can be imported in advance and selected by date. Every approval
+still replaces its **own** source: review the complete date/field comparison.
 A mosque must be successfully loaded to import; settings remain accessible if setup
 fails.
 
@@ -141,16 +150,18 @@ The integration bundles the **Salah Timetable** Lovelace card and its graphical
 editor. After importing a timetable, edit a dashboard, add the card and choose the
 mosque's **Prayer timetable** sensor. Choose **Upcoming Jamaat** (default), **Context aware** or **Previous Jamaat**. No separate card download or Card Mod is required.
 
-The card shows the Gregorian date and **full calculated Umm al-Qura Hijri date**
-(day, month and year), independent Salah/Jamaat countdowns, highlighted prayer
-rows and Ramadan details. The Fajr row shows **Ends at sunrise** using the
+The card presents the **full calculated Umm al-Qura Hijri date first**, with
+its actual Islamic month name, day and year; the Gregorian date is secondary and
+can be hidden independently per card. Independent Salah/Jamaat countdowns,
+highlighted prayer rows and Ramadan details follow. The Fajr row shows **Ends at sunrise** using the
 published Sunrise value, or unavailable if Sunrise is absent. Inspected NMS
 publications also show a separately printed **Second Jumu’ah khutbah** time on
 Fridays; it is **not** an extra Jamaat and does not change Dhuhr/Jumu’ah times.
 Choose Hijri header visibility when first configuring the mosque; change it later
-under **Configure → Mosque settings**. The card editor can also hide Hijri on a
-particular card and offers compact/expanded layouts, 12/24-hour times, countdown
-visibility and a −3 to +3 calculated Hijri display-day adjustment. Neither
+under **Configure → Mosque settings**. The card editor can hide Hijri on a
+particular card, independently hide the Gregorian date, and offers
+compact/expanded layouts, 12/24-hour times, countdown visibility and a
+−3 to +3 calculated Hijri display-day adjustment. Neither
 visibility nor adjustment changes source data or activates Ramadan.
 Countdowns run in the browser from absolute timestamps, without per-second Home
 Assistant state writes. The card follows HA's theme
@@ -205,10 +216,14 @@ misleading content types/signatures and oversized streamed bodies are rejected.
 
 ## PDF format and limits
 
-Only layouts listed in [PDF layouts](docs/pdf_layouts.md) are supported. Select
-**Nuneaton Muslim Society annual calendar (v1)** for the supplied 2026 calendar,
-Annual kind, year 2026 and 24-hour format. Date/prayer mappings are preselected; check
-the review before approval. Its 365 dates and 5,110 event values were compared with an
+Only layouts listed in [PDF layouts](docs/pdf_layouts.md) are supported.
+The default **Automatic** recognition matches a single tested adapter after
+bounded PDF extraction, guided by **Annual / Monthly / Ramadan**. A combined
+Zakariyya PDF supplies annual tables or the separate Ramadan page according
+to the selected type; it never imports both silently. Unsupported and ambiguous
+layouts fail rather than guessing. The advanced manual layout override remains
+available for known publications. Check detected format, dates, column mapping
+and source warnings before approval. Its 365 dates and 5,110 event values were compared with an
 independent extraction. Additional real fixtures validate the NMS May–June 2022
 monthly layout, all twelve annual tables and the separate Ramadan page in
 Zakariyya’s 2026 calendar. Its annual adapter validates 365 dates and 3,770 published

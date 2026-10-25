@@ -1,4 +1,4 @@
-import {eventProgress, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, prayerName, timestamp} from "./card-utils.js?v=0.8.0";
+import {eventProgress, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, prayerName, timestamp} from "./card-utils.js?v=0.8.1";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
 const RENDER_ATTRIBUTES = [
@@ -132,8 +132,9 @@ export class SalahTimetableCard extends HTMLElement {
     const content = node("div", undefined, `content ${this._config.layout}`);
     const timeFormat = this._config.time_format;
     const header = node("header", undefined, "header");
-    header.append(node("h2", this._config.title || data.mosque_name), node("div", formatDate(data.date || state.state, locale), "date"));
+    header.append(node("h2", this._config.title || data.mosque_name));
     if (this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, locale)} · Hijri (calculated)`, "date hijri"));
+    if (this._config.show_gregorian_date) header.append(node("div", formatDate(data.date || state.state, locale), "date gregorian"));
     content.append(header);
     if (this._hass?.connection?.connected === false) content.append(node("p", "Home Assistant disconnected — showing the last received timetable.", "disconnected"));
     const next = nextSalah(data, now);
@@ -265,7 +266,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
     const settings = [
       ["layout", "Layout", ["expanded", "compact"]], ["time_format", "Time format", ["24h", "12h"]],
       ["hijri_adjustment", "Hijri date adjustment (days)", [-3, -2, -1, 0, 1, 2, 3]],
-      ["show_hijri_date", "Show calculated Hijri date"], ["show_salah_countdown", "Show Salah countdown"], ["show_jamaat_countdown", "Show Jamaat countdown"],
+      ["show_hijri_date", "Show calculated Hijri date"], ["show_gregorian_date", "Show Gregorian date"], ["show_salah_countdown", "Show Salah countdown"], ["show_jamaat_countdown", "Show Jamaat countdown"],
       ["show_ramadan_details", "Show Ramadan details"], ["show_sehri_countdown", "Show Sehri countdown"], ["show_iftar_countdown", "Show Iftar countdown"], ["show_timezone_note", "Show timezone and help text"]
     ];
     const extras = [];
@@ -279,7 +280,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       control.addEventListener("change", () => this._changed({[key]: choices ? key === "hijri_adjustment" ? Number(control.value) : control.value : control.checked}));
       this._extraControls[key] = {control, checkbox: !choices}; field.append(control); extras.push(field);
     }
-    form.append(entity, error, mode, titleField, ...extras, node("div", "Choose the mosque’s Prayer timetable entity. Countdowns run in this card; no per-second sensor updates or Card Mod are required. Hijri visibility is also controlled under mosque setup and Configure → Mosque settings; the card switch can hide it further. The calculated Hijri date adjustment affects display only, not Ramadan activation.", "help"));
+    form.append(entity, error, mode, titleField, ...extras, node("div", "Choose the mosque’s Prayer timetable entity. Countdowns run in this card; no per-second sensor updates or Card Mod are required. The full Hijri date appears first when enabled; the Gregorian date can be hidden independently. Hijri visibility is also controlled under mosque setup and Configure → Mosque settings; the card switch can hide it further. The calculated Hijri date adjustment affects display only, not Ramadan activation.", "help"));
     this._updateControls();
     this.shadowRoot.replaceChildren(style, form);
   }

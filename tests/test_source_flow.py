@@ -306,6 +306,126 @@ async def test_invalid_pdf_upload_is_cleaned_up(
     assert entry.runtime_data.storage.staged is None
 
 
+async def test_monthly_upload_detects_pdf_and_stores_partial_annual_kind(
+    hass, entry, source_upload_client
+):
+    await setup_mosque(hass, entry)
+    result = await open_step(hass, entry, "import_pdf")
+    file_id, _ = await upload_pdf(hass, source_upload_client, PDF_FIXTURE.read_bytes())
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"file": file_id, "kind": "monthly", "year": 2026},
+    )
+    assert result["step_id"] == "map_columns"
+    assert "Recognized PDF" in result["description_placeholders"]["detail"]
+    assert result["data_schema"].schema
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "date_column": "Date",
+            "time_format": "24h",
+            "fajr_begin": "Fajr Begin",
+        },
+    )
+    assert result["step_id"] == "review"
+    assert "Recognized PDF" in result["description_placeholders"]["summary"]
+    assert entry.runtime_data.storage.staged.candidate.parser_id == "pdf_table_v1"
+    assert entry.runtime_data.storage.staged.candidate.timetable.kind == "annual"
+    await approve(hass, result)
+    assert (
+        "annual-2026-monthly-0101-0103" in entry.runtime_data.storage.approved_sources
+    )
+
+
+async def test_monthly_imports_preserve_other_published_months(
+    hass, entry, source_upload_client
+):
+    import runpy
+
+    await setup_mosque(hass, entry)
+
+    async def import_month(content):
+        result = await open_step(hass, entry, "import_pdf")
+        file_id, _ = await upload_pdf(hass, source_upload_client, content)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {"file": file_id, "kind": "monthly", "year": 2026},
+        )
+        assert result["step_id"] == "map_columns"
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {"date_column": "Date", "time_format": "24h", "fajr_begin": "Fajr Begin"},
+        )
+        assert result["step_id"] == "review"
+        await approve(hass, result)
+
+    await import_month(PDF_FIXTURE.read_bytes())
+    assert entry.runtime_data.storage.for_date(date(2026, 1, 1)) is not None
+
+    make_pdf = runpy.run_path(str(Path(__file__).parent / "fixtures/pdf/generate.py"))[
+        "make_pdf"
+    ]
+    february = make_pdf(
+        [
+            [
+                "Salah Timetable",
+                "Year 2026",
+                "Date | Fajr Begin | Sunrise",
+                "2026-02-01 | 05:40 | 07:30",
+                "2026-02-02 | 05:42 | 07:28",
+            ]
+        ]
+    )
+    await import_month(february)
+    storage = entry.runtime_data.storage
+    assert storage.for_date(date(2026, 1, 1)) is not None
+    assert storage.for_date(date(2026, 2, 1)) is not None
+    assert set(storage.approved_sources) == {
+        "annual-2026-monthly-0101-0103",
+        "annual-2026-monthly-0201-0202",
+    }
+
+
+async def test_url_auto_detection_persists_concrete_parser_for_future_checks(
+    hass, entry
+):
+    await setup_mosque(hass, entry)
+    result = await open_step(hass, entry, "import_url")
+    with patch(
+        "custom_components.salah_timetable.source_flow.async_download",
+        AsyncMock(return_value=downloaded(PDF_FIXTURE.read_bytes(), "pdf")),
+    ):
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "url": PUBLIC_URL,
+                "media_type": "pdf",
+                "kind": "monthly",
+                "year": 2026,
+            },
+        )
+    assert result["step_id"] == "map_columns"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "date_column": "Date",
+            "time_format": "24h",
+            "fajr_begin": "Fajr Begin",
+        },
+    )
+    assert result["step_id"] == "review"
+    assert (
+        entry.runtime_data.storage.remote_sources[
+            "annual-2026-monthly-0101-0103"
+        ].parser_id
+        == "pdf_table_v1"
+    )
+    await approve(hass, result)
+    source = entry.runtime_data.storage.remote_sources["annual-2026-monthly-0101-0103"]
+    assert source.kind == "annual"
+    assert source.parser_id == "pdf_table_v1"
+
+
 async def test_remove_remote_source_retains_approved_timetable(hass, entry):
     await setup_mosque(hass, entry)
     result = await stage_url(hass, entry)

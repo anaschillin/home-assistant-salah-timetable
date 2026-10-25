@@ -36,8 +36,9 @@ entry per mosque, and each card follows the selected entity's mosque timezone.
 
 ## What the card shows
 
-- Mosque name or your optional title, Gregorian date and optionally the **full
-  calculated Umm al-Qura Hijri date** (day, month and year).
+- Mosque name or optional title, **full calculated Umm al-Qura Hijri date first**
+  (with the Islamic month name, day and year), then optionally a separate
+  Gregorian date. Both have independent card display controls.
 - **Next Salah Begins** and **Next Jamaat**, with prominent independent countdowns,
   absolute times and progress between consecutive published events of each kind.
 - Optional context/previous Jamaat modes retain elapsed-time behaviour. Progress is
@@ -106,8 +107,11 @@ The Jamaat bar measures congregation-to-congregation, not beginning-to-Jamaat.
 
 ## Dates and customization
 
-The full Hijri header uses the browser's **Umm al-Qura** calendar to convert the
-mosque's Gregorian timetable date, displaying its day, named month and year.
+The **primary Hijri header** uses the browser's **Umm al-Qura** calendar to
+convert the mosque's Gregorian timetable date, displaying its Islamic day,
+**named Hijri month** and year. The Gregorian date is a separate secondary
+line; hide it via the card's `show_gregorian_date: false` switch without
+hiding Hijri. Both default to visible for existing cards.
 It advances at mosque-local midnight, not sunset. The default is visible; choose
 **Show full calculated Hijri date on dashboards** during initial mosque setup,
 or change it later via **Configure → Mosque settings**. Older mosque entries
@@ -130,6 +134,7 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_salah_countdown` | `true` |
 | `show_jamaat_countdown` | `true` |
 | `show_hijri_date` | `true`; further hides the mosque-enabled full Hijri date on this card |
+| `show_gregorian_date` | `true`; independently displays the secondary Gregorian date |
 | `hijri_adjustment` | Whole days −3 through +3; default `0` |
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
@@ -179,7 +184,7 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.8.0
+/salah_timetable/salah-timetable-card.js?v=0.8.1
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an
@@ -201,6 +206,7 @@ mode: upcoming
 layout: expanded
 time_format: 24h
 show_hijri_date: true
+show_gregorian_date: true
 hijri_adjustment: 0
 ```
 

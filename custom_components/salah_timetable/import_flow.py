@@ -51,6 +51,15 @@ def _safe_text(value: str) -> str:
     return value.replace("\n", " ").replace("\r", " ")
 
 
+PDF_LAYOUT_LABELS = {
+    "pdf_table_v1": "Supported sample text-table PDF",
+    "nms_annual_v1": "Nuneaton Muslim Society annual calendar",
+    "nms_monthly_v1": "Nuneaton Muslim Society monthly calendar",
+    "zak_annual_v1": "Zakariyya Masjid annual calendar",
+    "zak_ramadan_v1": "Zakariyya Masjid separate Ramadan page",
+}
+
+
 def import_summary(candidate, existing, settings=None) -> str:
     """Bounded, explicit review of coverage, missing fields and replacement."""
     coverage = candidate.coverage
@@ -67,6 +76,12 @@ def import_summary(candidate, existing, settings=None) -> str:
         ),
         f"Missing dates{' within the supplied span' if table.kind == 'ramadan' else ''}: **{len(coverage.missing_dates)}**.",
     ]
+    if candidate.source_format == "pdf":
+        lines.append(
+            "Recognized PDF: **"
+            + PDF_LAYOUT_LABELS.get(candidate.parser_id, "Unsupported layout")
+            + "**. Review the printed dates and every mapped prayer time."
+        )
     if coverage.missing_fields:
         lines.append(
             "Fields absent from this source (number of rows): "
@@ -151,6 +166,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         self._content: bytes | None = None
         self._headers: tuple[str, ...] = ()
         self._kind = "annual"
+        self._monthly = False
         self._year: int | None = None
         self._review_stage_id: str | None = None
         self._mapping_input: dict[str, Any] = {}
@@ -333,6 +349,24 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                     )
                     if self._coordinator() is not coordinator:
                         return self.async_abort(reason="integration_reloaded")
+                    if self._monthly:
+                        # Distinct published date windows coexist. Replacing one
+                        # source must never silently delete another month's rows.
+                        first, last = (
+                            candidate.coverage.start_date,
+                            candidate.coverage.end_date,
+                        )
+                        source_id = (
+                            f"annual-{self._year}-monthly-{first:%m%d}-{last:%m%d}"
+                        )
+                        candidate = await self.hass.async_add_executor_job(
+                            lambda: replace(
+                                candidate,
+                                timetable=replace(
+                                    candidate.timetable, timetable_id=source_id
+                                ),
+                            )
+                        )
                     remote_source = None
                     if self._remote_url is not None:
                         from .source_model import RemoteSource

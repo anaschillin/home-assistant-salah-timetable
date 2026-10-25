@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.8.1 — unreleased
+
+- Show the full calculated Umm al-Qura **Hijri date first**, including the
+  actual named Islamic month. Display the secondary Gregorian date only when
+  the independent per-card `show_gregorian_date` setting is enabled (default
+  true for existing cards). Mosque-level and per-card Hijri visibility,
+  display adjustment and Ramadan activation remain independent.
+- Default PDF and HTTPS PDF import to strict automatic recognition of tested
+  layouts. The user selects **Annual**, **Monthly** or **Ramadan**; the selected
+  type disambiguates ordinary annual tables from a separate Ramadan page.
+  A monthly import remains a partial ordinary annual source internally, but
+  has its own date-span identity so subsequent nonoverlapping months do not
+  delete earlier published rows. Monthly URL checks reject a silently
+  changed date span.
+- Fail closed for ambiguous, unsupported or mismatched publications; retain
+  an advanced explicit-layout override and show recognized source/dates
+  before approval. Persist the concrete detected parser for future URL checks,
+  without changing original PDF bytes, prayer data or approval semantics.
+- Add regression coverage for named Islamic month/date presentation,
+  independent Gregorian visibility, multi-edition PDF recognition, single
+  extraction, invalid/ambiguous layouts, staged manual upload and URL parser
+  persistence.
+
 ## 0.8.0 — unreleased
 
 - Compare pending imports with the exact approved source they replace. Show all

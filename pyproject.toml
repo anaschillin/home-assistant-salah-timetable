@@ -1,6 +1,6 @@
 [project]
 name = "salah-timetable"
-version = "0.8.0"
+version = "0.8.1"
 description = "Home Assistant Salah Timetable custom integration"
 requires-python = ">=3.14.2"
 license = "MIT"

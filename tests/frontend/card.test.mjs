@@ -75,6 +75,24 @@ test("mosque-wide Hijri preference overrides card visibility and remains configu
   assert.doesNotMatch(find(card.shadowRoot, "header")[0].textContent, /Hijri/);
 });
 
+test("Hijri is the primary date and Gregorian has an independent editor toggle", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass({...attributes, show_hijri_date: true});
+  const header = find(card.shadowRoot, "header")[0];
+  assert.match(header.children[1].textContent, /Hijri \(calculated\)/);
+  assert.doesNotMatch(header.children[1].textContent, /October/);
+  assert.match(header.children[2].textContent, /October/);
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_gregorian_date: false});
+  assert.equal(find(card.shadowRoot, "header")[0].children.length, 2);
+  assert.doesNotMatch(find(card.shadowRoot, "header")[0].textContent, /October/);
+  const editor = SalahTimetableCard.getConfigElement();
+  editor.hass = hass();
+  editor.setConfig({entity: "sensor.mosque_prayer_timetable", show_gregorian_date: false});
+  assert.equal(editor._extraControls.show_gregorian_date.control.checked, false);
+  assert.equal(editor._extraControls.show_hijri_date.control.checked, true);
+});
+
 test("Friday Dhuhr congregation is labelled Jumuah", () => {
   const friday = {
     ...attributes,

@@ -9,12 +9,13 @@ from homeassistant.helpers import selector
 from homeassistant.util import dt as dt_util
 
 from .download import DownloadError, async_download, validate_url
-from .import_flow import CsvImportOptionsFlow, _safe_text
+from .import_flow import PDF_LAYOUT_LABELS, CsvImportOptionsFlow, _safe_text
 from .import_model import MAX_PDF_BYTES, ImportValidationError
 from .pdf_parser import PdfParser
 from .publication_profiles import PROFILES, publication_profile
 
 PDF_LAYOUTS = [
+    "auto",
     "nms_annual_v1",
     "nms_monthly_v1",
     "zak_annual_v1",
@@ -35,22 +36,28 @@ def _year(value) -> int:
     return int(value)
 
 
-def read_uploaded_pdf(hass, file_id, layout_id):
+def read_uploaded_pdf(hass, file_id, _layout_id):
+    """Consume the one-use upload; the caller validates/detects its PDF type."""
     from homeassistant.components.file_upload import process_uploaded_file
 
     with process_uploaded_file(hass, file_id) as path:
         with path.open("rb") as stream:
-            content = stream.read(MAX_PDF_BYTES + 1)
-        parser = PdfParser(layout_id=layout_id)
-        parser.inspect(content)
-        return content
+            return stream.read(MAX_PDF_BYTES + 1)
+
+
+def canonical_kind(import_type: str) -> str:
+    """Monthly coverage is stored as a partial annual source, never a third kind."""
+    if import_type not in {"annual", "monthly", "ramadan"}:
+        raise ImportValidationError("Choose Annual, Monthly or Ramadan")
+    return "ramadan" if import_type == "ramadan" else "annual"
 
 
 def source_fields(year, *, url=False):
     fields = {
         vol.Required("kind", default="annual"): selector.SelectSelector(
             selector.SelectSelectorConfig(
-                options=["annual", "ramadan"], translation_key="timetable_kind"
+                options=["annual", "monthly", "ramadan"],
+                translation_key="timetable_kind",
             )
         ),
         vol.Required("year", default=year): selector.NumberSelector(
@@ -58,7 +65,7 @@ def source_fields(year, *, url=False):
                 min=1900, max=2199, step=1, mode=selector.NumberSelectorMode.BOX
             )
         ),
-        vol.Required("pdf_layout", default="nms_annual_v1"): selector.SelectSelector(
+        vol.Required("pdf_layout", default="auto"): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=PDF_LAYOUTS, translation_key="pdf_layout"
             )
@@ -245,11 +252,20 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 {"profile_id": profile.profile_id, "year": profile.year}
             )
         result = await super().async_step_map_columns(user_input)
-        if profile is not None and result.get("step_id") == "map_columns":
+        if result.get("step_id") == "map_columns":
             placeholders = result["description_placeholders"]
-            placeholders["detail"] = (
-                profile.summary + "\n\n" + placeholders.get("detail", "")
-            )
+            parser = getattr(self, "_parser", None)
+            if isinstance(parser, PdfParser):
+                detected = PDF_LAYOUT_LABELS.get(parser.layout_id, "Unknown PDF layout")
+                placeholders["detail"] = (
+                    f"Recognized PDF: **{detected}**. Confirm the printed year, "
+                    "date coverage and mapped columns before approval.\n\n"
+                    + placeholders.get("detail", "")
+                )
+            if profile is not None:
+                placeholders["detail"] = (
+                    profile.summary + "\n\n" + placeholders.get("detail", "")
+                )
         return result
 
     def _review_source_context(self, candidate, coordinator):
@@ -283,7 +299,10 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 if result.content is None:
                     raise ImportValidationError("The source returned no timetable")
                 parser = (
-                    PdfParser(layout_id=user_input["pdf_layout"])
+                    PdfParser(
+                        layout_id=user_input.get("pdf_layout", "auto"),
+                        import_type=user_input["kind"],
+                    )
                     if user_input["media_type"] == "pdf"
                     else self._csv_parser()
                 )
@@ -309,15 +328,14 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 self._content = result.content
                 self._headers = headers
                 self._year = year
-                self._kind = user_input["kind"]
+                self._kind = canonical_kind(user_input["kind"])
+                self._monthly = user_input["kind"] == "monthly"
                 self._parser = parser
                 self._remote_url = url
                 self._download_result = result
                 self._source_format = user_input["media_type"]
                 self._parser_id = (
-                    user_input["pdf_layout"]
-                    if self._source_format == "pdf"
-                    else "csv_v1"
+                    parser.layout_id if self._source_format == "pdf" else "csv_v1"
                 )
                 return await self.async_step_map_columns()
         return self.async_show_form(
@@ -346,9 +364,12 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                     read_uploaded_pdf,
                     self.hass,
                     user_input["file"],
-                    user_input["pdf_layout"],
+                    user_input.get("pdf_layout", "auto"),
                 )
-                parser = PdfParser(layout_id=user_input["pdf_layout"])
+                parser = PdfParser(
+                    layout_id=user_input.get("pdf_layout", "auto"),
+                    import_type=user_input["kind"],
+                )
                 headers = await self.hass.async_add_executor_job(
                     parser.inspect, content
                 )
@@ -361,11 +382,12 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 )
             else:
                 self._content, self._headers = content, headers
-                self._year, self._kind = year, user_input["kind"]
+                self._year, self._kind = year, canonical_kind(user_input["kind"])
+                self._monthly = user_input["kind"] == "monthly"
                 self._parser, self._source_format, self._parser_id = (
                     parser,
                     "pdf",
-                    user_input["pdf_layout"],
+                    parser.layout_id,
                 )
                 return await self.async_step_map_columns()
         return self.async_show_form(

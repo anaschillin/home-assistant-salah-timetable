@@ -2,9 +2,12 @@
 
 ## Current recorded status — 25 October 2026
 
-The current integration candidate is **0.8.0**. It combines the richer Milestone
-17 paged import review and fresh-baseline approval checks with the calendar,
-publication profiles, media controls and later dashboard/runtime fixes.
+The current integration candidate is **0.8.1**, developed in
+[PR #21](https://github.com/anaschillin/home-assistant-salah-timetable/pull/21).
+It adds a Hijri-first dashboard with an independent Gregorian visibility switch,
+strict automatic recognition of supported PDF editions, user-facing
+Annual/Monthly/Ramadan choices and separate, nonoverlapping monthly date-span
+sources. Historical 0.8.0 evidence below remains limited to that earlier tree.
 The local branch at `0850ca6` passed **902 Python tests** (95% coverage), **81 Node
 tests** and **25 disposable HA 2026.10.0 checks** before merging the later
 `origin/main` work. The [0.8.0 record](#paged-import-review--candidate-080) below
@@ -16,13 +19,24 @@ HA 2026.10.0 checks** (including a real Container backup restore), and the
 [calendar synchronization regression](#combined-080-review-and-calendar-synchronization)
 below. The exact merge commit still requires its own hosted Validate result.
 
-The latest recorded hosted result below is [Validate run
-**40212875119**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119)
-for main commit `c8e65bd01250af0b892782c0e1ef04b99072e37a`: **884 Python tests**
-and all six jobs passed on attempt 1. That result covers the remote dashboard
-merge, not this combined candidate. The combined tree and final release commit
-require their own validation. Required Validate includes the minimum/current HA
-live matrix with strict dependency proof; the matrix also runs weekly.
+**Merged 0.8.0 evidence:** [Validate run
+40229412033](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40229412033)
+passed on main commit `f34682a34ab625dcec0008357308a1fd435df93f`:
+**936 Python tests** plus all six jobs, including frontend/Chromium,
+hassfest, HACS and live HA 2026.10.0 / 2026.10.3.
+
+**0.8.1 feature branch evidence:** [PR #21 Validate run
+40242996936](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40242996936)
+passed on source `888e4cd46c7be82abd2a2e90512d61c98356117e` on
+the first attempt: **955 Python tests**, frontend/Chromium, hassfest, HACS
+and both live Home Assistant jobs. This covers the January/February source
+isolation regression and strict PDF recognition tests. A subsequent
+documentation-only commit and the eventual merge commit must each receive
+their own exact-SHA CI validation. Hosted smoke acceptance does **not**
+establish physical-dashboard, full HAOS/Supervisor restore, HACS UI
+uninstallation or asset redistribution permission. Required Validate includes
+the minimum/current HA live matrix with strict dependency proof and also runs
+weekly.
 
 REV-01–03 runtime fixes and REV-04–06 release-assurance tooling were merged through PRs
 [#6](https://github.com/anaschillin/home-assistant-salah-timetable/pull/6),
