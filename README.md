@@ -134,11 +134,17 @@ The integration bundles the **Salah Timetable** Lovelace card and its graphical
 editor. After importing a timetable, edit a dashboard, add the card and choose the
 mosque's **Prayer timetable** sensor. Choose **Upcoming Jamaat** (default), **Context aware** or **Previous Jamaat**. No separate card download or Card Mod is required.
 
-The card shows Gregorian and calculated Umm al-Qura Hijri dates, independent Salah
-and Jamaat countdowns with progress, highlighted prayer rows and active Ramadan details.
-Its editor offers compact/expanded layouts, individual countdown visibility, 12/24-hour
-times, a Hijri display-day adjustment and additional-detail controls. The Hijri
-adjustment is independent of Ramadan activation and never changes timetable data.
+The card shows the Gregorian date and **full calculated Umm al-Qura Hijri date**
+(day, month and year), independent Salah/Jamaat countdowns, highlighted prayer
+rows and Ramadan details. The Fajr row shows **Ends at sunrise** using the
+published Sunrise value, or unavailable if Sunrise is absent. Inspected NMS
+publications also show a separately printed **Second Jumu’ah khutbah** time on
+Fridays; it is **not** an extra Jamaat and does not change Dhuhr/Jumu’ah times.
+Choose Hijri header visibility when first configuring the mosque; change it later
+under **Configure → Mosque settings**. The card editor can also hide Hijri on a
+particular card and offers compact/expanded layouts, 12/24-hour times, countdown
+visibility and a −3 to +3 calculated Hijri display-day adjustment. Neither
+visibility nor adjustment changes source data or activates Ramadan.
 Countdowns run in the browser from absolute timestamps, without per-second Home
 Assistant state writes. The card follows HA's theme
 and uses responsive layouts. Ordinary ticks update clocks and progress in place;
@@ -206,9 +212,9 @@ There is no OCR or fallback that guesses a missing time.
 
 For NMS, Dawn supplies Fajr beginning; Sehri Ends is separate. Sunset supplies
 Maghrib beginning, while the distinct published Maghrib (Iftaar) cell supplies both
-Jamaat and Iftar. Friday's shared Dhuhr/Jumu’ah slot supplies Jumu’ah only. Second-
-Khutbah notes are not imported as congregation times, and Hijri dates do not confirm
-Ramadan activation. No Taraweeh time is invented. The adapter documents its fixed
+Jamaat and Iftar. Friday's shared Dhuhr/Jumu’ah slot supplies Jumu’ah only. Second-Jumu’ah khutbah notes are retained when explicitly printed by the
+inspected NMS layouts and shown as **Friday-only annotations**, not imported
+as congregation times. Printed Hijri dates do not confirm Ramadan activation. No Taraweeh time is invented. The adapter documents its fixed
 morning/noon/evening interpretation of the printed 12-hour columns.
 
 The supplied reference PDF validates manual import. The website's live HTTPS
