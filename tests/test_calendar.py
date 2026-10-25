@@ -489,11 +489,31 @@ async def test_calendar_trigger_offset_before_local_midnight_uses_next_date(
                         {
                             "event": "calendar_reminder",
                             "event_data": {
-                                "summary": "{{ trigger.calendar_event.summary }}"
+                                "summary": "{{ trigger.calendar_event.summary }}",
+                                "phase": "start",
                             },
                         }
                     ],
-                }
+                },
+                {
+                    "alias": "Calendar presentation ends",
+                    "triggers": [
+                        {
+                            "trigger": "calendar",
+                            "entity_id": calendar_id(hass),
+                            "event": "end",
+                        }
+                    ],
+                    "actions": [
+                        {
+                            "event": "calendar_reminder",
+                            "event_data": {
+                                "summary": "{{ trigger.calendar_event.summary }}",
+                                "phase": "end",
+                            },
+                        }
+                    ],
+                },
             ]
         },
     )
@@ -504,16 +524,30 @@ async def test_calendar_trigger_offset_before_local_midnight_uses_next_date(
     await hass.async_block_till_done()
     assert len(events) == 1
     assert events[0].data["summary"] == "Fajr beginning"
+    assert events[0].data["phase"] == "start"
     freezer.tick(1)
     async_fire_time_changed(hass, instant("2026-10-23T22:55:01Z"))
     await hass.async_block_till_done()
     assert len(events) == 1
-    automation_id = hass.states.async_all("automation")[0].entity_id
+    freezer.move_to("2026-10-23T23:05:00Z")
+    async_fire_time_changed(hass, instant("2026-10-23T23:05:00Z"))
+    await hass.async_block_till_done()
+    assert hass.states.get(calendar_id(hass)).state == "on"
+    freezer.move_to("2026-10-23T23:06:00Z")
+    async_fire_time_changed(hass, instant("2026-10-23T23:06:00Z"))
+    await hass.async_block_till_done()
+    assert len(events) == 2
+    assert events[1].data == {"summary": "Fajr beginning", "phase": "end"}
+    assert hass.states.get(calendar_id(hass)).state == "off"
+
+    automation_ids = [
+        state.entity_id for state in hass.states.async_all("automation")
+    ]
     await hass.services.async_call(
-        "automation", "turn_off", {"entity_id": automation_id}, blocking=True
+        "automation", "turn_off", {"entity_id": automation_ids}, blocking=True
     )
     await hass.async_block_till_done()
-    assert hass.states.get(automation_id).state == "off"
+    assert all(hass.states.get(entity_id).state == "off" for entity_id in automation_ids)
 
 
 async def test_calendars_keep_mosques_isolated_and_removal_preserves_other(
