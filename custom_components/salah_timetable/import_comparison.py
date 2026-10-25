@@ -146,7 +146,7 @@ def render_diff_page(diff: ImportDiff, page: int) -> str:
         else:
             old = ", ".join(change.before) if change.before else "absent"
             new = ", ".join(change.after) if change.after else "absent"
-            lines.append(f"- **{day} · {change.field.value}:** {old} → {new}")
+            lines.append(f"- **{day}** · {change.field.value}: {old} → {new}")
     lines.append(
         "Only the pending timetable is compared with the approved version of "
         "this exact source. Other years, sources and effective Ramadan fallbacks "
