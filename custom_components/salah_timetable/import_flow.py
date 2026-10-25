@@ -352,10 +352,12 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                     if self._monthly:
                         # Distinct published date windows coexist. Replacing one
                         # source must never silently delete another month's rows.
-                        first, last = candidate.coverage.start_date, candidate.coverage.end_date
+                        first, last = (
+                            candidate.coverage.start_date,
+                            candidate.coverage.end_date,
+                        )
                         source_id = (
-                            f"annual-{self._year}-monthly-"
-                            f"{first:%m%d}-{last:%m%d}"
+                            f"annual-{self._year}-monthly-{first:%m%d}-{last:%m%d}"
                         )
                         candidate = await self.hass.async_add_executor_job(
                             lambda: replace(
