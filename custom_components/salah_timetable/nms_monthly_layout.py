@@ -24,6 +24,7 @@ from .nms_layout import (
     _clock,
     _compact_header,
     _format,
+    published_second_khutbah,
 )
 
 NMS_MONTHLY_COLUMNS = dict(NMS_COLUMNS)
@@ -77,6 +78,7 @@ class NmsMonthlyLayout:
                 *(f"Published {name}" for name in _RAW_NAMES),
                 "Published Day",
                 "Published Hijri",
+                "Published Second Khutbah",
             ]
         )
         previous_month = None
@@ -136,6 +138,8 @@ class NmsMonthlyLayout:
                 raise ImportValidationError(
                     "NMS monthly headings or footer are not recognized"
                 )
+            khutbah = published_second_khutbah(footer[5])
+            assert khutbah is not None
             prior: dict[int, int] = {}
             for expected_day, index in enumerate(row_indices, start=1):
                 match = _ROW_PATTERN.fullmatch(lines[index])
@@ -174,5 +178,8 @@ class NmsMonthlyLayout:
                 # meaning. The separately printed Khutbah note is not Jamaat.
                 midday = ["", clocks[9]] if day.weekday() == 4 else [clocks[9], ""]
                 normalized = [*clocks[:9], *midday, *clocks[10:], clocks[11]]
-                writer.writerow([day.isoformat(), *normalized, *raw, weekday, hijri])
+                writer.writerow([
+                    day.isoformat(), *normalized, *raw, weekday, hijri,
+                    khutbah if day.weekday() == 4 else "",
+                ])
         return output.getvalue()
