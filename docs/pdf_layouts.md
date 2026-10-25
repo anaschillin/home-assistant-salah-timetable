@@ -1,7 +1,22 @@
 # PDF layouts and fixture provenance
 
 Every supported layout has a bounded adapter, explicit column meanings and golden
-tests. There is no OCR, fuzzy layout guessing or fallback to calculated prayer times.
+tests. The ordinary PDF/HTTPS import now defaults to **Automatic** detection:
+choose **Annual**, **Monthly** or **Ramadan** plus printed Gregorian year.
+The bounded PDF is extracted once for inspection and every *known strict adapter*
+is checked against that same text. Only one recognized matching adapter may
+proceed; an unsupported or ambiguous PDF is rejected with no guessed time.
+The advanced layout dropdown permits an explicit override for a known edition.
+There is no OCR, fuzzy layout guessing or fallback to calculated prayer times.
+
+**Monthly** describes normal partial coverage and remains internal `annual`
+kind (with only published dates present). **Ramadan** creates a separate
+override source; its effective dates must still be confirmed explicitly.
+A PDF containing annual tables **and** a separate Ramadan page (Zakariyya)
+is handled according to the chosen import type and never activates both.
+The detected concrete parser identifier is stored with approved and
+URL-update sources, so later checks do not silently change adapters.
+The mapping and approval screens report recognized layout and date range.
 
 | Layout ID | Tested against | Supported structure |
 | --- | --- | --- |
@@ -23,7 +38,7 @@ meanings cannot be reassigned.
 | Versioned profile ID | Inspected edition and exact date range | Kind |
 | --- | --- | --- |
 | `nms_annual_2026_v1` | NMS annual 2026; January 1–December 31, 2026 | Annual |
-| `nms_monthly_may_june_2022_v1` | NMS monthly May–June 2022; May 1–June 30, 2022 | Annual |
+| `nms_monthly_may_june_2022_v1` | NMS monthly May–June 2022; May 1–June 30, 2022 | Annual (partial/monthly) |
 | `zak_annual_2026_v1` | Zakariyya annual 2026; January 1–December 31, 2026 | Annual |
 | `zak_ramadan_2026_v1` | Zakariyya separate Ramadan page 2026; February 18–March 20, 2026 | Ramadan |
 
