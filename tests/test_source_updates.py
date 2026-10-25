@@ -160,9 +160,7 @@ async def test_rejected_http_304_survives_restart_without_reprompt(manager):
         manager.hass, manager.entry.entry_id, ZoneInfo("Europe/London")
     )
     await restored.async_load()
-    restarted = SourceUpdateManager(
-        manager.hass, manager.entry, restored, MagicMock()
-    )
+    restarted = SourceUpdateManager(manager.hass, manager.entry, restored, MagicMock())
     assert restarted.status["status"] == "rejected_version"
     with patch(
         "custom_components.salah_timetable.source_updates.download.async_download",
@@ -230,7 +228,7 @@ async def test_rejected_change_retains_approval_and_stages_only_new_digest(manag
     assert manager.storage.staged is None
     assert manager.status["status"] == "rejected_version"
 
-    changed = b"Date,Fajr Begin\\n2026-10-21,06:05\\n"
+    changed = b"Date,Fajr Begin\n2026-10-21,06:05\n"
     with patch(
         "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response(changed, '"v3"')),
