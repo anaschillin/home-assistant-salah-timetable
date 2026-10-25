@@ -97,3 +97,16 @@ def test_auto_parsing_keeps_real_layout_provenance_and_unmodified_times():
 def test_rejects_unrecognized_source_type_before_parsing():
     with pytest.raises(ImportValidationError, match="Unsupported timetable type"):
         PdfParser("auto", import_type="weekly")
+
+
+def test_monthly_url_profile_rejects_changed_date_window():
+    parser = PdfParser("auto", import_type="monthly")
+    with pytest.raises(ImportValidationError, match="different dates"):
+        parser.parse(
+            (FIXTURES / "sample_table.pdf").read_bytes(),
+            timetable_id="annual-2026-monthly-0201-0202",
+            kind="annual",
+            year=2026,
+            date_column="Date",
+            columns={"Fajr Begin": "fajr_begin"},
+        )
