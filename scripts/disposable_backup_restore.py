@@ -110,6 +110,30 @@ def compare_with_container(image: str, original: Path, config: Path) -> dict:
             ),
             "UnknownError",
         )
+        if failure_type == "FileNotFoundError":
+            # Only name fixed HA storage categories, never config-entry IDs.
+            location = next(
+                (
+                    side
+                    for side in ("before", "after")
+                    if f"/{side}/.storage/" in err.stderr
+                ),
+                "unknown",
+            )
+            category = next(
+                (
+                    name
+                    for name in (
+                        "core.config_entries",
+                        "core.entity_registry",
+                        "core.device_registry",
+                        "lovelace_resources",
+                    )
+                    if name in err.stderr
+                ),
+                "timetable_store",
+            )
+            safe = f"Missing HA {category} in {location} snapshot"
         raise ValueError(
             safe or f"Restored configuration audit raised {failure_type}"
         ) from None
