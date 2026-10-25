@@ -15,7 +15,8 @@ The next feature increments are specified in the [implementation plan](milestone
 Milestone 7 now has implemented prayer automation blueprints, approved-date coverage
 monitoring and real automation-engine acceptance tests. Candidate 0.7.0 adds
 Milestones 8, 9, 12 and 13: native calendar, inspected publication profiles, richer
-Adhan controls and media pause/resume. Localization/RTL, import change comparisons
+Adhan controls and media pause/resume. Milestone 17 now adds read-only
+paginated import-change comparisons (pending release acceptance). Localization/RTL
 and broader compatibility tests follow separately. Applicable release acceptance
 is tracked in [the release guide](releasing.md), not in this feature backlog.
 
@@ -80,8 +81,8 @@ adapters and independent expected-value comparisons. See [Ramadan validation](ra
    redistributable fixtures and an independent expected-results comparison. Unknown
    layouts and scanned/encrypted PDFs remain unsupported.
 3. Follow [the feature roadmap](milestones.md#next-increments). Milestones **8,
-   9, 12 and 13** are implemented in candidate 0.7.0 (release acceptance pending).
-   Next pursue **17** (import-change review) and **10** (localization and RTL),
+   9, 12, 13 and 17** are implemented in the candidate (release acceptance pending).
+   Next pursue **10** (localization and RTL),
    with **11** (expanded compatibility and the
    [calendar-trigger CI follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13))
    continuing in parallel. Milestones **14–16** (night periods, wall-tablet
