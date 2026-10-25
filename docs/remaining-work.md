@@ -70,7 +70,12 @@ passed six jobs and **880 Python tests**. The subsequent dashboard
 merged, and [post-merge main Validate run
 40212875119](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119)
 passed all six jobs and **884 Python tests on the first attempt** for
-`c8e65bd01250af0b892782c0e1ef04b99072e37a`. The independent
+`c8e65bd01250af0b892782c0e1ef04b99072e37a`. The later
+[0.8.0 main run 40229412033](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40229412033)
+passed all six jobs and **936 tests**. The 0.8.1
+[PR #21 branch run 40242996936](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40242996936)
+passed all six jobs and **955 Python tests**, including monthly-source
+coexistence and PDF auto-recognition regression tests. The independent
 [calendar-trigger timing flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
 remains open despite passing on rerun. Green main CI is not a public release
 sign-off.
