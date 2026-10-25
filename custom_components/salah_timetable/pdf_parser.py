@@ -110,6 +110,14 @@ _LAYOUTS: dict[str, PdfLayout] = {
     "zak_annual_v1": ZakAnnualLayout(),
 }
 
+# A monthly source remains an ordinary, partially covered annual timetable.
+# A Ramadan selection changes override semantics, not the published dates.
+_AUTO_LAYOUTS = {
+    "annual": frozenset({"nms_annual_v1", "zak_annual_v1", "pdf_table_v1"}),
+    "monthly": frozenset({"nms_monthly_v1", "pdf_table_v1"}),
+    "ramadan": frozenset({"nms_monthly_v1", "zak_ramadan_v1", "pdf_table_v1"}),
+}
+
 
 def extract_pdf_pages(content: bytes) -> tuple[str, ...]:
     """Run in an executor; terminate untrusted extraction at a hard wall limit."""
@@ -157,15 +165,51 @@ def extract_pdf_pages(content: bytes) -> tuple[str, ...]:
 
 
 class PdfParser:
-    """Convert one explicit layout through the validated canonical CSV parser."""
+    """Convert an explicitly selected or unambiguously detected strict PDF layout."""
 
-    def __init__(self, layout_id: str = "pdf_table_v1") -> None:
-        if layout_id not in _LAYOUTS:
+    def __init__(
+        self, layout_id: str = "pdf_table_v1", *, import_type: str = "annual"
+    ) -> None:
+        if layout_id not in _LAYOUTS and layout_id != "auto":
             raise ImportValidationError("Unsupported PDF layout")
+        if import_type not in _AUTO_LAYOUTS:
+            raise ImportValidationError("Unsupported timetable type")
         self.layout_id = layout_id
+        self.import_type = import_type
 
     def _csv(self, content: bytes) -> str:
-        return _LAYOUTS[self.layout_id].to_csv(extract_pdf_pages(content))
+        # Every candidate checks the SAME bounded, isolated PDF extraction. Unknown
+        # publications and ambiguous recognition must fail rather than guess times.
+        pages = extract_pdf_pages(content)
+        if self.layout_id != "auto":
+            return _LAYOUTS[self.layout_id].to_csv(pages)
+        matches: list[tuple[str, str]] = []
+        for layout_id, adapter in _LAYOUTS.items():
+            try:
+                converted = adapter.to_csv(pages)
+                CsvParser().inspect(converted.encode("utf-8"))
+            except (ImportValidationError, ValueError, TypeError, KeyError, IndexError):
+                continue
+            matches.append((layout_id, converted))
+        permitted = _AUTO_LAYOUTS[self.import_type]
+        selected = [(name, csv_text) for name, csv_text in matches if name in permitted]
+        if not selected:
+            if matches:
+                raise ImportValidationError(
+                    "This PDF is recognized but does not match the chosen timetable "
+                    "type. Choose Annual, Monthly or Ramadan to match the publication."
+                )
+            raise ImportValidationError(
+                "Unsupported PDF layout. Only previously inspected publications can "
+                "be detected automatically; use CSV for other layouts."
+            )
+        if len(selected) != 1:
+            raise ImportValidationError(
+                "Ambiguous PDF layout. Choose an inspected layout manually; "
+                "no timetable has been staged."
+            )
+        self.layout_id, converted = selected[0]
+        return converted
 
     def inspect(self, content: bytes) -> tuple[str, ...]:
         return CsvParser().inspect(self._csv(content).encode("utf-8"))
@@ -181,6 +225,8 @@ class PdfParser:
         columns: dict[str, str],
         time_format: str = "24h",
     ) -> ImportCandidate:
+        # Resolve automatic layout selection before validating its fixed columns.
+        canonical_csv = self._csv(content)
         fixed_columns = {
             "nms_annual_v1": NMS_COLUMNS,
             "nms_monthly_v1": NMS_MONTHLY_COLUMNS,
@@ -205,7 +251,6 @@ class PdfParser:
             raise ImportValidationError(
                 "Use Date, 24-hour format and the labelled prayer columns for this mosque layout"
             )
-        canonical_csv = self._csv(content)
         candidate = CsvParser().parse(
             canonical_csv.encode("utf-8"),
             timetable_id=timetable_id,
