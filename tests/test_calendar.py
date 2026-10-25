@@ -120,22 +120,22 @@ def test_calendar_queries_include_overlapping_intervals_not_only_starts():
     assert query(tables, "2026-10-23T05:59:00Z", "2026-10-23T06:00:00Z") == []
 
 
-def test_midnight_query_and_next_event_include_previous_days_active_interval():
-    tables = (table(row("2026-10-23", isha_jamaat=["23:59:30"])),)
-    overlap = query(tables, "2026-10-24T00:00:00Z", "2026-10-24T00:00:20Z")
+def test_midnight_boundary_excludes_events_ending_exactly_at_midnight():
+    tables = (table(row("2026-10-23", isha_jamaat=["23:59"])),)
+    overlap = query(tables, "2026-10-23T23:59:30Z", "2026-10-24T00:00:00Z")
     assert len(overlap) == 1
-    assert overlap[0].start == instant("2026-10-23T23:59:30Z")
-    assert overlap[0].end == instant("2026-10-24T00:00:30Z")
-    assert query(tables, "2026-10-24T00:00:30Z", "2026-10-24T01:00:00Z") == []
+    assert overlap[0].start == instant("2026-10-23T23:59:00Z")
+    assert overlap[0].end == instant("2026-10-24T00:00:00Z")
+    assert query(tables, "2026-10-24T00:00:00Z", "2026-10-24T01:00:00Z") == []
     assert (
         _next_event(
-            "example", tables, RamadanSettings(), UTC, instant("2026-10-24T00:00:15Z")
+            "example", tables, RamadanSettings(), UTC, instant("2026-10-23T23:59:45Z")
         )
         == overlap[0]
     )
     assert (
         _next_event(
-            "example", tables, RamadanSettings(), UTC, instant("2026-10-24T00:00:30Z")
+            "example", tables, RamadanSettings(), UTC, instant("2026-10-24T00:00:00Z")
         )
         is None
     )
@@ -224,7 +224,7 @@ def test_conflicting_sources_fail_only_when_requested_and_do_not_choose_a_source
         query(tables, "2026-10-25T00:00Z", "2026-10-26T00:00Z")
 
 
-def test_next_event_skips_unresolvable_future_date_and_exact_now():
+def test_next_event_keeps_exact_start_then_skips_unresolvable_future_date():
     tables = (
         table(
             row("2026-10-23", fajr_begin=["05:00"]),
@@ -235,7 +235,11 @@ def test_next_event_skips_unresolvable_future_date_and_exact_now():
     event = _next_event(
         "example", tables, RamadanSettings(), LONDON, instant("2026-10-23T04:00Z")
     )
-    assert event.start == instant("2026-10-26T06:00Z")
+    assert event.start == instant("2026-10-23T04:00Z")
+    later = _next_event(
+        "example", tables, RamadanSettings(), LONDON, instant("2026-10-23T04:01Z")
+    )
+    assert later.start == instant("2026-10-26T06:00Z")
 
 
 def test_ramadan_uses_exact_confirmed_dates_and_effective_fallback_without_inventing_taraweeh():
