@@ -9,7 +9,7 @@ from homeassistant.const import CONF_NAME
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 
-from .const import CONF_MOSQUE_ID, CONF_TIME_ZONE, DOMAIN
+from .const import CONF_MOSQUE_ID, CONF_SHOW_HIJRI_DATE, CONF_TIME_ZONE, DOMAIN
 from .ramadan import RamadanSettings
 from .ramadan_validation import validate_ramadan_selection
 from .source_flow import SourceOptionsFlow
@@ -50,6 +50,9 @@ class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_NAME: name,
                         CONF_MOSQUE_ID: mosque_id,
                         CONF_TIME_ZONE: user_input[CONF_TIME_ZONE],
+                        CONF_SHOW_HIJRI_DATE: user_input.get(
+                            CONF_SHOW_HIJRI_DATE, True
+                        ),
                     },
                 )
         return self.async_show_form(
@@ -57,6 +60,9 @@ class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_NAME): selector.TextSelector(),
+                    vol.Optional(
+                        CONF_SHOW_HIJRI_DATE, default=True
+                    ): selector.BooleanSelector(),
                     vol.Required(CONF_MOSQUE_ID): selector.TextSelector(),
                     vol.Required(
                         CONF_TIME_ZONE, default=self.hass.config.time_zone
@@ -84,10 +90,20 @@ class SalahOptionsFlow(SourceOptionsFlow):
         current = self.config_entry.options.get(
             CONF_TIME_ZONE, self.config_entry.data[CONF_TIME_ZONE]
         )
+        show_hijri = self.config_entry.options.get(
+            CONF_SHOW_HIJRI_DATE, self.config_entry.data.get(CONF_SHOW_HIJRI_DATE, True)
+        )
         return self.async_show_form(
             step_id="settings",
             data_schema=vol.Schema(
-                {vol.Required(CONF_TIME_ZONE, default=current): selector.TextSelector()}
+                {
+                    vol.Required(
+                        CONF_TIME_ZONE, default=current
+                    ): selector.TextSelector(),
+                    vol.Optional(
+                        CONF_SHOW_HIJRI_DATE, default=show_hijri
+                    ): selector.BooleanSelector(),
+                }
             ),
             errors=errors,
         )

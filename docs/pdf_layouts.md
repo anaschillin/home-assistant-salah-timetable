@@ -60,6 +60,11 @@ Ramadan kind is permitted for an explicitly confirmed exact-date override source
 Selecting 2026 for this 2022 file is rejected. No Taraweeh or extra Khutbah event
 is inferred. Only the inspected structure is supported.
 
+The inspected monthly footer's explicitly printed **Second Jumu’ah khutbah**
+time is preserved separately as Friday-only metadata. It is not a Jumu’ah
+congregation and does not change the Dhuhr beginning or Jamaat column. An
+unrecognized footer still fails validation, rather than fabricating a time.
+
 ## Zakariyya annual calendar (`zak_annual_v1`)
 
 Select **Zakariyya Masjid — annual calendar, 2026 (v1)**, Annual kind and year
@@ -180,9 +185,14 @@ and rejects inconsistencies. Canonical import data is then 24-hour `HH:MM`; prin
 values, including quotation marks, remain in separate `Published ...` columns and
 in the original binary PDF provenance.
 
-The second-Jumu’ah footer announces **Khutbah** start times, not confirmed additional
-Jamaat times, so it supplies no congregation sensor events. The calendar's Hijri days
-and Ramadan notes are explicitly subject to announcement/moonsighting: they do not
+The second-Jumu’ah footer announces **Khutbah** start times, not confirmed
+additional Jamaat times. When its explicit clock time matches the inspected
+pattern, it is preserved as Friday-only **Second Jumu’ah khutbah** source
+metadata and shown as a separate dashboard note. It is **never** an extra
+congregation event. Fajr's separate **Ends at sunrise** display uses the
+published Sunrise column, not a calculated dawn interval. The calendar's
+printed Hijri days and Ramadan notes remain subject to announcement/moonsighting:
+they do not
 activate Ramadan. There is no published Taraweeh timestamp. On Fridays Dhuhr Jamaat
 is absent while Jumu’ah is present; on other days Jumu’ah is absent. These intentional
 missing fields remain unavailable.

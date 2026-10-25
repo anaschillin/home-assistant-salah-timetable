@@ -45,6 +45,36 @@ test("card renders local times, missing states and theme-responsive layout", () 
   card.hass = {states: {"sensor.mosque_prayer_timetable": {state: "unavailable", attributes}}}; assert.match(card.shadowRoot.textContent, /Timetable unavailable/);
 });
 
+test("dashboard shows published sunrise as Fajr end and second Khutbah separately", () => {
+  const friday = {...attributes, date: "2026-10-23",
+    prayers: [{key: "fajr", name: "Fajr", begin: "2026-10-23T04:45:00Z", end: "2026-10-23T06:20:00Z", jamaat: ["2026-10-23T05:15:00Z"]},
+      {key: "dhuhr", name: "Dhuhr", begin: "2026-10-23T11:45:00Z", jamaat: ["2026-10-23T12:30:00Z"]}],
+    second_khutbah: "2026-10-23T15:30:00+01:00",
+    show_hijri_date: true,
+  };
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = hass(friday);
+  card._render(Date.parse("2026-10-23T04:00:00Z"));
+  const rows = find(card.shadowRoot, "tr");
+  assert.match(rows[1].textContent, /Ends at sunrise: 07:20/);
+  assert.match(card.shadowRoot.textContent, /Second Jumu’ah khutbah: 15:30 \(published; not Jamaat\)/);
+  assert.match(rows[2].textContent, /12:45/);
+  assert.match(rows[2].textContent, /13:30/);
+  const thursday = {...friday, date: "2026-10-22"};
+  card.hass = hass(thursday); card._render(Date.parse("2026-10-22T04:00:00Z"));
+  assert.doesNotMatch(card.shadowRoot.textContent, /Second Jumu’ah khutbah/);
+});
+
+test("mosque-wide Hijri preference overrides card visibility and remains configurable", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass({...attributes, show_hijri_date: false});
+  assert.doesNotMatch(find(card.shadowRoot, "header")[0].textContent, /Hijri/);
+  card.hass = hass({...attributes, show_hijri_date: true});
+  assert.match(find(card.shadowRoot, "header")[0].textContent, /Hijri/);
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_hijri_date: false});
+  assert.doesNotMatch(find(card.shadowRoot, "header")[0].textContent, /Hijri/);
+});
+
 test("Friday Dhuhr congregation is labelled Jumuah", () => {
   const friday = {
     ...attributes,

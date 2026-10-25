@@ -5,11 +5,14 @@ is the single source of truth for release blockers; the
 [remaining-work backlog](remaining-work.md) tracks later feature additions.
 
 Milestones 1–5 are implemented; the current candidate is 0.7.0. Keep follow-up
-work in focused PRs with tests and documentation. The final 25 October
-[main validation run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111)
-passed all six jobs and 873 Python tests on a rerun of one intermittently failing
-calendar-trigger test (tracked in
-[issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)).
+work in focused PRs with tests and documentation. After Milestone 17, the
+[merged-main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
+passed all six jobs and **880 Python tests**. The dashboard follow-up's
+[PR run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212080948)
+passed six jobs and **884 tests** on source `ed6733c`; publication still
+requires exact-release-commit CI and manual acceptance. The earlier
+[calendar-trigger flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+remains open despite a green rerun.
 Earlier manual-install, dependency and physical-device evidence remains scoped to
 the versions and environments in the [validation record](validation.md).
 **Unfinished release acceptance** still includes asset redistribution rights,
@@ -43,11 +46,13 @@ their completion requires implementation and the stated acceptance evidence.
 | 16 | Published Eid and other special prayer events | Planned | Explicit dated event storage/approval; calendar from 8 |
 | 17 | Before/after import change review | Implemented; release acceptance pending | Existing durable staging and source replacement scope |
 
-The **8 → 12 → 13 → 9** feature sequence is implemented in candidate 0.7.0;
-exact-commit CI and applicable release acceptance remain required. Next, pursue
-17 for import change comparisons and 10 for localization/RTL. Continue 11 in
-parallel; 14–16 remain subsequent increments. Existing milestone numbers and links
-are retained; numbering does not set execution order.
+The **8 → 12 → 13 → 9 → 17** sequence is implemented in candidate 0.7.0;
+exact-commit CI and applicable real-world release acceptance remain required.
+The subsequent dashboard enhancement adds published Fajr end (Sunrise),
+NMS Friday second-khutbah notes and a mosque-wide full-Hijri-date display
+preference (see [dashboard](dashboard.md)). Next pursue **10** (localization/RTL)
+with **11** (broader compatibility testing) in parallel; 14–16 follow.
+Milestone numbering does not set release order.
 
 Every increment needs focused tests, user documentation, successful CI for its
 exact commit and applicable live checks before release. Imported values stay
@@ -178,9 +183,15 @@ in a test instance remains outstanding. Physical-device checks are
 user-confirmed complete for their latest installation; see the
 [validation record](validation.md) and [dashboard setup](dashboard.md).
 
-Candidate 0.6.0 extends the card with prayer emphasis, independent countdown progress,
+Candidate 0.6.0 added prayer emphasis, independent countdown progress,
 calculated Umm al-Qura dates and graphical layout/visibility/time-format controls.
-These are display features; imported records and Ramadan activation remain unchanged.
+The latest dashboard changes show Fajr's **published sunrise end** within its row,
+show explicitly published NMS second-Jumu’ah khutbah times as **Friday-only notes**
+without modifying existing Dhuhr/Jamaat events, and add the mosque-level full-Hijri
+visibility preference during setup and under Configure → Mosque settings. The
+per-card Hijri toggle and ±3-day display adjustment remain available. Imported
+times and Ramadan activation stay unchanged; see [dashboard](dashboard.md).
+Real-device sign-off for these refinements remains part of release acceptance.
 Current validation limits are recorded in [validation](validation.md).
 
 ## Milestone 6 — release hardening (partially implemented)

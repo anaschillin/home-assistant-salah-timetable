@@ -57,13 +57,20 @@ sensors plus a calendar, and real card picker/editor toggles. See the
 [historical local validation](validation.md#calendar-publication-profiles-and-media--candidate-070).
 
 Historical local 0.7.0 checks are documented in [validation.md](validation.md).
-The latest recorded [main Validate run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111)
-passed all six jobs and 873 Python tests on **attempt 2**. Attempt 1 encountered
-one calendar-trigger timing failure, now tracked in
-[issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13).
+The [Milestone 17 main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
+passed six jobs and **880 Python tests**; the subsequent dashboard
+[PR #16 validation](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212080948)
+passed six jobs and **884 tests** on source `ed6733c`. The independent
+[calendar-trigger timing flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+remains open despite passing on rerun. A green branch run is not a public
+release sign-off.
 Hosted acceptance includes automated config-entry removal/re-addition and actual
 Home Assistant **Container** archive restoration. HACS UI uninstall/reinstallation
 and full **HAOS** archive restoration remain unverified release gates.
+Recent dashboard additions (Fajr end at published Sunrise, NMS Friday second-
+khutbah notes, mosque Hijri-date setup/options visibility) also require manual
+preview and persisted-settings acceptance on supported installations; see
+[dashboard](dashboard.md) and the [release checklist](releasing.md).
 
 ## Subsequent additions
 

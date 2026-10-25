@@ -13,8 +13,12 @@ PDF support covers the inspected Nuneaton Muslim Society annual and May–June 2
 monthly layouts, Zakariyya Masjid's 2026 annual tables and separate Ramadan page,
 and the synthetic sample layout. Other editions and layouts remain unsupported;
 CSV provides the alternative for unsupported publications. Missing data remains
-unavailable. Confirm Ramadan dates explicitly: the card's calculated Umm al-Qura
-Hijri date is display-only and never activates Ramadan. See
+unavailable. The dashboard displays **Fajr ends at sunrise** only when Sunrise
+is published, and NMS second-Jumu’ah khutbah footers only as separate Friday
+notes; neither is an additional congregation. Full calculated Umm al-Qura Hijri
+dates can be hidden during mosque setup, later under Configure → Mosque settings,
+or per card. Confirm Ramadan dates explicitly: Hijri display never activates
+Ramadan. See
 [PDF layouts](pdf_layouts.md) and the README for file, timezone, network and parsing
 limits.
 

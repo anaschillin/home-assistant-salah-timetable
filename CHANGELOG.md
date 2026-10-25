@@ -2,6 +2,15 @@
 
 ## 0.7.0 — unreleased
 
+- Display the end of Fajr at the explicitly published Sunrise time in the
+  bundled dashboard, without changing published Fajr beginning or Jamaat.
+- Retain the second-Jumu’ah khutbah footer on inspected NMS annual/monthly
+  publications and display it as a Friday-only note, **never** as an
+  additional Jumu’ah congregation or revised Dhuhr beginning.
+- Display the **full calculated Umm al-Qura Hijri date** (day, month, year)
+  according to a mosque-wide visibility choice at initial setup and through
+  subsequent settings; keep each card's existing additional hide toggle and
+  independent display-day adjustment. Ramadan activation is unaffected.
 - Add read-only source-scoped import comparisons in the pending review flow,
   with added/removed date and field counts, exact before/after times (including
   multi-congregation Jumu'ah), and 20-change pagination. Other years and
