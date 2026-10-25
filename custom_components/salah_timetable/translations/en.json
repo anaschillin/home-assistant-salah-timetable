@@ -221,7 +221,9 @@
         "state": {
           "not_configured": "No URL sources",
           "configured": "Configured",
-          "up_to_date": "Up to date",
+          "up_to_date": "Published version approved",
+          "rejected_version": "Published version rejected",
+          "differs_from_approved": "Publication not approved",
           "pending_review": "Pending review",
           "error": "Check failed"
         }
