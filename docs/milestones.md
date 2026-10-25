@@ -5,11 +5,14 @@ is the single source of truth for release blockers; the
 [remaining-work backlog](remaining-work.md) tracks later feature additions.
 
 Milestones 1–5 are implemented; the current candidate is 0.7.0. Keep follow-up
-work in focused PRs with tests and documentation. The latest recorded
-[merged-main validation](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
-passed all six jobs and **880 Python tests** for Milestone 17. The earlier
+work in focused PRs with tests and documentation. After Milestone 17, the
+[merged-main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
+passed all six jobs and **880 Python tests**. The dashboard follow-up's
+[PR run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212080948)
+passed six jobs and **884 tests** on source `ed6733c`; publication still
+requires exact-release-commit CI and manual acceptance. The earlier
 [calendar-trigger flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-remains open despite a green rerun; a future release must pass CI on its exact commit.
+remains open despite a green rerun.
 Earlier manual-install, dependency and physical-device evidence remains scoped to
 the versions and environments in the [validation record](validation.md).
 **Unfinished release acceptance** still includes asset redistribution rights,
