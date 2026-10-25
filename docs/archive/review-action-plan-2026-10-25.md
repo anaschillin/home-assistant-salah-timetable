@@ -1,6 +1,6 @@
 # Archived code review follow-up action plan — 25 October 2026
 
-**Status:** Archived after the 25 October 2026 implementation sweep; REV-01–03 fixes and REV-04–06 test/tooling PRs are merged. Release sign-offs and later enhancements remain open. This file preserves historical review decisions, **not** a second live checklist. For current release gates use [Building and accepting a release](../../releasing.md); for later development use [Remaining work](../../remaining-work.md).
+**Status:** Archived after the 25 October 2026 implementation sweep; REV-01–03 fixes and REV-04–06 test/tooling PRs are merged. Release sign-offs and later enhancements remain open. This file preserves historical review decisions, **not** a second live checklist. For current release gates use [Building and accepting a release](../releasing.md); for later development use [Remaining work](../remaining-work.md).
 **Review baseline:** [`main` at `737b636`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/737b636dfc5ce934625dec0afc6eb5291ee43091) (candidate 0.7.0).
 **Purpose:** A durable, prioritized backlog from the 25 October repository review. This supplements [remaining work](../remaining-work.md), [validation evidence](../validation.md), and the [release checklist](../releasing.md); it does not replace the feature [milestones](../milestones.md).
 
