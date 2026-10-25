@@ -76,6 +76,13 @@
           "taraweeh": "Taraweeh"
         }
       },
+      "compare": {
+        "title": "Compare approved and pending timetable",
+        "description": "{detail}",
+        "data": {
+          "action": "Next step"
+        }
+      },
       "review": {
         "title": "Review timetable before activation",
         "description": "{summary}",
@@ -288,8 +295,16 @@
     },
     "import_decision": {
       "options": {
+        "compare": "Compare changes before approval",
         "approve": "Approve and save timetable",
         "reject": "Reject and keep the active timetable"
+      }
+    },
+    "import_compare_action": {
+      "options": {
+        "review": "Return to approval/rejection",
+        "previous": "Previous page",
+        "next": "Next page"
       }
     },
     "pdf_layout": {
