@@ -178,8 +178,14 @@ class NmsMonthlyLayout:
                 # meaning. The separately printed Khutbah note is not Jamaat.
                 midday = ["", clocks[9]] if day.weekday() == 4 else [clocks[9], ""]
                 normalized = [*clocks[:9], *midday, *clocks[10:], clocks[11]]
-                writer.writerow([
-                    day.isoformat(), *normalized, *raw, weekday, hijri,
-                    khutbah if day.weekday() == 4 else "",
-                ])
+                writer.writerow(
+                    [
+                        day.isoformat(),
+                        *normalized,
+                        *raw,
+                        weekday,
+                        hijri,
+                        khutbah if day.weekday() == 4 else "",
+                    ]
+                )
         return output.getvalue()
