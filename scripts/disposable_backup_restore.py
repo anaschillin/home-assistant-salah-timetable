@@ -121,9 +121,7 @@ def main() -> None:
     if not args.confirm_disposable:
         parser.error("Refusing restore without --confirm-disposable")
     try:
-        result = restore(
-            args.backup, args.original, args.ha_version, serve=args.serve
-        )
+        result = restore(args.backup, args.original, args.ha_version, serve=args.serve)
     except (ValueError, OSError, subprocess.SubprocessError) as err:
         parser.exit(1, f"Disposable restore failed: {err}\n")
     print("Verified restored config safely:", json.dumps(result, sort_keys=True))
