@@ -3,6 +3,11 @@
 Milestones 1–5 are implemented. Release hardening is in progress; an item below is
 complete only when its stated evidence exists. See [recorded validation](validation.md).
 
+For the dated follow-up from the 25 October 2026 code review, see the
+[review action plan](review-action-plan-2026-10-25.md). It records prioritized
+compatibility, lifecycle, source-status and release-assurance tasks with acceptance
+criteria and regression-test requirements.
+
 The next feature increments are specified in the [implementation plan](milestones.md#next-increments).
 Milestone 7 now has implemented prayer automation blueprints, approved-date coverage
 monitoring and real automation-engine acceptance tests. Candidate 0.7.0 adds
