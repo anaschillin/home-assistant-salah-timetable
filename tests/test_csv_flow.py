@@ -459,3 +459,78 @@ async def test_reloaded_preview_requires_reopening_review(hass, entry, upload_cl
         "sensor", DOMAIN, "example_fajr_begin"
     )
     assert hass.states.get(entity_id).state == "2026-10-21T02:45:00+00:00"
+
+
+async def test_comparison_review_is_read_only_and_returns_to_reject(
+    hass, populated, upload_client
+):
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    result = await stage_upload(hass, populated, upload_client, REPLACEMENT_CSV)
+    store = populated.runtime_data.storage
+    approved = store.timetables
+    staged_id = store.staged.stage_id
+    assert "Compare changes" in result["description_placeholders"]["summary"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "compare"}
+    )
+    assert result["step_id"] == "compare"
+    details = result["description_placeholders"]["detail"]
+    assert "2026-10-22 (date removed)" in details
+    assert "fajr_begin: 05:45 → 05:55" in details
+    assert store.timetables == approved
+    assert store.staged.stage_id == staged_id
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"action": "review"}
+    )
+    assert result["step_id"] == "review"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "reject"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert store.timetables == approved
+    assert store.staged is None
+
+
+async def test_large_comparison_paginates_without_approving(hass, entry, upload_client):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    content = (
+        "Date,Fajr Start,Fajr Jamaat\n"
+        + "".join(f"2026-10-{day:02d},05:45,06:15\n" for day in range(1, 32))
+    ).encode()
+    result = await stage_upload(hass, entry, upload_client, content)
+    store = entry.runtime_data.storage
+    assert not store.timetables
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "compare"}
+    )
+    assert result["step_id"] == "compare"
+    first = result["description_placeholders"]["detail"]
+    assert "page 1 of 2" in first
+    assert "2026-10-01" in first
+    assert "2026-10-21" not in first
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"action": "next"}
+    )
+    second = result["description_placeholders"]["detail"]
+    assert "page 2 of 2" in second
+    assert "2026-10-21" in second
+    assert "2026-10-31" in second
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"action": "previous"}
+    )
+    assert "page 1 of 2" in result["description_placeholders"]["detail"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"action": "review"}
+    )
+    assert result["step_id"] == "review"
+    assert not store.timetables
+    assert store.staged is not None
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert store.staged is None
+    assert len(store.timetables[0].days) == 31

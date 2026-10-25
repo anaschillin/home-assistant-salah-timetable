@@ -2,6 +2,10 @@
 
 ## 0.7.0 — unreleased
 
+- Add read-only source-scoped import comparisons in the pending review flow,
+  with added/removed date and field counts, exact before/after times (including
+  multi-congregation Jumu'ah), and 20-change pagination. Other years and
+  Ramadan effective fallbacks are excluded; approval/rejection remains explicit.
 - Add one read-only Home Assistant calendar per mosque, with separate published
   beginnings, Jamaats, Friday congregations and active Ramadan events. Query
   approved dated records with stable event IDs and timezone-aware boundaries.

@@ -16,6 +16,7 @@ from homeassistant.helpers import selector
 from homeassistant.util import dt as dt_util
 
 from .csv_parser import CsvParser
+from .import_comparison import compare_timetables, diff_overview, render_diff_page
 from .import_model import MAX_SOURCE_BYTES, ImportValidationError
 from .model import PrayerField, normalize_field
 from .ramadan import RamadanSettings
@@ -76,6 +77,11 @@ def import_summary(candidate, existing, settings=None) -> str:
         f"Approval replaces **{len(previous.days)} existing rows** for this source."
         if previous
         else "Approval adds this source; other years remain stored."
+    )
+    lines.append(diff_overview(compare_timetables(table, previous)))
+    lines.append(
+        "Choose **Compare changes** to inspect every page of canonical differences "
+        "before approval. The comparison never activates a pending import."
     )
     if table.kind == "ramadan":
         lines.append(
@@ -144,6 +150,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         self._kind = "annual"
         self._year: int | None = None
         self._review_stage_id: str | None = None
+        self._diff_page = 0
         self._mapping_input: dict[str, Any] = {}
         self._review_runtime = None
         self._parser = PARSER
@@ -386,6 +393,9 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             return self.async_abort(reason="stale_import")
         errors = {}
         if user_input is not None:
+            if user_input["decision"] == "compare":
+                self._diff_page = 0
+                return await self.async_step_compare()
             try:
                 if user_input["decision"] == "approve":
                     await coordinator.storage.async_approve(self._review_stage_id)
@@ -422,7 +432,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 {
                     vol.Required("decision"): selector.SelectSelector(
                         selector.SelectSelectorConfig(
-                            options=["approve", "reject"],
+                            options=["compare", "approve", "reject"],
                             translation_key="import_decision",
                         )
                     )
@@ -432,4 +442,58 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             description_placeholders={
                 "summary": f"Mosque timezone: {coordinator.zone.key}\n\n" + summary
             },
+        )
+
+    async def async_step_compare(self, user_input=None):
+        """Page through pending-source differences without changing active data."""
+        coordinator = self._coordinator()
+        if coordinator is None:
+            return self.async_abort(reason="integration_not_loaded")
+        if self._review_runtime is not coordinator:
+            return self.async_abort(reason="integration_reloaded")
+        staged = coordinator.storage.staged
+        if staged is None or staged.stage_id != self._review_stage_id:
+            return self.async_abort(reason="stale_import")
+
+        table = staged.candidate.timetable
+        previous = next(
+            (
+                item
+                for item in coordinator.storage.timetables
+                if item.timetable_id == table.timetable_id
+            ),
+            None,
+        )
+        diff = await self.hass.async_add_executor_job(
+            compare_timetables, table, previous
+        )
+        if user_input is not None:
+            action = user_input["action"]
+            if action == "review":
+                return await self.async_step_review()
+            if action == "next":
+                self._diff_page = min(diff.page_count - 1, self._diff_page + 1)
+            elif action == "previous":
+                self._diff_page = max(0, self._diff_page - 1)
+        options = ["review"]
+        if self._diff_page > 0:
+            options.append("previous")
+        if self._diff_page + 1 < diff.page_count:
+            options.append("next")
+        detail = await self.hass.async_add_executor_job(
+            render_diff_page, diff, self._diff_page
+        )
+        return self.async_show_form(
+            step_id="compare",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("action"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=options,
+                            translation_key="import_compare_action",
+                        )
+                    )
+                }
+            ),
+            description_placeholders={"detail": detail},
         )

@@ -41,7 +41,7 @@ their completion requires implementation and the stated acceptance evidence.
 | 14 | Calculated night midpoint and last third | Planned | Actual Maghrib and next-day Fajr timestamps |
 | 15 | Mosque display mode, branding and announcements | Planned | Existing card; localization conventions from 10 |
 | 16 | Published Eid and other special prayer events | Planned | Explicit dated event storage/approval; calendar from 8 |
-| 17 | Before/after import change review | Planned | Existing durable staging and source replacement scope |
+| 17 | Before/after import change review | Implemented; release acceptance pending | Existing durable staging and source replacement scope |
 
 The **8 → 12 → 13 → 9** feature sequence is implemented in candidate 0.7.0;
 exact-commit CI and applicable release acceptance remain required. Next, pursue
@@ -418,7 +418,15 @@ DST/year boundaries, missing dates, replacement/removal, rejection and restart.
 Pending events remain inactive. Eid dates must be supplied or explicitly confirmed;
 they are never inferred from the calculated Hijri header or a predicted Ramadan end.
 
-## Milestone 17 — import change comparison (planned)
+## Milestone 17 — import change comparison (implemented; release acceptance pending)
+
+Implemented: a read-only before/after canonical source comparison, counts for
+added and removed dates and fields, Jumu'ah sequence changes, and a paged
+20-change-per-page screen in the existing Options flow. The comparison is
+bound to the pending stage ID, so browsing cannot approve a stale proposal.
+Pure comparison and real Home Assistant Options-flow tests cover the behavior.
+See the [import-comparison guide](import_comparison.md). Further human acceptance
+on large real PDF publications and supported UI devices is still required.
 
 Extend import review with a date/field comparison between the approved source being
 replaced and its pending proposal. Show old/new published times, added and removed
@@ -427,7 +435,8 @@ source kind/year and whole-source replacement scope. Keep source-value changes
 separate from calculated/effective Ramadan fallback and display formatting.
 
 Acceptance: compare canonical values rather than byte hashes alone; retain access
-to original tokens/provenance and distinguish formatting-only changes. Test first
+to original tokens/provenance and distinguish identical canonical values from changes
+to source bytes or original tokens. Test first
 imports, unchanged values, partial replacements that remove dates, absent fields,
 multiple congregations, different years/kinds and large paged comparisons. Rejecting
 or cancelling preserves approved data; restart preserves the proposal. Stale review
