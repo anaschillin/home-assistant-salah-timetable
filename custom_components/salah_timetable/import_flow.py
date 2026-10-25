@@ -166,6 +166,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         self._content: bytes | None = None
         self._headers: tuple[str, ...] = ()
         self._kind = "annual"
+        self._monthly = False
         self._year: int | None = None
         self._review_stage_id: str | None = None
         self._mapping_input: dict[str, Any] = {}
@@ -348,6 +349,18 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                     )
                     if self._coordinator() is not coordinator:
                         return self.async_abort(reason="integration_reloaded")
+                    if self._monthly:
+                        # Distinct published date windows coexist. Replacing one
+                        # source must never silently delete another month's rows.
+                        first, last = candidate.coverage.start_date, candidate.coverage.end_date
+                        source_id = (
+                            f"annual-{self._year}-monthly-"
+                            f"{first:%m%d}-{last:%m%d}"
+                        )
+                        candidate = replace(
+                            candidate,
+                            timetable=replace(candidate.timetable, timetable_id=source_id),
+                        )
                     remote_source = None
                     if self._remote_url is not None:
                         from .source_model import RemoteSource
