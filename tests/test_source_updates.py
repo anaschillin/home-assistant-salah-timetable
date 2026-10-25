@@ -106,7 +106,6 @@ async def test_rejected_unchanged_content_is_not_restaged(manager):
     assert check["rejected_sha256"] == sha256(CSV).hexdigest()
 
 
-
 async def test_approved_source_is_up_to_date_only_for_matching_publication(manager):
     assert manager.status["status"] == "configured"
     with patch(
