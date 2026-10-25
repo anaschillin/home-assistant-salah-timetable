@@ -5,12 +5,12 @@ are read-only; temporary restored data is automatically removed on exit.
 """
 
 import argparse
-from contextlib import contextmanager
 import json
 import os
 import re
 import subprocess
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from uuid import uuid4
 
