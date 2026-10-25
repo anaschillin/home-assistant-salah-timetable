@@ -76,7 +76,9 @@ def _day_events(mosque_id, day, tables, settings, zone):
                     "Iftar uses effective Maghrib beginning because no separate "
                     f"Iftar time is published; timetable date: {day.isoformat()}"
                 )
-            description += "; 60-second calendar display interval (not a prayer duration)"
+            description += (
+                "; 60-second calendar display interval (not a prayer duration)"
+            )
             events.append(
                 CalendarEvent(
                     start=stamp,
@@ -143,11 +145,7 @@ def _next_event(mosque_id, tables, settings, zone, now):
             # or disable otherwise valid current calendar data.
             continue
         if event := next(
-            (
-                event
-                for event in events
-                if event.end.astimezone(timezone.utc) > now_utc
-            ),
+            (event for event in events if event.end.astimezone(timezone.utc) > now_utc),
             None,
         ):
             return event
