@@ -16,9 +16,11 @@ SHAs; a final release commit still needs its own successful required jobs.
 **This document is the single active checklist for release acceptance.** The
 [archived 25 October review plan](archive/review-action-plan-2026-10-25.md)
 records REV-01–06 implementation history; use this section for the outstanding
-sign-offs. Feature follow-ups (REV-07 compatibility expansion and REV-08
-localization/import-diff UX) belong in [remaining work](remaining-work.md), not
-in the current release gate unless they uncover a blocking regression.
+sign-offs. REV-07 compatibility expansion remains ongoing; REV-08's
+import-change comparison is implemented in Milestone 17, while localization/RTL
+remains planned under Milestone 10. These follow-ups belong in
+[remaining work](remaining-work.md), not in the current release gate unless
+they uncover a blocking regression.
 
 | Gate | Recorded evidence | Decision / remaining action |
 | --- | --- | --- |
@@ -26,7 +28,7 @@ in the current release gate unless they uncover a blocking regression.
 | REV-04 asset redistribution | [PR #9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9) merged; [asset inventory](asset-provenance.json) and [rights review](asset-provenance.md) available | **Blocking:** obtain documented rights for contributed PDFs/derived oracles, icon and screenshots, or replace with rights-cleared originals and assess public Git history; `python scripts/check_asset_provenance.py --require-cleared` must pass |
 | REV-05 full HAOS restore | [PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11) merged; real **Home Assistant Container** backup archive creation and isolated restore passed on Core 2026.10.0 and 2026.10.3 | **Blocking:** restore an actual *full HAOS/Supervisor* backup into a **second disposable HAOS instance**, verify entry/entity IDs, approved versus pending source data, Ramadan options, dashboard resources, Repairs and a second restart; record redacted evidence using the [restore procedure](backup-restore-acceptance.md) |
 | REV-06 HACS removal/re-addition | [PR #10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10) merged; real HA Container two-mosque isolation, config-entry removal/re-addition and frontend resource checks passed | **Blocking:** run *HACS UI* uninstall/reinstallation on disposable HA with two mosques and verify card/resource/device cleanup and recovery; record evidence per the [HACS acceptance guide](hacs-removal-acceptance.md) |
-| Required hosted validation | [Previous merged-main run 40208986292](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292) passed **880 Python tests** and all six jobs; dashboard [PR #16 run 40212080948](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212080948) passed **884 Python tests** plus all five other jobs for source `ed6733c`. The earlier calendar timing flake is tracked in [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13) | **Automated PR tests pass, but release sign-off remains open:** review required checks for the **exact future release commit**, verify post-merge `main` results and complete manual dashboard and REV-04–06 gates |
+| Required hosted validation | [Dashboard PR #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16) was squash-merged as `c8e65bd01250af0b892782c0e1ef04b99072e37a`. The matching [post-merge `main` Validate run **40212875119**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119) succeeded **on attempt 1** with **884 Python tests passed** and all six jobs green: frontend/Chromium, HACS, hassfest, Python and live HA 2026.10.0 / 2026.10.3. The earlier calendar timing flake remains tracked in [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13). | **CI passed on the dashboard merge commit**, not a final tagged release. Review new required CI on the exact future release commit, investigate issue #13 as warranted, and complete manual dashboard and REV-04–06 acceptance before release sign-off. |
 | Manual release acceptance | See [the UI/runtime checks below](#manual-home-assistant-and-hacs-acceptance) and [validation log](validation.md) | **Still requires recorded results** for every applicable real-world/UI scenario; a passing automated workflow is not a substitute |
 | Version, packaging and publication | Build/release scripts and draft workflow exist | **Pending:** match manifest/project/card/cache versions, changelog and notes; review existing tag, successful CI and prepared draft before publishing |
 
@@ -34,7 +36,9 @@ The [validation log](validation.md) is the evidence record, **not** a second
 checklist. The `--require-cleared` provenance audit deliberately blocks draft
 release preparation while rights remain unresolved; this is not a licence grant
 and must not be bypassed just because a release ZIP excludes the PDF fixtures.
-No GitHub release was created by the REV-04–06 merges.
+No GitHub release has been published for candidate 0.7.0; successful
+PR and main CI runs are implementation evidence, not publication or manual
+release acceptance.
 
 ### Final sign-off for each candidate
 

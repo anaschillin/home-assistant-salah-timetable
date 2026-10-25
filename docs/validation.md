@@ -42,7 +42,7 @@ and executable evidence procedures in
 The strict asset-provenance release check deliberately fails until rights
 are established. No draft or published GitHub release was created.
 
-**Latest merged documentation validation:** [Validate run **40195818111**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111)
+**Earlier merged documentation validation:** [Validate run **40195818111**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111)
 for main commit `f962fdbd1f9ecf6d27c30eda94c432d7552bfba3`
 (doc archive/cleanup [PR #12](https://github.com/anaschillin/home-assistant-salah-timetable/pull/12))
 completed successfully on **attempt 2**, with all six jobs green and **873 Python
@@ -88,8 +88,20 @@ header/column-count mismatches. These were corrected and not silently
 dismissed. Manual real-publication display, physical-device/card-editor
 and restart acceptance remain **unverified** and must be recorded against
 the final release candidate. The live matrix does not establish full HAOS
-restore or HACS UI uninstall/reinstallation. The exact merge commit will
-receive a separate `main` CI run.
+restore or HACS UI uninstall/reinstallation.
+
+**Dashboard post-merge `main` evidence:** [Validate run
+**40212875119**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119)
+completed on **25 October 2026**, on squash-merge commit
+`c8e65bd01250af0b892782c0e1ef04b99072e37a`
+([PR #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16)).
+**All six jobs passed on the first attempt**, including **884 Python tests**,
+Ruff, Node/Chromium frontend, hassfest, HACS and disposable live Home Assistant
+**2026.10.0 / 2026.10.3** checks. This validates the merged dashboard changes
+in the recorded automated environments. It **does not** certify the physical
+dashboard, full HAOS/Supervisor recovery, actual HACS UI remove/reinstall or
+asset redistribution rights. The next documentation commit and any eventual
+release commit must also pass their own exact-commit CI.
 
 **Previously user-confirmed acceptance:** Physical-device checks and HACS
 custom-repository installation, restart and updates were reported complete
