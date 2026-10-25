@@ -181,7 +181,9 @@ values, including quotation marks, remain in separate `Published ...` columns an
 in the original binary PDF provenance.
 
 The second-Jumu’ah footer announces **Khutbah** start times, not confirmed additional
-Jamaat times, so it supplies no congregation sensor events. The calendar's Hijri days
+Jamaat times. The parser preserves the explicit time as a **Friday-only
+Second Jumu’ah khutbah** dashboard note, separate from Dhuhr beginning and
+published Jumu’ah Jamaat. It does not create congregation sensor events. The calendar's Hijri days
 and Ramadan notes are explicitly subject to announcement/moonsighting: they do not
 activate Ramadan. There is no published Taraweeh timestamp. On Fridays Dhuhr Jamaat
 is absent while Jumu’ah is present; on other days Jumu’ah is absent. These intentional
