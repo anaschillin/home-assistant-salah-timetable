@@ -124,8 +124,11 @@ cover/month years, exact headings, all Gregorian dates/weekdays and 13 physical 
 columns. It applies documented column meridiems, resolves same-column quotation marks
 before splitting Friday Jumu’ah from ordinary Dhuhr, and retains all raw cells. The
 selected field subset must keep the known meanings and 24-hour canonical format.
-It does not interpret Khutbah notes or Hijri dates as scheduled congregations or
-confirmed Ramadan dates. See `pdf_layouts.md`.
+It records an explicitly recognized second-Jumu’ah khutbah footer separately in
+per-row original source metadata for Fridays; the footer **never** becomes a
+congregation event or changes the published Dhuhr beginning. The inspected
+NMS monthly adapter applies the same separation. Printed Hijri cells never
+confirm Ramadan. See [PDF layouts](pdf_layouts.md).
 
 `source_model.py` holds immutable URL/parser profiles and allowlisted check metadata.
 `source_updates.py` serializes manual and scheduled checks. A source comparison inside
@@ -185,7 +188,10 @@ yesterday, today and tomorrow. Next Salah beginning and next Jamaat are independ
 Tomorrow's Fajr must exist in tomorrow's actual effective timetable, including across
 year/leap-day boundaries. The engine never reuses today's Fajr or searches distant
 dates to conceal missing coverage. Multiple Jumu'ah congregations remain individual
-events associated with Dhuhr for context.
+events associated with Dhuhr for context. Dashboard Fajr **end** is separately
+read from the published Sunrise value; it is not inferred from a Fajr start,
+Jamaat, or a new end-trigger event. Second-khutbah footer metadata is presented
+only on Fridays, never inserted into the Jamaat event engine.
 
 Context selects the previous congregation before a prayer begins, the upcoming
 congregation after its beginning, then the previous congregation once its scheduled
@@ -254,6 +260,12 @@ variables without Card Mod. The editor emits standard `config-changed` events an
 supports upcoming (default), context and previous modes, optional title, compact/expanded
 layout, countdown/detail visibility and 12/24-hour times. The calculated Umm al-Qura
 header has a per-card day adjustment and never participates in Ramadan activation.
+Config-entry data/options expose `show_hijri_date`, defaulting to `true` for
+existing entries; the dashboard includes the full calculated Hijri date only
+when both mosque-wide and per-card visibility permit it. The presentation
+payload includes separately published Fajr sunrise-end and optional Friday
+second-khutbah values. These are display properties, **not** changes to the
+event stream or stored approved prayer times.
 
 Node tests cover helpers, rendering, safe text and editor round trips. An isolated
 headless Chromium harness checks real custom-element rendering with HA element
