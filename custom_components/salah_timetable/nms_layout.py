@@ -189,9 +189,9 @@ class NmsLayout:
                 )
             # The text worker can wrap or join PDF footer lines; recognize the
             # explicit labelled time in footer text, never in dated Jamaat cells.
-            khutbah = published_second_khutbah(
-                " ".join(lines[row_indices[-1] + 1 :])
-            ) or ""
+            khutbah = (
+                published_second_khutbah(" ".join(lines[row_indices[-1] + 1 :])) or ""
+            )
             prior: dict[int, int] = {}
             for expected_day, index in enumerate(row_indices, start=1):
                 match = _ROW_PATTERN.fullmatch(lines[index].strip())
