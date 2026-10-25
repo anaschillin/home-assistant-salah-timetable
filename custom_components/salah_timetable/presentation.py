@@ -1,5 +1,8 @@
 """Safe dashboard payloads made from absolute published/effective timestamps."""
 
+import re
+from datetime import datetime, time
+
 from .events import PrayerEvent
 from .model import PrayerField
 
@@ -71,13 +74,22 @@ def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
     # Read preserved NMS publisher metadata, not an inferred prayer time.
     annual = data.effective.annual_row
     published = annual or row
-    khutbah = (published.original.get("Published Second Khutbah")
-               if published and data.day.weekday() == 4 else None)
+    khutbah = (
+        published.original.get("Published Second Khutbah")
+        if published and data.day.weekday() == 4
+        else None
+    )
+    if not isinstance(khutbah, str) or not re.fullmatch(r"[0-2][0-9]:[0-5][0-9]", khutbah):
+        khutbah = None
+    khutbah_at = (
+        datetime.combine(data.day, time.fromisoformat(khutbah), zone).isoformat()
+        if khutbah and int(khutbah[:2]) < 24
+        else None
+    )
     return {
         "mosque_name": mosque_name,
         "show_hijri_date": show_hijri_date,
-        "second_khutbah": (f"{data.day.isoformat()}T{khutbah}:00"
-                           if khutbah else None),
+        "second_khutbah": khutbah_at,
         "date": data.day.isoformat(),
         "time_zone": zone.key,
         "prayers": prayers,
