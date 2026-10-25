@@ -12,7 +12,7 @@ import {dependencyEvidence, dependencyProbe} from "./live_dependency.mjs";
 import {runBrowserSmoke} from "./live_browser.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const options = {version: "2026.10.0", output: null, preload: false, requireFresh: false, caBundle: null};
+const options = {version: "2026.10.0", output: null, preload: false, requireFresh: false, caBundle: null, verifyBackupRestore: false};
 for (let index = 2; index < process.argv.length; index++) {
   const argument = process.argv[index];
   if (argument === "--ha-version") options.version = process.argv[++index];
@@ -20,8 +20,9 @@ for (let index = 2; index < process.argv.length; index++) {
   else if (argument === "--require-fresh-dependency") options.requireFresh = true;
   else if (argument === "--ca-bundle") options.caBundle = resolve(process.argv[++index]);
   else if (argument === "--preload-pypdf") options.preload = true;
+  else if (argument === "--verify-backup-restore") options.verifyBackupRestore = true;
   else if (argument === "--help") {
-    console.log("node scripts/live_smoke.mjs [--ha-version 2026.10.0] [--output-dir PATH] [--preload-pypdf | --require-fresh-dependency] [--ca-bundle PATH]\nRequires Docker, Node.js 24 and Chromium/Chrome (CHROME_BIN optional). Creates and removes its own container/configuration. --preload-pypdf explicitly supplies the locked local dependency instead of testing fresh installation. --require-fresh-dependency verifies absence before and the manifest-pinned import after setup. --ca-bundle mounts a trusted combined CA bundle read-only for dependency installation; TLS verification remains enabled.");
+    console.log("node scripts/live_smoke.mjs [--ha-version 2026.10.0] [--output-dir PATH] [--preload-pypdf | --require-fresh-dependency] [--ca-bundle PATH] [--verify-backup-restore]\nRequires Docker, Node.js 24 and Chromium/Chrome (CHROME_BIN optional). Creates and removes its own container/configuration. --preload-pypdf explicitly supplies the locked local dependency instead of testing fresh installation. --require-fresh-dependency verifies absence before and the manifest-pinned import after setup. --ca-bundle mounts a trusted combined CA bundle read-only for dependency installation; TLS verification remains enabled.");
     process.exit(0);
   } else throw new Error(`Unknown argument: ${argument}`);
 }
@@ -239,6 +240,40 @@ try {
   await request(`/api/config/config_entries/entry/${readded}`, undefined, {method: "DELETE"});
   report.checks.push("two_mosques_independent_approval", "entry_remove_readd_clears_only_own_storage", "no_stale_readded_entities", "resource_deduplication_after_readd");
   flow = await stage(entry, days, "06:11");
+  if (options.verifyBackupRestore) {
+    // HA registries are persisted asynchronously; require the full source
+    // snapshot on disk before creating and comparing a real backup archive.
+    await until(
+      () => command("docker", ["exec", container, "python", "-c",
+        "from pathlib import Path; p=Path('/config/.storage'); "
+        + "required=['core.config_entries','core.entity_registry','core.device_registry',"
+        + JSON.stringify(`salah_timetable.${entry}`) + "]; "
+        + "print('ready' if all((p/n).is_file() for n in required) else 'pending')"]),
+      value => value === "ready",
+      "Home Assistant registries and timetable were not persisted before backup",
+      120,
+    );
+    // backup.create is Home Assistant's real Container backup action. Exercise
+    // official extraction in a *different* throwaway configuration volume.
+    await request("/api/services/backup/create", {});
+    const archiveName = await until(
+      async () => command("docker", ["exec", container, "python", "-c",
+        "from pathlib import Path; import tarfile; p=next(iter(sorted(Path('/config/backups').glob('*.tar'))), None); print(p.name if p and tarfile.is_tarfile(p) else '')"]),
+      name => name.endsWith(".tar"),
+      "Official Home Assistant backup archive was not finalized",
+      120,
+    );
+    assert.match(archiveName, /^[^/]+\.tar$/, "Unsafe backup archive filename");
+    const archive = join(working, "synthetic-ha-backup.tar");
+    await command("docker", ["cp", `${container}:/config/backups/${archiveName}`, archive]);
+    const output = await command("python3", [
+      "-m", "scripts.disposable_backup_restore",
+      "--backup", archive, "--original", config,
+      "--ha-version", options.version, "--confirm-disposable",
+    ]);
+    assert.match(output, /Verified restored config safely:/);
+    report.checks.push("official_backup_archive_restored_into_second_disposable_config");
+  }
   await request(`/api/config/config_entries/options/flow/${flow.flow_id}`, undefined, {method: "DELETE"});
   assert.equal((await calendarEvents()).find(event => event.summary === "Fajr beginning").uid, calendarFajr.uid);
   assert.equal((await calendarEvents()).find(event => event.summary === "Fajr beginning").start.dateTime, `${today}T06:00:00+00:00`);
