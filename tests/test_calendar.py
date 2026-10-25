@@ -1,6 +1,6 @@
 """Native read-only prayer calendars, API queries and actual calendar triggers."""
 
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -72,7 +72,7 @@ async def approve_tables(hass, entry, tables, zone=LONDON):
     return storage
 
 
-def test_distinct_zero_duration_events_preserve_all_friday_congregations():
+def test_distinct_display_intervals_preserve_all_friday_congregations():
     tables = (
         table(
             row(
@@ -95,7 +95,10 @@ def test_distinct_zero_duration_events_preserve_all_friday_congregations():
         "Jumu’ah Jamaat 2",
         "Jumu’ah Jamaat 3",
     ]
-    assert all(event.start == event.end and not event.all_day for event in events)
+    assert all(
+        event.end - event.start == timedelta(minutes=1) and not event.all_day
+        for event in events
+    )
     assert len({event.uid for event in events}) == 7
     assert all(event.uid for event in events)
     assert len(events) == 7  # Absent Asr/Maghrib/Isha remain absent.
@@ -108,6 +111,45 @@ def test_query_start_inclusive_end_exclusive_and_equivalent_timezone_ranges():
     assert [event.summary for event in first] == ["Fajr beginning"]
     assert first == other
     assert query(tables, "2026-10-24T00:00Z", "2026-10-25T00:00Z") == []
+
+
+def test_calendar_queries_include_overlapping_intervals_not_only_starts():
+    tables = (table(row("2026-10-23", fajr_begin=["06:00"])),)
+    assert len(query(tables, "2026-10-23T06:00:30Z", "2026-10-23T06:00:40Z")) == 1
+    assert query(tables, "2026-10-23T06:01:00Z", "2026-10-23T06:02:00Z") == []
+    assert query(tables, "2026-10-23T05:59:00Z", "2026-10-23T06:00:00Z") == []
+
+
+def test_midnight_boundary_excludes_events_ending_exactly_at_midnight():
+    tables = (table(row("2026-10-23", isha_jamaat=["23:59"])),)
+    overlap = query(tables, "2026-10-23T23:59:30Z", "2026-10-24T00:00:00Z")
+    assert len(overlap) == 1
+    assert overlap[0].start == instant("2026-10-23T23:59:00Z")
+    assert overlap[0].end == instant("2026-10-24T00:00:00Z")
+    assert query(tables, "2026-10-24T00:00:00Z", "2026-10-24T01:00:00Z") == []
+    assert (
+        _next_event(
+            "example", tables, RamadanSettings(), UTC, instant("2026-10-23T23:59:45Z")
+        )
+        == overlap[0]
+    )
+    assert (
+        _next_event(
+            "example", tables, RamadanSettings(), UTC, instant("2026-10-24T00:00:00Z")
+        )
+        is None
+    )
+
+
+def test_next_event_remains_current_until_display_interval_ends():
+    tables = (table(row("2026-10-23", fajr_begin=["06:00"], fajr_jamaat=["06:30"])),)
+    for now in ("2026-10-23T06:00:00Z", "2026-10-23T06:00:59Z"):
+        assert _next_event(
+            "example", tables, RamadanSettings(), UTC, instant(now)
+        ).start == instant("2026-10-23T06:00:00Z")
+    assert _next_event(
+        "example", tables, RamadanSettings(), UTC, instant("2026-10-23T06:01:00Z")
+    ).start == instant("2026-10-23T06:30:00Z")
 
 
 @pytest.mark.parametrize(
@@ -157,6 +199,9 @@ def test_timestamp_instants_follow_mosque_dst(day, expected):
     tables = (table(row(day, fajr_begin=["05:00"])),)
     events = query(tables, day + "T00:00Z", day + "T23:00Z", zone=LONDON)
     assert events[0].start.astimezone(timezone.utc).isoformat() == expected
+    assert events[0].end.astimezone(timezone.utc) - events[0].start.astimezone(
+        timezone.utc
+    ) == timedelta(minutes=1)
 
 
 @pytest.mark.parametrize("day", ["2026-03-29", "2026-10-25"])
@@ -179,7 +224,7 @@ def test_conflicting_sources_fail_only_when_requested_and_do_not_choose_a_source
         query(tables, "2026-10-25T00:00Z", "2026-10-26T00:00Z")
 
 
-def test_next_event_skips_unresolvable_future_date_and_exact_now():
+def test_next_event_keeps_exact_start_then_skips_unresolvable_future_date():
     tables = (
         table(
             row("2026-10-23", fajr_begin=["05:00"]),
@@ -190,7 +235,11 @@ def test_next_event_skips_unresolvable_future_date_and_exact_now():
     event = _next_event(
         "example", tables, RamadanSettings(), LONDON, instant("2026-10-23T04:00Z")
     )
-    assert event.start == instant("2026-10-26T06:00Z")
+    assert event.start == instant("2026-10-23T04:00Z")
+    later = _next_event(
+        "example", tables, RamadanSettings(), LONDON, instant("2026-10-23T04:01Z")
+    )
+    assert later.start == instant("2026-10-26T06:00Z")
 
 
 def test_ramadan_uses_exact_confirmed_dates_and_effective_fallback_without_inventing_taraweeh():
@@ -310,7 +359,7 @@ async def test_authenticated_calendar_api_and_reload_preserve_event_ids(
     assert events[0]["start"]["dateTime"] == "2026-10-23T05:00:00+00:00"
     assert instant(events[0]["start"]["dateTime"]) == calendar_entity(hass).event.start
     assert calendar_entity(hass).event.start.isoformat() == "2026-10-23T06:00:00+01:00"
-    assert events[0]["start"] == events[0]["end"]
+    assert events[0]["end"]["dateTime"] == "2026-10-23T05:01:00+00:00"
     uids = [event["uid"] for event in events]
     hass.config.language = "ar"
     assert await hass.config_entries.async_reload(entry.entry_id)
@@ -371,8 +420,13 @@ async def test_calendar_advances_at_sunrise_without_sensor_event_changes(
     await hass.async_block_till_done()
     assert entry.runtime_data.data == before
     state = hass.states.get(entity_id)
-    assert state.state == "off"  # A scheduled instant has no invented duration.
-    assert state.attributes["message"] == "Dhuhr beginning"
+    assert state.state == "on"  # Presentation interval, not prayer duration.
+    assert state.attributes["message"] == "Sunrise"
+    assert calendar_entity(hass).event.start == instant("2026-10-23T06:00Z")
+    freezer.move_to("2026-10-23T06:01:00Z")
+    async_fire_time_changed(hass, instant("2026-10-23T06:01:00Z"))
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == "off"
     assert calendar_entity(hass).event.start == instant("2026-10-23T11:00Z")
 
 
@@ -439,11 +493,31 @@ async def test_calendar_trigger_offset_before_local_midnight_uses_next_date(
                         {
                             "event": "calendar_reminder",
                             "event_data": {
-                                "summary": "{{ trigger.calendar_event.summary }}"
+                                "summary": "{{ trigger.calendar_event.summary }}",
+                                "phase": "start",
                             },
                         }
                     ],
-                }
+                },
+                {
+                    "alias": "Calendar presentation ends",
+                    "triggers": [
+                        {
+                            "trigger": "calendar",
+                            "entity_id": calendar_id(hass),
+                            "event": "end",
+                        }
+                    ],
+                    "actions": [
+                        {
+                            "event": "calendar_reminder",
+                            "event_data": {
+                                "summary": "{{ trigger.calendar_event.summary }}",
+                                "phase": "end",
+                            },
+                        }
+                    ],
+                },
             ]
         },
     )
@@ -454,16 +528,30 @@ async def test_calendar_trigger_offset_before_local_midnight_uses_next_date(
     await hass.async_block_till_done()
     assert len(events) == 1
     assert events[0].data["summary"] == "Fajr beginning"
+    assert events[0].data["phase"] == "start"
     freezer.tick(1)
     async_fire_time_changed(hass, instant("2026-10-23T22:55:01Z"))
     await hass.async_block_till_done()
     assert len(events) == 1
-    automation_id = hass.states.async_all("automation")[0].entity_id
+    freezer.move_to("2026-10-23T23:05:00Z")
+    async_fire_time_changed(hass, instant("2026-10-23T23:05:00Z"))
+    await hass.async_block_till_done()
+    assert hass.states.get(calendar_id(hass)).state == "on"
+    freezer.move_to("2026-10-23T23:06:00Z")
+    async_fire_time_changed(hass, instant("2026-10-23T23:06:00Z"))
+    await hass.async_block_till_done()
+    assert len(events) == 2
+    assert events[1].data == {"summary": "Fajr beginning", "phase": "end"}
+    assert hass.states.get(calendar_id(hass)).state == "off"
+
+    automation_ids = [state.entity_id for state in hass.states.async_all("automation")]
     await hass.services.async_call(
-        "automation", "turn_off", {"entity_id": automation_id}, blocking=True
+        "automation", "turn_off", {"entity_id": automation_ids}, blocking=True
     )
     await hass.async_block_till_done()
-    assert hass.states.get(automation_id).state == "off"
+    assert all(
+        hass.states.get(entity_id).state == "off" for entity_id in automation_ids
+    )
 
 
 async def test_calendars_keep_mosques_isolated_and_removal_preserves_other(

@@ -15,6 +15,8 @@ from .model import PrayerField, Timetable
 from .ramadan import RamadanSettings, resolve_day
 
 MAX_QUERY_DAYS = 366
+# Calendar interoperability only: prayer and Jamaat remain exact start instants.
+CALENDAR_PRESENTATION_INTERVAL = timedelta(minutes=1)
 _NAMES = {
     PrayerField.FAJR_BEGIN: "Fajr beginning",
     PrayerField.FAJR_JAMAAT: "Fajr Jamaat",
@@ -74,10 +76,13 @@ def _day_events(mosque_id, day, tables, settings, zone):
                     "Iftar uses effective Maghrib beginning because no separate "
                     f"Iftar time is published; timetable date: {day.isoformat()}"
                 )
+            description += (
+                "; 60-second calendar display interval (not a prayer duration)"
+            )
             events.append(
                 CalendarEvent(
                     start=stamp,
-                    end=stamp,
+                    end=(instant + CALENDAR_PRESENTATION_INTERVAL).astimezone(zone),
                     summary=name,
                     description=description,
                     uid=sha256(identity.encode()).hexdigest(),
@@ -89,7 +94,7 @@ def _day_events(mosque_id, day, tables, settings, zone):
 
 
 def calendar_events(mosque_id, tables, settings, zone, start, end):
-    """Return bounded [start, end) events; no pending data or inferred durations."""
+    """Return events overlapping [start, end), not just starting within it."""
     for value in (start, end):
         if (
             not isinstance(value, datetime)
@@ -102,19 +107,24 @@ def calendar_events(mosque_id, tables, settings, zone, start, end):
     start_utc, end_utc = start.astimezone(timezone.utc), end.astimezone(timezone.utc)
     if end_utc <= start_utc:
         raise HomeAssistantError("Calendar query end must be after its start")
-    first = start_utc.astimezone(zone).date()
+    first_query_day = start_utc.astimezone(zone).date()
     last = (end_utc - timedelta(microseconds=1)).astimezone(zone).date()
-    if (last - first).days >= MAX_QUERY_DAYS:
+    if (last - first_query_day).days >= MAX_QUERY_DAYS:
         raise HomeAssistantError(
             f"Calendar queries may cover at most {MAX_QUERY_DAYS} local dates"
         )
+    # An event just before local midnight can overlap a query starting tomorrow.
+    first = (start_utc - CALENDAR_PRESENTATION_INTERVAL).astimezone(zone).date()
     events = []
     try:
         for day, sources in sorted(_index(tables, first, last).items()):
             events.extend(
                 event
                 for event in _day_events(mosque_id, day, sources, settings, zone)
-                if start_utc <= event.start.astimezone(timezone.utc) < end_utc
+                if (
+                    event.end.astimezone(timezone.utc) > start_utc
+                    and event.start.astimezone(timezone.utc) < end_utc
+                )
             )
     except ValueError as err:
         raise HomeAssistantError(
@@ -126,7 +136,8 @@ def calendar_events(mosque_id, tables, settings, zone, start, end):
 def _next_event(mosque_id, tables, settings, zone, now):
     """Search actual stored future dates, including beyond tomorrow/year end."""
     now_utc = now.astimezone(timezone.utc)
-    for day, sources in sorted(_index(tables, now.astimezone(zone).date()).items()):
+    first = (now_utc - CALENDAR_PRESENTATION_INTERVAL).astimezone(zone).date()
+    for day, sources in sorted(_index(tables, first).items()):
         try:
             events = _day_events(mosque_id, day, sources, settings, zone)
         except ValueError:
@@ -134,11 +145,7 @@ def _next_event(mosque_id, tables, settings, zone, now):
             # or disable otherwise valid current calendar data.
             continue
         if event := next(
-            (
-                event
-                for event in events
-                if event.start.astimezone(timezone.utc) > now_utc
-            ),
+            (event for event in events if event.end.astimezone(timezone.utc) > now_utc),
             None,
         ):
             return event
@@ -178,7 +185,7 @@ class PrayerCalendar(CoordinatorEntity, CalendarEntity):
             or now < self._computed_at
             or (
                 self._next is not None
-                and self._next.start.astimezone(timezone.utc) <= now
+                and self._next.end.astimezone(timezone.utc) <= now
             )
         ):
             self._next = _next_event(
