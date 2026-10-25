@@ -2,39 +2,57 @@
 
 ## Current recorded status — 25 October 2026
 
-The current candidate is **0.7.0**, implementing Milestones 8, 9, 12 and 13.
-Local verification passed **853 Python tests** (95% aggregate integration
-coverage), **81 Node tests**, native Chromium at 320/360/400/900px,
-and **24 live HA 2026.10.0 checks**. The full Python verification is recorded in the
-[0.7.0 evidence](#calendar-publication-profiles-and-media--candidate-070) below.
-The live run verified fresh manifest-pinned dependency installation, calendar
-queries excluding pending imports, stable calendar IDs after restart/rejection,
-the publication-profile picker timezone guard and actual card/editor behavior.
+The current integration candidate remains **0.7.0**. REV-01–03 runtime fixes
+and REV-04–06 release-assurance tooling were merged through PRs
+[#6](https://github.com/anaschillin/home-assistant-salah-timetable/pull/6),
+[#7](https://github.com/anaschillin/home-assistant-salah-timetable/pull/7),
+[#8](https://github.com/anaschillin/home-assistant-salah-timetable/pull/8),
+[#9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9),
+[#10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10)
+and [#11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11).
 
-The latest recorded hosted **Validate** result is
-[40138323440](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40138323440)
-for pushed **0.6.2 commit `b7b0c74`**. It completed successfully, including the real
-minimum/current HA matrix with strict dependency proof. The reusable live matrix
-also runs weekly. Later release commits still need their own required checks.
+The final combined [Validate run **40194784544**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40194784544)
+for **main commit `12f6ae52e249ed2a4ba6d80b17989b0c5e781753`** completed
+successfully on 25 October 2026:
 
-**Physical-device checks are complete by user confirmation on 24 October 2026.**
-The user reported updating their installation to the latest available version.
-Specific hardware, browsers and HA/integration version numbers were not supplied;
-this records their completed checks without assigning them to the previously
-unpublished local 0.6.2 tree.
+- **873 Python tests passed**, with Ruff lint and formatting checks.
+- Frontend/Chromium tests, hassfest and HACS repository validation succeeded.
+- Live Home Assistant tests succeeded on **2026.10.0** and **2026.10.3**.
+- The live HA matrix exercised two independently approved synthetic mosque
+  timetables, config-entry removal/re-addition and isolation, and creation
+  and restoration of a **real Home Assistant Container backup archive** into
+  a second disposable configuration using Home Assistant's restore module.
+  The backup audit compared stored approved and pending imports, source
+  metadata, config entries and registry/card identities without exporting
+  contents. This was **not a full HAOS/Supervisor restoration**.
 
-HACS installation, restart and updates are user-confirmed complete through the
-custom-repository route. Removal/re-addition in a test instance, full HA backup
-restoration, asset provenance and reviewed release publication remain pending.
-HACS CI is repository validation; the installation confirmation is separate evidence.
-See the [current acceptance checklist](remaining-work.md). Dated sections below
-retain the results and limitations observed at that time; this summary supersedes
-their older pending statuses.
+**Outstanding release sign-offs:** Public redistribution permission for the
+contributed PDF fixtures/derived oracles, brand icon and screenshots
+(REV-04); full HAOS backup-archive restore, restart, Repairs and resource
+checks in another disposable HAOS (REV-05); and actual HACS **UI**
+uninstall/reinstallation with coexistence and cleanup checks (REV-06).
+A passed HACS *repository check* or a Container config-entry lifecycle test
+is not evidence of HACS UI reinstallation. All three remain **open**, with
+the current decision criteria in the
+[single release checklist](releasing.md#current-release-readiness--25-october-2026)
+and executable evidence procedures in
+[asset provenance](asset-provenance.md),
+[backup restore](backup-restore-acceptance.md) and
+[HACS lifecycle acceptance](hacs-removal-acceptance.md).
+The strict asset-provenance release check deliberately fails until rights
+are established. No draft or published GitHub release was created.
 
-The obsolete `codex/live-smoke-runner` and merged Dependabot setup-python branches
-were deleted after their review and the successful v7 upgrade. Historical entries
-below retain the test counts, versions and environment limitations observed at the
-time; they are not current acceptance status.
+**Previously user-confirmed acceptance:** Physical-device checks and HACS
+custom-repository installation, restart and updates were reported complete
+on 24 October 2026 for the latest installed candidate. Their exact device,
+browser and installation version were not recorded and they do not
+establish the three outstanding release sign-offs.
+
+The original [25 October review plan](archive/review-action-plan-2026-10-25.md)
+is archived as implementation history. Dated sections below retain the
+actual results and limitations observed when they ran, including earlier
+0.5.x, 0.6.x and 0.7.0 candidates; they must not be interpreted as the
+latest source or current release gates.
 
 ## Initial validation — 23 October 2026
 

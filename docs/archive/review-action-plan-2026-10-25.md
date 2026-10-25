@@ -1,8 +1,8 @@
-# Code review follow-up action plan — 25 October 2026
+# Archived code review follow-up action plan — 25 October 2026
 
-**Status:** Active; REV-01, REV-02 and REV-03 merged. REV-04–06 acceptance hardening in review.
+**Status:** Archived after the 25 October 2026 implementation sweep; REV-01–03 fixes and REV-04–06 test/tooling PRs are merged. Release sign-offs and later enhancements remain open. This file preserves historical review decisions, **not** a second live checklist. For current release gates use [Building and accepting a release](../releasing.md); for later development use [Remaining work](../remaining-work.md).
 **Review baseline:** [`main` at `737b636`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/737b636dfc5ce934625dec0afc6eb5291ee43091) (candidate 0.7.0).
-**Purpose:** A durable, prioritized backlog from the 25 October repository review. This supplements [remaining work](remaining-work.md), [validation evidence](validation.md), and the [release checklist](releasing.md); it does not replace the feature [milestones](milestones.md).
+**Purpose:** A durable, prioritized backlog from the 25 October repository review. This supplements [remaining work](../remaining-work.md), [validation evidence](../validation.md), and the [release checklist](../releasing.md); it does not replace the feature [milestones](../milestones.md).
 
 Keep changes small, add regression tests, and link the implementing commit/PR and test run beside each item when complete. A green pre-change CI run does **not** prove any task below has been resolved. For changes to runtime behaviour, review the user-visible semantics before implementation.
 
@@ -13,17 +13,17 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 | REV-01 | P1 | [x] Merged ([PR #7](https://github.com/anaschillin/home-assistant-salah-timetable/pull/7), [`bbf4f1d`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/bbf4f1dddae4578dd9f00d8aee0d9526c9eab0bf)) | Resolve zero-duration calendar event compatibility | Before next public release |
 | REV-02 | P1 | [x] Merged ([PR #6](https://github.com/anaschillin/home-assistant-salah-timetable/pull/6), [`b175f89`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b175f89c8dea466103e4b654cd5e98c89b0c674e)) | Ensure coordinator boundary timer is stopped on unload/reload | Before next public release |
 | REV-03 | P2 | [x] Merged ([PR #8](https://github.com/anaschillin/home-assistant-salah-timetable/pull/8), [`423f4b8`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/423f4b8cf34ec6e6ada054310ed7922efbab2e39)) | Make rejected-source status distinguishable from approved/up-to-date data | Before next public release |
-| REV-04 | P2 | [ ] Rights pending; tooling [PR #9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9) | Verify redistribution rights of fixtures and branding | Release gate |
-| REV-05 | P2 | [ ] Full restore evidence pending; tooling [PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11) | Restore a full Home Assistant backup archive in a disposable instance | Release gate |
-| REV-06 | P2 | [ ] HACS UI evidence pending; automated preflight [PR #10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10) | Verify HACS removal/re-addition and multi-mosque isolation | Release gate |
+| REV-04 | P2 | [ ] Rights pending; tooling merged ([PR #9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9), [`44b102a`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/44b102ae6edd83c242b6026efda34cddcbda3a96)) | Verify redistribution rights of fixtures and branding | Release gate |
+| REV-05 | P2 | [ ] Full HAOS restore evidence pending; Container test merged ([PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11), [`12f6ae5`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/12f6ae52e249ed2a4ba6d80b17989b0c5e781753)) | Restore a full Home Assistant backup archive in a disposable instance | Release gate |
+| REV-06 | P2 | [ ] HACS UI evidence pending; test merged ([PR #10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10), [`d335a4c`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/d335a4c52740a41dadcce57c63a65a28a81105bb)) | Verify HACS removal/re-addition and multi-mosque isolation | Release gate |
 | REV-07 | P3 | [ ] Open | Expand version/upgrade compatibility evidence | Follow-up |
 | REV-08 | P3 | [ ] Open | Track localization/RTL and import change-diff usability | Subsequent milestones |
 
-**Implementation tracking (25 October):** REV-02 was squash-merged as [`b175f89`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b175f89c8dea466103e4b654cd5e98c89b0c674e) and REV-01 as [`bbf4f1d`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/bbf4f1dddae4578dd9f00d8aee0d9526c9eab0bf); maintainer confirms both CI suites passed. REV-03 was squash-merged as [`423f4b8`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/423f4b8cf34ec6e6ada054310ed7922efbab2e39) after green CI. REV-04/05/06 have proposed automation/acceptance tooling; none of the remaining rights, full HAOS restore or HACS UI acceptance gates is yet certified.
+**Implementation tracking (25 October):** REV-02 was squash-merged as [`b175f89`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b175f89c8dea466103e4b654cd5e98c89b0c674e) and REV-01 as [`bbf4f1d`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/bbf4f1dddae4578dd9f00d8aee0d9526c9eab0bf); maintainer confirms both CI suites passed. REV-03 was squash-merged as [`423f4b8`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/423f4b8cf34ec6e6ada054310ed7922efbab2e39) after green CI. REV-04/05/06 tooling was subsequently squash-merged in PRs #9, #11 and #10, respectively. Final combined [main validation run 40194784544](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40194784544) passed (873 Python tests and both Home Assistant 2026.10 live jobs). These runs do **not** establish redistribution permission, full HAOS/Supervisor restore, or HACS UI uninstall/reinstallation, so those three gates remain open in the [current release checklist](../releasing.md).
 
 ## REV-01 — CalendarEvent start/end semantics
 
-**Evidence:** [`calendar.py`](../custom_components/salah_timetable/calendar.py) in `_day_events()` sets `end=stamp`. [`test_calendar.py`](../tests/test_calendar.py) explicitly asserts that `start == end`. The [Home Assistant calendar entity developer documentation](https://contributors.home-assistant.io/core/entities/calendar/) treats event starts as inclusive and ends as exclusive; verify the contract against the supported Core versions before changing behaviour.
+**Evidence:** [`calendar.py`](../../custom_components/salah_timetable/calendar.py) in `_day_events()` sets `end=stamp`. [`test_calendar.py`](../../tests/test_calendar.py) explicitly asserts that `start == end`. The [Home Assistant calendar entity developer documentation](https://contributors.home-assistant.io/core/entities/calendar/) treats event starts as inclusive and ends as exclusive; verify the contract against the supported Core versions before changing behaviour.
 
 **Risk:** Zero-length events have no active interval. UI rendering, calendar integrations, overlapping range queries and start/end-trigger semantics may be inconsistent even if current API smoke tests succeed. Prayer/Jamaat times themselves must remain exact instants—an event's display interval must not be presented as a religious or congregational duration.
 
@@ -39,7 +39,7 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 
 ## REV-02 — Cancel coordinator boundary scheduling on unload/reload
 
-**Evidence:** [`coordinator.py`](../custom_components/salah_timetable/coordinator.py) registers `_boundary_unsub` through `async_track_point_in_utc_time` and cancels it in `async_shutdown()`. [`__init__.py`](../custom_components/salah_timetable/__init__.py) calls `source_updates.async_stop()` on successful unload but does not explicitly call `coordinator.async_shutdown()`.
+**Evidence:** [`coordinator.py`](../../custom_components/salah_timetable/coordinator.py) registers `_boundary_unsub` through `async_track_point_in_utc_time` and cancels it in `async_shutdown()`. [`__init__.py`](../../custom_components/salah_timetable/__init__.py) calls `source_updates.async_stop()` on successful unload but does not explicitly call `coordinator.async_shutdown()`.
 
 **Risk / hypothesis to verify:** A callback registered independently of platform update listeners may survive unload and keep refreshing an obsolete coordinator after a reload.
 
@@ -53,7 +53,7 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 
 ## REV-03 — Distinguish rejected content from approved source freshness
 
-**Evidence:** [`source_updates.py`](../custom_components/salah_timetable/source_updates.py) returns `up_to_date` when checks have `last_success`, even if content was staged and rejected. [`test_source_updates.py`](../tests/test_source_updates.py) intentionally asserts `up_to_date` for a rejected, unchanged source with no approved table.
+**Evidence:** [`source_updates.py`](../../custom_components/salah_timetable/source_updates.py) returns `up_to_date` when checks have `last_success`, even if content was staged and rejected. [`test_source_updates.py`](../../tests/test_source_updates.py) intentionally asserts `up_to_date` for a rejected, unchanged source with no approved table.
 
 **Risk:** Users may read “up to date” as “the current publication has been approved and is active,” whereas it can mean only “the last download was successful.” The existing checksum suppression after a rejection is valuable and should be retained.
 
@@ -67,7 +67,7 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 
 ## REV-04 — Asset provenance and redistribution
 
-**Evidence:** [`tests/fixtures/pdf/`](../tests/fixtures/pdf) includes real NMS/Zakariyya PDFs; [`brand/icon.png`](../custom_components/salah_timetable/brand/icon.png) and other contributed assets need provenance checks. The runtime release archive excludes published PDFs, but they remain public in repository history.
+**Evidence:** [`tests/fixtures/pdf/`](../../tests/fixtures/pdf) includes real NMS/Zakariyya PDFs; [`brand/icon.png`](../../custom_components/salah_timetable/brand/icon.png) and other contributed assets need provenance checks. The runtime release archive excludes published PDFs, but they remain public in repository history.
 
 **Tasks**
 - [ ] Record source, owner, licence/permission and intended distribution for each real fixture and logo.
@@ -79,14 +79,14 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 
 ## REV-05 — Full Home Assistant backup restoration
 
-**Evidence:** Timetable-store migration/restore tests exist, but [remaining-work.md](remaining-work.md) distinguishes them from full HA *backup-archive* restoration.
+**Evidence:** Timetable-store migration/restore tests exist, but [remaining-work.md](../remaining-work.md) distinguishes them from full HA *backup-archive* restoration.
 
 **Tasks**
 - [ ] Create a disposable instance with a configured mosque, approved source, pending proposal, Ramadan settings and registered entities.
 - [ ] Create a complete Home Assistant backup archive; restore into a second disposable instance.
 - [ ] Verify config entries, IDs, source provenance, pending/approved separation, calendar/card registration and remote-check metadata.
 - [ ] Verify no source is automatically approved; repeat a restart and check Repairs and duplicate resources.
-- [ ] Record Core version, backup/restore method, anonymized results and limitations in [validation.md](validation.md).
+- [ ] Record Core version, backup/restore method, anonymized results and limitations in [validation.md](../validation.md).
 
 **Done when:** An actual full-backup restore succeeds and the recorded evidence is reproducible.
 
@@ -99,7 +99,7 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 - [ ] Install through HACS, add two separately identified mosques and import different timetables.
 - [ ] Remove/re-add the integration as appropriate and document whether config-entry removal intentionally deletes per-entry storage.
 - [ ] Confirm no stale card resources, timers, entities or unexpected cross-mosque effects; test upgrade to the candidate.
-- [ ] Record each scenario and any recovery instructions in [validation.md](validation.md).
+- [ ] Record each scenario and any recovery instructions in [validation.md](../validation.md).
 
 **Done when:** The expected uninstall/reinstallation behaviour is documented and the other mosque remains unaffected where applicable.
 
@@ -112,7 +112,7 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 
 ## REV-08 — Subsequent UX and localization work
 
-- [ ] Track Arabic/bilingual display and right-to-left card accessibility against [milestones.md](milestones.md), with actual mobile/tablet acceptance.
+- [ ] Track Arabic/bilingual display and right-to-left card accessibility against [milestones.md](../milestones.md), with actual mobile/tablet acceptance.
 - [ ] Add a field-by-field import-change comparison (added, removed and changed dates/times) before approving replacement sources.
 - [ ] Keep these enhancements separate from the targeted release fixes above unless a regression requires them.
 
@@ -120,10 +120,10 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 
 1. **First:** REV-01 and REV-02, each in a focused PR with a regression test that fails before the fix.
 2. **Then:** REV-03, including a deliberate UX decision and translation updates.
-3. **Before release:** REV-04, REV-05, REV-06 and all required [release checklist](releasing.md) items.
+3. **Before release:** REV-04, REV-05, REV-06 and all required [release checklist](../releasing.md) items.
 4. **After stabilization:** REV-07 and REV-08.
 
-Local validation commands, matching [`validate.yml`](../.github/workflows/validate.yml):
+Local validation commands, matching [`validate.yml`](../../.github/workflows/validate.yml):
 
 ```bash
 uv sync --frozen --group dev
