@@ -194,7 +194,7 @@ try {
   const approvedEvents = await calendarEvents();
   const calendarFajr = approvedEvents.find(event => event.summary === "Fajr beginning");
   assert.equal(calendarFajr?.start.dateTime, `${today}T06:00:00+00:00`);
-  assert.deepEqual(calendarFajr.end, calendarFajr.start);
+  assert.equal(Date.parse(calendarFajr.end.dateTime) - Date.parse(calendarFajr.start.dateTime), 60000);
   assert.ok(calendarFajr.uid);
   assert.equal((await request("/api/calendars")).filter(item => item.entity_id === calendarId).length, 1);
   report.checks.push("native_calendar_approved_instant_events");
