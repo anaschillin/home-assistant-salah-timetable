@@ -47,11 +47,24 @@ successfully on 25 October 2026:
   metadata, config entries and registry/card identities without exporting
   contents. This was **not a full HAOS/Supervisor restoration**.
 
+**User-reported HACS removal/reinstallation — 25 October 2026:**
+The maintainer confirmed that removing and reinstalling the integration
+**works correctly** in their installation. This records a successful
+**manual removal/reinstall outcome**, rather than a simulated config-entry
+removal or a HACS repository lint result. The exact HA/HACS/integration
+versions, route used, disposable-instance status, two-mosque coexistence,
+registry/resource cleanup and post-restart checks were not supplied.
+Treat these subchecks as **not yet independently evidenced**; the
+[REV-06 acceptance procedure](hacs-removal-acceptance.md) and
+[release checklist](releasing.md) remain authoritative. Do not invent
+screenshots, test durations or version information.
+
 **Outstanding release sign-offs:** Public redistribution permission for the
 contributed PDF fixtures/derived oracles, brand icon and screenshots
 (REV-04); full HAOS backup-archive restore, restart, Repairs and resource
-checks in another disposable HAOS (REV-05); and actual HACS **UI**
-uninstall/reinstallation with coexistence and cleanup checks (REV-06).
+checks in another disposable HAOS (REV-05); and full HACS **UI**
+uninstall/reinstallation with coexistence and cleanup evidence beyond the
+user-confirmed removal/reinstall result above (REV-06).
 A passed HACS *repository check* or a Container config-entry lifecycle test
 is not evidence of HACS UI reinstallation. All three remain **open**, with
 the current decision criteria in the
