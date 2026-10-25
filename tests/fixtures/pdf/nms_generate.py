@@ -67,6 +67,7 @@ def synthetic_data(year=2026):
             *(f"Published {name}" for name in RAW_NAMES),
             "Published Day",
             "Published Hijri",
+            "Published Second Khutbah",
         ]
     )
     for month in range(1, 13):
@@ -125,7 +126,10 @@ def synthetic_data(year=2026):
                 *canonical_times[10:],
                 canonical_times[11],
             ]
-            writer.writerow([day.isoformat(), *expected, *raw, weekday, hijri])
+            writer.writerow([
+                day.isoformat(), *expected, *raw, weekday, hijri,
+                "16:15" if day.weekday() == 4 else "",
+            ])
         # These are deliberately khutbah notes, not congregation timestamps.
         lines.extend(
             [
