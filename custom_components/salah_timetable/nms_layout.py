@@ -58,6 +58,20 @@ _HEADER = (
     "Sunset Esha Start Fajr Dhuhr/Jumu'ah Asr Maghrib (Iftaar) Esha"
 )
 _TABLE_MARKER = "Dates Beginning / End Times Jamaat Times"
+_SECOND_KHUTBAH = re.compile(
+    r"Second Jumu'ah Khutbah will commence at ([1-9]|1[0-2]):([0-5][0-9])(am|pm)"
+    r"(?: in the Masjid Dining Hall)?"
+)
+
+
+def published_second_khutbah(note: str) -> str | None:
+    """Read an explicit publisher note as local HH:MM, not a prayer event."""
+    match = _SECOND_KHUTBAH.fullmatch(note.strip())
+    if not match:
+        return None
+    hour, minute, meridiem = match.groups()
+    return f"{int(hour) % 12 + (12 if meridiem == 'pm' else 0):02d}:{minute}"
+
 
 
 def _compact_header(value: str) -> str:
@@ -134,6 +148,7 @@ class NmsLayout:
                 *(f"Published {name}" for name in _RAW_NAMES),
                 "Published Day",
                 "Published Hijri",
+                "Published Second Khutbah",
             ]
         )
         for month, page in enumerate(pages[2:], start=1):
@@ -172,6 +187,11 @@ class NmsLayout:
                 raise ImportValidationError(
                     "NMS table columns differ from the supported layout"
                 )
+            notes = [
+                published_second_khutbah(line)
+                for line in lines[row_indices[-1] + 1 :]
+            ]
+            khutbah = next((note for note in notes if note is not None), "")
             prior: dict[int, int] = {}
             for expected_day, index in enumerate(row_indices, start=1):
                 match = _ROW_PATTERN.fullmatch(lines[index].strip())
@@ -209,5 +229,8 @@ class NmsLayout:
                 # Preserve physical-column ditto before splitting its canonical fields.
                 midday = ["", clocks[9]] if day.weekday() == 4 else [clocks[9], ""]
                 normalized = [*clocks[:9], *midday, *clocks[10:], clocks[11]]
-                writer.writerow([day.isoformat(), *normalized, *raw, weekday, hijri])
+                writer.writerow([
+                    day.isoformat(), *normalized, *raw, weekday, hijri,
+                    khutbah if day.weekday() == 4 else "",
+                ])
         return output.getvalue()
