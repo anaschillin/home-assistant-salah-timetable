@@ -177,8 +177,9 @@ export class SalahTimetableCard extends HTMLElement {
         congregationCell.append(node("div", `${isJumuah ? "Jumuah " : ""}${formatTime(value, zone, locale, timeFormat)}`, "congregation-time"));
       }
       if (!congregations.length) congregationCell.textContent = "—";
-      if (prayer.key === "fajr") name.append(node("div", `Ends at sunrise: ${formatTime(prayer.end, zone, locale, timeFormat)}`, "note fajr-end"));
-       row.append(name, node("td", formatTime(prayer.begin, zone, locale, timeFormat)), congregationCell);
+      const beginningCell = node("td", formatTime(prayer.begin, zone, locale, timeFormat));
+       if (prayer.key === "fajr") beginningCell.append(node("div", `Ends at sunrise: ${formatTime(prayer.end, zone, locale, timeFormat)}`, "note fajr-end"));
+       row.append(name, beginningCell, congregationCell);
       body.append(row);
     }
     table.append(body);
