@@ -50,7 +50,9 @@ class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_NAME: name,
                         CONF_MOSQUE_ID: mosque_id,
                         CONF_TIME_ZONE: user_input[CONF_TIME_ZONE],
-                        CONF_SHOW_HIJRI_DATE: user_input.get(CONF_SHOW_HIJRI_DATE, True),
+                        CONF_SHOW_HIJRI_DATE: user_input.get(
+                            CONF_SHOW_HIJRI_DATE, True
+                        ),
                     },
                 )
         return self.async_show_form(
@@ -58,7 +60,9 @@ class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_NAME): selector.TextSelector(),
-                    vol.Optional(CONF_SHOW_HIJRI_DATE, default=True): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_SHOW_HIJRI_DATE, default=True
+                    ): selector.BooleanSelector(),
                     vol.Required(CONF_MOSQUE_ID): selector.TextSelector(),
                     vol.Required(
                         CONF_TIME_ZONE, default=self.hass.config.time_zone
@@ -93,8 +97,12 @@ class SalahOptionsFlow(SourceOptionsFlow):
             step_id="settings",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_TIME_ZONE, default=current): selector.TextSelector(),
-                    vol.Optional(CONF_SHOW_HIJRI_DATE, default=show_hijri): selector.BooleanSelector(),
+                    vol.Required(
+                        CONF_TIME_ZONE, default=current
+                    ): selector.TextSelector(),
+                    vol.Optional(
+                        CONF_SHOW_HIJRI_DATE, default=show_hijri
+                    ): selector.BooleanSelector(),
                 }
             ),
             errors=errors,
