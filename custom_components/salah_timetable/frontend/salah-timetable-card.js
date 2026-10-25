@@ -5,6 +5,7 @@ const RENDER_ATTRIBUTES = [
   "mosque_name", "date", "time_zone", "prayers", "beginning_events", "jamaat_events",
   "next_salah", "next_jamaat", "previous_jamaat", "context_jamaat", "context_mode",
   "ramadan", "sehri_events", "iftar_events", "next_sehri", "next_iftar",
+  "show_hijri_date", "second_khutbah",
 ];
 
 const CSS = `
@@ -132,7 +133,7 @@ export class SalahTimetableCard extends HTMLElement {
     const timeFormat = this._config.time_format;
     const header = node("header", undefined, "header");
     header.append(node("h2", this._config.title || data.mosque_name), node("div", formatDate(data.date || state.state, locale), "date"));
-    if (this._config.show_hijri_date) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, locale)} · Hijri (calculated)`, "date hijri"));
+    if (this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, locale)} · Hijri (calculated)`, "date hijri"));
     content.append(header);
     if (this._hass?.connection?.connected === false) content.append(node("p", "Home Assistant disconnected — showing the last received timetable.", "disconnected"));
     const next = nextSalah(data, now);
@@ -176,7 +177,8 @@ export class SalahTimetableCard extends HTMLElement {
         congregationCell.append(node("div", `${isJumuah ? "Jumuah " : ""}${formatTime(value, zone, locale, timeFormat)}`, "congregation-time"));
       }
       if (!congregations.length) congregationCell.textContent = "—";
-      row.append(name, node("td", formatTime(prayer.begin, zone, locale, timeFormat)), congregationCell);
+      if (prayer.key === "fajr") name.append(node("div", `Ends at sunrise: ${formatTime(prayer.end, zone, locale, timeFormat)}`, "note fajr-end"));
+       row.append(name, node("td", formatTime(prayer.begin, zone, locale, timeFormat)), congregationCell);
       body.append(row);
     }
     table.append(body);
@@ -186,6 +188,9 @@ export class SalahTimetableCard extends HTMLElement {
     tableRegion.setAttribute("aria-label", "Prayer beginning and Jamaat times");
     const scrollHelp = node("p", "Swipe or scroll horizontally for all prayer times. Keyboard: focus the table and use the arrow keys.", "note scroll-help");
     tableRegion.append(table); content.append(tableRegion, scrollHelp);
+    if (timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(data.date + "T12:00:00Z").getUTCDay() === 5) {
+      content.append(node("p", `Second Jumu’ah khutbah: ${formatTime(data.second_khutbah, zone, locale, timeFormat)} (published; not Jamaat)`, "note khutbah"));
+    }
     if (data.ramadan?.active && this._config.show_ramadan_details) {
       const ramadan = node("section", undefined, "ramadan"); ramadan.append(node("h3", "Ramadan"));
       const grid = node("div", undefined, "ramadan-grid");
@@ -273,7 +278,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       control.addEventListener("change", () => this._changed({[key]: choices ? key === "hijri_adjustment" ? Number(control.value) : control.value : control.checked}));
       this._extraControls[key] = {control, checkbox: !choices}; field.append(control); extras.push(field);
     }
-    form.append(entity, error, mode, titleField, ...extras, node("div", "Choose the mosque’s Prayer timetable entity. Countdowns run in this card; no per-second sensor updates or Card Mod are required. The calculated Hijri date adjustment affects display only, not Ramadan activation.", "help"));
+    form.append(entity, error, mode, titleField, ...extras, node("div", "Choose the mosque’s Prayer timetable entity. Countdowns run in this card; no per-second sensor updates or Card Mod are required. Hijri visibility is also controlled under mosque setup and Configure → Mosque settings; the card switch can hide it further. The calculated Hijri date adjustment affects display only, not Ramadan activation.", "help"));
     this._updateControls();
     this.shadowRoot.replaceChildren(style, form);
   }
