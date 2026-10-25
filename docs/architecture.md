@@ -24,7 +24,8 @@
   also retains approved tables so changes outside that horizon notify the calendar.
 - `calendar.py`: one read-only calendar per mosque, using approved effective dated
   rows, stable event UIDs and bounded timezone-aware queries. It preserves individual
-  beginnings/Jamaat and multiple Jumu’ah events as zero-duration instants.
+  beginnings/Jamaat and multiple Jumu’ah starts with a 60-second calendar-only
+  presentation interval.
 - `coverage.py`: consecutive effective approved dates, cached by date/sources/Ramadan
   settings. Pending proposals never extend coverage; ambiguous dates beyond the live
   horizon stop coverage and expose `unresolved_date` without disabling valid current
@@ -199,8 +200,10 @@ date, field and UTC instant. Effective Iftar fallback is labelled separately fro
 explicitly published Iftar. Missing dates produce no events; ambiguous queried dates
 raise a safe error rather than choosing a source. An unresolved future date is skipped
 when finding the next calendar event and remains visible through coverage diagnostics.
-Zero-duration events have no ongoing interval, so the calendar state remains off;
-start triggers and event queries expose their instants. The unique ID is
+Calendar presentation events have 60-second intervals, so their state is briefly
+on while a published instant is displayed. Start triggers retain the exact
+published timestamps; end triggers are calendar-only (not prayer duration).
+Queries include event-range overlaps, including across local midnight. The unique ID is
 `{mosque_id}_prayer_calendar`, linked to the existing mosque device. See
 [calendar behavior](calendar.md).
 
