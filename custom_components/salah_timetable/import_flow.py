@@ -51,6 +51,15 @@ def _safe_text(value: str) -> str:
     return value.replace("\n", " ").replace("\r", " ")
 
 
+PDF_LAYOUT_LABELS = {
+    "pdf_table_v1": "Supported sample text-table PDF",
+    "nms_annual_v1": "Nuneaton Muslim Society annual calendar",
+    "nms_monthly_v1": "Nuneaton Muslim Society monthly calendar",
+    "zak_annual_v1": "Zakariyya Masjid annual calendar",
+    "zak_ramadan_v1": "Zakariyya Masjid separate Ramadan page",
+}
+
+
 def import_summary(candidate, existing, settings=None) -> str:
     """Bounded, explicit review of coverage, missing fields and replacement."""
     coverage = candidate.coverage
@@ -67,6 +76,12 @@ def import_summary(candidate, existing, settings=None) -> str:
         ),
         f"Missing dates{' within the supplied span' if table.kind == 'ramadan' else ''}: **{len(coverage.missing_dates)}**.",
     ]
+    if candidate.source_format == "pdf":
+        lines.append(
+            "Recognized PDF: **"
+            + PDF_LAYOUT_LABELS.get(candidate.parser_id, "Unsupported layout")
+            + "**. Review the printed dates and every mapped prayer time."
+        )
     if coverage.missing_fields:
         lines.append(
             "Fields absent from this source (number of rows): "
