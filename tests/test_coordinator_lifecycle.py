@@ -79,6 +79,7 @@ async def test_failed_platform_setup_cleans_up_boundary(hass, populated, freezer
     freezer.move_to("2026-10-21T04:44:20+00:00")
 
     with (
+        patch("custom_components.salah_timetable.async_setup_frontend"),
         patch.object(
             hass.config_entries,
             "async_forward_entry_setups",
