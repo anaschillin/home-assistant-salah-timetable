@@ -78,9 +78,8 @@ def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
         if published and data.day.weekday() == 4
         else None
     )
-    if (
-        not isinstance(khutbah, str)
-        or not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", khutbah)
+    if not isinstance(khutbah, str) or not re.fullmatch(
+        r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", khutbah
     ):
         khutbah = None
     khutbah_at = (
