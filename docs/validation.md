@@ -2,20 +2,19 @@
 
 ## Current recorded status — 25 October 2026
 
-The current candidate is **0.7.0**, implementing Milestones 8, 9, 12 and 13.
-Local verification passed **853 Python tests** (95% aggregate integration
-coverage), **81 Node tests**, native Chromium at 320/360/400/900px,
-and **24 live HA 2026.10.0 checks**. The full Python verification is recorded in the
-[0.7.0 evidence](#calendar-publication-profiles-and-media--candidate-070) below.
-The live run verified fresh manifest-pinned dependency installation, calendar
-queries excluding pending imports, stable calendar IDs after restart/rejection,
-the publication-profile picker timezone guard and actual card/editor behavior.
+The current candidate is **0.8.0**, adding Milestone 17’s paged import comparison
+to the implemented calendar, publication profiles and media controls.
+Local verification passed **902 Python tests** (95% coverage) and **81 Node
+tests**. The [0.8.0 evidence](#paged-import-review--candidate-080) below records the
+new comparison and live checks. The prior [0.7.0 evidence](#calendar-publication-profiles-and-media--candidate-070)
+retains that increment's results.
 
 The latest recorded hosted **Validate** result is
-[40138323440](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40138323440)
-for pushed **0.6.2 commit `b7b0c74`**. It completed successfully, including the real
-minimum/current HA matrix with strict dependency proof. The reusable live matrix
-also runs weekly. Later release commits still need their own required checks.
+[40176121994](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40176121994)
+for pushed **0.7.0 commit `737b636`**. It completed successfully, including Python,
+frontend, hassfest, HACS and real minimum/current HA matrix with strict dependency
+proof. The reusable live matrix also runs weekly. The subsequent 0.8.0 commit still
+needs its own required checks.
 
 **Physical-device checks are complete by user confirmation on 24 October 2026.**
 The user reported updating their installation to the latest available version.
@@ -483,7 +482,46 @@ new physical-speaker/device acceptance.
 - Ruff, formatting, whitespace, offline lock consistency and 0.7.0 release archive,
   checksum and notes preparation passed. Release publication remains separate.
 
-The exact pushed commit still requires its own hosted Validate result. Existing
-user-confirmed device/HACS checks predate these new controls and are recorded
+Pushed 0.7.0 commit `737b636` subsequently passed hosted Validate, including both
+HA live lanes. Later increments require their own result. Existing user-confirmed
+device/HACS checks predate these new controls and are recorded
 separately above. Full HA backup restoration, HACS removal/re-addition and asset
 provenance remain release acceptance work.
+
+
+## Paged import review — candidate 0.8.0
+
+Tested the local candidate based on `737b636` on 25 October 2026, before commit.
+The comparison uses only the exact approved source ID being replaced, including
+all legacy years. It distinguishes canonical prayer values, original source cells
+and provenance changes without treating a new checksum as changed prayer times.
+
+- **899 Python tests passed**, with 95% aggregate integration line coverage.
+- **46 focused comparison tests passed**: 31 pure model/rendering cases and 15 real
+  HA flow/storage cases. These cover every page of large/whole-year comparisons,
+  added/removed dates and fields, all Jumuah slots, ditto/12-hour original tokens,
+  unmapped annotations and blank cells on new/removed dates, legacy provenance,
+  private-URL redaction, escaped/truncated labels, explicit decisions, restart,
+  two mosques and another storage instance changing the approved baseline.
+- Navigation leaves the staged identity and approved records unchanged. Stale
+  baseline approval resets the comparison and requires another explicit click;
+  profile timezone checks use the freshly loaded staged candidate.
+- **81 Node tests passed**. No dashboard behavior was changed in this increment;
+  metadata and JavaScript cache versions advance together to 0.8.0.
+- **25 live HA 2026.10.0 checks passed** on the final integration candidate, with
+  `pypdf` absent before setup and pinned 6.21.1 installed/imported afterward. No
+  preload; trusted CA mounted read-only with TLS verification enabled. The new
+  check navigates comparison pages while approved Fajr remains unavailable until
+  explicit approval. Calendar, restart, rejection, actual card/editor, four widths,
+  themes and 200% text remain covered. Results: `/tmp/salah-live-0.8.0-final/results.json`.
+- Broad peer review reproduced two Adhan restoration failures: removing a player
+  during acknowledgement interrupted healthy players, and same-context hardware
+  changes away and back were overwritten. Missing-player guards and a conservative
+  last-update ownership check fix both. Three new scheduler cases prove the failures
+  before the fix and the expected behavior afterward; ordinary player updates may
+  intentionally skip restoration. The release checklist now covers all new controls.
+- Ruff, formatting, whitespace, offline lock checks and 0.8.0 archive/checksum/notes
+  preparation passed. Exact-commit hosted validation remains required.
+
+The integration remains an unreleased candidate. Earlier user-confirmed physical
+and HACS installation checks are separate from new-feature release acceptance.

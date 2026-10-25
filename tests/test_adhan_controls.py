@@ -270,6 +270,43 @@ async def test_manual_or_other_automation_changes_skip_restoration(
     assert len(volumes) == 1
 
 
+@pytest.mark.parametrize("intervention", ["volume", "content"])
+async def test_same_context_away_and_back_changes_skip_restoration(
+    hass, freezer, intervention
+):
+    """Hardware updates may retain HA context even when the user changes playback."""
+    freezer.move_to("2026-10-23T04:59:00Z")
+    initial(hass)
+    _, volumes = services(hass)
+    await start(
+        hass, config(set_volume=True, volume=0.6, restore_volume=True, restore_delay=60)
+    )
+    await advance(hass, freezer, "2026-10-23T05:00:00Z")
+    original = hass.states.get("media_player.hall")
+    changed = dict(original.attributes)
+    if intervention == "volume":
+        changed["volume_level"] = 0.8
+    else:
+        changed["media_content_id"] = "user-track"
+    freezer.move_to("2026-10-23T05:00:02Z")
+    hass.states.async_set(
+        original.entity_id, original.state, changed, context=original.context
+    )
+    await settle_actions()
+    freezer.move_to("2026-10-23T05:00:03Z")
+    hass.states.async_set(
+        original.entity_id,
+        original.state,
+        original.attributes,
+        context=original.context,
+    )
+    await settle_actions()
+    assert hass.states.get(original.entity_id).context == original.context
+    await advance(hass, freezer, "2026-10-23T05:01:00Z")
+    assert len(volumes) == 1
+    assert hass.states.get(original.entity_id).attributes["volume_level"] == 0.6
+
+
 async def test_players_without_owned_updates_never_restore(hass, freezer):
     freezer.move_to("2026-10-23T04:59:00Z")
     initial(hass)
@@ -311,6 +348,65 @@ async def test_delayed_player_acknowledgement_is_captured_before_restoring(
     assert len(volumes) == 1
     await advance(hass, freezer, "2026-10-23T05:01:02Z")
     assert [call["volume_level"] for call in volumes] == [0.6, 0.2]
+
+
+async def test_removed_player_during_acknowledgement_does_not_block_healthy_restore(
+    hass, freezer
+):
+    freezer.move_to("2026-10-23T04:59:00Z")
+    initial(hass)
+    hass.states.async_set("media_player.removable", "idle", {"volume_level": 0.4})
+    played, volumes = services(hass)
+
+    async def partial_acknowledgement(call):
+        played.append(dict(call.data))
+        hall = hass.states.get("media_player.hall")
+        hass.states.async_set(
+            hall.entity_id,
+            "playing",
+            {
+                **hall.attributes,
+                "media_content_id": call.data["media_content_id"],
+                "app_id": "adhan-player",
+            },
+            context=call.context,
+        )
+
+    hass.services.async_register("media_player", "play_media", partial_acknowledgement)
+    await start(
+        hass,
+        config(
+            media_players=["media_player.hall", "media_player.removable"],
+            set_volume=True,
+            volume=0.6,
+            restore_volume=True,
+            restore_delay=60,
+        ),
+    )
+    await advance(hass, freezer, "2026-10-23T05:00:00Z")
+    assert played == [
+        {"entity_id": ["media_player.hall", "media_player.removable"], **NORMAL}
+    ]
+    assert volumes == [
+        {
+            "entity_id": ["media_player.hall", "media_player.removable"],
+            "volume_level": 0.6,
+        }
+    ]
+    assert hass.states.get("media_player.hall").state == "playing"
+    assert hass.states.get("media_player.removable").state == "idle"
+
+    # Removing the player which never acknowledged playback completes the wait.
+    freezer.move_to("2026-10-23T05:00:02Z")
+    hass.states.async_remove("media_player.removable")
+    await settle_actions()
+    await advance(hass, freezer, "2026-10-23T05:01:01Z")
+    assert len(volumes) == 1
+    await advance(hass, freezer, "2026-10-23T05:01:02Z")
+    assert volumes[-1] == {"entity_id": ["media_player.hall"], "volume_level": 0.2}
+    assert len(volumes) == 2
+    assert hass.states.get("media_player.hall").attributes["volume_level"] == 0.2
+    assert hass.states.get("media_player.removable") is None
 
 
 async def test_no_available_players_skips_playback_and_volume(hass, freezer):

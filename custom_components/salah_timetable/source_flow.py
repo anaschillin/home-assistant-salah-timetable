@@ -252,33 +252,20 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
             )
         return result
 
-    async def async_step_review(self, user_input=None):
-        coordinator = self._coordinator()
-        profile = None
-        if coordinator is not None and coordinator.storage.staged is not None:
-            profile_id = coordinator.storage.staged.candidate.publication_profile_id
-            if profile_id is not None:
-                profile = publication_profile(profile_id)
-        wrong_timezone = (
-            profile is not None and coordinator.zone.key != profile.time_zone
+    def _review_source_context(self, candidate, coordinator):
+        profile_id = candidate.publication_profile_id
+        if profile_id is None:
+            return "", None
+        try:
+            profile = publication_profile(profile_id)
+        except ValueError:
+            return "", "invalid_publication_profile"
+        return (
+            profile.summary,
+            "invalid_publication_profile"
+            if coordinator.zone.key != profile.time_zone
+            else None,
         )
-        if (
-            wrong_timezone
-            and user_input is not None
-            and user_input.get("decision") == "approve"
-        ):
-            user_input = None
-        result = await super().async_step_review(user_input)
-        if result.get("step_id") == "review":
-            if wrong_timezone:
-                result["errors"]["base"] = "invalid_publication_profile"
-            if profile is not None:
-                result["description_placeholders"]["summary"] = (
-                    profile.summary
-                    + "\n\n"
-                    + result["description_placeholders"]["summary"]
-                )
-        return result
 
     async def async_step_import_url(self, user_input=None):
         coordinator = self._coordinator()

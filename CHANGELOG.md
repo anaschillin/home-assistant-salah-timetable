@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.0 — unreleased
+
+- Compare pending imports with the exact approved source they replace. Show all
+  added/removed dates, changed published values, multiple Jumuah congregations and
+  retained source-token differences through paged review.
+- Identify source/provenance changes even when canonical prayer values stay the
+  same, without claiming every source-text change is merely formatting.
+- Require a fresh comparison and another approval decision if the approved source
+  changes while its review is open. Page navigation never activates a proposal.
+- Keep healthy speakers eligible for Adhan volume restoration when another selected
+  player disappears during acknowledgement. Intervening player updates, including
+  same-context volume/content changes away and back, prevent restoration.
+
 ## 0.7.0 — unreleased
 
 - Add one read-only Home Assistant calendar per mosque, with separate published

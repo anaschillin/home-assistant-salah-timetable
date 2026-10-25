@@ -182,6 +182,13 @@ try {
   const next = new Date(Date.parse(`${today}T12:00:00Z`) + 86400000).toISOString().slice(0, 10);
   const days = next.slice(0, 4) === today.slice(0, 4) ? [today, next] : [today];
   let flow = await stage(entry, days);
+  assert.match(flow.description_placeholders.summary, /Import comparison.*page 1 of [2-9]/);
+  flow = await request(`/api/config/config_entries/options/flow/${flow.flow_id}`, {decision: "next_page"});
+  assert.match(flow.description_placeholders.summary, /Import comparison.*page 2 of /);
+  assert.equal((await request("/api/states")).find(item => item.entity_id === "sensor.smoke_mosque_fajr_beginning").state, "unavailable");
+  flow = await request(`/api/config/config_entries/options/flow/${flow.flow_id}`, {decision: "previous_page"});
+  assert.match(flow.description_placeholders.summary, /Import comparison.*page 1 of /);
+  report.checks.push("paged_import_comparison_preserves_pending_data");
   await request(`/api/config/config_entries/options/flow/${flow.flow_id}`, {decision: "approve"});
   const state = async key => (await request("/api/states")).find(item => item.entity_id === `sensor.smoke_mosque_${key}`);
   await until(() => state("fajr_beginning"), value => value?.state === `${today}T06:00:00+00:00`, "Approved Fajr missing");

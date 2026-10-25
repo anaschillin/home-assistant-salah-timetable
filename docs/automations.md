@@ -66,7 +66,9 @@ inputs. Extra controls are optional:
   This delay is a playback preference. It does not describe the prayer's
   duration. Restoration requires a previously known volume, the volume still set by
   this operation and unchanged playback ownership/content. Manual changes or another
-  automation can cause restoration to be skipped.
+  automation can cause restoration to be skipped. Intervening reported state or
+  attribute changes also skip restoration, even if the player later returns to the
+  same volume and recording.
 
 Unavailable/unknown players are skipped. Player support and network latency affect
 playback; conservative ownership checks can leave the chosen volume in place when

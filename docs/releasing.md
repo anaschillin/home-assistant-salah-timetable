@@ -7,8 +7,10 @@ The [validation record](validation.md) includes earlier disposable HA 2026.10.2 
 minimum-version 2026.10.0 manual-install/frontend checks, with explicit limits and a
 dependency preload used by those earlier runs. The later local 0.6.2 run verified
 fresh dependency installation using a trusted CA bundle for the proxy, without
-preloading packages. Physical-device checks are user-confirmed complete for their
-latest installation. Hosted validation is recorded separately for exact commit
+preloading packages. The [physical-device confirmation from 24 October 2026](validation.md#user-confirmed-physical-device-acceptance--24-october-2026)
+predates 0.7.0 and does not identify an installed version. Acceptance of the newer
+calendar, publication profiles, speaker controls and 0.8.0 review flow remains
+separate. Hosted validation is recorded separately for exact commit
 SHAs; a final release commit still needs its own successful required jobs.
 
 ## Build a distributable archive
@@ -82,6 +84,17 @@ where possible. Record the HA/integration versions and browser/device used.
 - Exercise URL-first import and manual PDF/CSV upload, graphical column mapping,
   preview, approval and rejection. Check the supported NMS annual layout against
   its publication. Confirm an unsupported PDF fails with a useful message.
+- Exercise the [publication-profile picker](pdf_layouts.md#publication-setup-profiles)
+  with a matching inspected PDF and explicit printed year. Check prefilled mappings,
+  review and retained profile identity after approval/restart. Wrong years and a
+  mosque timezone other than `Europe/London` must block the profile without silently
+  changing settings or activating data.
+- Browse every page of a [large import comparison](import_review.md), including
+  added/removed dates, changed times, all Jumu’ah congregations and source-token
+  changes. Navigation must keep approved values and the staged identity unchanged;
+  rejection/cancellation must preserve approved data. Exercise approved-baseline
+  drift in a controlled disposable test: the review must reset to the first page
+  with refreshed values and require another approval decision before replacement.
 - Restart with both approved and pending imports. Upgrade from the previous
   released version with a backup, then verify the same entities and approved
   values remain. Test removal/re-addition without affecting the other mosque.
@@ -96,6 +109,11 @@ where possible. Record the HA/integration versions and browser/device used.
 - Check the three Jamaat contexts before a beginning, between beginning/Jamaat,
   and at/after Jamaat. Verify independent next beginning/Jamaat and tomorrow's
   actual Fajr after Isha. A congregation is one scheduled event.
+- Add the [prayer calendar](calendar.md) to a real calendar card, query approved
+  dates and exercise a calendar start trigger with an offset. Verify separate
+  zero-duration beginning/Jamaat events, every published Jumu’ah congregation,
+  mosque-timezone instants, future approved dates and stable IDs after restart.
+  Pending proposals and missing dates must not add events.
 - Confirm Ramadan dates, shift the active window and try manual On/Off. Check
   exact-date overrides, preservation of published Iftar, the Maghrib-beginning
   fallback and the text-only Taraweeh default. Restart to verify settings persist.
@@ -108,6 +126,18 @@ where possible. Record the HA/integration versions and browser/device used.
 - Check narrow mobile and tablet displays, light/dark themes, text zoom, keyboard
   access, unavailable data and a disconnected browser. Confirm ticking countdowns
   do not cause per-second sensor writes.
+- Import the updated [Adhan blueprint](automations.md#adhan-playback-controls)
+  separately and test it on the actual selected speakers with user-owned recordings.
+  Check Fajr audio, disabled prayers, per-prayer volume, quiet hours and unavailable
+  players. Verify acknowledged playback can restore the prior volume, while manual
+  volume/content changes and another playback operation prevent restoration.
+- Test [pause/resume media](automations.md#pause-and-resume-media) on those speakers.
+  Only playing players may be paused; invalid anchors must skip the whole operation.
+  Verify resumption requires unchanged paused content and this operation's reported
+  service context. Record whether each device retains that context; devices that drop
+  it require manual resumption. Check manual intervention, overlapping automations,
+  disabling/reloading changed settings and restart without catch-up. Separate pause
+  automations must not be treated as a combined or extended pause window.
 - Exercise URL failure and changed-content staging. Confirm last approved times
   remain available and a changed file requires approval. Restore the test backup
   and verify recoverability before documenting a recovery procedure.
@@ -141,8 +171,10 @@ tests verify safe issue content, clearing after successful recovery and clearing
 on removal. Broader migration and backup/recovery acceptance remains necessary.
 
 HACS installation, restart and updates are user-confirmed separately from the
-disposable HA smoke; removal/re-addition and complete release UI acceptance remain. Physical-device checks are user-confirmed complete
-for their latest installation, as recorded in the validation log. Further PDF layouts, a
+disposable HA smoke; removal/re-addition and complete release UI acceptance remain.
+The dated [physical-device confirmation](validation.md#user-confirmed-physical-device-acceptance--24-october-2026)
+predates 0.7.0 and records no installed version; it does not complete the new-feature
+and speaker checks above. Further PDF layouts, a
 broader migration/recovery review, reviewed release publication and submission to
 the HACS default catalogue remain follow-up work. This packaging increment does not complete Milestone 6.
 
@@ -163,7 +195,7 @@ and review the draft before publishing through GitHub.
 For local asset review, without creating any GitHub tag or release:
 
 ```sh
-uv run --frozen python -m scripts.prepare_release --tag v0.7.0 --output-dir /tmp/salah-release-review
+uv run --frozen python -m scripts.prepare_release --tag v0.8.0 --output-dir /tmp/salah-release-review
 ```
 
 Use the manifest's current version in the tag argument. Local preparation validates

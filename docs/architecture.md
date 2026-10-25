@@ -57,6 +57,18 @@ Closing the review leaves the proposal durable. A resumed flow reads it from sto
 A stale preview identity cannot approve/reject a different proposal. A pending proposal
 cannot be overwritten by another concurrent import.
 
+`import_comparison.py` compares the candidate with the exact approved source ID,
+including all dates retained by a legacy multi-year source. It keeps canonical
+published field differences separate from original-token and provenance changes;
+it does not substitute effective Ramadan defaults into the comparison. The review
+renders full summary counts and ten-row pages. Navigation retains the staged
+identity without approving it. Approval passes the reviewed baseline into storage,
+which compares it with the refreshed disk snapshot under the entry lock before any
+write. A changed approved baseline leaves the proposal staged, refreshes the review
+and requires another approval. This check supplements the existing staged-identity
+and runtime guards. Page position is UI state; the durable proposal and approved
+records retain the existing persistence semantics. See [import review](import_review.md).
+
 Options import/review requires a loaded config entry so every operation uses its shared
 storage lock. Timezone settings remain accessible when the integration is not loaded.
 The coordinator refreshes immediately after approval. Unchanged settings are preserved.
@@ -226,7 +238,7 @@ countdown. The backend and card behavior have separate boundary tests.
 `frontend.py` registers the bundled directory at `/salah_timetable` through HA's
 asynchronous static-path API. For storage-mode Lovelace resources it creates or
 updates the integration's relative module URL, removes duplicate registrations and
-uses `?v=0.7.0` for cache changes. For YAML resources it uses HA's extra-JavaScript
+uses `?v=0.8.0` for cache changes. For YAML resources it uses HA's extra-JavaScript
 helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
 a resource-registration failure is logged without disabling valid prayer entities.
 

@@ -3,7 +3,7 @@
 The [remaining-work checklist](remaining-work.md) tracks release blockers separately
 from later feature additions.
 
-Milestones 1–5 are implemented; the current candidate is 0.7.0. Keep follow-up work
+Milestones 1–5 are implemented; the current candidate is 0.8.0. Keep follow-up work
 in focused PRs with its own tests and documentation. Disposable HA 2026.10.2 and
 minimum-version HA 2026.10.0 manual-install/runtime/frontend checks have passed
 within the limits in the validation record. Release acceptance still includes
@@ -37,13 +37,14 @@ their completion requires implementation and the stated acceptance evidence.
 | 14 | Calculated night midpoint and last third | Planned | Actual Maghrib and next-day Fajr timestamps |
 | 15 | Mosque display mode, branding and announcements | Planned | Existing card; localization conventions from 10 |
 | 16 | Published Eid and other special prayer events | Planned | Explicit dated event storage/approval; calendar from 8 |
-| 17 | Before/after import change review | Planned | Existing durable staging and source replacement scope |
+| 17 | Before/after import change review | Implemented; release acceptance pending | Existing durable staging and source replacement scope |
 
-The **8 → 12 → 13 → 9** feature sequence is implemented in candidate 0.7.0;
-exact-commit CI and applicable release acceptance remain required. Next, pursue
-17 for import change comparisons and 10 for localization/RTL. Continue 11 in
-parallel; 14–16 remain subsequent increments. Existing milestone numbers and links
-are retained; numbering does not set execution order.
+The **8 → 12 → 13 → 9** feature sequence is implemented in candidate 0.7.0.
+Its exact commit `737b636` passed hosted Validate, including both HA live lanes.
+Candidate 0.8.0 adds **17**, the paged import comparison; its own exact-commit
+validation and release acceptance remain required. Next pursue **10** for
+localization/RTL, continuing **11** in parallel; **14–16** follow. Existing milestone
+numbers and links are retained; numbering does not set execution order.
 
 Every increment needs focused tests, user documentation, successful CI for its
 exact commit and applicable live checks before release. Imported values stay
@@ -406,7 +407,16 @@ DST/year boundaries, missing dates, replacement/removal, rejection and restart.
 Pending events remain inactive. Eid dates must be supplied or explicitly confirmed;
 they are never inferred from the calculated Hijri header or a predicted Ramadan end.
 
-## Milestone 17 — import change comparison (planned)
+## Milestone 17 — import change comparison (implemented; release acceptance pending)
+
+Implemented: the existing review form offers previous/next choices for ten
+comparison entries per page. All added/removed dates, canonical field changes and
+unrepresented original-cell changes remain reachable, including legacy multi-year
+and unmapped data. Source metadata and original tokens are bounded/escaped, with
+URL-shaped tokens redacted. A fresh-disk check under the shared storage lock blocks
+approval if the exact approved source changed after review; the comparison resets
+and requires another explicit decision. No storage migration or automatic source
+activation is introduced. See [import review](import_review.md).
 
 Extend import review with a date/field comparison between the approved source being
 replaced and its pending proposal. Show old/new published times, added and removed

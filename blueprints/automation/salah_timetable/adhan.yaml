@@ -330,7 +330,7 @@ actions:
           {% set pending = namespace(count=0) %}
           {% for previous in previous_volumes %}
             {% set player = states[previous.entity] %}
-            {% if player.state not in ['unknown', 'unavailable'] and not (
+            {% if player is not none and player.state not in ['unknown', 'unavailable'] and not (
                   player.state == 'playing' and player.context.id == run_context
                   and player.attributes.get('volume_level') is number
                   and (player.attributes.volume_level - effective_volume) | abs < 0.0001
@@ -348,7 +348,7 @@ actions:
             {% set saved = namespace(players=[]) %}
             {% for previous in previous_volumes %}
               {% set player = states[previous.entity] %}
-              {% if player.state not in ['unknown', 'unavailable']
+              {% if player is not none and player.state not in ['unknown', 'unavailable']
                     and player.context.id == run_context
                     and player.attributes.get('volume_level') is number
                     and (player.attributes.volume_level - effective_volume) | abs < 0.0001 %}
@@ -356,7 +356,8 @@ actions:
                   'entity': previous.entity,
                   'volume': previous.volume,
                   'content': player.attributes.get('media_content_id'),
-                  'app': player.attributes.get('app_id')
+                  'app': player.attributes.get('app_id'),
+                  'updated': player.last_updated.isoformat()
                 }] %}
               {% endif %}
             {% endfor %}
@@ -376,6 +377,7 @@ actions:
                        and player.attributes.get('volume_level') is number
                        and (player.attributes.volume_level - effective_volume) | abs < 0.0001
                        and player.context.id == run_context
+                       and player.last_updated.isoformat() == repeat.item.updated
                        and player.attributes.get('media_content_id') == repeat.item.content
                        and player.attributes.get('app_id') == repeat.item.app }}
               then:

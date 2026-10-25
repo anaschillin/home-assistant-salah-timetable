@@ -77,6 +77,12 @@ A saving error keeps the existing timetable; check Home Assistant logs and retry
 For a URL import, the reproducible source settings are saved with the staged file.
 The UI's source-import menu is URL-first after initial mosque identity setup.
 
+The [change comparison](docs/import_review.md) lists added/removed dates, changed
+published times and source details against the exact approved source being replaced.
+Browse its pages before approving a whole-source replacement. If the approved
+baseline changes while the preview is open, review the refreshed comparison and
+approve again.
+
 Publication profiles cover exact inspected editions and require the printed Gregorian
 year. They prefill layout, kind, field mappings and canonical time format, then retain
 the normal mapping/review/approval screens. The current profiles require
@@ -341,8 +347,10 @@ exact boundaries, Friday congregations, DST and year/leap-day transitions. Front
 tests use Node and an isolated headless Chromium harness with HA element stand-ins.
 The required live HA matrix checks the minimum/current supported runtime versions;
 local 0.6.2 acceptance also verified fresh dependency installation and real editor
-controls. Physical-device checks are user-confirmed complete on their latest
-installation. HACS installation, restart and updates are also user-confirmed;
+controls. The [physical-device confirmation from 24 October 2026](docs/validation.md#user-confirmed-physical-device-acceptance--24-october-2026)
+predates 0.7.0; the installed version was not recorded. It does not establish
+physical testing of the new calendar, publication profiles, speaker controls or
+0.8.0 review flow. HACS installation, restart and updates are also user-confirmed;
 removal/re-addition remains acceptance work. See the [validation record](docs/validation.md).
 Synthetic parser fixtures use this repository's MIT license. Contributed real
 publications have separate provenance and require redistribution review; see the

@@ -152,7 +152,9 @@
       "source_failed": "The URL source could not be downloaded or parsed. See details above.",
       "invalid_ramadan": "The Ramadan settings are invalid. See the details above.",
       "ramadan_conflict": "Approval conflicts with the current Ramadan settings. Select a Ramadan source in Ramadan settings, then review again. The approved timetable and pending proposal have been retained.",
-      "invalid_publication_profile": "Check the selected edition, printed year and mosque timezone."
+      "invalid_publication_profile": "Check the selected edition, printed year and mosque timezone.",
+      "review_changed": "The approved source changed while this review was open. The comparison has been refreshed from the first page. Check the updated values, then choose Approve again to activate this proposal.",
+      "invalid_import_decision": "Choose one of the review actions shown."
     },
     "abort": {
       "integration_not_loaded": "The mosque integration must be loaded before importing. Check its setup error or change its settings first.",
@@ -287,7 +289,9 @@
     "import_decision": {
       "options": {
         "approve": "Approve and save timetable",
-        "reject": "Reject and keep the active timetable"
+        "reject": "Reject and keep the active timetable",
+        "next_page": "Next page of changes (keep pending)",
+        "previous_page": "Previous page of changes (keep pending)"
       }
     },
     "pdf_layout": {

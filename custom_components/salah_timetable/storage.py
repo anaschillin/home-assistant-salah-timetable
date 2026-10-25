@@ -29,6 +29,18 @@ class RamadanApprovalError(ValueError):
     """A proposal cannot safely resolve under the current Ramadan settings."""
 
 
+class ReviewChangedError(ValueError):
+    """The approved source changed after the replacement comparison was shown."""
+
+
+@dataclass(frozen=True)
+class ImportReviewBaseline:
+    """Exact approved records and provenance used by a replacement review."""
+
+    timetable: Timetable | None
+    source: ImportCandidate | None
+
+
 @dataclass(frozen=True)
 class StagedImport:
     """A durable proposal; its identity prevents stale previews being approved."""
@@ -136,6 +148,20 @@ class TimetableStorage:
     @property
     def approved_sources(self) -> Mapping[str, ImportCandidate]:
         return self._snapshot.approved_sources
+
+    def review_baseline(self, timetable_id: str) -> ImportReviewBaseline:
+        """Capture one source from the current immutable snapshot, without I/O."""
+        return ImportReviewBaseline(
+            next(
+                (
+                    table
+                    for table in self.timetables
+                    if table.timetable_id == timetable_id
+                ),
+                None,
+            ),
+            self.approved_sources.get(timetable_id),
+        )
 
     @property
     def staged(self) -> StagedImport | None:
@@ -454,12 +480,25 @@ class TimetableStorage:
             raise ValueError("This staged import is no longer current")
         return self.staged
 
-    async def async_approve(self, stage_id: str) -> None:
+    async def async_approve(
+        self,
+        stage_id: str,
+        *,
+        expected_baseline: ImportReviewBaseline | None = None,
+    ) -> None:
         """Atomically activate the exact proposal that the user reviewed."""
         async with self._lock:
             await self._async_refresh_snapshot()
             staged = self._require_stage(stage_id)
             candidate = staged.candidate
+            if (
+                expected_baseline is not None
+                and expected_baseline
+                != self.review_baseline(candidate.timetable.timetable_id)
+            ):
+                raise ReviewChangedError(
+                    "The approved source changed; review the updated comparison before approving"
+                )
             tables = self._replacement_tables(self.timetables, candidate)
             entry = self._hass.config_entries.async_get_entry(self._entry_id)
             try:
