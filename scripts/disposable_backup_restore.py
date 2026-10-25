@@ -55,11 +55,12 @@ def restored_directory(image: str):
 def compare_with_container(image: str, original: Path, config: Path) -> dict:
     """Compare both read-only snapshots as root without exporting source secrets."""
     project = Path(__file__).resolve().parents[1]
-    output = run(
-        "run",
-        "--rm",
-        "--entrypoint",
-        "python",
+    try:
+        output = run(
+            "run",
+            "--rm",
+            "--entrypoint",
+            "python",
         "--mount",
         f"type=bind,src={original},dst=/before,readonly",
         "--mount",
@@ -72,8 +73,24 @@ def compare_with_container(image: str, original: Path, config: Path) -> dict:
         "spec=importlib.util.spec_from_file_location('audit','/audit/verify_backup_restore.py'); "
         "m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); "
         "from pathlib import Path; "
-        "print(json.dumps(m.compare(Path('/before'),Path('/after'))))",
-    )
+            "print(json.dumps(m.compare(Path('/before'),Path('/after'))))",
+        )
+    except subprocess.CalledProcessError as err:
+        # Do not expose the restored data, URLs, secrets or config-entry IDs.
+        # The verifier emits only a fixed field-category mismatch on failure.
+        safe = next(
+            (
+                line.partition("ValueError: ")[2]
+                for line in err.stderr.splitlines()
+                if re.fullmatch(
+                    r"ValueError: Backup restore changed "
+                    r"(entries|stores|entities|devices|card_resources)",
+                    line.strip(),
+                )
+            ),
+            None,
+        )
+        raise ValueError(safe or "Restored configuration audit failed") from None
     return json.loads(output)
 
 
