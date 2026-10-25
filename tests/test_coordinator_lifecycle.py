@@ -7,7 +7,6 @@ import pytest
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 
-
 BOUNDARY = datetime.fromisoformat("2026-10-21T04:45:00+00:00")
 
 
