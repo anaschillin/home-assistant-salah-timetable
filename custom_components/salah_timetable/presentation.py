@@ -17,7 +17,7 @@ PRAYERS = (
 )
 
 
-def dashboard_attributes(data, zone, mosque_name):
+def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
     row = data.effective.row
 
     def stamps(field):
@@ -32,6 +32,9 @@ def dashboard_attributes(data, zone, mosque_name):
                 "key": key,
                 "name": name,
                 "begin": begin[0].isoformat() if begin else None,
+                "end": (stamps(PrayerField.SUNRISE)[0].isoformat()
+                        if key == "fajr" and stamps(PrayerField.SUNRISE)
+                        else None),
                 "jamaat": [value.isoformat() for value in jamaat],
             }
         )
@@ -64,8 +67,17 @@ def dashboard_attributes(data, zone, mosque_name):
     today_sehri = stamps(PrayerField.SEHRI_ENDS) if active else ()
     today_iftar = stamps(PrayerField.IFTAR) if active else ()
     taraweeh = stamps(PrayerField.TARAWEEH) if active else ()
+    # Khutbah is a separate published Friday announcement, never a Jamaat.
+    # Read preserved NMS publisher metadata, not an inferred prayer time.
+    annual = data.effective.annual_row
+    published = annual or row
+    khutbah = (published.original.get("Published Second Khutbah")
+               if published and data.day.weekday() == 4 else None)
     return {
         "mosque_name": mosque_name,
+        "show_hijri_date": show_hijri_date,
+        "second_khutbah": (f"{data.day.isoformat()}T{khutbah}:00"
+                           if khutbah else None),
         "date": data.day.isoformat(),
         "time_zone": zone.key,
         "prayers": prayers,
