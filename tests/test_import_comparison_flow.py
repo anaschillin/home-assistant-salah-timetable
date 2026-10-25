@@ -69,8 +69,21 @@ async def choose(hass, result, decision):
     )
 
 
+async def compare(hass, result):
+    result = await choose(hass, result, "compare")
+    assert result["step_id"] == "compare"
+    return result
+
+
+async def act(hass, result, action):
+    return await hass.config_entries.options.async_configure(
+        result["flow_id"], {"action": action}
+    )
+
+
 def summary(result):
-    return result["description_placeholders"]["summary"]
+    placeholders = result["description_placeholders"]
+    return placeholders.get("summary", placeholders.get("detail"))
 
 
 def choices(result):
@@ -83,14 +96,19 @@ async def test_first_import_shows_additions_and_keeps_approval_explicit(hass, en
     proposal = candidate()
     stage_id = await storage.async_stage(proposal)
     result = await open_review(hass, entry)
-    assert "Import comparison — page 1 of 1" in summary(result)
+    assert "Import comparison — page" not in summary(result)
     assert "First import for this source ID" in summary(result)
     assert "Dates added: **1**" in summary(result)
     assert "Field entries added: **1**" in summary(result)
     assert "Additional original-cell changes: **2**" in summary(result)
-    assert choices(result) == ["approve", "reject"]
+    assert choices(result) == ["compare", "approve", "reject"]
+    result = await compare(hass, result)
+    assert "Import comparison — page 1 of 1" in summary(result)
+    assert "2026-10-21 — fajr begin" in summary(result)
+    assert choices(result) == ["review"]
     assert storage.staged.stage_id == stage_id
     assert storage.timetables == ()
+    result = await act(hass, result, "review")
     result = await choose(hass, result, "approve")
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
@@ -104,19 +122,23 @@ async def test_every_change_is_reachable_and_paging_never_makes_a_decision(hass,
     proposal = candidate("05:55", count=21)
     stage_id = await storage.async_stage(proposal)
     result = await open_review(hass, entry)
-    assert "Import comparison — page 1 of 3" in summary(result)
     assert "Field entries changed: **21**" in summary(result)
-    assert "previous_page" not in choices(result)
+    result = await compare(hass, result)
+    assert "Import comparison — page 1 of 3" in summary(result)
+    assert "previous" not in choices(result)
     for page in (2, 3):
-        result = await choose(hass, result, "next_page")
+        result = await act(hass, result, "next")
         assert f"Import comparison — page {page} of 3" in summary(result)
         assert storage.staged.stage_id == stage_id
         assert storage.timetables == (previous.timetable,)
-        assert "previous_page" in choices(result)
-    assert "next_page" not in choices(result)
+        assert "previous" in choices(result)
+        assert "approve" not in choices(result)
+        assert "reject" not in choices(result)
+    assert "next" not in choices(result)
     assert "2026-11-10 — fajr begin: **05:45 → 05:55**" in summary(result)
-    result = await choose(hass, result, "previous_page")
+    result = await act(hass, result, "previous")
     assert "Import comparison — page 2 of 3" in summary(result)
+    result = await act(hass, result, "review")
     result = await choose(hass, result, "approve")
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
@@ -135,11 +157,13 @@ async def test_all_original_only_changes_are_paged_without_claiming_prayer_chang
     assert "Canonical prayer values and dates are unchanged." in summary(result)
     assert "Additional original-cell changes: **21**" in summary(result)
     assert "Field entries changed: **0**" in summary(result)
-    result = await choose(hass, result, "next_page")
-    result = await choose(hass, result, "next_page")
+    result = await compare(hass, result)
+    result = await act(hass, result, "next")
+    result = await act(hass, result, "next")
     assert "2026-11-10 — original cell Notes: “old note” → “new note”" in summary(
         result
     )
+    result = await act(hass, result, "review")
     result = await choose(hass, result, "reject")
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
@@ -154,11 +178,13 @@ async def test_cancel_and_reload_preserve_proposal_and_restart_comparison_at_pag
     storage = await loaded(hass, entry, previous)
     stage_id = await storage.async_stage(candidate("05:55", count=21))
     result = await open_review(hass, entry)
-    result = await choose(hass, result, "next_page")
+    result = await compare(hass, result)
+    result = await act(hass, result, "next")
     hass.config_entries.options.async_abort(result["flow_id"])
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
     result = await open_review(hass, entry)
+    result = await compare(hass, result)
     assert "Import comparison — page 1 of 3" in summary(result)
     assert entry.runtime_data.storage.staged.stage_id == stage_id
     assert entry.runtime_data.storage.approved_sources["annual-2026"] == previous
@@ -174,8 +200,10 @@ async def test_byte_only_update_is_distinguished_from_dated_value_changes(hass, 
     result = await open_review(hass, entry)
     assert "Canonical prayer values and dates are unchanged." in summary(result)
     assert "Source bytes or provenance metadata changed." in summary(result)
+    assert choices(result) == ["compare", "approve", "reject"]
+    result = await compare(hass, result)
     assert "No dated value or original-cell changes to display." in summary(result)
-    assert choices(result) == ["approve", "reject"]
+    assert choices(result) == ["review"]
 
 
 @pytest.mark.parametrize("existing", [False, True])
@@ -187,7 +215,9 @@ async def test_changed_approved_baseline_requires_fresh_review_and_another_appro
     proposal = candidate("05:55", count=21)
     stage_id = await storage.async_stage(proposal)
     result = await open_review(hass, entry)
-    result = await choose(hass, result, "next_page")
+    result = await compare(hass, result)
+    result = await act(hass, result, "next")
+    result = await act(hass, result, "review")
     # Another runtime writes the target source while keeping the same proposal.
     external = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
     changed = candidate("06:00", count=21)
@@ -199,14 +229,16 @@ async def test_changed_approved_baseline_requires_fresh_review_and_another_appro
     # async_replace has no approved import provenance. The old mapping is
     # therefore unknown, so all 21 changed raw Fajr cells remain inspectable
     # beside the 21 canonical changes: 42 entries, five pages.
-    assert "Import comparison — page 1 of 5" in summary(result)
     assert "Field entries changed: **21**" in summary(result)
     assert "Additional original-cell changes: **21**" in summary(result)
     assert "Previous source provenance is unavailable" in summary(result)
+    result = await compare(hass, result)
+    assert "Import comparison — page 1 of 5" in summary(result)
     assert "2026-10-21 — original cell Fajr Begin: “06:00” → “05:55”" in summary(result)
     assert "**06:00 → 05:55**" in summary(result)
     assert storage.staged.stage_id == stage_id
     assert storage.timetables == (changed.timetable,)
+    result = await act(hass, result, "review")
     result = await choose(hass, result, "approve")
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
@@ -218,14 +250,15 @@ async def test_changed_baseline_on_page_turn_resets_to_fresh_first_page(hass, en
     storage = await loaded(hass, entry, candidate(count=21))
     await storage.async_stage(candidate("05:55", count=21))
     result = await open_review(hass, entry)
+    result = await compare(hass, result)
     external = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
     await external.async_replace((candidate("06:00", count=21).timetable,))
-    result = await choose(hass, result, "next_page")
+    result = await act(hass, result, "next")
     assert result["errors"] == {"base": "review_changed"}
     assert "Import comparison — page 1 of 5" in summary(result)
     assert "Field entries changed: **21**" in summary(result)
     assert "Additional original-cell changes: **21**" in summary(result)
-    assert "previous_page" not in choices(result)
+    assert "previous" not in choices(result)
     assert storage.staged is not None
 
 
@@ -269,8 +302,9 @@ async def test_legacy_same_id_multiyear_rows_are_included_in_replacement_review(
     result = await open_review(hass, entry)
     assert "Annual 2025–2026" in summary(result)
     assert "Dates removed: **1**" in summary(result)
-    assert "2025-10-21 — date removed" in summary(result)
     assert "Previous source provenance is unavailable" in summary(result)
+    result = await compare(hass, result)
+    assert "2025-10-21 — date removed" in summary(result)
 
 
 async def test_unrecognized_direct_review_action_never_rejects_pending_data(
@@ -283,6 +317,10 @@ async def test_unrecognized_direct_review_action_never_rejects_pending_data(
     flow.handler = entry.entry_id
     await flow.async_step_review()
     result = await flow.async_step_review({"decision": "unexpected"})
+    assert result["errors"] == {"base": "invalid_import_decision"}
+    result = await flow.async_step_review({"decision": "compare"})
+    assert result["step_id"] == "compare"
+    result = await flow.async_step_compare({"action": "approve"})
     assert result["errors"] == {"base": "invalid_import_decision"}
     assert storage.staged.stage_id == stage_id
     assert storage.timetables == ()
@@ -301,9 +339,19 @@ async def test_failed_review_refresh_retains_cached_data_and_blocks_approval(
     ):
         result = await choose(hass, result, "approve")
     assert result["errors"] == {"base": "save_failed"}
+    assert "Field entries changed: **1**" in summary(result)
+    result = await compare(hass, result)
+    assert "**05:45 → 05:55**" in summary(result)
+    with patch.object(
+        storage, "async_load", AsyncMock(side_effect=OSError("read failed"))
+    ):
+        result = await act(hass, result, "review")
+    assert result["step_id"] == "compare"
+    assert result["errors"] == {"base": "save_failed"}
     assert "**05:45 → 05:55**" in summary(result)
     assert storage.timetables == (previous.timetable,)
     assert storage.staged.stage_id == stage_id
+    result = await act(hass, result, "review")
     result = await choose(hass, result, "approve")
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
@@ -383,6 +431,10 @@ async def test_profile_guard_and_metadata_use_newly_loaded_pending_candidate(
     )
     assert result["errors"] == {"base": "invalid_publication_profile"}
     assert profile.profile_id in summary(result)
+    result = await compare(hass, result)
+    assert result["errors"] == {"base": "invalid_publication_profile"}
+    assert profile.profile_id in summary(result)
+    result = await act(hass, result, "review")
     result = await choose(hass, result, "approve")
     assert result["errors"] == {"base": "invalid_publication_profile"}
     assert storage.staged.stage_id == stage_id

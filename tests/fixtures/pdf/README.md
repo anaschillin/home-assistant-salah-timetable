@@ -14,14 +14,18 @@ graphics and publisher marks are not claimed as original MIT-licensed artwork:
 
 The corresponding `nms_monthly_2022.expected.csv` and
 `zak_ramadan_2026.expected.csv`, plus `zak_annual_2026.expected.csv`, are independent
-factual-value oracles built using Poppler `pdftotext -layout`, rather than production pypdf extraction or adapter
-helpers. They cover all 61/854 NMS dates/event values and all 31/341 Zakariyya Ramadan
+factual-value oracles built using Poppler `pdftotext -layout`, rather than
+production pypdf extraction or adapter helpers. They cover all 61/854 NMS
+dates/event values and all 31/341 Zakariyya Ramadan
 page dates/event values, and all 365/3,770 Zakariyya annual dates/event values.
 The annual oracle uses the documented May-first date reconstruction and preserves
 11:xx AM Dhuhr values; Sehri is present only February–May (120 dates). The Zakariyya
 Ramadan table includes March 20, after its Ramadan rows; source coverage never confirms Ramadan activation. These fixtures are
-excluded from integration release archives. Publisher permissions for repository
-redistribution remain part of the maintainer's asset-provenance review.
+excluded from integration release archives. The NMS monthly adapter additionally
+preserves the publisher's separate second-Jumu'ah khutbah footer as Friday-only
+source metadata; it does **not** add a prayer or Jamaat to these event-value counts.
+Publisher permissions for repository redistribution remain part of the
+maintainer's asset-provenance review.
 
 Run `python tests/fixtures/pdf/generate.py` to deterministically recreate only the
 two synthetic sample PDFs and `sample_table.expected.csv`. This generator does not

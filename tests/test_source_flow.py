@@ -392,7 +392,7 @@ async def test_source_status_changes_when_daily_timetable_stays_equal(hass, entr
     assert (
         entry.runtime_data.storage.remote_checks["annual-2026"]["status"] == "rejected"
     )
-    assert_source_status(hass, entry, "up_to_date")
+    assert_source_status(hass, entry, "rejected_version")
 
 
 async def test_reject_changed_source_preserves_live_sensor_after_reload(hass, entry):
@@ -428,7 +428,7 @@ async def test_reject_changed_source_preserves_live_sensor_after_reload(hass, en
     assert entry.runtime_data.storage.staged is None
     assert entry.runtime_data.storage.timetables == original_timetables
     assert hass.states.get(entity_id).state == original_state
-    assert_source_status(hass, entry, "up_to_date")
+    assert_source_status(hass, entry, "rejected_version")
 
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
@@ -436,4 +436,4 @@ async def test_reject_changed_source_preserves_live_sensor_after_reload(hass, en
     assert entry.runtime_data.storage.staged is None
     assert entry.runtime_data.storage.timetables == original_timetables
     assert hass.states.get(entity_id).state == original_state
-    assert_source_status(hass, entry, "up_to_date")
+    assert_source_status(hass, entry, "rejected_version")

@@ -36,13 +36,18 @@ entry per mosque, and each card follows the selected entity's mosque timezone.
 
 ## What the card shows
 
-- Mosque name or your optional title, Gregorian date and calculated Hijri date.
+- Mosque name or your optional title, Gregorian date and optionally the **full
+  calculated Umm al-Qura Hijri date** (day, month and year).
 - **Next Salah Begins** and **Next Jamaat**, with prominent independent countdowns,
   absolute times and progress between consecutive published events of each kind.
 - Optional context/previous Jamaat modes retain elapsed-time behaviour. Progress is
   hidden for previous events or when the preceding published event is unavailable.
-- Fajr, Dhuhr, Asr, Maghrib and Isha beginning/Jamaat times. Published Friday Jumu'ah
-  congregations appear in the Dhuhr row and retain their event identity.
+- Fajr, Dhuhr, Asr, Maghrib and Isha beginning/Jamaat times. Fajr additionally
+  shows **Ends at sunrise**, sourced only from that day's published Sunrise value;
+  an absent Sunrise displays an unavailable end boundary.
+- Published Friday Jumu’ah congregations remain in the Dhuhr row; on supported
+  NMS publications, the distinct **second Jumu’ah khutbah** footer appears in a
+  Friday-only note, **not** as a second Jamaat or replacement Dhuhr beginning.
 - When Ramadan is active: Sehri and Iftar countdowns, plus published Taraweeh time
   or **After Isha Jamaat**.
 
@@ -101,14 +106,21 @@ The Jamaat bar measures congregation-to-congregation, not beginning-to-Jamaat.
 
 ## Dates and customization
 
-The Hijri header uses the browser's **Umm al-Qura** calendar to convert the mosque's
-Gregorian timetable date. It advances at mosque-local midnight, not at sunset.
+The full Hijri header uses the browser's **Umm al-Qura** calendar to convert the
+mosque's Gregorian timetable date, displaying its day, named month and year.
+It advances at mosque-local midnight, not sunset. The default is visible; choose
+**Show full calculated Hijri date on dashboards** during initial mosque setup,
+or change it later via **Configure → Mosque settings**. Older mosque entries
+without a stored preference default to visible. The card editor's
+`show_hijri_date` option is an additional per-card hide switch: the header is
+visible only if **both** the mosque and that card permit it.
 The optional −3 to +3 day adjustment changes only the displayed Hijri date. It does
 not shift imported records, prayer events, Ramadan confirmation or Ramadan's separate
 date adjustment. The date is labelled calculated; unsupported browsers show
 **Hijri date unavailable** rather than silently substituting another calendar.
 
-All options are available in the graphical editor and apply independently to each card:
+The following *card-specific* options are available in the graphical editor.
+The mosque-wide Hijri preference is managed separately in the integration settings:
 
 | YAML option | Values and default |
 | --- | --- |
@@ -117,7 +129,7 @@ All options are available in the graphical editor and apply independently to eac
 | `time_format` | `24h` (default), `12h`; applies to every absolute time |
 | `show_salah_countdown` | `true` |
 | `show_jamaat_countdown` | `true` |
-| `show_hijri_date` | `true` |
+| `show_hijri_date` | `true`; further hides the mosque-enabled full Hijri date on this card |
 | `hijri_adjustment` | Whole days −3 through +3; default `0` |
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
@@ -207,8 +219,10 @@ page reload, themes and phone/tablet viewports for candidate 0.6.1. These checks
 an explicitly preloaded PDF dependency. The later local 0.6.2 HA 2026.10.0 run
 passed 20 checks, including fresh dependency installation without a package preload,
 per-toggle visible previews and saved settings after reload. Physical-device checks
-are user-confirmed complete on their latest installation; device/version details
-were not recorded. HACS installation, restart and updates are also user-confirmed;
-removal/re-addition remains release work. The pushed 0.6.2 commit passed its hosted
+were user-confirmed on 24 October 2026, before 0.7.0; device/version details were
+not recorded. That confirmation does not establish physical acceptance of the newer
+Fajr-end, Friday-khutbah or Hijri setup/options controls. HACS installation, restart
+and updates are also user-confirmed; HACS UI uninstall/reinstallation remains
+release work. The pushed 0.6.2 commit passed its hosted
 checks; later release commits require their own checks. See the [validation record](validation.md) and
 [Milestone 6](milestones.md#milestone-6--release-hardening-partially-implemented).

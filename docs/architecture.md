@@ -24,7 +24,8 @@
   also retains approved tables so changes outside that horizon notify the calendar.
 - `calendar.py`: one read-only calendar per mosque, using approved effective dated
   rows, stable event UIDs and bounded timezone-aware queries. It preserves individual
-  beginnings/Jamaat and multiple Jumu’ah events as zero-duration instants.
+  beginnings/Jamaat and multiple Jumu’ah starts with a 60-second calendar-only
+  presentation interval.
 - `coverage.py`: consecutive effective approved dates, cached by date/sources/Ramadan
   settings. Pending proposals never extend coverage; ambiguous dates beyond the live
   horizon stop coverage and expose `unresolved_date` without disabling valid current
@@ -61,8 +62,10 @@ cannot be overwritten by another concurrent import.
 including all dates retained by a legacy multi-year source. It keeps canonical
 published field differences separate from original-token and provenance changes;
 it does not substitute effective Ramadan defaults into the comparison. The review
-renders full summary counts and ten-row pages. Navigation retains the staged
-identity without approving it. Approval passes the reviewed baseline into storage,
+renders full summary counts and offers **Compare changes before approval**, a
+read-only ten-entry page view with a return to approval/rejection. The separate
+canonical comparison API retains its 20-change pagination contract. Navigation
+retains the staged identity without approving it. Approval passes the reviewed baseline into storage,
 which compares it with the refreshed disk snapshot under the entry lock before any
 write. A changed approved baseline leaves the proposal staged, refreshes the review
 and requires another approval. This check supplements the existing staged-identity
@@ -135,8 +138,11 @@ cover/month years, exact headings, all Gregorian dates/weekdays and 13 physical 
 columns. It applies documented column meridiems, resolves same-column quotation marks
 before splitting Friday Jumu’ah from ordinary Dhuhr, and retains all raw cells. The
 selected field subset must keep the known meanings and 24-hour canonical format.
-It does not interpret Khutbah notes or Hijri dates as scheduled congregations or
-confirmed Ramadan dates. See `pdf_layouts.md`.
+It records an explicitly recognized second-Jumu’ah khutbah footer separately in
+per-row original source metadata for Fridays; the footer **never** becomes a
+congregation event or changes the published Dhuhr beginning. The inspected
+NMS monthly adapter applies the same separation. Printed Hijri cells never
+confirm Ramadan. See [PDF layouts](pdf_layouts.md).
 
 `source_model.py` holds immutable URL/parser profiles and allowlisted check metadata.
 `source_updates.py` serializes manual and scheduled checks. A source comparison inside
@@ -153,7 +159,15 @@ extracted canonical text and mapping remain distinct. Config entry options do no
 contain raw files. Candidate/profile/check writes stay atomic and off the event loop.
 
 The diagnostic source-status entity uses safe aggregate state; explicit notifications
-refresh it even when daily prayer data has not changed. `diagnostics.py` exports only
+refresh it even when daily prayer data has not changed. The latest validated
+checksum (`last_seen_sha256`), explicitly rejected checksum
+(`rejected_sha256`), approved candidate checksum, and last successful check
+are distinct. `up_to_date` requires identical validated and approved bytes
+for the same configured URL; a successful check alone does not imply approval.
+The rejected checksum survives unchanged/HTTP 304 checks (including restarts)
+and is cleared on a new staged version or approval. Existing schema-3 checks
+without a separate rejection digest stay readable; an existing `rejected`
+state is upgraded on the next unchanged check. `diagnostics.py` exports only
 allowlisted counts, kinds, years and error codes, never config-entry identity, source
 URLs, HTTP validators, imported rows or original content. Logs use fixed error codes.
 
@@ -188,7 +202,10 @@ yesterday, today and tomorrow. Next Salah beginning and next Jamaat are independ
 Tomorrow's Fajr must exist in tomorrow's actual effective timetable, including across
 year/leap-day boundaries. The engine never reuses today's Fajr or searches distant
 dates to conceal missing coverage. Multiple Jumu'ah congregations remain individual
-events associated with Dhuhr for context.
+events associated with Dhuhr for context. Dashboard Fajr **end** is separately
+read from the published Sunrise value; it is not inferred from a Fajr start,
+Jamaat, or a new end-trigger event. Second-khutbah footer metadata is presented
+only on Fridays, never inserted into the Jamaat event engine.
 
 Context selects the previous congregation before a prayer begins, the upcoming
 congregation after its beginning, then the previous congregation once its scheduled
@@ -211,8 +228,10 @@ date, field and UTC instant. Effective Iftar fallback is labelled separately fro
 explicitly published Iftar. Missing dates produce no events; ambiguous queried dates
 raise a safe error rather than choosing a source. An unresolved future date is skipped
 when finding the next calendar event and remains visible through coverage diagnostics.
-Zero-duration events have no ongoing interval, so the calendar state remains off;
-start triggers and event queries expose their instants. The unique ID is
+Calendar presentation events have 60-second intervals, so their state is briefly
+on while a published instant is displayed. Start triggers retain the exact
+published timestamps; end triggers are calendar-only (not prayer duration).
+Queries include event-range overlaps, including across local midnight. The unique ID is
 `{mosque_id}_prayer_calendar`, linked to the existing mosque device. See
 [calendar behavior](calendar.md).
 
@@ -255,6 +274,12 @@ variables without Card Mod. The editor emits standard `config-changed` events an
 supports upcoming (default), context and previous modes, optional title, compact/expanded
 layout, countdown/detail visibility and 12/24-hour times. The calculated Umm al-Qura
 header has a per-card day adjustment and never participates in Ramadan activation.
+Config-entry data/options expose `show_hijri_date`, defaulting to `true` for
+existing entries; the dashboard includes the full calculated Hijri date only
+when both mosque-wide and per-card visibility permit it. The presentation
+payload includes separately published Fajr sunrise-end and optional Friday
+second-khutbah values. These are display properties, **not** changes to the
+event stream or stored approved prayer times.
 
 Node tests cover helpers, rendering, safe text and editor round trips. An isolated
 headless Chromium harness checks real custom-element rendering with HA element
@@ -266,8 +291,10 @@ manual-install smoke on the minimum HA 2026.10.0 version, including the actual c
 picker/editor and saved display options after page reload. That run explicitly
 preloaded the locked PDF dependency. The subsequent 0.6.2 minimum-version run passed
 20 checks, with before/after proof of fresh pinned dependency installation and no
-package preload. Physical-device checks are user-confirmed complete for their latest
-installation. See the
+package preload. Physical-device checks were user-confirmed on 24 October 2026 for
+an installation whose version was not recorded, before 0.7.0. They do not establish
+physical acceptance of the later calendar, profiles, speaker controls, import review
+or dashboard additions. See the
 [validation record](validation.md) and [dashboard setup](dashboard.md).
 
 ## Remaining limitations
@@ -278,9 +305,11 @@ The live NMS HTTPS source is unverified. DST gaps and ambiguous folds are reject
 rather than guessed; explicit fold handling needs a separately reviewed source model.
 The calculated Hijri header is display-only; users explicitly confirm Ramadan.
 
-HACS installation, restart and updates are user-confirmed. Release hardening still
-needs removal/re-addition in a test instance, full HA backup restoration, provenance
-review and hosted validation for each final release commit. Physical-device completion is recorded separately from automated checks.
+HACS installation, restart and updates are user-confirmed. Automated two-mosque
+config-entry removal/re-addition and real Home Assistant Container backup restoration
+have recorded coverage. Full HAOS/Supervisor restoration, actual HACS UI
+uninstall/reinstallation, asset redistribution rights and exact release-commit
+validation remain gates in the [single release checklist](releasing.md).
 Invalid stored records already have actionable Repair guidance. Reproducible install
 archives and synchronized metadata/cache versions are checked by release tooling. Hosted GitHub validation must be checked before release; local
 tests and workflow definitions alone do not establish that it passed.

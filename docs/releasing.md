@@ -13,6 +13,50 @@ calendar, publication profiles, speaker controls and 0.8.0 review flow remains
 separate. Hosted validation is recorded separately for exact commit
 SHAs; a final release commit still needs its own successful required jobs.
 
+## Current release readiness — 25 October 2026
+
+**This document is the single active checklist for release acceptance.** The
+[archived 25 October review plan](archive/review-action-plan-2026-10-25.md)
+records REV-01–06 implementation history; use this section for the outstanding
+sign-offs. REV-07 compatibility expansion remains ongoing; REV-08's
+import-change comparison is implemented in Milestone 17, while localization/RTL
+remains planned under Milestone 10. These follow-ups belong in
+[remaining work](remaining-work.md), not in the current release gate unless
+they uncover a blocking regression.
+
+| Gate | Recorded evidence | Decision / remaining action |
+| --- | --- | --- |
+| REV-01–03 code fixes | Squash-merged [#7](https://github.com/anaschillin/home-assistant-salah-timetable/pull/7), [#6](https://github.com/anaschillin/home-assistant-salah-timetable/pull/6) and [#8](https://github.com/anaschillin/home-assistant-salah-timetable/pull/8) | **Complete** — calendar interval, timer teardown and remote-source approval statuses |
+| REV-04 asset redistribution | [PR #9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9) merged; [asset inventory](asset-provenance.json) and [rights review](asset-provenance.md) available | **Blocking:** obtain documented rights for contributed PDFs/derived oracles, icon and screenshots, or replace with rights-cleared originals and assess public Git history; `python scripts/check_asset_provenance.py --require-cleared` must pass |
+| REV-05 full HAOS restore | [PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11) merged; real **Home Assistant Container** backup archive creation and isolated restore passed on Core 2026.10.0 and 2026.10.3 | **Blocking:** restore an actual *full HAOS/Supervisor* backup into a **second disposable HAOS instance**, verify entry/entity IDs, approved versus pending source data, Ramadan options, dashboard resources, Repairs and a second restart; record redacted evidence using the [restore procedure](backup-restore-acceptance.md) |
+| REV-06 HACS removal/re-addition | [PR #10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10) merged; real HA Container two-mosque isolation, config-entry removal/re-addition and frontend resource checks passed | **Blocking:** run *HACS UI* uninstall/reinstallation on disposable HA with two mosques and verify card/resource/device cleanup and recovery; record evidence per the [HACS acceptance guide](hacs-removal-acceptance.md) |
+| Required hosted validation | [Dashboard PR #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16) was squash-merged as `c8e65bd01250af0b892782c0e1ef04b99072e37a`. The matching [post-merge `main` Validate run **40212875119**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119) succeeded **on attempt 1** with **884 Python tests passed** and all six jobs green: frontend/Chromium, HACS, hassfest, Python and live HA 2026.10.0 / 2026.10.3. The earlier calendar timing flake remains tracked in [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13). | **CI passed on the dashboard merge commit**, not a final tagged release. Review new required CI on the exact future release commit, investigate issue #13 as warranted, and complete manual dashboard and REV-04–06 acceptance before release sign-off. |
+| Manual release acceptance | See [the UI/runtime checks below](#manual-home-assistant-and-hacs-acceptance) and [validation log](validation.md) | **Still requires recorded results** for every applicable real-world/UI scenario; a passing automated workflow is not a substitute |
+| Version, packaging and publication | Build/release scripts and draft workflow exist | **Pending:** match manifest/project/card/cache versions, changelog and notes; review existing tag, successful CI and prepared draft before publishing |
+
+The [validation log](validation.md) is the evidence record, **not** a second
+checklist. The `--require-cleared` provenance audit deliberately blocks draft
+release preparation while rights remain unresolved; this is not a licence grant
+and must not be bypassed just because a release ZIP excludes the PDF fixtures.
+No GitHub release has been published for candidate 0.8.0 or its 0.7.0 predecessor; successful
+PR and main CI runs are implementation evidence, not publication or manual
+release acceptance.
+
+### Final sign-off for each candidate
+
+- [ ] All published-repository assets have reviewable redistribution evidence;
+      the strict provenance audit passes for the release tag.
+- [ ] Full HAOS/Supervisor archive restore, restart and Repairs/resource checks
+      pass on a second disposable instance (not just a Container or storage-only restore).
+- [ ] Authenticated HACS UI remove/re-add and two-mosque coexistence pass on a
+      disposable instance; expected per-entry storage deletion is documented.
+- [ ] Remaining applicable manual runtime/editor/mobile/import/upgrade checks
+      below have recorded outcomes or explicit maintainer-reviewed release decisions.
+- [ ] **Exact** release commit passes all required CI, including minimum/current
+      Home Assistant live acceptance, and its metadata, assets and changelog agree.
+- [ ] Maintainer reviews the tag, checksum, release notes and draft before
+      publishing; release is never published automatically.
+
 ## Build a distributable archive
 
 Use the project's Python 3.14 environment. Keep these versions equal when changing
@@ -67,7 +111,13 @@ Require the validation workflow to pass on the exact commit being released:
 The isolated Chromium harness uses stand-in Home Assistant controls. Its result
 cannot replace a check of real HA selectors, card discovery or resource loading.
 Review the workflow results on GitHub, rather than assuming local checks establish
-hosted validation. Preserve the artifact checksum with the reviewed release notes.
+hosted validation. One calendar end-trigger timing test failed on the first attempt
+of [run 40195818111](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111)
+before the unchanged commit passed on attempt 2. Its root cause is unknown;
+[issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+tracks investigation. Review recurrence and release impact before sign-off; do not
+claim a green rerun alone resolved the underlying cause. Preserve the artifact
+checksum with the reviewed release notes.
 
 ## Manual Home Assistant and HACS acceptance
 
@@ -111,7 +161,8 @@ where possible. Record the HA/integration versions and browser/device used.
   actual Fajr after Isha. A congregation is one scheduled event.
 - Add the [prayer calendar](calendar.md) to a real calendar card, query approved
   dates and exercise a calendar start trigger with an offset. Verify separate
-  zero-duration beginning/Jamaat events, every published Jumu’ah congregation,
+  exact beginning/Jamaat start instants and their one-minute calendar presentation
+  intervals (not prayer durations), every published Jumu’ah congregation,
   mosque-timezone instants, future approved dates and stable IDs after restart.
   Pending proposals and missing dates must not add events.
 - Confirm Ramadan dates, shift the active window and try manual On/Off. Check
@@ -122,7 +173,15 @@ where possible. Record the HA/integration versions and browser/device used.
   storage-resource and YAML-resource dashboard modes without editing YAML.
 - Check compact/expanded layouts, individual countdown/detail switches, both time
   formats and calculated Hijri adjustment without altering Ramadan activation.
-  Verify emphasis through the final congregation and independent progress bars.
+  Enable and disable the **full Hijri date** during initial mosque setup and later
+  under **Configure → Mosque settings**; verify the per-card toggle can also hide
+  it, older entries default to visible, and preferences persist after restart.
+  On a published-source day, verify **Fajr ends at Sunrise** in the correct mosque
+  timezone (unavailable if the source omits Sunrise). On an NMS Friday, verify
+  the separately published **second khutbah** displays **only** as a note and
+  does not alter Dhuhr beginning or Jumu’ah Jamaat; compare an ordinary weekday
+  and a timetable without a recognized footer. Verify emphasis through the final
+  congregation and independent progress bars.
 - Check narrow mobile and tablet displays, light/dark themes, text zoom, keyboard
   access, unavailable data and a disconnected browser. Confirm ticking countdowns
   do not cause per-second sensor writes.
@@ -131,6 +190,9 @@ where possible. Record the HA/integration versions and browser/device used.
   Check Fajr audio, disabled prayers, per-prayer volume, quiet hours and unavailable
   players. Verify acknowledged playback can restore the prior volume, while manual
   volume/content changes and another playback operation prevent restoration.
+  Remove one player during acknowledgement and verify healthy players continue;
+  change a device's volume/content away and back under the same context and verify
+  the automation preserves that intervention rather than restoring over it.
 - Test [pause/resume media](automations.md#pause-and-resume-media) on those speakers.
   Only playing players may be paused; invalid anchors must skip the whole operation.
   Verify resumption requires unchanged paused content and this operation's reported
@@ -141,7 +203,8 @@ where possible. Record the HA/integration versions and browser/device used.
 - Exercise URL failure and changed-content staging. Confirm last approved times
   remain available and a changed file requires approval. Restore the test backup
   and verify recoverability before documenting a recovery procedure.
-- Restore a complete HA backup archive into a clean test configuration. Verify
+- Restore a full HAOS/Supervisor backup archive into a second disposable HAOS
+  instance as specified in the release gate above. Verify
   config entries, registries, entity IDs, approved/pending imports and Ramadan
   options. Restoring only the integration's timetable-store bytes is narrower
   coverage and does not complete full backup restoration.
@@ -171,12 +234,15 @@ tests verify safe issue content, clearing after successful recovery and clearing
 on removal. Broader migration and backup/recovery acceptance remains necessary.
 
 HACS installation, restart and updates are user-confirmed separately from the
-disposable HA smoke; removal/re-addition and complete release UI acceptance remain.
+disposable HA smoke. Automated two-mosque config-entry removal/re-addition and real
+Home Assistant Container archive restoration also passed on the recorded remote
+commits. HACS UI uninstall/reinstallation, full HAOS restoration and complete
+release UI acceptance remain separate gates above.
 The dated [physical-device confirmation](validation.md#user-confirmed-physical-device-acceptance--24-october-2026)
 predates 0.7.0 and records no installed version; it does not complete the new-feature
-and speaker checks above. Further PDF layouts, a
-broader migration/recovery review, reviewed release publication and submission to
-the HACS default catalogue remain follow-up work. This packaging increment does not complete Milestone 6.
+and speaker checks above. Further PDF layouts, broad migration/HAOS recovery review,
+reviewed release publication and HACS default catalogue submission remain follow-up
+work. This packaging increment does not complete Milestone 6.
 
 ## Prepare a reviewed draft
 

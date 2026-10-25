@@ -15,6 +15,19 @@
 
 ## 0.7.0 — unreleased
 
+- Display the end of Fajr at the explicitly published Sunrise time in the
+  bundled dashboard, without changing published Fajr beginning or Jamaat.
+- Retain the second-Jumu’ah khutbah footer on inspected NMS annual/monthly
+  publications and display it as a Friday-only note, **never** as an
+  additional Jumu’ah congregation or revised Dhuhr beginning.
+- Display the **full calculated Umm al-Qura Hijri date** (day, month, year)
+  according to a mosque-wide visibility choice at initial setup and through
+  subsequent settings; keep each card's existing additional hide toggle and
+  independent display-day adjustment. Ramadan activation is unaffected.
+- Add read-only source-scoped import comparisons in the pending review flow,
+  with added/removed date and field counts, exact before/after times (including
+  multi-congregation Jumu'ah), and 20-change pagination. Other years and
+  Ramadan effective fallbacks are excluded; approval/rejection remains explicit.
 - Add one read-only Home Assistant calendar per mosque, with separate published
   beginnings, Jamaats, Friday congregations and active Ramadan events. Query
   approved dated records with stable event IDs and timezone-aware boundaries.
@@ -25,6 +38,26 @@
 - Offer versioned setup profiles for four inspected PDF editions, with fixed
   layout/year/mapping, explicit timezone checks, retained profile provenance and
   the existing preview and approval flow.
+- Use a 60-second **calendar presentation interval** with exact, unchanged
+  published event starts, exclusive end-times, overlapping range queries and
+  improved calendar start/end automation-trigger coverage. The minute is **not**
+  a prayer or Jamaat duration.
+- Stop coordinator boundary timers on successful unload/reload so an obsolete
+  coordinator cannot continue scheduling callbacks.
+- Distinguish explicitly rejected or unapproved remote publications from
+  approved and up-to-date sources, retaining rejection-digest suppression until
+  source content changes.
+- Add inventory and fail-closed redistribution-rights checks for public assets;
+  the release gate deliberately remains blocked until documented permissions
+  or rights-cleared replacements are available.
+- Expand live Home Assistant Container acceptance to cover independent mosques,
+  config-entry removal/re-addition, and real backup-archive restoration into a
+  second disposable configuration. These tests do **not** replace full HAOS
+  backup restoration or actual HACS UI uninstall/reinstallation.
+- Consolidate release-readiness sign-offs in `docs/releasing.md`, archive the
+  dated code review plan, and record CI evidence. Calendar end-trigger test
+  intermittency is tracked in
+  [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13).
 
 ## 0.6.2 — unreleased
 

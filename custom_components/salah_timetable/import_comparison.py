@@ -1,4 +1,8 @@
-"""Pure, paged comparison of one whole-source timetable replacement."""
+"""Pure comparison of one whole-source timetable replacement.
+
+Canonical summaries and full original-cell reviews share the same source rows
+and canonical field comparison. Neither presentation uses effective fallbacks.
+"""
 
 import re
 from dataclasses import dataclass
@@ -8,9 +12,38 @@ from html import escape
 from .import_model import ImportCandidate
 from .model import DailyPrayers, PrayerField, Timetable
 
+DIFF_PAGE_SIZE = 20
 DEFAULT_PAGE_SIZE = 10
 _FIELD_ORDER = {field: position for position, field in enumerate(PrayerField)}
 _URL = re.compile(r"\b(?:[a-z][a-z0-9+.-]*://|www\.)\S+", re.IGNORECASE)
+
+
+@dataclass(frozen=True)
+class ImportChange:
+    """One source-date addition/removal or one changed field on a shared date."""
+
+    day: date
+    kind: str
+    field: PrayerField | None
+    before: tuple[str, ...]
+    after: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ImportDiff:
+    """Canonical projection; field counts cover dates shared by both sources."""
+
+    changes: tuple[ImportChange, ...]
+    added_dates: int
+    removed_dates: int
+    changed_fields: int
+    added_fields: int
+    removed_fields: int
+    previous_exists: bool
+
+    @property
+    def page_count(self) -> int:
+        return max(1, (len(self.changes) + DIFF_PAGE_SIZE - 1) // DIFF_PAGE_SIZE)
 
 
 @dataclass(frozen=True)
@@ -159,6 +192,35 @@ def _tokens(
     )
 
 
+def _comparison_rows(
+    proposed: Timetable, approved: Timetable | None
+) -> tuple[tuple[date, DailyPrayers | None, DailyPrayers | None], ...]:
+    """Keep all dates of this exact source, including legacy multi-year rows."""
+    if approved is not None and (
+        proposed.timetable_id != approved.timetable_id or proposed.kind != approved.kind
+    ):
+        raise ValueError("Cannot compare different timetable source identities")
+    previous = {row.day: row for row in approved.days} if approved else {}
+    current = {row.day: row for row in proposed.days}
+    return tuple(
+        (day, previous.get(day), current.get(day))
+        for day in sorted(previous.keys() | current.keys())
+    )
+
+
+def _canonical_field_changes(
+    old: DailyPrayers | None, new: DailyPrayers | None
+) -> tuple[tuple[PrayerField, tuple[time, ...], tuple[time, ...]], ...]:
+    """Compare immutable published values before any presentation formatting."""
+    before = old.times if old else {}
+    after = new.times if new else {}
+    return tuple(
+        (field, before.get(field, ()), after.get(field, ()))
+        for field in PrayerField
+        if before.get(field, ()) != after.get(field, ())
+    )
+
+
 def compare_import(
     candidate: ImportCandidate,
     previous: Timetable | None,
@@ -170,29 +232,17 @@ def compare_import(
     rows and candidates are immutable and remain untouched. No timezone, display
     formatting, activation mode or calculated Ramadan value participates.
     """
-    table = candidate.timetable
-    if previous is not None and (
-        previous.timetable_id != table.timetable_id or previous.kind != table.kind
-    ):
-        raise ValueError("Comparison needs the same source identity and kind")
+    rows = _comparison_rows(candidate.timetable, previous)
     if previous_source is not None and (
         previous is None or previous_source.timetable != previous
     ):
         raise ValueError("Previous provenance must match the approved timetable")
-    old_rows = {row.day: row for row in previous.days} if previous else {}
-    new_rows = {row.day: row for row in table.days}
     changes = []
     source_changes = []
-    for day in sorted(old_rows.keys() | new_rows.keys()):
-        old_row, new_row = old_rows.get(day), new_rows.get(day)
-        old_times = old_row.times if old_row else {}
-        new_times = new_row.times if new_row else {}
+    for day, old_row, new_row in rows:
         displayed_before = set()
         displayed_after = set()
-        for field in PrayerField:
-            before, after = old_times.get(field, ()), new_times.get(field, ())
-            if before == after:
-                continue
+        for field, before, after in _canonical_field_changes(old_row, new_row):
             old_tokens = _tokens(old_row, previous_source, field)
             new_tokens = _tokens(new_row, candidate, field)
             changes.append(
@@ -217,11 +267,118 @@ def compare_import(
         candidate,
         previous,
         previous_source,
-        tuple(sorted(new_rows.keys() - old_rows.keys())),
-        tuple(sorted(old_rows.keys() - new_rows.keys())),
+        tuple(day for day, old, new in rows if old is None),
+        tuple(day for day, old, new in rows if new is None),
         tuple(changes),
         tuple(source_changes),
     )
+
+
+def _time_strings(values: tuple[time, ...]) -> tuple[str, ...]:
+    return tuple(value.strftime("%H:%M") for value in values)
+
+
+def _full_row(row: DailyPrayers) -> tuple[str, ...]:
+    return tuple(
+        f"{field.value}: {', '.join(_time_strings(row.times[field]))}"
+        for field in sorted(row.times, key=lambda item: item.value)
+    )
+
+
+def compare_timetables(proposed: Timetable, approved: Timetable | None) -> ImportDiff:
+    """Project canonical changes into the original twenty-entry summary API.
+
+    A whole added/removed date occupies one entry. Field totals count changes
+    on shared dates; compare_import additionally counts fields on new/old dates
+    and retains every changed original cell for detailed review.
+    """
+    changes: list[ImportChange] = []
+    added_dates = removed_dates = changed_fields = added_fields = removed_fields = 0
+    for day, old, new in _comparison_rows(proposed, approved):
+        if old is None:
+            added_dates += 1
+            changes.append(ImportChange(day, "date_added", None, (), _full_row(new)))
+            continue
+        if new is None:
+            removed_dates += 1
+            changes.append(ImportChange(day, "date_removed", None, _full_row(old), ()))
+            continue
+        for field, prior, updated in sorted(
+            _canonical_field_changes(old, new), key=lambda item: item[0].value
+        ):
+            if not prior:
+                kind = "field_added"
+                added_fields += 1
+            elif not updated:
+                kind = "field_removed"
+                removed_fields += 1
+            else:
+                kind = "field_changed"
+                changed_fields += 1
+            changes.append(
+                ImportChange(
+                    day, kind, field, _time_strings(prior), _time_strings(updated)
+                )
+            )
+    return ImportDiff(
+        tuple(changes),
+        added_dates,
+        removed_dates,
+        changed_fields,
+        added_fields,
+        removed_fields,
+        approved is not None,
+    )
+
+
+def diff_overview(diff: ImportDiff) -> str:
+    """Small summary for the approval form, without copying source content."""
+    if not diff.previous_exists:
+        return (
+            f"New source: {diff.added_dates} dates to add; no existing approved "
+            "version of this source will be replaced."
+        )
+    if not diff.changes:
+        return (
+            "No changes to canonical published times or availability. "
+            "Source bytes, original tokens or provenance may still differ."
+        )
+    return (
+        f"Changes to this source: **{diff.added_dates} dates added**, "
+        f"**{diff.removed_dates} dates removed**; "
+        f"**{diff.changed_fields} times changed**, "
+        f"**{diff.added_fields} fields added**, "
+        f"**{diff.removed_fields} fields removed**. "
+        "Review every page before approving: an omitted date or field stays absent."
+    )
+
+
+def render_diff_page(diff: ImportDiff, page: int) -> str:
+    """A small canonical-values page without source URLs or original tokens."""
+    if type(page) is not int or not 0 <= page < diff.page_count:
+        raise ValueError("Invalid comparison page")
+    lines = [
+        diff_overview(diff),
+        f"**Comparison page {page + 1} of {diff.page_count}**",
+    ]
+    if not diff.changes:
+        lines.append("No canonical date or field changes to display.")
+    for change in diff.changes[page * DIFF_PAGE_SIZE : (page + 1) * DIFF_PAGE_SIZE]:
+        day = change.day.isoformat()
+        if change.kind == "date_added":
+            lines.append(f"- **+ {day} (date added):** {'; '.join(change.after)}")
+        elif change.kind == "date_removed":
+            lines.append(f"- **− {day} (date removed):** {'; '.join(change.before)}")
+        else:
+            old = ", ".join(change.before) if change.before else "absent"
+            new = ", ".join(change.after) if change.after else "absent"
+            lines.append(f"- **{day}** · {change.field.value}: {old} → {new}")
+    lines.append(
+        "Only the pending timetable is compared with the approved version of "
+        "this exact source. Other years, sources and effective Ramadan fallbacks "
+        "are not included. Returning to review does not approve anything."
+    )
+    return "\n\n".join(lines)
 
 
 def _safe(value: str, limit: int = 180) -> str:
@@ -235,9 +392,7 @@ def _safe(value: str, limit: int = 180) -> str:
 
 
 def _values(values: tuple[time, ...]) -> str:
-    return (
-        ", ".join(value.strftime("%H:%M") for value in values) if values else "absent"
-    )
+    return ", ".join(_time_strings(values)) if values else "absent"
 
 
 def _source_tokens(tokens: tuple[SourceToken, ...], *, present: bool) -> str:
@@ -272,18 +427,9 @@ def _metadata(label: str, candidate: ImportCandidate) -> str:
     )
 
 
-def render_comparison_page(
-    comparison: ImportComparison,
-    page: int = 0,
-    page_size: int = DEFAULT_PAGE_SIZE,
-) -> str:
-    """Render one bounded page; all rows remain reachable through pagination."""
-    size = _page_size(page_size)
-    pages = comparison.page_count(size)
-    if type(page) is not int or not 0 <= page < pages:
-        raise ValueError("Comparison page is outside the available range")
+def comparison_overview(comparison: ImportComparison) -> str:
+    """Summarize full-source scope, provenance and totals without dated entries."""
     lines = [
-        f"**Import comparison — page {page + 1} of {pages}**",
         "Whole-source replacement: only this source ID is replaced. Other source IDs remain stored. "
         "Values below are canonical published source times in 24-hour format. "
         "They exclude effective Ramadan merging, fallback and display formatting.",
@@ -326,6 +472,23 @@ def render_comparison_page(
         comparison.previous_source.source_url != comparison.candidate.source_url
     ):
         lines.append("Source location changed; URLs are omitted.")
+    return "\n\n".join(lines)
+
+
+def render_comparison_page(
+    comparison: ImportComparison,
+    page: int = 0,
+    page_size: int = DEFAULT_PAGE_SIZE,
+) -> str:
+    """Render one bounded page; all rows remain reachable through pagination."""
+    size = _page_size(page_size)
+    pages = comparison.page_count(size)
+    if type(page) is not int or not 0 <= page < pages:
+        raise ValueError("Comparison page is outside the available range")
+    lines = [
+        f"**Import comparison — page {page + 1} of {pages}**",
+        comparison_overview(comparison),
+    ]
     items = comparison.items
     first = page * size
     page_items = items[first : first + size]

@@ -37,7 +37,8 @@ the publication or the Ramadan settings.
 Source details identify changes to retained original tokens and available parser,
 format, mapping, checksum and publication-profile metadata. Original text is escaped
 for display; long displayed tokens are truncated and URLs are omitted from this
-comparison. The complete original files/tokens remain in protected import provenance.
+comparison. Retained original cells remain in protected import provenance; keep the
+publication available when checking them.
 A changed source file or checksum can have unchanged canonical prayer
 values: it may contain different notes, labels or document structure. That is not
 a guarantee that only formatting changed. Where an older stored source lacks its
@@ -46,14 +47,15 @@ previous text or metadata.
 
 ## Browse and decide
 
-Change lists are paginated in groups of ten entries, including date additions/removals,
-canonical field differences and additional original-cell changes. Use **Next page
-of changes (keep pending)** and **Previous page of changes (keep pending)** to inspect
-the lists. Each choice appears when that page exists. Navigation does not approve,
-reject or replace the proposal. The summary counts cover the full comparison,
-including changes on other pages. Approval and rejection remain available on every
-page. Approve only after checking the publication and the complete replacement
-scope. Choose **Reject and keep the active timetable** to discard the proposal.
+Choose **Compare changes before approval** on the review form. The read-only
+comparison is paginated in groups of ten entries, including date additions/removals,
+canonical field differences and additional original-cell changes. Use **Next page**
+and **Previous page** to inspect the lists. Each choice appears when that page
+exists. Navigation does not approve, reject or replace the proposal. The summary
+counts cover the full comparison, including changes on other pages. Choose
+**Return to approval/rejection** to return to the review form, then explicitly
+**Approve and save timetable** or **Reject and keep the active timetable**.
+Approve only after checking the publication and the complete replacement scope.
 
 Closing the review keeps its staged proposal for **Configure → Review pending
 import**, including after a restart. The page position is a temporary UI choice and

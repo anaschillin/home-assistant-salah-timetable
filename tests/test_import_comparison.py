@@ -9,10 +9,14 @@ import pytest
 
 from custom_components.salah_timetable.csv_parser import CsvParser
 from custom_components.salah_timetable.import_comparison import (
+    DEFAULT_PAGE_SIZE,
+    DIFF_PAGE_SIZE,
     DateChange,
     FieldChange,
     OriginalChange,
     compare_import,
+    compare_timetables,
+    comparison_overview,
     render_comparison_page,
 )
 from custom_components.salah_timetable.model import DailyPrayers, PrayerField, Timetable
@@ -90,6 +94,63 @@ def test_identical_import_has_one_page_and_no_changed_values_or_cells():
     text = render_comparison_page(result)
     assert "Canonical prayer values and dates are unchanged." in text
     assert "No dated value or original-cell changes to display." in text
+
+
+def test_canonical_projection_and_original_cell_review_share_published_values():
+    previous = source(
+        (
+            ("2026-01-01", "05:30", "06:00", "13:00;14:00", "old note"),
+            ("2026-01-02", "05:31", "06:00", "", "removed note"),
+        )
+    )
+    candidate = source(
+        (
+            ("2026-01-01", "05:35", "", "13:00", "new note"),
+            ("2026-01-03", "05:32", "06:05", "", "added note"),
+        )
+    )
+    full = compare_import(candidate, previous.timetable, previous)
+    canonical = compare_timetables(candidate.timetable, previous.timetable)
+    shared_dates = {row.day for row in candidate.timetable.days} & {
+        row.day for row in previous.timetable.days
+    }
+    assert {
+        (
+            change.day,
+            change.field,
+            tuple(value.strftime("%H:%M") for value in change.before),
+            tuple(value.strftime("%H:%M") for value in change.after),
+        )
+        for change in full.changes
+        if change.day in shared_dates
+    } == {
+        (change.day, change.field, change.before, change.after)
+        for change in canonical.changes
+        if change.field is not None
+    }
+    assert len(full.added_dates) == canonical.added_dates == 1
+    assert len(full.removed_dates) == canonical.removed_dates == 1
+    assert full.changed_fields == canonical.changed_fields == 2
+    # The canonical API groups a date into one entry; detailed review exposes
+    # its fields and every original cell separately, preserving both contracts.
+    assert full.added_fields == 2 and canonical.added_fields == 0
+    assert full.removed_fields == 3 and canonical.removed_fields == 1
+    assert DEFAULT_PAGE_SIZE == 10 and DIFF_PAGE_SIZE == 20
+
+
+def test_comparison_overview_summarizes_provenance_without_copying_dated_entries():
+    previous = source()
+    candidate = source((("2026-01-01", "05:35", "06:00", "13:00", "new note"),))
+    comparison = compare_import(candidate, previous.timetable, previous)
+    overview = comparison_overview(comparison)
+    assert "Field entries changed: **2**" in overview
+    assert "Additional original-cell changes: **1**" in overview
+    assert f"SHA-256: `{candidate.sha256}`" in overview
+    assert f"SHA-256: `{previous.sha256}`" in overview
+    assert "new note" not in overview
+    assert "- 2026-01-01 —" not in overview
+    assert "page 1 of" not in overview
+    assert overview in render_comparison_page(comparison)
 
 
 def test_whole_source_replacement_exposes_removed_dates_fields_and_jumuah_slots():

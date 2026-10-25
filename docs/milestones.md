@@ -1,17 +1,29 @@
 # Implementation plan
 
-The [remaining-work checklist](remaining-work.md) tracks release blockers separately
-from later feature additions.
+The [release checklist](releasing.md#current-release-readiness--25-october-2026)
+is the single source of truth for release blockers; the
+[remaining-work backlog](remaining-work.md) tracks later feature additions.
 
-Milestones 1–5 are implemented; the current candidate is 0.8.0. Keep follow-up work
-in focused PRs with its own tests and documentation. Disposable HA 2026.10.2 and
-minimum-version HA 2026.10.0 manual-install/runtime/frontend checks have passed
-within the limits in the validation record. Release acceptance still includes
-successful hosted validation for the exact release commit, HACS removal/re-addition
-checks, full HA backup restoration and provenance review. HACS installation, restart
-and updates are user-confirmed complete. Local 0.6.2 acceptance
-verified fresh dependency installation; physical-device checks are user-confirmed
-complete for their latest installation.
+Milestones 1–5 are implemented; the current candidate is 0.8.0. Keep follow-up
+work in focused PRs with tests and documentation. The local 0.8.0 paged-review
+and Adhan fixes passed the [recorded pre-merge checks](validation.md#paged-import-review--candidate-080).
+Those results do not validate the combined tree. Separately, Milestone 17's
+[main Validate run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
+passed all six jobs and **880 Python tests**. Dashboard enhancements in
+[PR #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16)
+were subsequently squash-merged; their
+[post-merge main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119)
+passed all six jobs and **884 Python tests** on
+`c8e65bd01250af0b892782c0e1ef04b99072e37a` (first attempt).
+Publication still requires final release-commit CI and manual acceptance.
+The earlier [calendar-trigger flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+remains open despite passing on rerun.
+Earlier manual-install, dependency and physical-device evidence remains scoped to
+the versions and environments in the [validation record](validation.md).
+**Unfinished release acceptance** still includes asset redistribution rights,
+full HAOS/Supervisor backup restoration and HACS UI removal/reinstallation;
+automated Home Assistant Container restore and config-entry removal tests do not
+substitute for these sign-offs. Validate the exact future release commit again.
 
 ## Next increments
 
@@ -41,10 +53,18 @@ their completion requires implementation and the stated acceptance evidence.
 
 The **8 → 12 → 13 → 9** feature sequence is implemented in candidate 0.7.0.
 Its exact commit `737b636` passed hosted Validate, including both HA live lanes.
-Candidate 0.8.0 adds **17**, the paged import comparison; its own exact-commit
-validation and release acceptance remain required. Next pursue **10** for
-localization/RTL, continuing **11** in parallel; **14–16** follow. Existing milestone
-numbers and links are retained; numbering does not set execution order.
+Milestone **17** is also implemented; candidate 0.8.0 combines its canonical
+comparison with original-cell/provenance review and fresh-baseline approval checks.
+Exact-commit CI and applicable real-world release acceptance remain required.
+The merged dashboard enhancement adds published Fajr end
+(Sunrise), NMS Friday second-khutbah notes and a mosque-wide full-Hijri-date
+display preference (see [dashboard](dashboard.md)). This addition is
+**implemented, with real-device/source and restart release acceptance pending**.
+REV-08's import-difference portion is fulfilled by Milestone 17, but its
+translation/RTL portion remains pending. Next pursue **10** (localization/RTL)
+with **11** (broader compatibility testing) in parallel; 14–16 follow.
+Milestone numbering does not set release order. The new localization catalogue
+is initial work for 10; translations, bilingual labels and RTL are not complete.
 
 Every increment needs focused tests, user documentation, successful CI for its
 exact commit and applicable live checks before release. Imported values stay
@@ -170,14 +190,21 @@ and narrow layouts. HA elements are stand-ins in that harness. A separate dispos
 HA 2026.10.2 manual installation verified real card/editor components and viewport
 rendering. The candidate 0.6.1 HA 2026.10.0 check also exercised the actual picker,
 editor controls and saved configuration after page reload. Authenticated HACS
-installation, restart and updates are user-confirmed complete; removal/re-addition
-in a test instance remains outstanding. Physical-device checks are
-user-confirmed complete for their latest installation; see the
+installation, restart and updates are user-confirmed complete; actual HACS UI
+uninstall/reinstallation remains outstanding. Physical-device checks were
+user-confirmed on 24 October 2026 for an installation with no recorded version,
+before 0.7.0 and the later dashboard additions; see the
 [validation record](validation.md) and [dashboard setup](dashboard.md).
 
-Candidate 0.6.0 extends the card with prayer emphasis, independent countdown progress,
+Candidate 0.6.0 added prayer emphasis, independent countdown progress,
 calculated Umm al-Qura dates and graphical layout/visibility/time-format controls.
-These are display features; imported records and Ramadan activation remain unchanged.
+The latest dashboard changes show Fajr's **published sunrise end** within its row,
+show explicitly published NMS second-Jumu’ah khutbah times as **Friday-only notes**
+without modifying existing Dhuhr/Jamaat events, and add the mosque-level full-Hijri
+visibility preference during setup and under Configure → Mosque settings. The
+per-card Hijri toggle and ±3-day display adjustment remain available. Imported
+times and Ramadan activation stay unchanged; see [dashboard](dashboard.md).
+Real-device sign-off for these refinements remains part of release acceptance.
 Current validation limits are recorded in [validation](validation.md).
 
 ## Milestone 6 — release hardening (partially implemented)
@@ -185,25 +212,20 @@ Current validation limits are recorded in [validation](validation.md).
 Implemented: actionable Repairs for invalid stored records, reproducible manual-install
 ZIPs with checksums, runtime-asset inclusion checks and synchronized manifest/project/
 frontend cache versions, historical schema-1/schema-2 migration tests and timetable
-store recovery tests. Real HA 2026.10.2 and 2026.10.0 manual-install checks also cover
-import, restart/pending review, two-mosque isolation/removal, resource registration
-and actual frontend/editor rendering within their recorded scopes. See the
-[validation record](validation.md) and
-[release preparation and manual checks](releasing.md).
+store recovery tests. The live Home Assistant Container matrix now additionally
+checks real backup-archive restoration into a separate disposable config, two-mosque
+isolation and config-entry removal/re-addition. This **does not** establish full HAOS
+recovery or HACS UI uninstall/reinstallation. See the [validation record](validation.md)
+and [release acceptance checklist](releasing.md).
 
-1. Installation, restart and updates through HACS are user-confirmed complete.
-   Verify removal/re-addition in a disposable test instance. Physical-device checks
-   are also user-confirmed complete; retain them as a regression check for later UI changes.
-2. Restore a complete HA backup archive and verify config entries, registries,
-   entity IDs and approved/pending timetable data. Existing migration and
-   timetable-store recovery tests cover a narrower scope.
-3. Review all network/import paths and resource limits, and add independently tested,
-   redistributable fixtures before supporting further PDF layouts.
-4. Verify hosted pytest/frontend/lint, hassfest and HACS jobs; finalize the support
-   policy and release notes, then review publication. Reproducible archive
-   building is automated; review fixture/asset licensing before publishing.
-5. Submit to the HACS default catalogue only once the complete user workflow is
-   verified. The custom-repository installation remains the documented route.
+The [release guide](releasing.md#current-release-readiness--25-october-2026)
+maintains the acceptance criteria and required evidence for asset rights, full
+HAOS/Supervisor recovery, HACS UI lifecycle, applicable runtime/device checks,
+exact-commit validation and reviewed publication. The 24 October physical-device
+confirmation applies to that earlier installation; later features still need
+their applicable acceptance. Further layouts need inspectable, redistributable
+fixtures and independent results. HACS default-catalogue submission remains a
+later backlog item; custom-repository installation is the current route.
 
 ## Milestone 7 — ready-made automations and coverage monitoring (implemented; release acceptance pending)
 
@@ -257,8 +279,11 @@ and invalid source settings still preserve the last approved data.
 
 Implemented: one read-only calendar per mosque, approved-only range queries,
 stable IDs, explicit Iftar fallback descriptions and a documented calendar-trigger
-example in [calendar guidance](calendar.md). Events have zero duration. Queries
-cover at most 366 local dates; callers can request later approved years separately.
+example in [calendar guidance](calendar.md). Each event retains its exact
+published start instant and uses a **60-second calendar presentation interval**
+for Home Assistant's exclusive-end and automation-trigger semantics. This is **not**
+a prayer or Jamaat duration. Queries cover at most 366 local dates; callers can
+request later approved years separately.
 
 Expose a calendar per mosque built from approved, explicitly dated effective
 records. Publish beginning and Jamaat as distinct scheduled events, including all
@@ -311,6 +336,10 @@ version is asserted, and strict dependency proof compares base-image absence to
 the manifest-pinned import after setup. The reproducible Python suite remains
 locked to HA 2026.10.2. Separate compatibility unit-test environments covering
 migrations and the typing/lint follow-ups below remain to be implemented.
+The [calendar end-trigger timing test follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+tracks one failure on the initial 25 October hosted run that passed on rerun;
+its root cause has **not** been established and must not be silently treated as
+resolved by the green rerun.
 
 Add separate tests for the declared minimum HA version and the supported locked
 version, plus a weekly scheduled compatibility run. Make each job report and verify
@@ -409,14 +438,18 @@ they are never inferred from the calculated Hijri header or a predicted Ramadan 
 
 ## Milestone 17 — import change comparison (implemented; release acceptance pending)
 
-Implemented: the existing review form offers previous/next choices for ten
-comparison entries per page. All added/removed dates, canonical field changes and
-unrepresented original-cell changes remain reachable, including legacy multi-year
+Implemented: **Compare changes before approval** opens a read-only screen with
+ten comparison entries per page, then returns to the approval/rejection review.
+All added/removed dates, canonical field changes, ordered Jumu'ah sequences and
+additional original-cell changes remain reachable, including legacy multi-year
 and unmapped data. Source metadata and original tokens are bounded/escaped, with
-URL-shaped tokens redacted. A fresh-disk check under the shared storage lock blocks
-approval if the exact approved source changed after review; the comparison resets
-and requires another explicit decision. No storage migration or automatic source
-activation is introduced. See [import review](import_review.md).
+URL-shaped tokens redacted. Browsing retains the pending stage ID and never
+approves it. A fresh-disk check under the shared storage lock blocks approval if
+the exact approved source changed after review; the comparison resets and requires
+another explicit decision. No storage migration or automatic source activation
+is introduced. See [import review](import_review.md) and the
+[comparison guide](import_comparison.md). Further human acceptance on large real
+PDF publications and supported UI devices is still required.
 
 Extend import review with a date/field comparison between the approved source being
 replaced and its pending proposal. Show old/new published times, added and removed
@@ -425,7 +458,8 @@ source kind/year and whole-source replacement scope. Keep source-value changes
 separate from calculated/effective Ramadan fallback and display formatting.
 
 Acceptance: compare canonical values rather than byte hashes alone; retain access
-to original tokens/provenance and distinguish formatting-only changes. Test first
+to original tokens/provenance and distinguish identical canonical values from changes
+to source bytes or original tokens. Test first
 imports, unchanged values, partial replacements that remove dates, absent fields,
 multiple congregations, different years/kinds and large paged comparisons. Rejecting
 or cancelling preserves approved data; restart preserves the proposal. Stale review

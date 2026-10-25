@@ -8,7 +8,8 @@
         "data": {
           "name": "Mosque name",
           "mosque_id": "Stable mosque ID",
-          "time_zone": "Mosque timezone (for example Europe/London)"
+          "time_zone": "Mosque timezone (for example Europe/London)",
+          "show_hijri_date": "Show full calculated Hijri date on dashboards"
         }
       }
     },
@@ -40,7 +41,8 @@
       "settings": {
         "title": "Mosque settings",
         "data": {
-          "time_zone": "Mosque timezone"
+          "time_zone": "Mosque timezone",
+          "show_hijri_date": "Show full calculated Hijri date on dashboards"
         }
       },
       "import_csv": {
@@ -74,6 +76,13 @@
           "istewa": "Istewa",
           "iftar": "Iftar",
           "taraweeh": "Taraweeh"
+        }
+      },
+      "compare": {
+        "title": "Compare approved and pending timetable",
+        "description": "{detail}",
+        "data": {
+          "action": "Next step"
         }
       },
       "review": {
@@ -153,7 +162,7 @@
       "invalid_ramadan": "The Ramadan settings are invalid. See the details above.",
       "ramadan_conflict": "Approval conflicts with the current Ramadan settings. Select a Ramadan source in Ramadan settings, then review again. The approved timetable and pending proposal have been retained.",
       "invalid_publication_profile": "Check the selected edition, printed year and mosque timezone.",
-      "review_changed": "The approved source changed while this review was open. The comparison has been refreshed from the first page. Check the updated values, then choose Approve again to activate this proposal.",
+      "review_changed": "The approved source changed while this review was open. Check the refreshed overview and the comparison from its first page, then choose Approve again to activate this proposal.",
       "invalid_import_decision": "Choose one of the review actions shown."
     },
     "abort": {
@@ -223,7 +232,9 @@
         "state": {
           "not_configured": "No URL sources",
           "configured": "Configured",
-          "up_to_date": "Up to date",
+          "up_to_date": "Published version approved",
+          "rejected_version": "Published version rejected",
+          "differs_from_approved": "Publication not approved",
           "pending_review": "Pending review",
           "error": "Check failed"
         }
@@ -288,10 +299,16 @@
     },
     "import_decision": {
       "options": {
+        "compare": "Compare changes before approval",
         "approve": "Approve and save timetable",
-        "reject": "Reject and keep the active timetable",
-        "next_page": "Next page of changes (keep pending)",
-        "previous_page": "Previous page of changes (keep pending)"
+        "reject": "Reject and keep the active timetable"
+      }
+    },
+    "import_compare_action": {
+      "options": {
+        "review": "Return to approval/rejection",
+        "previous": "Previous page",
+        "next": "Next page"
       }
     },
     "pdf_layout": {

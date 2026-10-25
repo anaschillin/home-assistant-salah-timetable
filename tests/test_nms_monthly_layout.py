@@ -82,7 +82,7 @@ def test_real_source_selected_golden_values_and_provenance(pages):
         PrayerField.ISHA_JAMAAT: (time(22, 10),),
         PrayerField.IFTAR: (time(20, 35),),
     }
-    assert len(first.original) == 31
+    assert len(first.original) == 32
     assert first.original["Published Dawn"] == "2:58"
     assert first.original["Published Day"] == "Sun"
     assert rows[date(2022, 5, 3)].original["Published Fajr Jamaat"] == '"'
@@ -103,6 +103,7 @@ def test_friday_midday_column_is_jumuah_and_khutbah_is_not_jamaat(pages):
     assert PrayerField.DHUHR_JAMAAT not in friday.times
     assert friday.times[PrayerField.FAJR_JAMAAT] == (time(4, 45),)
     assert rows[date(2022, 6, 3)].times[PrayerField.JUMUAH] == (time(13, 30),)
+    assert friday.original["Published Second Khutbah"] == "16:30"
     assert all(
         time(16, 30) not in row.times.get(PrayerField.JUMUAH, ())
         for row in rows.values()
@@ -205,7 +206,7 @@ def test_unknown_extra_footer_or_duplicate_heading_is_not_ignored(pages):
 
 def test_canonical_headers_are_distinct_and_no_taraweeh_is_fabricated(pages):
     rows = list(csv.DictReader(io.StringIO(NmsMonthlyLayout().to_csv(pages))))
-    assert len(rows[0]) == 31
+    assert len(rows[0]) == 32
     assert "Taraweeh" not in rows[0]
     assert set(NMS_MONTHLY_COLUMNS.values()) == {
         field.value for field in PrayerField

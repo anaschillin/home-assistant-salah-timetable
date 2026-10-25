@@ -55,14 +55,44 @@ class SourceUpdateManager:
             state = "pending_review"
         elif error_count:
             state = "error"
-        elif checks:
-            state = (
-                "up_to_date"
-                if all(check.get("last_success") for check in checks)
-                else "configured"
-            )
         else:
-            state = "configured"
+            # A successful HTTP check does not mean its published bytes are
+            # approved. Compare the latest validated digest with the exact
+            # approved profile; never expose either digest in sensor attributes.
+            states = []
+            for source_id, source in self.storage.remote_sources.items():
+                check = self.storage.remote_checks.get(source_id, {})
+                seen = check.get("last_seen_sha256")
+                approved = self.storage.approved_sources.get(source_id)
+                if not seen or not check.get("last_success"):
+                    states.append("configured")
+                elif check.get("rejected_sha256") == seen or (
+                    check.get("status") == "rejected"
+                    and not check.get("rejected_sha256")
+                ):
+                    # Legacy rejected checks have no separate digest until the
+                    # next unchanged download migrates their metadata.
+                    states.append("rejected_version")
+                elif (
+                    approved is not None
+                    and approved.sha256 == seen
+                    and approved.source_url == source.url
+                ):
+                    states.append("up_to_date")
+                else:
+                    states.append("differs_from_approved")
+            state = next(
+                (
+                    candidate
+                    for candidate in (
+                        "rejected_version",
+                        "differs_from_approved",
+                        "configured",
+                    )
+                    if candidate in states
+                ),
+                "up_to_date",
+            )
         return {
             "status": state,
             "configured_sources": len(self.storage.remote_sources),
@@ -323,6 +353,8 @@ class SourceUpdateManager:
                     "last_checked": now,
                     "last_success": now,
                     "error_code": None,
+                    "rejected_sha256": previous.get("rejected_sha256")
+                    or (baseline if previous.get("status") == "rejected" else None),
                     "etag": result.etag or previous.get("etag"),
                     "last_modified": result.last_modified
                     or previous.get("last_modified"),
@@ -385,6 +417,7 @@ class SourceUpdateManager:
                 "last_checked": now,
                 "last_success": now,
                 "last_seen_sha256": result.sha256,
+                "rejected_sha256": None,
                 "etag": result.etag,
                 "last_modified": result.last_modified,
                 "error_code": None,

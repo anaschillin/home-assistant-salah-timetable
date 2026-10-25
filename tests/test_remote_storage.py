@@ -94,6 +94,9 @@ async def test_rejection_keeps_seen_digest_and_last_good(hass, entry):
     restored = await storage(hass, entry)
     assert restored.remote_checks[profile.source_id]["status"] == "rejected"
     assert (
+        restored.remote_checks[profile.source_id]["rejected_sha256"] == candidate.sha256
+    )
+    assert (
         restored.remote_checks[profile.source_id]["last_seen_sha256"]
         == candidate.sha256
     )
@@ -291,6 +294,7 @@ async def test_failed_v2_migration_preserves_legacy_source(hass, entry):
         {"etag": "x\r\ny"},
         {"last_checked": "2026-10-21T10:00:00"},
         {"last_seen_sha256": "not-a-digest"},
+        {"rejected_sha256": "not-a-digest"},
     ],
 )
 def test_unsafe_check_metadata_is_rejected(check):

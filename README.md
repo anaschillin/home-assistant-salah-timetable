@@ -44,7 +44,8 @@ Then use its [custom repository route](https://www.hacs.xyz/docs/faq/custom_repo
 
 The repository uses the HACS integration layout; it is not claimed to be in the
 default HACS catalogue. HACS installation, restart and updates are user-confirmed;
-removal/re-addition remains an acceptance check; the recorded live tests used manual installation.
+HACS UI uninstall/reinstallation remains an acceptance check. Recorded automated
+config-entry removal/re-addition tests used disposable manual installations.
 For manual installation, copy `custom_components/salah_timetable`
 into Home Assistant's `config/custom_components/` directory and restart.
 
@@ -67,7 +68,11 @@ allows users to rename entity IDs independently.
    suggested, but check every mapping. Leave fields without published times unselected.
 4. Choose **24-hour HH:MM** or **Explicit HH:MM AM/PM**. No AM/PM is inferred.
 5. Review dates, missing fields, warnings, sample times, checksum and replacement scope.
-6. Choose **Approve and save timetable**, or **Reject and keep the active timetable**.
+6. Choose **Compare changes before approval** to inspect each page of added/removed
+   dates, time changes, previously absent fields and original-cell changes against
+   this exact approved source. The comparison is read-only; return to review afterward.
+7. Choose **Approve and save timetable**, or **Reject and keep the active timetable**.
+   See [import comparison](docs/import_comparison.md) for details and limits.
 
 Nothing becomes active before approval. Closing/cancelling after the preview leaves
 the staged import available under **Configure → Review pending import**, including
@@ -93,8 +98,9 @@ source defaults. See the [profile catalogue](docs/pdf_layouts.md#publication-set
 
 Each source is identified by kind and year (for example `annual-2026`). An approved
 import **replaces that entire source**, not just the uploaded dates. The preview
-reports the existing row count before replacement. A partial replacement can remove
-previously available dates; check coverage before approving. Other years remain
+reports the existing row count and canonical differences before replacement. A
+partial replacement can remove previously available dates; check **every page**
+of changes and coverage before approving. Other years remain
 stored, so next year's timetable can be imported in advance and selected by date.
 A mosque must be successfully loaded to import; settings remain accessible if setup
 fails.
@@ -135,11 +141,17 @@ The integration bundles the **Salah Timetable** Lovelace card and its graphical
 editor. After importing a timetable, edit a dashboard, add the card and choose the
 mosque's **Prayer timetable** sensor. Choose **Upcoming Jamaat** (default), **Context aware** or **Previous Jamaat**. No separate card download or Card Mod is required.
 
-The card shows Gregorian and calculated Umm al-Qura Hijri dates, independent Salah
-and Jamaat countdowns with progress, highlighted prayer rows and active Ramadan details.
-Its editor offers compact/expanded layouts, individual countdown visibility, 12/24-hour
-times, a Hijri display-day adjustment and additional-detail controls. The Hijri
-adjustment is independent of Ramadan activation and never changes timetable data.
+The card shows the Gregorian date and **full calculated Umm al-Qura Hijri date**
+(day, month and year), independent Salah/Jamaat countdowns, highlighted prayer
+rows and Ramadan details. The Fajr row shows **Ends at sunrise** using the
+published Sunrise value, or unavailable if Sunrise is absent. Inspected NMS
+publications also show a separately printed **Second Jumu’ah khutbah** time on
+Fridays; it is **not** an extra Jamaat and does not change Dhuhr/Jumu’ah times.
+Choose Hijri header visibility when first configuring the mosque; change it later
+under **Configure → Mosque settings**. The card editor can also hide Hijri on a
+particular card and offers compact/expanded layouts, 12/24-hour times, countdown
+visibility and a −3 to +3 calculated Hijri display-day adjustment. Neither
+visibility nor adjustment changes source data or activates Ramadan.
 Countdowns run in the browser from absolute timestamps, without per-second Home
 Assistant state writes. The card follows HA's theme
 and uses responsive layouts. Ordinary ticks update clocks and progress in place;
@@ -162,8 +174,14 @@ its end; pending proposals never extend it. See [setup and behavior](docs/automa
 
 Configured URL sources are checked daily, with persisted check times used to catch
 up after restarts. **Configure → Check URL sources now** runs a manual check.
-The **Source status** diagnostic sensor reports configured/up-to-date/pending/error
-state and safe timestamps/counts. Failed downloads or parses preserve approved data.
+The **Source status** diagnostic sensor distinguishes `configured` (not yet
+verified), `up_to_date` (published bytes match the approved URL source),
+`pending_review`, `rejected_version` (the latest validated publication was
+explicitly rejected), `differs_from_approved` (validated published bytes have
+no matching approval), and `error`. For multiple URL sources it prioritizes
+pending review, errors, rejected content, unapproved differences, and unverified
+sources over `up_to_date`. It exposes only safe timestamps/counts, never URLs,
+checksums or source data. Failed downloads or parses preserve approved data.
 
 Checks use ETag/Last-Modified when a valid seen-file baseline exists, and compare
 SHA-256 bytes. Changed, valid content is staged, never auto-activated. A pending
@@ -201,9 +219,9 @@ There is no OCR or fallback that guesses a missing time.
 
 For NMS, Dawn supplies Fajr beginning; Sehri Ends is separate. Sunset supplies
 Maghrib beginning, while the distinct published Maghrib (Iftaar) cell supplies both
-Jamaat and Iftar. Friday's shared Dhuhr/Jumu’ah slot supplies Jumu’ah only. Second-
-Khutbah notes are not imported as congregation times, and Hijri dates do not confirm
-Ramadan activation. No Taraweeh time is invented. The adapter documents its fixed
+Jamaat and Iftar. Friday's shared Dhuhr/Jumu’ah slot supplies Jumu’ah only. Second-Jumu’ah khutbah notes are retained when explicitly printed by the
+inspected NMS layouts and shown as **Friday-only annotations**, not imported
+as congregation times. Printed Hijri dates do not confirm Ramadan activation. No Taraweeh time is invented. The adapter documents its fixed
 morning/noon/evening interpretation of the printed 12-hour columns.
 
 The supplied reference PDF validates manual import. The website's live HTTPS
@@ -270,10 +288,12 @@ the bundled card. Next Sehri/Iftar consider active Ramadan dates only. The dashb
 absolute event data; select it in the card editor instead of an individual prayer.
 
 The [calendar](docs/calendar.md) exposes approved dated beginnings and Jamaat as
-separate zero-duration events, including each Jumu’ah congregation and active Ramadan
-events. It supports Home Assistant calendar cards, event queries and start triggers.
-Its next event may use future approved dates beyond tomorrow; it never estimates a
-duration or fills a missing date.
+separate events, including each Jumu’ah congregation and active Ramadan
+events. Every event starts at the published instant and uses a 60-second
+calendar-only display interval (not a prayer duration). It supports Home Assistant
+calendar cards, event queries and start triggers. Its next event may use future
+approved dates beyond tomorrow; it never estimates prayer duration or fills a
+missing date.
 
 Next Salah beginning and next Jamaat are calculated independently. In context mode,
 the card follows the latest published prayer beginning: it shows the next
@@ -351,7 +371,10 @@ controls. The [physical-device confirmation from 24 October 2026](docs/validatio
 predates 0.7.0; the installed version was not recorded. It does not establish
 physical testing of the new calendar, publication profiles, speaker controls or
 0.8.0 review flow. HACS installation, restart and updates are also user-confirmed;
-removal/re-addition remains acceptance work. See the [validation record](docs/validation.md).
+HACS UI uninstall/reinstallation remains acceptance work. Automated Container
+backup restoration and config-entry removal/re-addition have narrower recorded
+coverage; full HAOS/Supervisor restore remains a release gate. See the
+[validation record](docs/validation.md).
 Synthetic parser fixtures use this repository's MIT license. Contributed real
 publications have separate provenance and require redistribution review; see the
 [fixture notes](tests/fixtures/pdf/README.md).

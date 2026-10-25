@@ -52,7 +52,7 @@ def test_subset_mapping_preserves_provenance_and_source_profile():
     )
     assert len(candidate.timetable.days) == 365
     assert set(candidate.timetable.days[0].times) == {"fajr_begin", "iftar"}
-    assert len(candidate.timetable.days[0].original) == 31
+    assert len(candidate.timetable.days[0].original) == 32
     assert ImportCandidate.from_dict(candidate.as_dict()) == candidate
     source = RemoteSource(
         "annual-2026",

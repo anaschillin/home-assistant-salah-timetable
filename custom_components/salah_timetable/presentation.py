@@ -1,5 +1,8 @@
 """Safe dashboard payloads made from absolute published/effective timestamps."""
 
+import re
+from datetime import datetime, time
+
 from .events import PrayerEvent
 from .model import PrayerField
 
@@ -17,12 +20,13 @@ PRAYERS = (
 )
 
 
-def dashboard_attributes(data, zone, mosque_name):
+def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
     row = data.effective.row
 
     def stamps(field):
         return row.timestamps(field, zone) if row else ()
 
+    sunrise = stamps(PrayerField.SUNRISE)
     prayers = []
     for key, name, beginning, congregations in PRAYERS:
         begin = stamps(beginning)
@@ -32,6 +36,7 @@ def dashboard_attributes(data, zone, mosque_name):
                 "key": key,
                 "name": name,
                 "begin": begin[0].isoformat() if begin else None,
+                "end": sunrise[0].isoformat() if key == "fajr" and sunrise else None,
                 "jamaat": [value.isoformat() for value in jamaat],
             }
         )
@@ -64,8 +69,28 @@ def dashboard_attributes(data, zone, mosque_name):
     today_sehri = stamps(PrayerField.SEHRI_ENDS) if active else ()
     today_iftar = stamps(PrayerField.IFTAR) if active else ()
     taraweeh = stamps(PrayerField.TARAWEEH) if active else ()
+    # Khutbah is a separate published Friday announcement, never a Jamaat.
+    # Read preserved NMS publisher metadata, not an inferred prayer time.
+    annual = data.effective.annual_row
+    published = annual or row
+    khutbah = (
+        published.original.get("Published Second Khutbah")
+        if published and data.day.weekday() == 4
+        else None
+    )
+    if not isinstance(khutbah, str) or not re.fullmatch(
+        r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", khutbah
+    ):
+        khutbah = None
+    khutbah_at = (
+        datetime.combine(data.day, time.fromisoformat(khutbah), zone).isoformat()
+        if khutbah
+        else None
+    )
     return {
         "mosque_name": mosque_name,
+        "show_hijri_date": show_hijri_date,
+        "second_khutbah": khutbah_at,
         "date": data.day.isoformat(),
         "time_zone": zone.key,
         "prayers": prayers,

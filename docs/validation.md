@@ -2,38 +2,140 @@
 
 ## Current recorded status — 25 October 2026
 
-The current candidate is **0.8.0**, adding Milestone 17’s paged import comparison
-to the implemented calendar, publication profiles and media controls.
-Local verification passed **902 Python tests** (95% coverage) and **81 Node
-tests**. The [0.8.0 evidence](#paged-import-review--candidate-080) below records the
-new comparison and live checks. The prior [0.7.0 evidence](#calendar-publication-profiles-and-media--candidate-070)
-retains that increment's results.
+The current integration candidate is **0.8.0**. It combines the richer Milestone
+17 paged import review and fresh-baseline approval checks with the calendar,
+publication profiles, media controls and later dashboard/runtime fixes.
+The local branch at `0850ca6` passed **902 Python tests** (95% coverage), **81 Node
+tests** and **25 disposable HA 2026.10.0 checks** before merging the later
+`origin/main` work. The [0.8.0 record](#paged-import-review--candidate-080) below
+describes that pre-merge evidence; those counts do not validate the combined tree.
 
-The latest recorded hosted **Validate** result is
-[40176121994](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40176121994)
-for pushed **0.7.0 commit `737b636`**. It completed successfully, including Python,
-frontend, hassfest, HACS and real minimum/current HA matrix with strict dependency
-proof. The reusable live matrix also runs weekly. The subsequent 0.8.0 commit still
-needs its own required checks.
+The combined candidate based on `0850ca6` and `ffc56c6` now passes **936 Python
+tests** (95% coverage), **83 Node tests**, required native Chromium and the
+[calendar synchronization regression](#combined-080-review-and-calendar-synchronization)
+below. The exact merge commit still requires its own hosted Validate result.
 
-**Physical-device checks are complete by user confirmation on 24 October 2026.**
-The user reported updating their installation to the latest available version.
-Specific hardware, browsers and HA/integration version numbers were not supplied;
-this records their completed checks without assigning them to the previously
-unpublished local 0.6.2 tree.
+The latest recorded hosted result below is [Validate run
+**40212875119**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119)
+for main commit `c8e65bd01250af0b892782c0e1ef04b99072e37a`: **884 Python tests**
+and all six jobs passed on attempt 1. That result covers the remote dashboard
+merge, not this combined candidate. The combined tree and final release commit
+require their own validation. Required Validate includes the minimum/current HA
+live matrix with strict dependency proof; the matrix also runs weekly.
 
-HACS installation, restart and updates are user-confirmed complete through the
-custom-repository route. Removal/re-addition in a test instance, full HA backup
-restoration, asset provenance and reviewed release publication remain pending.
-HACS CI is repository validation; the installation confirmation is separate evidence.
-See the [current acceptance checklist](remaining-work.md). Dated sections below
-retain the results and limitations observed at that time; this summary supersedes
-their older pending statuses.
+REV-01–03 runtime fixes and REV-04–06 release-assurance tooling were merged through PRs
+[#6](https://github.com/anaschillin/home-assistant-salah-timetable/pull/6),
+[#7](https://github.com/anaschillin/home-assistant-salah-timetable/pull/7),
+[#8](https://github.com/anaschillin/home-assistant-salah-timetable/pull/8),
+[#9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9),
+[#10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10)
+and [#11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11).
 
-The obsolete `codex/live-smoke-runner` and merged Dependabot setup-python branches
-were deleted after their review and the successful v7 upgrade. Historical entries
-below retain the test counts, versions and environment limitations observed at the
-time; they are not current acceptance status.
+The first combined [Validate run **40194784544**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40194784544)
+for **main commit `12f6ae52e249ed2a4ba6d80b17989b0c5e781753`** completed
+successfully on 25 October 2026:
+
+- **873 Python tests passed**, with Ruff lint and formatting checks.
+- Frontend/Chromium tests, hassfest and HACS repository validation succeeded.
+- Live Home Assistant tests succeeded on **2026.10.0** and **2026.10.3**.
+- The live HA matrix exercised two independently approved synthetic mosque
+  timetables, config-entry removal/re-addition and isolation, and creation
+  and restoration of a **real Home Assistant Container backup archive** into
+  a second disposable configuration using Home Assistant's restore module.
+  The backup audit compared stored approved and pending imports, source
+  metadata, config entries and registry/card identities without exporting
+  contents. This was **not a full HAOS/Supervisor restoration**.
+
+**Outstanding release sign-offs:** Public redistribution permission for the
+contributed PDF fixtures/derived oracles, brand icon and screenshots
+(REV-04); full HAOS backup-archive restore, restart, Repairs and resource
+checks in another disposable HAOS (REV-05); and actual HACS **UI**
+uninstall/reinstallation with coexistence and cleanup checks (REV-06).
+A passed HACS *repository check* or a Container config-entry lifecycle test
+is not evidence of HACS UI reinstallation. All three remain **open**, with
+the current decision criteria in the
+[single release checklist](releasing.md#current-release-readiness--25-october-2026)
+and executable evidence procedures in
+[asset provenance](asset-provenance.md),
+[backup restore](backup-restore-acceptance.md) and
+[HACS lifecycle acceptance](hacs-removal-acceptance.md).
+The strict asset-provenance release check deliberately fails until rights
+are established. No draft or published GitHub release was created.
+
+**Earlier merged documentation validation:** [Validate run **40195818111**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111)
+for main commit `f962fdbd1f9ecf6d27c30eda94c432d7552bfba3`
+(doc archive/cleanup [PR #12](https://github.com/anaschillin/home-assistant-salah-timetable/pull/12))
+completed successfully on **attempt 2**, with all six jobs green and **873 Python
+tests passed**. On **attempt 1**, the Python job reported **872 passed,
+1 failed, 1 error**, with the observed failure in
+`tests/test_calendar.py::test_calendar_trigger_offset_before_local_midnight_uses_next_date`:
+the start-offset event fired, but the expected calendar presentation-end event
+was not observed at frozen time `2026-10-23T23:06:00Z` (actual event count 1,
+expected 2). The same source passed without changes on rerun. The cause and
+reproducibility are **not established**, and the pass is not a fix. Investigation
+is open in [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+under Milestone 11. The separate later-documentation and release CI must still
+pass for its own exact commit.
+
+**Later merged-main acceptance (Milestone 17):** [run
+40208986292](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
+completed on main commit `e48463d53417909809ff30c1708127d9917f1786`
+([PR #15](https://github.com/anaschillin/home-assistant-salah-timetable/pull/15)):
+**880 Python tests passed**, plus frontend/Chromium, HACS, hassfest and
+disposable live Home Assistant 2026.10.0 / 2026.10.3, all green. This
+includes pure source-scoped date/time import comparison and Home Assistant
+Options-flow pagination/reject/approval tests. The first branch run failed
+Ruff formatting, the next found three incorrect Markdown-label test
+assertions; both were corrected. One Chromium-startup timeout occurred on a
+later branch attempt, and its failed job passed on rerun. The final
+**merged-main** run succeeded without those errors.
+
+**Dashboard enhancement evidence (not release sign-off):** [PR
+#16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16)
+adds a Fajr end display using the explicitly published Sunrise, NMS annual
+and monthly **second khutbah** footer extraction as Friday-only metadata,
+and a full calculated Hijri date visibility option at initial mosque setup
+and in later Options settings. The published Fajr, Dhuhr, Jumu’ah and
+Jamaat timestamps are unchanged; khutbah is **not** inserted into the event
+engine. The user-facing card retains its independent per-card hide switch.
+
+The [PR validation run **40212080948**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212080948)
+succeeded for source commit `ed6733cc03a9c354dba6f233e37431140c8eda30`:
+**884 Python tests passed**, frontend Chromium, HACS, hassfest and disposable
+live HA 2026.10.0/2026.10.3 all passed. Early branch iterations caught
+Python formatting, browser DOM selection and the new NMS fixture's CSV
+header/column-count mismatches. These were corrected and not silently
+dismissed. Manual real-publication display, physical-device/card-editor
+and restart acceptance remain **unverified** and must be recorded against
+the final release candidate. The live matrix does not establish full HAOS
+restore or HACS UI uninstall/reinstallation.
+
+**Dashboard post-merge `main` evidence:** [Validate run
+**40212875119**](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119)
+completed on **25 October 2026**, on squash-merge commit
+`c8e65bd01250af0b892782c0e1ef04b99072e37a`
+([PR #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16)).
+**All six jobs passed on the first attempt**, including **884 Python tests**,
+Ruff, Node/Chromium frontend, hassfest, HACS and disposable live Home Assistant
+**2026.10.0 / 2026.10.3** checks. This validates the merged dashboard changes
+in the recorded automated environments. It **does not** certify the physical
+dashboard, full HAOS/Supervisor recovery, actual HACS UI remove/reinstall or
+asset redistribution rights. The next documentation commit and any eventual
+release commit must also pass their own exact-commit CI.
+
+**Previously user-confirmed acceptance:** Physical-device checks and HACS
+custom-repository installation, restart and updates were reported complete
+on 24 October 2026 for the latest installed candidate. Their exact device,
+browser and installation version were not recorded. This confirmation predates
+0.7.0 and does not establish physical testing of the new calendar, publication
+profiles, speaker controls, paged review or dashboard additions, or the three
+outstanding release sign-offs.
+
+The original [25 October review plan](archive/review-action-plan-2026-10-25.md)
+is archived as implementation history. Dated sections below retain the
+actual results and limitations observed when they ran, including earlier
+0.5.x, 0.6.x, 0.7.0 and pre-merge 0.8.0 candidates; they must not be interpreted as the
+latest source or current release gates.
 
 ## Initial validation — 23 October 2026
 
@@ -435,10 +537,12 @@ No release or tag was created by this review.
 
 After the local 0.6.2 review, the user confirmed: “Physical device checks done,
 updated to latest.” Physical-device acceptance is recorded as complete for their
-updated installation. Device/browser models, HA/integration version numbers and
+updated installation at that time, before 0.7.0. Device/browser models,
+HA/integration version numbers and
 individual scenario results were not specified. This confirmation does not by
 itself establish the HACS installation route, full backup restoration, a published
-0.6.2 release or hosted CI success for a new commit.
+0.6.2 release, hosted CI success for a new commit or physical testing of subsequent
+calendar, publication-profile, speaker, paged-review and dashboard additions.
 
 
 ## User-confirmed HACS installation and updates — 24 October 2026
@@ -463,6 +567,8 @@ new physical-speaker/device acceptance.
   multiple Jumuah, derived Iftar labelling, missing dates, later approved years,
   leap-day/year boundaries, DST ambiguity, stable IDs, authenticated APIs, reload,
   mosque isolation and an actual HA calendar-trigger offset before local midnight.
+  These historical results predate REV-01's one-minute presentation-interval fix;
+  [current calendar behavior](calendar.md) preserves exact prayer instants.
 - Publication-profile tests cover all four inspected editions, exact year/date
   spans, immutable defaults, unchanged original rows/warnings, optional omitted
   fields, versioned provenance persistence, actual upload/review/approval/rejection
@@ -491,12 +597,16 @@ provenance remain release acceptance work.
 
 ## Paged import review — candidate 0.8.0
 
-Tested the local candidate based on `737b636` on 25 October 2026, before commit.
+Tested the local candidate based on `737b636` on 25 October 2026, subsequently
+committed as `0850ca6`, before merging the later `origin/main` runtime, dashboard
+and canonical-comparison changes. These are pre-merge results, not validation of
+the combined candidate.
 The comparison uses only the exact approved source ID being replaced, including
 all legacy years. It distinguishes canonical prayer values, original source cells
 and provenance changes without treating a new checksum as changed prayer times.
 
-- **899 Python tests passed**, with 95% aggregate integration line coverage.
+- **902 Python tests passed**, with 95% aggregate integration line coverage,
+  after the three Adhan regression cases described below (the earlier run passed 899).
 - **46 focused comparison tests passed**: 31 pure model/rendering cases and 15 real
   HA flow/storage cases. These cover every page of large/whole-year comparisons,
   added/removed dates and fields, all Jumuah slots, ditto/12-hour original tokens,
@@ -508,7 +618,7 @@ and provenance changes without treating a new checksum as changed prayer times.
   profile timezone checks use the freshly loaded staged candidate.
 - **81 Node tests passed**. No dashboard behavior was changed in this increment;
   metadata and JavaScript cache versions advance together to 0.8.0.
-- **25 live HA 2026.10.0 checks passed** on the final integration candidate, with
+- **25 live HA 2026.10.0 checks passed** on the pre-merge integration candidate, with
   `pypdf` absent before setup and pinned 6.21.1 installed/imported afterward. No
   preload; trusted CA mounted read-only with TLS verification enabled. The new
   check navigates comparison pages while approved Fajr remains unavailable until
@@ -525,3 +635,35 @@ and provenance changes without treating a new checksum as changed prayer times.
 
 The integration remains an unreleased candidate. Earlier user-confirmed physical
 and HACS installation checks are separate from new-feature release acceptance.
+
+
+## Combined 0.8.0 review and calendar synchronization
+
+Combined local `0850ca6` with the later main work through `ffc56c6`. Retained the
+one-minute calendar presentation interval and overlap semantics, coordinator
+lifecycle cleanup, rejected-source status, Fajr-end/Friday-khutbah/Hijri dashboard
+settings, asset gate, Container archive restore and two-mosque lifecycle checks.
+The existing **Compare changes** route now shows all rich ten-entry source pages
+and returns to review before explicit approval/rejection. Canonical comparison API
+compatibility remains covered separately.
+
+- **936 Python tests passed**, 95% integration coverage.
+- **113 focused comparison/import/profile tests passed** during merge verification.
+- **83 Node tests passed**; native Chromium passed 320/360/400/900px, theme,
+  keyboard/focus, selection and 200% text checks.
+- Ruff, formatting, whitespace, offline dependency lock consistency, local links,
+  version checks and local 0.8.0 ZIP/checksum/release-note preparation passed.
+  The ordinary asset inventory audit passed and reports ten unresolved rights
+  records. The strict public-release gate remains intentionally blocked.
+
+For [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13),
+the unchanged timing test failed once in ten local runs, with the same missing
+end event and delayed timer as CI. Home Assistant's 15-minute calendar refresh
+and its executor query run as background tasks; the test's default drain excluded
+them before advancing to the end instant. A forced delayed-refresh variant
+reproduced the failure. The fixed test explicitly processes the 23:00 polling
+boundary and drains background work before its unchanged exact start/end assertions.
+Normal and delayed variants then passed **20/20** repeated cases; all **27 calendar
+tests passed**. This is a test synchronization correction; production event timing
+and the calendar presentation interval are unchanged. Hosted evidence for this
+fix is still required before treating the issue as closed.

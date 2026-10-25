@@ -85,7 +85,8 @@ def test_full_year_exact_values_friday_and_published_iftar():
 
 def test_preserved_raw_values_and_no_khutbah_congregation():
     row = parsed().timetable.days[1]
-    assert len(row.original) == 31
+    assert len(row.original) == 32
+    assert row.original["Published Second Khutbah"] == "16:15"
     assert row.original["Published Fajr Jamaat"] == '"'
     assert row.original["Published Dawn"] == "5:07"
     assert row.original["Published Dhuhr or Jumuah"] == "1:35"
@@ -170,7 +171,7 @@ def test_each_month_needs_explicit_first_jamaat():
 
 def test_no_duplicate_canonical_columns_or_inferred_fields():
     rows = list(csv.DictReader(io.StringIO(NmsLayout().to_csv(text_pages()))))
-    assert len(rows[0]) == 31
+    assert len(rows[0]) == 32
     assert "Taraweeh" not in rows[0]
     assert set(NMS_COLUMNS.values()) == {field.value for field in PrayerField} - {
         "taraweeh"

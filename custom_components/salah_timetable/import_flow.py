@@ -16,7 +16,11 @@ from homeassistant.helpers import selector
 from homeassistant.util import dt as dt_util
 
 from .csv_parser import CsvParser
-from .import_comparison import compare_import, render_comparison_page
+from .import_comparison import (
+    compare_import,
+    comparison_overview,
+    render_comparison_page,
+)
 from .import_model import MAX_SOURCE_BYTES, ImportValidationError
 from .model import PrayerField, normalize_field
 from .ramadan import RamadanSettings
@@ -77,6 +81,10 @@ def import_summary(candidate, existing, settings=None) -> str:
         f"Approval replaces **{len(previous.days)} existing rows** for this source."
         if previous
         else "Approval adds this source; other years remain stored."
+    )
+    lines.append(
+        "Choose **Compare changes** to inspect every canonical and original-cell change "
+        "before approval. The comparison never activates a pending import."
     )
     if table.kind == "ramadan":
         lines.append(
@@ -410,6 +418,9 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 user_input = None
         if user_input is not None:
             decision = user_input["decision"]
+            if decision == "compare":
+                self._review_page = 0
+                return await self.async_step_compare()
             try:
                 if decision == "approve":
                     if self._review_baseline is None:
@@ -426,13 +437,6 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 elif decision == "reject":
                     await coordinator.storage.async_reject(self._review_stage_id)
                     coordinator.async_update_listeners()
-                elif decision in {"next_page", "previous_page"}:
-                    current_baseline = coordinator.storage.review_baseline(
-                        staged.candidate.timetable.timetable_id
-                    )
-                    if self._review_baseline != current_baseline:
-                        raise ReviewChangedError("The comparison baseline changed")
-                    self._review_page += 1 if decision == "next_page" else -1
                 else:
                     errors["base"] = "invalid_import_decision"
             except ReviewChangedError:
@@ -462,31 +466,22 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             comparison = compare_import(
                 staged.candidate, baseline.timetable, baseline.source
             )
-            page = min(max(self._review_page, 0), comparison.page_count() - 1)
             summary = import_summary(staged.candidate, tables, settings)
             if source_summary:
                 summary = source_summary + "\n\n" + summary
-            summary += "\n\n" + render_comparison_page(comparison, page=page)
-            return summary, page, comparison.page_count()
+            return summary + "\n\n" + comparison_overview(comparison)
 
-        summary, self._review_page, page_count = await self.hass.async_add_executor_job(
-            render_review
-        )
+        summary = await self.hass.async_add_executor_job(render_review)
         if self._coordinator() is not coordinator:
             return self.async_abort(reason="integration_reloaded")
         self._review_baseline = baseline
-        decisions = ["approve", "reject"]
-        if self._review_page > 0:
-            decisions.append("previous_page")
-        if self._review_page + 1 < page_count:
-            decisions.append("next_page")
         return self.async_show_form(
             step_id="review",
             data_schema=vol.Schema(
                 {
                     vol.Required("decision"): selector.SelectSelector(
                         selector.SelectSelectorConfig(
-                            options=decisions,
+                            options=["compare", "approve", "reject"],
                             translation_key="import_decision",
                         )
                     )
@@ -496,4 +491,78 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             description_placeholders={
                 "summary": f"Mosque timezone: {coordinator.zone.key}\n\n" + summary
             },
+        )
+
+    async def async_step_compare(self, user_input=None):
+        """Page through pending-source differences without changing active data."""
+        coordinator = self._coordinator()
+        if coordinator is None:
+            return self.async_abort(reason="integration_not_loaded")
+        if self._review_runtime is not coordinator:
+            return self.async_abort(reason="integration_reloaded")
+        errors = {}
+        try:
+            await coordinator.storage.async_load()
+        except OSError, HomeAssistantError, ValueError, TypeError, KeyError:
+            errors["base"] = "save_failed"
+            user_input = None
+        if self._coordinator() is not coordinator:
+            return self.async_abort(reason="integration_reloaded")
+        staged = coordinator.storage.staged
+        if staged is None or staged.stage_id != self._review_stage_id:
+            return self.async_abort(reason="stale_import")
+
+        source_summary, source_error = self._review_source_context(
+            staged.candidate, coordinator
+        )
+        if source_error is not None:
+            errors["base"] = source_error
+        baseline = coordinator.storage.review_baseline(
+            staged.candidate.timetable.timetable_id
+        )
+        if self._review_baseline != baseline:
+            self._review_page = 0
+            errors.setdefault("base", "review_changed")
+            user_input = None
+        comparison = await self.hass.async_add_executor_job(
+            compare_import, staged.candidate, baseline.timetable, baseline.source
+        )
+        if user_input is not None:
+            action = user_input["action"]
+            if action == "review":
+                return await self.async_step_review()
+            if action == "next":
+                self._review_page += 1
+            elif action == "previous":
+                self._review_page -= 1
+            else:
+                errors["base"] = "invalid_import_decision"
+        self._review_page = min(max(0, self._review_page), comparison.page_count() - 1)
+        options = ["review"]
+        if self._review_page > 0:
+            options.append("previous")
+        if self._review_page + 1 < comparison.page_count():
+            options.append("next")
+        detail = await self.hass.async_add_executor_job(
+            render_comparison_page, comparison, self._review_page
+        )
+        if self._coordinator() is not coordinator:
+            return self.async_abort(reason="integration_reloaded")
+        self._review_baseline = baseline
+        if source_summary:
+            detail = source_summary + "\n\n" + detail
+        return self.async_show_form(
+            step_id="compare",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("action"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=options,
+                            translation_key="import_compare_action",
+                        )
+                    )
+                }
+            ),
+            errors=errors,
+            description_placeholders={"detail": detail},
         )
