@@ -67,7 +67,11 @@ allows users to rename entity IDs independently.
    suggested, but check every mapping. Leave fields without published times unselected.
 4. Choose **24-hour HH:MM** or **Explicit HH:MM AM/PM**. No AM/PM is inferred.
 5. Review dates, missing fields, warnings, sample times, checksum and replacement scope.
-6. Choose **Approve and save timetable**, or **Reject and keep the active timetable**.
+6. Choose **Compare changes before approval** to inspect each page of added/removed
+   dates, time changes and previously absent fields against this exact approved
+   source. The comparison is read-only; return to review afterward.
+7. Choose **Approve and save timetable**, or **Reject and keep the active timetable**.
+   See [import comparison](docs/import_comparison.md) for details and limits.
 
 Nothing becomes active before approval. Closing/cancelling after the preview leaves
 the staged import available under **Configure → Review pending import**, including
@@ -87,8 +91,9 @@ source defaults. See the [profile catalogue](docs/pdf_layouts.md#publication-set
 
 Each source is identified by kind and year (for example `annual-2026`). An approved
 import **replaces that entire source**, not just the uploaded dates. The preview
-reports the existing row count before replacement. A partial replacement can remove
-previously available dates; check coverage before approving. Other years remain
+reports the existing row count and canonical differences before replacement. A
+partial replacement can remove previously available dates; check **every page**
+of changes and coverage before approving. Other years remain
 stored, so next year's timetable can be imported in advance and selected by date.
 A mosque must be successfully loaded to import; settings remain accessible if setup
 fails.
