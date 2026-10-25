@@ -11,7 +11,8 @@ tests** and **25 disposable HA 2026.10.0 checks** before merging the later
 describes that pre-merge evidence; those counts do not validate the combined tree.
 
 The combined candidate based on `0850ca6` and `ffc56c6` now passes **936 Python
-tests** (95% coverage), **83 Node tests**, required native Chromium and the
+tests** (95% coverage), **83 Node tests**, required native Chromium, **29 live
+HA 2026.10.0 checks** (including a real Container backup restore), and the
 [calendar synchronization regression](#combined-080-review-and-calendar-synchronization)
 below. The exact merge commit still requires its own hosted Validate result.
 
@@ -667,3 +668,15 @@ Normal and delayed variants then passed **20/20** repeated cases; all **27 calen
 tests passed**. This is a test synchronization correction; production event timing
 and the calendar presentation interval are unchanged. Hosted evidence for this
 fix is still required before treating the issue as closed.
+
+
+The combined candidate also passed **29 disposable HA 2026.10.0 checks** with
+fresh pinned dependency installation and `--verify-backup-restore`. Home Assistant
+created an actual Container archive; its restore module extracted it into another
+disposable configuration, and the private audit matched approved/pending imports,
+source metadata, config entries, devices, entities and card resources. Two-mosque
+approval/removal/re-addition remained isolated. The new Compare screen navigation
+left active data unchanged, and calendar intervals, source-profile guard, restart,
+rejection and the actual card/editor remained covered. Results:
+`/tmp/salah-live-merged-0.8.0/results.json`. This remains Container archive evidence;
+full HAOS restore and authenticated HACS UI reinstall remain release gates.
