@@ -50,7 +50,11 @@ def audit(root: Path, *, require_cleared: bool = False) -> list[str]:
         path = root / name
         if path.is_symlink() or not path.is_file():
             raise ValueError(f"Invalid asset file: {name}")
-        if item.get("rights") not in KNOWN or not item.get("owner") or not item.get("basis"):
+        if (
+            item.get("rights") not in KNOWN
+            or not item.get("owner")
+            or not item.get("basis")
+        ):
             raise ValueError(f"Missing asset rights/owner/basis: {name}")
         evidence = item.get("evidence")
         if item["rights"] in CLEARED:
