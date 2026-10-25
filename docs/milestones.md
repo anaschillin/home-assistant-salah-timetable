@@ -4,7 +4,7 @@ The [release checklist](releasing.md#current-release-readiness--25-october-2026)
 is the single source of truth for release blockers; the
 [remaining-work backlog](remaining-work.md) tracks later feature additions.
 
-Milestones 1–5 are implemented; the current candidate is 0.8.0. Keep follow-up
+Milestones 1–5 are implemented; the current candidate is 0.8.1. Keep follow-up
 work in focused PRs with tests and documentation. The local 0.8.0 paged-review
 and Adhan fixes passed the [recorded pre-merge checks](validation.md#paged-import-review--candidate-080).
 Those results do not validate the combined tree. Separately, Milestone 17's
