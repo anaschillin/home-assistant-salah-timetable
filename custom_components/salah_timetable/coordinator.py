@@ -12,6 +12,7 @@ from homeassistant.util import dt as dt_util
 
 from .coverage import CoverageSnapshot, calculate_coverage
 from .events import EventSnapshot, calculate_events
+from .model import Timetable
 from .ramadan import EffectiveTimetable, RamadanSettings, resolve_day
 from .storage import TimetableStorage
 
@@ -23,6 +24,7 @@ class SalahData:
     events: EventSnapshot
     days: tuple[EffectiveTimetable, ...]
     coverage: CoverageSnapshot
+    approved_tables: tuple[Timetable, ...] = ()
 
 
 class SalahCoordinator(DataUpdateCoordinator[SalahData]):
@@ -71,7 +73,7 @@ class SalahCoordinator(DataUpdateCoordinator[SalahData]):
             ),
         )
         data = SalahData(
-            day, resolved[day], events, tuple(resolved.values()), self._coverage
+            day, resolved[day], events, tuple(resolved.values()), self._coverage, tables
         )
         boundaries = [
             datetime.combine(day + timedelta(days=1), time.min, self.zone).astimezone(

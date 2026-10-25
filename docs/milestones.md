@@ -3,7 +3,7 @@
 The [remaining-work checklist](remaining-work.md) tracks release blockers separately
 from later feature additions.
 
-Milestones 1–5 are implemented; the current candidate is 0.6.2. Keep follow-up work
+Milestones 1–5 are implemented; the current candidate is 0.7.0. Keep follow-up work
 in focused PRs with its own tests and documentation. Disposable HA 2026.10.2 and
 minimum-version HA 2026.10.0 manual-install/runtime/frontend checks have passed
 within the limits in the validation record. Release acceptance still includes
@@ -28,21 +28,21 @@ their completion requires implementation and the stated acceptance evidence.
 | --- | --- | --- | --- |
 | 7A | Adhan, Jamaat and Sehri automation blueprints | Implemented | Existing timestamp sensors |
 | 7B | Approved-date coverage monitoring and opt-in health alerts | Implemented | Effective timetable resolver; blueprint pattern |
-| 8 | Native prayer calendar | Planned | Approved dated records and event engine |
-| 9 | Supported-publication setup profiles | Planned | Secure downloads, inspected layouts and approval flows |
+| 8 | Native prayer calendar | Implemented; release acceptance pending | Approved dated records and event engine |
+| 9 | Supported-publication setup profiles | Implemented; release acceptance pending | Secure downloads, inspected layouts and approval flows |
 | 10 | Translations, bilingual labels and RTL layout | Planned | Stable entity/config keys and current UI |
 | 11 | Minimum/current compatibility tests and weekly validation | In progress | Existing CI and reproducible dependency lock |
-| 12 | Richer Adhan playback controls | Planned | 7A; calendar triggers from 8 when available |
-| 13 | Pause/resume media around prayer events | Planned | Published event timestamps; 7A/8 automation patterns |
+| 12 | Richer Adhan playback controls | Implemented; release acceptance pending | 7A; calendar triggers from 8 when available |
+| 13 | Pause/resume media around prayer events | Implemented; release acceptance pending | Published event timestamps; 7A/8 automation patterns |
 | 14 | Calculated night midpoint and last third | Planned | Actual Maghrib and next-day Fajr timestamps |
 | 15 | Mosque display mode, branding and announcements | Planned | Existing card; localization conventions from 10 |
 | 16 | Published Eid and other special prayer events | Planned | Explicit dated event storage/approval; calendar from 8 |
 | 17 | Before/after import change review | Planned | Existing durable staging and source replacement scope |
 
-With 7A/7B implemented, the recommended sequence is **8 → 12 → 13 → 9**: calendar,
-richer Adhan controls, media automation, then easier publication setup. Continue
-11 in parallel. Milestone 17 can proceed independently to improve import approval;
-10 and 14–16 remain subsequent increments. Existing milestone numbers and links
+The **8 → 12 → 13 → 9** feature sequence is implemented in candidate 0.7.0;
+exact-commit CI and applicable release acceptance remain required. Next, pursue
+17 for import change comparisons and 10 for localization/RTL. Continue 11 in
+parallel; 14–16 remain subsequent increments. Existing milestone numbers and links
 are retained; numbering does not set execution order.
 
 Every increment needs focused tests, user documentation, successful CI for its
@@ -252,7 +252,12 @@ mosque-local midnight, Ramadan overrides and activation windows, approval/reject
 two mosques and alert recovery/re-entry. Verify partial daily records stay partial
 and invalid source settings still preserve the last approved data.
 
-## Milestone 8 — native prayer calendar (planned)
+## Milestone 8 — native prayer calendar (implemented; release acceptance pending)
+
+Implemented: one read-only calendar per mosque, approved-only range queries,
+stable IDs, explicit Iftar fallback descriptions and a documented calendar-trigger
+example in [calendar guidance](calendar.md). Events have zero duration. Queries
+cover at most 366 local dates; callers can request later approved years separately.
 
 Expose a calendar per mosque built from approved, explicitly dated effective
 records. Publish beginning and Jamaat as distinct scheduled events, including all
@@ -267,7 +272,13 @@ bounded range queries; DST, leap-day and year boundaries; every Friday congregat
 missing dates/fields; changed approvals; and correct HA calendar-trigger behavior.
 Add calendar-based automation examples after those semantics pass.
 
-## Milestone 9 — supported-publication source profiles (planned)
+## Milestone 9 — supported-publication source profiles (implemented; release acceptance pending)
+
+Implemented: four immutable profiles for the inspected NMS annual 2026, NMS
+May–June 2022, Zakariyya annual 2026 and separate Ramadan 2026 editions. Each
+requires the printed year and Europe/London timezone; all use manual PDF upload.
+Profile identity survives staging, approval and reload without altering printed
+data. See the [profile catalogue](pdf_layouts.md). No live source URL is claimed.
 
 Offer a curated profile picker that prefills known layout, timezone and mapping
 defaults for an inspected publication. Identify the exact supported edition and
@@ -313,7 +324,13 @@ Review support and dependency changes before promoting a newer version into the
 release gate. Introduce type checking and additional lint rules in focused follow-up
 changes once the existing modules have an agreed baseline.
 
-## Milestone 12 — richer Adhan playback controls (planned)
+## Milestone 12 — richer Adhan playback controls (implemented; release acceptance pending)
+
+Implemented: graphical optional Fajr recording, per-prayer sensor/volume slots,
+disabled beginnings, quiet hours in the HA timezone or UTC, and guarded delayed
+volume restoration. Existing inputs remain valid. Calendar triggers are available
+through the separate documented example; existing Adhan automations keep timestamp
+triggers. See [automation guidance](automations.md).
 
 Extend the existing playback blueprint with a separate optional Fajr recording,
 per-prayer enable/volume settings, configurable quiet hours and optional restoration
@@ -328,7 +345,15 @@ overlapping playback. Optional restoration must not overwrite a user's later vol
 change or another active playback operation. Restart/reload must not replay missed
 Adhans, and playback remains through HA media players rather than browser autoplay.
 
-## Milestone 13 — pause/resume media around prayers (planned)
+## Milestone 13 — pause/resume media around prayers (implemented; release acceptance pending)
+
+Implemented: an opt-in blueprint captures the published resume anchor, validates
+a 0–180 minute delay before pausing and only resumes unchanged players whose pause
+context belongs to its run. Disabling or reloading a changed automation cancels
+resumption; an unchanged automation can keep running across an incremental reload.
+Devices that drop
+service context require manual resumption. A second automation skips already-paused
+players, so separate operations do not extend one another’s windows.
 
 Add an optional blueprint that pauses only selected players currently playing and
 resumes only those paused by that automation. Users select the published event

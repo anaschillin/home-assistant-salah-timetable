@@ -1,5 +1,6 @@
 """URL-first source setup, manual PDF fallback and update controls."""
 
+from dataclasses import replace
 from math import isfinite
 
 import voluptuous as vol
@@ -11,6 +12,7 @@ from .download import DownloadError, async_download, validate_url
 from .import_flow import CsvImportOptionsFlow, _safe_text
 from .import_model import MAX_PDF_BYTES, ImportValidationError
 from .pdf_parser import PdfParser
+from .publication_profiles import PROFILES, publication_profile
 
 PDF_LAYOUTS = [
     "nms_annual_v1",
@@ -80,11 +82,35 @@ def source_fields(year, *, url=False):
     }
 
 
+class ProfiledPdfParser(PdfParser):
+    """Keep edition selection as metadata; leave extracted/published values intact."""
+
+    def __init__(self, profile):
+        super().__init__(layout_id=profile.layout_id)
+        self.profile = profile
+
+    def _csv(self, content):
+        result = super()._csv(content)
+        self.profile.validate_csv(result)
+        return result
+
+    def parse(self, content, **kwargs):
+        candidate = super().parse(content, **kwargs)
+        return replace(candidate, publication_profile_id=self.profile.profile_id)
+
+
 class SourceOptionsFlow(CsvImportOptionsFlow):
     """All source formats reuse persisted staging and explicit review."""
 
     async def async_step_init(self, user_input=None):
-        menu = ["import_url", "import_pdf", "import_csv", "ramadan", "settings"]
+        menu = [
+            "import_url",
+            "publication_profile",
+            "import_pdf",
+            "import_csv",
+            "ramadan",
+            "settings",
+        ]
         coordinator = self._coordinator()
         if coordinator is not None:
             if coordinator.storage.staged is not None:
@@ -92,6 +118,167 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
             if coordinator.storage.remote_sources:
                 menu.extend(["check_updates", "manage_sources"])
         return self.async_show_menu(step_id="init", menu_options=menu)
+
+    async def async_step_publication_profile(self, user_input=None):
+        coordinator = self._coordinator()
+        if coordinator is None:
+            return self.async_abort(reason="integration_not_loaded")
+        if coordinator.storage.staged is not None:
+            return self.async_abort(reason="pending_import_exists")
+        errors = {}
+        detail = ""
+        if user_input is not None:
+            try:
+                profile = publication_profile(user_input["profile_id"])
+                if _year(user_input["year"]) != profile.year:
+                    raise ImportValidationError(
+                        f"This inspected edition is {profile.year}. Enter its printed Gregorian year."
+                    )
+                if coordinator.zone.key != profile.time_zone:
+                    raise ImportValidationError(
+                        f"This publication uses {profile.time_zone}; the mosque is configured for "
+                        f"{coordinator.zone.key}. Review Mosque settings first. "
+                        "The profile never changes your timezone automatically."
+                    )
+            except (ImportValidationError, KeyError) as err:
+                errors["base"] = "invalid_publication_profile"
+                detail = _safe_text(str(err))
+            else:
+                self._publication_profile = profile
+                return await self.async_step_profile_pdf()
+        return self.async_show_form(
+            step_id="publication_profile",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("profile_id"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                {"value": profile.profile_id, "label": profile.title}
+                                for profile in PROFILES.values()
+                            ]
+                        )
+                    ),
+                    vol.Required("year"): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=1900,
+                            max=2199,
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                }
+            ),
+            errors=errors,
+            description_placeholders={
+                "detail": detail,
+                "mosque_timezone": coordinator.zone.key,
+            },
+        )
+
+    async def async_step_profile_pdf(self, user_input=None):
+        coordinator = self._coordinator()
+        if coordinator is None:
+            return self.async_abort(reason="integration_not_loaded")
+        if coordinator.storage.staged is not None:
+            return self.async_abort(reason="pending_import_exists")
+        profile = getattr(self, "_publication_profile", None)
+        if profile is None:
+            return await self.async_step_publication_profile()
+        errors = {}
+        detail = ""
+        if coordinator.zone.key != profile.time_zone:
+            return await self.async_step_publication_profile()
+        if user_input is not None:
+            try:
+                content = await self.hass.async_add_executor_job(
+                    read_uploaded_pdf, self.hass, user_input["file"], profile.layout_id
+                )
+                parser = ProfiledPdfParser(profile)
+                headers = await self.hass.async_add_executor_job(
+                    parser.inspect, content
+                )
+            except (ValueError, OSError, HomeAssistantError) as err:
+                errors["base"] = "invalid_pdf"
+                detail = (
+                    _safe_text(str(err))
+                    if isinstance(err, ImportValidationError)
+                    else "The uploaded PDF could not be read."
+                )
+            else:
+                if self._coordinator() is not coordinator:
+                    return self.async_abort(reason="integration_reloaded")
+                self._content, self._headers = content, headers
+                self._year, self._kind = profile.year, profile.kind
+                self._parser, self._source_format, self._parser_id = (
+                    parser,
+                    "pdf",
+                    profile.layout_id,
+                )
+                self._mapping_input = {
+                    "date_column": profile.date_column,
+                    "time_format": profile.time_format,
+                    **{field: name for name, field in profile.columns.items()},
+                }
+                return await self.async_step_map_columns()
+        return self.async_show_form(
+            step_id="profile_pdf",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("file"): selector.FileSelector(
+                        selector.FileSelectorConfig(accept=".pdf,application/pdf")
+                    )
+                }
+            ),
+            errors=errors,
+            description_placeholders={"profile": profile.summary, "detail": detail},
+        )
+
+    async def async_step_map_columns(self, user_input=None):
+        profile = getattr(self, "_publication_profile", None)
+        coordinator = self._coordinator()
+        if (
+            profile is not None
+            and coordinator is not None
+            and coordinator.zone.key != profile.time_zone
+        ):
+            return await self.async_step_publication_profile(
+                {"profile_id": profile.profile_id, "year": profile.year}
+            )
+        result = await super().async_step_map_columns(user_input)
+        if profile is not None and result.get("step_id") == "map_columns":
+            placeholders = result["description_placeholders"]
+            placeholders["detail"] = (
+                profile.summary + "\n\n" + placeholders.get("detail", "")
+            )
+        return result
+
+    async def async_step_review(self, user_input=None):
+        coordinator = self._coordinator()
+        profile = None
+        if coordinator is not None and coordinator.storage.staged is not None:
+            profile_id = coordinator.storage.staged.candidate.publication_profile_id
+            if profile_id is not None:
+                profile = publication_profile(profile_id)
+        wrong_timezone = (
+            profile is not None and coordinator.zone.key != profile.time_zone
+        )
+        if (
+            wrong_timezone
+            and user_input is not None
+            and user_input.get("decision") == "approve"
+        ):
+            user_input = None
+        result = await super().async_step_review(user_input)
+        if result.get("step_id") == "review":
+            if wrong_timezone:
+                result["errors"]["base"] = "invalid_publication_profile"
+            if profile is not None:
+                result["description_placeholders"]["summary"] = (
+                    profile.summary
+                    + "\n\n"
+                    + result["description_placeholders"]["summary"]
+                )
+        return result
 
     async def async_step_import_url(self, user_input=None):
         coordinator = self._coordinator()

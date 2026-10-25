@@ -11,6 +11,37 @@ tests. There is no OCR, fuzzy layout guessing or fallback to calculated prayer t
 | `zak_ramadan_v1` | Same publication, separate Ramadan page | Extracts only the final Ramadan table; annual tables use their own layout |
 | `pdf_table_v1` | Synthetic sample only | Text-based, pipe-delimited table described below |
 
+## Publication setup profiles
+
+Use **Configure → Choose an inspected publication profile** for a named edition
+below. Select the edition and enter its printed Gregorian year explicitly, then
+upload the matching PDF. The profile prefills its layout, source kind, Date column,
+canonical 24-hour format and inspected field mapping. Review or omit fields on the
+mapping screen, then review the complete proposal before approving it. Known column
+meanings cannot be reassigned.
+
+| Versioned profile ID | Inspected edition and exact date range | Kind |
+| --- | --- | --- |
+| `nms_annual_2026_v1` | NMS annual 2026; January 1–December 31, 2026 | Annual |
+| `nms_monthly_may_june_2022_v1` | NMS monthly May–June 2022; May 1–June 30, 2022 | Annual |
+| `zak_annual_2026_v1` | Zakariyya annual 2026; January 1–December 31, 2026 | Annual |
+| `zak_ramadan_2026_v1` | Zakariyya separate Ramadan page 2026; February 18–March 20, 2026 | Ramadan |
+
+Every current profile uses `Europe/London`. A mosque configured for another timezone
+must review **Mosque settings** before proceeding; selecting a profile never silently
+changes the timezone. Wrong years and PDFs whose dates do not match the selected
+edition are rejected. Another edition requires ordinary import with an already
+supported layout or a new inspected adapter/profile; an existing profile does not
+promise compatibility with later publications.
+
+These are **manual-upload profiles**. No public HTTPS URL has been verified for
+their current publications, so selecting a profile does not configure downloads or
+automatic checks. The ordinary URL, PDF and CSV routes remain available. The original
+PDF bytes, mapping and versioned profile ID are retained with staged and approved
+sources. The profile ID is metadata; it does not alter extracted rows or published
+times. Printed Hijri dates and the Ramadan profile's date range never confirm
+Ramadan activation. Set the actual confirmed window separately after approval.
+
 ## NMS monthly pages (`nms_monthly_v1`)
 
 Select the monthly layout and the printed Gregorian year. The contributed file

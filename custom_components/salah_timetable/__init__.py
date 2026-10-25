@@ -16,7 +16,7 @@ from .source_updates import SourceUpdateManager
 from .storage import TimetableStorage
 
 type SalahConfigEntry = ConfigEntry[SalahCoordinator]
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.CALENDAR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> bool:

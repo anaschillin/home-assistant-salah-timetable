@@ -1,0 +1,150 @@
+blueprint:
+  name: Salah Timetable - Pause and resume media
+  description: >-
+    Pause selected players that are playing at a published prayer beginning, then
+    resume them after a published anchor (for example that prayer's daily Jamaat)
+    plus your chosen delay. The delay is your automation policy, not a prayer
+    duration. Missing or invalid anchors skip the entire operation before pausing.
+    Only players whose paused state, content and action context remain unchanged
+    are resumed. Players already paused are never claimed: separate automations
+    do not extend one another's windows. While one window is active this automation
+    ignores overlapping triggers. Disabling or reloading changed automation settings
+    cancels pending resumption, leaving paused players under manual control.
+    Unchanged automations can survive incremental reload. Restart has no catch-up.
+  domain: automation
+  source_url: https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/pause_resume_media.yaml
+  homeassistant:
+    min_version: 2026.10.0
+  input:
+    prayer_beginning:
+      name: Published prayer beginning
+      description: Choose the daily Beginning timestamp sensor for this prayer.
+      selector:
+        entity:
+          filter:
+            integration: salah_timetable
+            domain: sensor
+            device_class: timestamp
+    resume_anchor:
+      name: Published resume anchor
+      description: >-
+        Choose a daily published timestamp later than the beginning, such as the
+        same prayer's Jamaat. Its timestamp is captured when this operation starts.
+      selector:
+        entity:
+          filter:
+            integration: salah_timetable
+            domain: sensor
+            device_class: timestamp
+    resume_delay:
+      name: Resume delay after the anchor
+      description: A user-chosen delay; this does not define when the prayer ends.
+      default: 10
+      selector:
+        number:
+          min: 0
+          max: 180
+          step: 1
+          mode: box
+          unit_of_measurement: min
+    media_players:
+      name: Media players
+      selector:
+        entity:
+          multiple: true
+          filter:
+            domain: media_player
+
+triggers:
+  - trigger: time
+    at: !input prayer_beginning
+
+variables:
+  prayer_beginning: !input prayer_beginning
+  resume_anchor: !input resume_anchor
+  resume_delay: !input resume_delay
+  media_players: !input media_players
+  beginning_time: "{{ as_timestamp(states(prayer_beginning), none) }}"
+  anchor_time: "{{ as_timestamp(states(resume_anchor), none) }}"
+  delay_minutes: "{{ resume_delay | float(none) }}"
+  resume_at: >-
+    {{ anchor_time + delay_minutes * 60
+       if anchor_time is not none and delay_minutes is number
+          and 0 <= delay_minutes <= 180 else none }}
+
+conditions:
+  - condition: template
+    value_template: >-
+      {{ beginning_time is not none and anchor_time is not none and resume_at is not none
+         and anchor_time > beginning_time and resume_at > as_timestamp(now()) }}
+
+actions:
+  - variables:
+      run_context: "{{ context.id }}"
+      initially_playing: >-
+        {% set found = namespace(players=[]) %}
+        {% for player in expand(media_players) if player.state == 'playing' %}
+          {% set found.players = found.players + [{
+            'entity_id': player.entity_id,
+            'content': player.attributes.get('media_content_id'),
+            'app': player.attributes.get('app_id')
+          }] %}
+        {% endfor %}
+        {{ found.players }}
+  - condition: template
+    value_template: "{{ initially_playing | count > 0 }}"
+  - action: media_player.media_pause
+    continue_on_error: true
+    target:
+      entity_id: "{{ initially_playing | map(attribute='entity_id') | list }}"
+  - wait_template: >-
+      {% set pending = namespace(count=0) %}
+      {% for player in initially_playing %}
+        {% if is_state(player.entity_id, 'playing') %}
+          {% set pending.count = pending.count + 1 %}
+        {% endif %}
+      {% endfor %}
+      {{ pending.count == 0 }}
+    timeout: "00:00:05"
+    continue_on_timeout: true
+  - variables:
+      owned_players: >-
+        {% set found = namespace(players=[]) %}
+        {% for previous in initially_playing %}
+          {% set player = states[previous.entity_id] %}
+          {% if player is not none and player.state == 'paused'
+                and player.context.id == run_context
+                and player.attributes.get('media_content_id') == previous.content
+                and player.attributes.get('app_id') == previous.app %}
+            {% set found.players = found.players + [{
+              'entity_id': player.entity_id,
+              'content': previous.content,
+              'app': previous.app,
+              'context': player.context.id,
+              'updated': player.last_updated.isoformat()
+            }] %}
+          {% endif %}
+        {% endfor %}
+        {{ found.players }}
+  - condition: template
+    value_template: "{{ owned_players | count > 0 }}"
+  - delay:
+      seconds: "{{ [0, resume_at - as_timestamp(now())] | max }}"
+  - repeat:
+      for_each: "{{ owned_players }}"
+      sequence:
+        - condition: template
+          value_template: >-
+            {% set player = states[repeat.item.entity_id] %}
+            {{ player is not none and player.state == 'paused'
+               and player.context.id == repeat.item.context
+               and player.last_updated.isoformat() == repeat.item.updated
+               and player.attributes.get('media_content_id') == repeat.item.content
+               and player.attributes.get('app_id') == repeat.item.app }}
+        - action: media_player.media_play
+          continue_on_error: true
+          target:
+            entity_id: "{{ repeat.item.entity_id }}"
+
+mode: single
+max_exceeded: silent

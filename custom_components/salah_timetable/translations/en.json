@@ -33,7 +33,8 @@
           "import_pdf": "Upload a supported PDF",
           "check_updates": "Check URL sources now",
           "manage_sources": "Manage URL sources",
-          "ramadan": "Ramadan settings"
+          "ramadan": "Ramadan settings",
+          "publication_profile": "Choose an inspected publication profile"
         }
       },
       "settings": {
@@ -125,6 +126,21 @@
           "ramadan_adjustment": "Adjust confirmed window (days)",
           "ramadan_source_id": "Ramadan source"
         }
+      },
+      "publication_profile": {
+        "title": "Choose a supported publication edition",
+        "description": "These profiles cover only the named inspected editions. Enter the printed Gregorian year explicitly. They prefill layout, source kind and mapping; the next screen accepts a manual PDF upload. No timetable activates before review and approval. For different editions or editable source defaults, use the ordinary URL/PDF import route. Your mosque timezone is {mosque_timezone}; a profile never changes it.\n\n{detail}",
+        "data": {
+          "profile_id": "Publication edition",
+          "year": "Printed Gregorian year"
+        }
+      },
+      "profile_pdf": {
+        "title": "Upload the inspected publication",
+        "description": "{profile}\n\nThe next screen lets you inspect/edit mappings and omit unpublished fields. Original PDF bytes and the versioned profile ID remain with the staged/approved source. Choose ordinary import for another year/layout/kind.\n\n{detail}",
+        "data": {
+          "file": "PDF publication"
+        }
       }
     },
     "error": {
@@ -135,7 +151,8 @@
       "invalid_pdf": "The PDF could not be validated. See details above.",
       "source_failed": "The URL source could not be downloaded or parsed. See details above.",
       "invalid_ramadan": "The Ramadan settings are invalid. See the details above.",
-      "ramadan_conflict": "Approval conflicts with the current Ramadan settings. Select a Ramadan source in Ramadan settings, then review again. The approved timetable and pending proposal have been retained."
+      "ramadan_conflict": "Approval conflicts with the current Ramadan settings. Select a Ramadan source in Ramadan settings, then review again. The approved timetable and pending proposal have been retained.",
+      "invalid_publication_profile": "Check the selected edition, printed year and mosque timezone."
     },
     "abort": {
       "integration_not_loaded": "The mosque integration must be loaded before importing. Check its setup error or change its settings first.",

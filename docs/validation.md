@@ -1,16 +1,15 @@
 # Validation record
 
-## Current recorded status — 24 October 2026
+## Current recorded status — 25 October 2026
 
-The current candidate is **0.6.2**. Its local verification passed **758 Python
-tests** (95% aggregate integration coverage), **81 Node tests**, native Chromium
-at 320/360/400/900px, and **20 live HA 2026.10.0 checks**. The expanded blueprint
-reload check also passed in an eight-case focused rerun. The live run verified
-pypdf absent before setup and manifest-pinned 6.21.1 installed/imported afterward,
-with no package preloading. A trusted combined CA bundle was mounted read-only for
-the session proxy, with TLS verification enabled. Actual card/editor, each display
-toggle and saved configuration after reload passed. See the
-[0.6.2 evidence](#repository-review-and-milestone-7--candidate-062).
+The current candidate is **0.7.0**, implementing Milestones 8, 9, 12 and 13.
+Local verification passed **853 Python tests** (95% aggregate integration
+coverage), **81 Node tests**, native Chromium at 320/360/400/900px,
+and **24 live HA 2026.10.0 checks**. The full Python verification is recorded in the
+[0.7.0 evidence](#calendar-publication-profiles-and-media--candidate-070) below.
+The live run verified fresh manifest-pinned dependency installation, calendar
+queries excluding pending imports, stable calendar IDs after restart/rejection,
+the publication-profile picker timezone guard and actual card/editor behavior.
 
 The latest recorded hosted **Validate** result is
 [40138323440](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40138323440)
@@ -450,3 +449,41 @@ repository route, including the documented restart. HACS installation/restart/up
 checks are recorded as complete for their installation. This does not establish
 removal/re-addition in a test instance or full HA backup restoration; those remain
 separate acceptance work.
+
+
+## Calendar, publication profiles and media — candidate 0.7.0
+
+Tested the local candidate based on `79aa7c4` on 25 October 2026, before commit.
+This is manual-install evidence; it does not establish HACS removal/re-addition or
+new physical-speaker/device acceptance.
+
+- **853 Python tests passed**, with 95% aggregate integration line coverage.
+  The focused feature suites include 23 calendar, 24 publication-profile, 22 Adhan
+  control and 26 pause/resume cases; existing blueprint cases remain covered.
+- Native calendar tests cover approved/pending data, distinct zero-duration events,
+  multiple Jumuah, derived Iftar labelling, missing dates, later approved years,
+  leap-day/year boundaries, DST ambiguity, stable IDs, authenticated APIs, reload,
+  mosque isolation and an actual HA calendar-trigger offset before local midnight.
+- Publication-profile tests cover all four inspected editions, exact year/date
+  spans, immutable defaults, unchanged original rows/warnings, optional omitted
+  fields, versioned provenance persistence, actual upload/review/approval/rejection
+  and timezone changes between selection, mapping and approval.
+- Real HA scheduler tests cover Fajr audio, per-prayer volume, disabled prayers,
+  quiet-hour boundaries/DST, unavailable players, delayed speaker acknowledgement,
+  guarded restoration, manual interference, media ownership, missing anchors,
+  overlapping operations and cancellation. Incremental reload retains unchanged
+  automations; disabling or reloading changed settings cancels their pending work.
+- **81 Node tests passed**. Native Chromium passed all four widths, light/dark
+  themes, 200% text, keyboard focus, selection and graphical editor persistence.
+- **24 disposable HA 2026.10.0 checks passed**, including the new calendar and
+  profile guard checks, import/approval, restart/pending/rejection and real editor.
+  `pypdf` metadata/module were absent before setup and both reported pinned
+  **6.21.1** afterward. No preload; the session's trusted CA bundle was mounted
+  read-only with TLS verification enabled. Results: `/tmp/salah-live-0.7.0/results.json`.
+- Ruff, formatting, whitespace, offline lock consistency and 0.7.0 release archive,
+  checksum and notes preparation passed. Release publication remains separate.
+
+The exact pushed commit still requires its own hosted Validate result. Existing
+user-confirmed device/HACS checks predate these new controls and are recorded
+separately above. Full HA backup restoration, HACS removal/re-addition and asset
+provenance remain release acceptance work.

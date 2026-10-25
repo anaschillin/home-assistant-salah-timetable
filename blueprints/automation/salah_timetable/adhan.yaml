@@ -4,7 +4,11 @@ blueprint:
     Play a recording at selected published prayer beginnings. Select the daily
     Beginning timestamp entities from Salah Timetable, not Next Salah or Jamaat
     entities. Missing or past timestamps do not trigger playback. The recording
-    must be accessible to the selected media players.
+    must be accessible to the selected media players. Optional controls provide
+    a separate Fajr recording, per-prayer volumes, disabled prayer sensors and quiet
+    hours. Only available selected players are used. While volume restoration is
+    pending this automation ignores another trigger; use a delay shorter than the
+    interval between selected beginnings.
   domain: automation
   source_url: https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/adhan.yaml
   homeassistant:
@@ -34,7 +38,7 @@ blueprint:
         media:
     set_volume:
       name: Set playback volume
-      description: When enabled, the selected volume remains set after playback.
+      description: Set a playback volume. It remains set unless optional restoration is enabled.
       default: false
       selector:
         boolean:
@@ -48,30 +52,339 @@ blueprint:
           step: 0.05
           mode: slider
 
+    disabled_prayer_sensors:
+      name: Disabled prayer beginnings
+      description: Selected Beginning sensors to skip without changing their timetable values.
+      default: []
+      selector:
+        entity:
+          multiple: true
+          filter:
+            integration: salah_timetable
+            domain: sensor
+            device_class: timestamp
+    prayer_controls:
+      name: Fajr recording and per-prayer volume
+      description: >-
+        These optional sensor slots identify the selected beginnings; they do not
+        add triggers. Keep each enabled prayer in Prayer beginning sensors above.
+        Per-prayer volumes are used only when Set playback volume is enabled.
+      collapsed: true
+      input:
+        use_fajr_media:
+          name: Use a separate Fajr recording
+          default: false
+          selector:
+            boolean:
+        fajr_media:
+          name: Fajr recording
+          description: Select a recording before enabling the override. An empty override uses the ordinary recording.
+          default: {}
+          selector:
+            media:
+        use_per_prayer_volume:
+          name: Use per-prayer volumes
+          default: false
+          selector:
+            boolean:
+        fajr_sensor:
+          name: Fajr Beginning sensor (optional)
+          default: ""
+          selector:
+            entity:
+              filter:
+                integration: salah_timetable
+                domain: sensor
+                device_class: timestamp
+        fajr_volume:
+          name: Fajr playback volume
+          default: 0.5
+          selector:
+            number:
+              min: 0
+              max: 1
+              step: 0.05
+              mode: slider
+        dhuhr_sensor:
+          name: Dhuhr Beginning sensor (optional)
+          default: ""
+          selector:
+            entity:
+              filter:
+                integration: salah_timetable
+                domain: sensor
+                device_class: timestamp
+        dhuhr_volume:
+          name: Dhuhr playback volume
+          default: 0.5
+          selector:
+            number:
+              min: 0
+              max: 1
+              step: 0.05
+              mode: slider
+        asr_sensor:
+          name: Asr Beginning sensor (optional)
+          default: ""
+          selector:
+            entity:
+              filter:
+                integration: salah_timetable
+                domain: sensor
+                device_class: timestamp
+        asr_volume:
+          name: Asr playback volume
+          default: 0.5
+          selector:
+            number:
+              min: 0
+              max: 1
+              step: 0.05
+              mode: slider
+        maghrib_sensor:
+          name: Maghrib Beginning sensor (optional)
+          default: ""
+          selector:
+            entity:
+              filter:
+                integration: salah_timetable
+                domain: sensor
+                device_class: timestamp
+        maghrib_volume:
+          name: Maghrib playback volume
+          default: 0.5
+          selector:
+            number:
+              min: 0
+              max: 1
+              step: 0.05
+              mode: slider
+        isha_sensor:
+          name: Isha Beginning sensor (optional)
+          default: ""
+          selector:
+            entity:
+              filter:
+                integration: salah_timetable
+                domain: sensor
+                device_class: timestamp
+        isha_volume:
+          name: Isha playback volume
+          default: 0.5
+          selector:
+            number:
+              min: 0
+              max: 1
+              step: 0.05
+              mode: slider
+    quiet_controls:
+      name: Quiet hours
+      description: Equal start/end times disable the quiet window. Its end is exclusive.
+      collapsed: true
+      input:
+        quiet_enabled:
+          name: Enable quiet hours
+          default: false
+          selector:
+            boolean:
+        quiet_start:
+          name: Quiet hours start
+          default: "22:00:00"
+          selector:
+            time:
+        quiet_end:
+          name: Quiet hours end
+          default: "07:00:00"
+          selector:
+            time:
+        quiet_timezone:
+          name: Quiet-hours timezone
+          description: Home Assistant timezone follows Settings → System → General, including daylight saving.
+          default: homeassistant
+          selector:
+            select:
+              options:
+                - value: homeassistant
+                  label: Home Assistant timezone
+                - value: utc
+                  label: UTC
+    restore_controls:
+      name: Restore playback volume
+      description: >-
+        Restoration is conservative: it only affects available players whose volume
+        is still the value set by this automation and whose latest state still
+        belongs to this playback operation. Manual/other automation changes skip
+        restoration. The delay is a playback policy, not a prayer duration.
+      collapsed: true
+      input:
+        restore_volume:
+          name: Restore previous volume
+          default: false
+          selector:
+            boolean:
+        restore_delay:
+          name: Volume restoration delay
+          default: 60
+          selector:
+            number:
+              min: 1
+              max: 3600
+              step: 1
+              mode: box
+              unit_of_measurement: s
+
 triggers:
   - trigger: time
     at: !input prayer_sensors
 
 variables:
   adhan_media: !input adhan_media
+  media_players: !input media_players
   set_volume: !input set_volume
+  volume: !input volume
+  disabled_prayer_sensors: !input disabled_prayer_sensors
+  use_fajr_media: !input use_fajr_media
+  fajr_media: !input fajr_media
+  use_per_prayer_volume: !input use_per_prayer_volume
+  fajr_sensor: !input fajr_sensor
+  dhuhr_sensor: !input dhuhr_sensor
+  asr_sensor: !input asr_sensor
+  maghrib_sensor: !input maghrib_sensor
+  isha_sensor: !input isha_sensor
+  fajr_volume: !input fajr_volume
+  dhuhr_volume: !input dhuhr_volume
+  asr_volume: !input asr_volume
+  maghrib_volume: !input maghrib_volume
+  isha_volume: !input isha_volume
+  quiet_enabled: !input quiet_enabled
+  quiet_start: !input quiet_start
+  quiet_end: !input quiet_end
+  quiet_timezone: !input quiet_timezone
+  restore_volume: !input restore_volume
+  restore_delay: !input restore_delay
+  trigger_entity: "{{ trigger.entity_id if trigger is defined else '' }}"
+  available_players: >-
+    {{ expand(media_players)
+       | rejectattr('state', 'in', ['unknown', 'unavailable'])
+       | map(attribute='entity_id') | sort }}
+  selected_media: >-
+    {{ fajr_media if use_fajr_media and trigger_entity == fajr_sensor
+       and fajr_media is mapping and fajr_media.media_content_id is defined
+       and fajr_media.media_content_type is defined else adhan_media }}
+  effective_volume: >-
+    {{ dict([(fajr_sensor, fajr_volume), (dhuhr_sensor, dhuhr_volume),
+             (asr_sensor, asr_volume), (maghrib_sensor, maghrib_volume),
+             (isha_sensor, isha_volume)]).get(trigger_entity, volume)
+       if use_per_prayer_volume else volume }}
+  quiet_clock: "{{ now().strftime('%H:%M:%S') if quiet_timezone == 'homeassistant' else utcnow().strftime('%H:%M:%S') }}"
+  in_quiet_hours: >-
+    {{ quiet_enabled and quiet_start != quiet_end and
+       ((quiet_start <= quiet_clock < quiet_end) if quiet_start < quiet_end
+        else (quiet_clock >= quiet_start or quiet_clock < quiet_end)) }}
+
+conditions:
+  - condition: template
+    value_template: >-
+      {{ trigger_entity not in disabled_prayer_sensors
+         and available_players | length > 0 and not in_quiet_hours }}
 
 actions:
+  - variables:
+      run_context: "{{ context.id }}"
+      previous_volumes: >-
+        {% set saved = namespace(players=[]) %}
+        {% for player in available_players %}
+          {% set level = state_attr(player, 'volume_level') %}
+          {% if level is number and 0 <= level <= 1 %}
+            {% set saved.players = saved.players + [{
+              'entity': player,
+              'volume': level,
+              'state': states(player),
+              'content': state_attr(player, 'media_content_id')
+            }] %}
+          {% endif %}
+        {% endfor %}
+        {{ saved.players }}
   - if:
       - condition: template
         value_template: "{{ set_volume }}"
     then:
       - action: media_player.volume_set
+        continue_on_error: true
         target:
-          entity_id: !input media_players
+          entity_id: "{{ available_players }}"
         data:
-          volume_level: !input volume
+          volume_level: "{{ effective_volume }}"
   - action: media_player.play_media
+    continue_on_error: true
     target:
-      entity_id: !input media_players
+      entity_id: "{{ available_players }}"
     data:
-      media_content_id: "{{ adhan_media.media_content_id }}"
-      media_content_type: "{{ adhan_media.media_content_type }}"
+      media_content_id: "{{ selected_media.media_content_id }}"
+      media_content_type: "{{ selected_media.media_content_type }}"
+  - if:
+      - condition: template
+        value_template: "{{ restore_volume and set_volume and previous_volumes | length > 0 }}"
+    then:
+      - wait_template: >-
+          {% set pending = namespace(count=0) %}
+          {% for previous in previous_volumes %}
+            {% set player = states[previous.entity] %}
+            {% if player.state not in ['unknown', 'unavailable'] and not (
+                  player.state == 'playing' and player.context.id == run_context
+                  and player.attributes.get('volume_level') is number
+                  and (player.attributes.volume_level - effective_volume) | abs < 0.0001
+                  and (player.attributes.get('media_content_id') == selected_media.media_content_id
+                       or player.attributes.get('media_content_id') != previous.content
+                       or previous.state != 'playing')) %}
+              {% set pending.count = pending.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ pending.count == 0 }}
+        timeout: "00:00:05"
+        continue_on_timeout: true
+      - variables:
+          owned_players: >-
+            {% set saved = namespace(players=[]) %}
+            {% for previous in previous_volumes %}
+              {% set player = states[previous.entity] %}
+              {% if player.state not in ['unknown', 'unavailable']
+                    and player.context.id == run_context
+                    and player.attributes.get('volume_level') is number
+                    and (player.attributes.volume_level - effective_volume) | abs < 0.0001 %}
+                {% set saved.players = saved.players + [{
+                  'entity': previous.entity,
+                  'volume': previous.volume,
+                  'content': player.attributes.get('media_content_id'),
+                  'app': player.attributes.get('app_id')
+                }] %}
+              {% endif %}
+            {% endfor %}
+            {{ saved.players }}
+      - condition: template
+        value_template: "{{ owned_players | length > 0 }}"
+      - delay:
+          seconds: "{{ restore_delay }}"
+      - repeat:
+          for_each: "{{ owned_players }}"
+          sequence:
+            - if:
+                - condition: template
+                  value_template: >-
+                    {% set player = states[repeat.item.entity] %}
+                    {{ player is not none and player.state not in ['unknown', 'unavailable']
+                       and player.attributes.get('volume_level') is number
+                       and (player.attributes.volume_level - effective_volume) | abs < 0.0001
+                       and player.context.id == run_context
+                       and player.attributes.get('media_content_id') == repeat.item.content
+                       and player.attributes.get('app_id') == repeat.item.app }}
+              then:
+                - action: media_player.volume_set
+                  continue_on_error: true
+                  target:
+                    entity_id: "{{ repeat.item.entity }}"
+                  data:
+                    volume_level: "{{ repeat.item.volume }}"
 
 mode: single
 max_exceeded: silent

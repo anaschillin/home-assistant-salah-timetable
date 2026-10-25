@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.0 — unreleased
+
+- Add one read-only Home Assistant calendar per mosque, with separate published
+  beginnings, Jamaats, Friday congregations and active Ramadan events. Query
+  approved dated records with stable event IDs and timezone-aware boundaries.
+- Add optional Fajr audio, individual prayer exclusions, graphical per-prayer
+  volume overrides, quiet hours and guarded volume restoration to Adhan playback.
+- Add an opt-in media pause/resume blueprint using published timestamp anchors
+  and a user-chosen delay; resume only players still unchanged since the pause.
+- Offer versioned setup profiles for four inspected PDF editions, with fixed
+  layout/year/mapping, explicit timezone checks, retained profile provenance and
+  the existing preview and approval flow.
+
 ## 0.6.2 — unreleased
 
 - Keep calendar-date subclass support while rejecting datetime values that cannot

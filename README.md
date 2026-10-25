@@ -6,7 +6,7 @@
 
 A Home Assistant custom integration for mosque prayer timetables.
 
-**Status: Milestones 1–5 implemented — imports, event calculations, Ramadan and a bundled dashboard card.**
+**Status: Imports, event calculations, Ramadan, a bundled dashboard card and prayer automations are implemented.**
 Configure a mosque, add a public HTTPS PDF/CSV source or upload a file, map columns,
 and approve a validated timetable in the Home Assistant UI. Changes are never
 activated automatically. No YAML sensors, templates or regex setup are required.
@@ -16,8 +16,10 @@ Society annual and monthly calendars, Zakariyya Masjid’s 2026 annual tables an
 separate Ramadan page, and the synthetic sample layout are validated. Other editions
 and mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layouts.md).
 
-The integration includes independent next-Salah/next-Jamaat events, confirmed-date
-Ramadan overrides and a graphical Lovelace card. A disposable Home Assistant runtime
+The integration includes independent next-Salah/next-Jamaat events, a read-only
+prayer calendar, confirmed-date Ramadan overrides and a graphical Lovelace card.
+Inspected-publication profiles simplify setup; optional automation blueprints provide
+Adhan controls and conservative media pause/resume. A disposable Home Assistant runtime
 and real frontend have passed the [recorded checks](docs/validation.md). HACS
 installation and updates are user-confirmed; further release acceptance remains. See [milestones](docs/milestones.md),
 the [remaining work](docs/remaining-work.md), and the [release checklist](docs/releasing.md).
@@ -58,7 +60,9 @@ allows users to rename entity IDs independently.
 1. Open the mosque's **Configure → Add or replace a URL source (recommended)**.
 2. Enter a public HTTPS URL, PDF/CSV type, explicit year and Annual/Ramadan kind.
    Select a documented PDF layout. Alternatively use **Upload a supported PDF** or
-   **Import CSV timetable**. CSV does not use the PDF-layout selection.
+   **Import CSV timetable**. For a named inspected edition, **Choose an inspected
+   publication profile** prefills its manual PDF setup. CSV does not use the
+   PDF-layout selection.
 3. Select the date column and each published prayer column. Recognized headings are
    suggested, but check every mapping. Leave fields without published times unselected.
 4. Choose **24-hour HH:MM** or **Explicit HH:MM AM/PM**. No AM/PM is inferred.
@@ -72,6 +76,14 @@ Closing before the preview discards the in-progress mapping; upload the file aga
 A saving error keeps the existing timetable; check Home Assistant logs and retry.
 For a URL import, the reproducible source settings are saved with the staged file.
 The UI's source-import menu is URL-first after initial mosque identity setup.
+
+Publication profiles cover exact inspected editions and require the printed Gregorian
+year. They prefill layout, kind, field mappings and canonical time format, then retain
+the normal mapping/review/approval screens. The current profiles require
+`Europe/London`; a timezone mismatch directs you to Mosque settings without changing
+it automatically. Profiles accept manual PDF uploads only because no current public
+HTTPS source has been verified for them. Use ordinary import for other supported
+source defaults. See the [profile catalogue](docs/pdf_layouts.md#publication-setup-profiles).
 
 Each source is identified by kind and year (for example `annual-2026`). An approved
 import **replaces that entire source**, not just the uploaded dates. The preview
@@ -131,9 +143,12 @@ for resource troubleshooting and the event boundary rules.
 
 ## Automations and coverage alerts
 
-Import the optional Adhan, before-Jamaat, Sehri and timetable-health blueprints
-through Home Assistant's Blueprints screen. Select the mosque's timestamp sensors,
-your own recording/speakers or reminder actions. The **Timetable coverage** diagnostic
+Import the optional Adhan, pause/resume media, before-Jamaat, Sehri and timetable-health
+blueprints through Home Assistant's Blueprints screen. Select the mosque's timestamp
+sensors, your own recording/speakers or reminder actions. Adhan offers a separate
+Fajr recording, per-prayer volume, quiet hours and opt-in volume restoration. Media
+resumption requires a published anchor plus your chosen delay and unchanged player
+ownership. The **Timetable coverage** diagnostic
 reports consecutive approved dates and warns when coverage is missing or nearing
 its end; pending proposals never extend it. See [setup and behavior](docs/automations.md).
 
@@ -228,7 +243,8 @@ Unmapped columns and original imported strings remain stored alongside parsed va
 
 ## Entities and event behavior
 
-Each mosque creates 26 sensors. Sixteen expose **today's effective event timestamps** in the mosque timezone.
+Each mosque creates 26 sensors and a read-only **Prayer calendar**. Sixteen sensors
+expose **today's effective event timestamps** in the mosque timezone.
 Home Assistant stores/displays these according to its standard timestamp behavior.
 
 | Prayer or event | Sensors |
@@ -246,6 +262,12 @@ The remaining sensors are **Next Salah**, **Next Jamaat**, **Previous Jamaat**,
 **Source status**, diagnostic **Timetable coverage**, and **Prayer timetable** for
 the bundled card. Next Sehri/Iftar consider active Ramadan dates only. The dashboard sensor contains the local date and
 absolute event data; select it in the card editor instead of an individual prayer.
+
+The [calendar](docs/calendar.md) exposes approved dated beginnings and Jamaat as
+separate zero-duration events, including each Jumu’ah congregation and active Ramadan
+events. It supports Home Assistant calendar cards, event queries and start triggers.
+Its next event may use future approved dates beyond tomorrow; it never estimates a
+duration or fills a missing date.
 
 Next Salah beginning and next Jamaat are calculated independently. In context mode,
 the card follows the latest published prayer beginning: it shows the next

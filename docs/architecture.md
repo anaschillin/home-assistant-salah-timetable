@@ -20,7 +20,11 @@
 - `events.py`: pure timezone-aware next/previous events and contextual Jamaat
   selection, independent of storage, UI and HA scheduling.
 - `coordinator.py`: resolve yesterday/today/tomorrow in the mosque timezone, calculate
-  events and schedule boundary refreshes, with no network calls.
+  events and schedule boundary refreshes, with no network calls. Its immutable snapshot
+  also retains approved tables so changes outside that horizon notify the calendar.
+- `calendar.py`: one read-only calendar per mosque, using approved effective dated
+  rows, stable event UIDs and bounded timezone-aware queries. It preserves individual
+  beginnings/Jamaat and multiple Jumu’ah events as zero-duration instants.
 - `coverage.py`: consecutive effective approved dates, cached by date/sources/Ramadan
   settings. Pending proposals never extend coverage; ambiguous dates beyond the live
   horizon stop coverage and expose `unresolved_date` without disabling valid current
@@ -29,14 +33,16 @@
   card without adding ticking countdown state.
 - `sensor.py`: 26 entities per mosque with stable `{mosque_id}_{field}` unique IDs
   and HA registry persistence; the card's unique ID uses `{mosque_id}_dashboard`.
+- `publication_profiles.py`: immutable versioned setup defaults for exact inspected
+  PDF editions; validates date range, year, kind, layout and field meanings.
 - `frontend.py` and `frontend/`: serve/register versioned bundled JavaScript and
   provide the responsive card, pure display helpers and graphical editor.
 - `__init__.py`: typed runtime data, lifecycle, device registration and unloading.
 
 ## Import lifecycle
 
-The options menu offers URL sources first, manual PDF/CSV, mosque/Ramadan settings,
-and pending review.
+The options menu offers URL sources first, inspected-publication profiles, manual
+PDF/CSV, mosque/Ramadan settings, and pending review.
 HA's authenticated `file_upload` dependency receives the file and returns an opaque
 UUID. A single executor operation consumes and cleans up the upload context, reads
 at most the format limit plus one byte, and inspects structure/encoding. The mapping flow keeps
@@ -54,6 +60,14 @@ cannot be overwritten by another concurrent import.
 Options import/review requires a loaded config entry so every operation uses its shared
 storage lock. Timezone settings remain accessible when the integration is not loaded.
 The coordinator refreshes immediately after approval. Unchanged settings are preserved.
+
+Publication profiles add an explicit edition/year picker and manual PDF upload. They
+require the profile's timezone without silently editing mosque settings, prefill the
+existing mapping form and reuse ordinary persisted approval. Their exact date-range
+contract rejects a mismatched publication. `publication_profile_id` is optional source
+metadata validated against the immutable catalogue; older candidates omit it. It
+survives staged/approved serialization without changing schema 3, original PDF bytes,
+canonical rows or warnings. No current profile contains a verified live HTTPS URL.
 
 ## Source and coverage
 
@@ -177,9 +191,31 @@ handles missed scheduling. Equal snapshots do not produce repeated entity writes
 Approval triggers a refresh; options changes reload the config entry. Unload cancels
 the boundary callback along with HA's coordinator timers.
 
+The calendar uses the same Ramadan resolver across actual approved stored dates,
+including dates beyond the sensor event horizon and later years. Time-aware queries
+are half-open `[start, end)` and limited to 366 local dates. Beginnings, Jamaat,
+Sunrise and active Ramadan events retain separate stable UIDs derived from mosque ID,
+date, field and UTC instant. Effective Iftar fallback is labelled separately from an
+explicitly published Iftar. Missing dates produce no events; ambiguous queried dates
+raise a safe error rather than choosing a source. An unresolved future date is skipped
+when finding the next calendar event and remains visible through coverage diagnostics.
+Zero-duration events have no ongoing interval, so the calendar state remains off;
+start triggers and event queries expose their instants. The unique ID is
+`{mosque_id}_prayer_calendar`, linked to the existing mosque device. See
+[calendar behavior](calendar.md).
+
+Optional blueprint policies remain separate from prayer calculations. Adhan controls
+choose user-owned media, volume and quiet hours. Volume restoration checks playback
+context/content and the still-set volume before writing. The pause/resume blueprint
+captures a published anchor and explicit user delay, claims only players paused by
+its own operation and resumes only unchanged claimed players. Neither policy assigns
+a duration to prayer data. Single-run automations ignore overlapping triggers;
+separate pause automations do not arbitrate a shared or extended pause window.
+
 Sixteen daily timestamps, five next/previous timestamps, Ramadan/Taraweeh enums, the
 source-status and coverage diagnostics, and the Prayer timetable sensor make
-26 entities per mosque. Daily sensors expose effective rows. Missing event values are unavailable,
+26 sensors per mosque, plus the prayer calendar. Daily sensors expose effective rows.
+Missing event values are unavailable,
 apart from the explicit Iftar default. The Prayer timetable sensor's date state and
 attributes carry five prayer rows, yesterday/today/tomorrow absolute event arrays,
 current next/previous selections and Ramadan details. No entity stores a per-second
@@ -190,7 +226,7 @@ countdown. The backend and card behavior have separate boundary tests.
 `frontend.py` registers the bundled directory at `/salah_timetable` through HA's
 asynchronous static-path API. For storage-mode Lovelace resources it creates or
 updates the integration's relative module URL, removes duplicate registrations and
-uses `?v=0.6.2` for cache changes. For YAML resources it uses HA's extra-JavaScript
+uses `?v=0.7.0` for cache changes. For YAML resources it uses HA's extra-JavaScript
 helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
 a resource-registration failure is logged without disabling valid prayer entities.
 

@@ -72,7 +72,12 @@ async def test_v1_upgrade_uses_literal_multi_year_data_without_new_provenance(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     ids = set(er.async_get(hass).entities)
-    assert len(ids) == 26
+    assert (
+        len([entity_id for entity_id in ids if entity_id.startswith("sensor.")]) == 26
+    )
+    assert (
+        len([entity_id for entity_id in ids if entity_id.startswith("calendar.")]) == 1
+    )
     assert state(hass, "fajr_begin").state == "2026-10-21T04:45:00+00:00"
     storage = entry.runtime_data.storage
     assert storage.timetables[0].timetable_id == "legacy-annual"

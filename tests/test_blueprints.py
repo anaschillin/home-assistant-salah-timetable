@@ -78,6 +78,8 @@ async def test_adhan_plays_selected_media_and_targets_at_published_beginning(
     playback = async_mock_service(hass, "media_player", "play_media")
     volume = async_mock_service(hass, "media_player", "volume_set")
     hass.states.async_set("sensor.mosque_fajr", "2026-10-23T05:00:00+00:00", ATTRS)
+    for player in ["media_player.hall", "media_player.kitchen"]:
+        hass.states.async_set(player, "idle")
     config = expanded(
         "adhan",
         {
