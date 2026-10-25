@@ -365,7 +365,7 @@ async def test_url_auto_detection_persists_concrete_parser_for_future_checks(
         },
     )
     assert result["step_id"] == "review"
-    assert entry.runtime_data.storage.staged.remote_source.parser_id == "pdf_table_v1"
+    assert entry.runtime_data.storage.remote_sources["annual-2026"].parser_id == "pdf_table_v1"
     await approve(hass, result)
     source = entry.runtime_data.storage.remote_sources["annual-2026"]
     assert source.kind == "annual"
