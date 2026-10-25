@@ -85,7 +85,8 @@ def test_full_year_exact_values_friday_and_published_iftar():
 
 def test_preserved_raw_values_and_no_khutbah_congregation():
     row = parsed().timetable.days[1]
-    assert len(row.original) == 31
+    assert len(row.original) == 32
+    assert row.original["Published Second Khutbah"] == "16:15"
     assert row.original["Published Fajr Jamaat"] == '"'
     assert row.original["Published Dawn"] == "5:07"
     assert row.original["Published Dhuhr or Jumuah"] == "1:35"
