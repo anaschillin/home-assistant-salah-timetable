@@ -188,7 +188,7 @@ class PdfParser:
             try:
                 converted = adapter.to_csv(pages)
                 CsvParser().inspect(converted.encode("utf-8"))
-            except (ImportValidationError, ValueError, TypeError, KeyError, IndexError):
+            except ImportValidationError, ValueError, TypeError, KeyError, IndexError:
                 continue
             matches.append((layout_id, converted))
         permitted = _AUTO_LAYOUTS[self.import_type]
