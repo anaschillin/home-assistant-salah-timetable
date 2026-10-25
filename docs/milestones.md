@@ -1,17 +1,21 @@
 # Implementation plan
 
-The [remaining-work checklist](remaining-work.md) tracks release blockers separately
-from later feature additions.
+The [release checklist](releasing.md#current-release-readiness--25-october-2026)
+is the single source of truth for release blockers; the
+[remaining-work backlog](remaining-work.md) tracks later feature additions.
 
-Milestones 1–5 are implemented; the current candidate is 0.7.0. Keep follow-up work
-in focused PRs with its own tests and documentation. Disposable HA 2026.10.2 and
-minimum-version HA 2026.10.0 manual-install/runtime/frontend checks have passed
-within the limits in the validation record. Release acceptance still includes
-successful hosted validation for the exact release commit, HACS removal/re-addition
-checks, full HA backup restoration and provenance review. HACS installation, restart
-and updates are user-confirmed complete. Local 0.6.2 acceptance
-verified fresh dependency installation; physical-device checks are user-confirmed
-complete for their latest installation.
+Milestones 1–5 are implemented; the current candidate is 0.7.0. Keep follow-up
+work in focused PRs with tests and documentation. The final 25 October
+[main validation run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111)
+passed all six jobs and 873 Python tests on a rerun of one intermittently failing
+calendar-trigger test (tracked in
+[issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)).
+Earlier manual-install, dependency and physical-device evidence remains scoped to
+the versions and environments in the [validation record](validation.md).
+**Unfinished release acceptance** still includes asset redistribution rights,
+full HAOS/Supervisor backup restoration and HACS UI removal/reinstallation;
+automated Home Assistant Container restore and config-entry removal tests do not
+substitute for these sign-offs. Validate the exact future release commit again.
 
 ## Next increments
 
@@ -184,18 +188,19 @@ Current validation limits are recorded in [validation](validation.md).
 Implemented: actionable Repairs for invalid stored records, reproducible manual-install
 ZIPs with checksums, runtime-asset inclusion checks and synchronized manifest/project/
 frontend cache versions, historical schema-1/schema-2 migration tests and timetable
-store recovery tests. Real HA 2026.10.2 and 2026.10.0 manual-install checks also cover
-import, restart/pending review, two-mosque isolation/removal, resource registration
-and actual frontend/editor rendering within their recorded scopes. See the
-[validation record](validation.md) and
-[release preparation and manual checks](releasing.md).
+store recovery tests. The live Home Assistant Container matrix now additionally
+checks real backup-archive restoration into a separate disposable config, two-mosque
+isolation and config-entry removal/re-addition. This **does not** establish full HAOS
+recovery or HACS UI uninstall/reinstallation. See the [validation record](validation.md)
+and [release acceptance checklist](releasing.md).
 
 1. Installation, restart and updates through HACS are user-confirmed complete.
    Verify removal/re-addition in a disposable test instance. Physical-device checks
    are also user-confirmed complete; retain them as a regression check for later UI changes.
-2. Restore a complete HA backup archive and verify config entries, registries,
-   entity IDs and approved/pending timetable data. Existing migration and
-   timetable-store recovery tests cover a narrower scope.
+2. Restore a **full HAOS/Supervisor** backup archive into another disposable
+   HAOS instance, then verify config entries, registries, entity IDs, approved
+   versus pending timetable data, Repairs and restart. Real Container archive
+   restore and timetable-store recovery tests cover a narrower scope.
 3. Review all network/import paths and resource limits, and add independently tested,
    redistributable fixtures before supporting further PDF layouts.
 4. Verify hosted pytest/frontend/lint, hassfest and HACS jobs; finalize the support
@@ -256,8 +261,11 @@ and invalid source settings still preserve the last approved data.
 
 Implemented: one read-only calendar per mosque, approved-only range queries,
 stable IDs, explicit Iftar fallback descriptions and a documented calendar-trigger
-example in [calendar guidance](calendar.md). Events have zero duration. Queries
-cover at most 366 local dates; callers can request later approved years separately.
+example in [calendar guidance](calendar.md). Each event retains its exact
+published start instant and uses a **60-second calendar presentation interval**
+for Home Assistant's exclusive-end and automation-trigger semantics. This is **not**
+a prayer or Jamaat duration. Queries cover at most 366 local dates; callers can
+request later approved years separately.
 
 Expose a calendar per mosque built from approved, explicitly dated effective
 records. Publish beginning and Jamaat as distinct scheduled events, including all
@@ -310,6 +318,10 @@ version is asserted, and strict dependency proof compares base-image absence to
 the manifest-pinned import after setup. The reproducible Python suite remains
 locked to HA 2026.10.2. Separate compatibility unit-test environments covering
 migrations and the typing/lint follow-ups below remain to be implemented.
+The [calendar end-trigger timing test follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+tracks one failure on the initial 25 October hosted run that passed on rerun;
+its root cause has **not** been established and must not be silently treated as
+resolved by the green rerun.
 
 Add separate tests for the declared minimum HA version and the supported locked
 version, plus a weekly scheduled compatibility run. Make each job report and verify
