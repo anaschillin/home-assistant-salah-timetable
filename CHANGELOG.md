@@ -12,6 +12,26 @@
 - Offer versioned setup profiles for four inspected PDF editions, with fixed
   layout/year/mapping, explicit timezone checks, retained profile provenance and
   the existing preview and approval flow.
+- Use a 60-second **calendar presentation interval** with exact, unchanged
+  published event starts, exclusive end-times, overlapping range queries and
+  improved calendar start/end automation-trigger coverage. The minute is **not**
+  a prayer or Jamaat duration.
+- Stop coordinator boundary timers on successful unload/reload so an obsolete
+  coordinator cannot continue scheduling callbacks.
+- Distinguish explicitly rejected or unapproved remote publications from
+  approved and up-to-date sources, retaining rejection-digest suppression until
+  source content changes.
+- Add inventory and fail-closed redistribution-rights checks for public assets;
+  the release gate deliberately remains blocked until documented permissions
+  or rights-cleared replacements are available.
+- Expand live Home Assistant Container acceptance to cover independent mosques,
+  config-entry removal/re-addition, and real backup-archive restoration into a
+  second disposable configuration. These tests do **not** replace full HAOS
+  backup restoration or actual HACS UI uninstall/reinstallation.
+- Consolidate release-readiness sign-offs in `docs/releasing.md`, archive the
+  dated code review plan, and record CI evidence. Calendar end-trigger test
+  intermittency is tracked in
+  [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13).
 
 ## 0.6.2 — unreleased
 
