@@ -192,7 +192,7 @@ test("editor round trips entity, mode and title through config-changed", () => {
   const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "", mode: "context"}); editor.hass = hass(); const emitted = [];
   editor.addEventListener("config-changed", event => emitted.push(event.detail.config));
   const [entity, mode] = find(editor.shadowRoot, "ha-selector");
-  assert.equal(entity.selector.entity.filter[0].integration, "salah_timetable");
+  assert.deepEqual(entity.selector.select.options.map(option => option.value), ["sensor.mosque_prayer_timetable"]);
   entity.dispatchEvent(new CustomEvent("value-changed", {detail: {value: "sensor.mosque_prayer_timetable"}}));
   mode.dispatchEvent(new CustomEvent("value-changed", {detail: {value: "upcoming"}}));
   const title = find(editor.shadowRoot, "input")[0]; title.value = "My Mosque"; title.dispatchEvent(new Event("input"));
@@ -538,4 +538,42 @@ test("localized Fajr end, Friday khutbah and mosque Hijri visibility preserve th
   assert.match(find(card.shadowRoot, "header")[0].textContent, /هجري \(محسوب\)/);
   current.states["sensor.mosque_prayer_timetable"].attributes.date = "2026-10-22"; card.hass = current;
   assert.equal(find(card.shadowRoot, "p").some(element => element.className === "note khutbah"), false);
+});
+
+test("two configured mosques are both selectable as independent dashboard cards", () => {
+  const multi = hass();
+  multi.states["sensor.second_mosque_prayer_timetable"] = {
+    state: "2026-10-21", attributes: {...attributes, mosque_name: "Second Mosque"}
+  };
+  multi.states["sensor.second_mosque_fajr_beginning"] = {state: "2026-10-21T04:45:00Z", attributes: {}};
+  const editor = new SalahTimetableCardEditor();
+  editor.hass = multi;
+  const options = find(editor.shadowRoot, "ha-selector")[0].selector.select.options;
+  assert.deepEqual(options.map(option => option.value), [
+    "sensor.mosque_prayer_timetable", "sensor.second_mosque_prayer_timetable"
+  ]);
+  assert.match(options[0].label, /Example Mosque/);
+  assert.match(options[1].label, /Second Mosque/);
+  const emitted = [];
+  editor.addEventListener("config-changed", event => emitted.push(event.detail.config));
+  find(editor.shadowRoot, "ha-selector")[0].dispatchEvent(
+    new CustomEvent("value-changed", {detail: {value: "sensor.second_mosque_prayer_timetable"}})
+  );
+  assert.equal(emitted.at(-1).entity, "sensor.second_mosque_prayer_timetable");
+  const first = new SalahTimetableCard();
+  first.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  first.hass = multi;
+  const second = new SalahTimetableCard();
+  second.setConfig(emitted.at(-1));
+  second.hass = multi;
+  assert.match(first.shadowRoot.textContent, /Example Mosque/);
+  assert.match(second.shadowRoot.textContent, /Second Mosque/);
+  assert.equal(window.customCards.length, 1, "One reusable card type serves every mosque");
+
+  editor.hass = {states: {}};
+  assert.deepEqual(
+    find(editor.shadowRoot, "ha-selector")[0].selector.select.options.map(option => option.value),
+    ["sensor.second_mosque_prayer_timetable"],
+    "Stored card selections remain editable while their sensor is unavailable"
+  );
 });

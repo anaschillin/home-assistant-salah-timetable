@@ -1,7 +1,7 @@
 # Remaining development work
 
 This is the **feature and engineering backlog**, not a second release checklist.
-The current integration candidate is **0.9.0**. For release blockers,
+The current integration candidate is **0.9.1**. For release blockers,
 sign-offs and version-specific manual acceptance, use the
 [release readiness checklist](releasing.md#current-release-readiness).
 For completed milestones and future scope, see the
@@ -56,7 +56,7 @@ Those decisions are owned by [releasing.md](releasing.md).
 
 ## Historical implementation evidence
 
-Milestones 1–5, 7A/7B, 8, 9, 10A, 11, 12, 13 and 17 have implemented
+Milestones 1–5, 7A/7B, 8, 10A, 11, 12, 13 and 17 have implemented
 features or tests. Their exact scopes remain in [milestones.md](milestones.md).
 Original 0.7.0–0.9.0 acceptance runs, earlier failed CI attempts and
 manual-install evidence remain in [validation.md](validation.md).

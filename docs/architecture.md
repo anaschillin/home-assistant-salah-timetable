@@ -34,16 +34,15 @@
   card without adding ticking countdown state.
 - `sensor.py`: 26 entities per mosque with stable `{mosque_id}_{field}` unique IDs
   and HA registry persistence; the card's unique ID uses `{mosque_id}_dashboard`.
-- `publication_profiles.py`: immutable versioned setup defaults for exact inspected
-  PDF editions; validates date range, year, kind, layout and field meanings.
 - `frontend.py` and `frontend/`: serve/register versioned bundled JavaScript and
   provide the responsive card, pure display helpers and graphical editor.
 - `__init__.py`: typed runtime data, lifecycle, device registration and unloading.
 
 ## Import lifecycle
 
-The options menu offers URL sources first, inspected-publication profiles, manual
-PDF/CSV, mosque/Ramadan settings, and pending review.
+The options menu offers URL sources first, manual PDF/CSV imports,
+mosque/Ramadan settings, and pending review. Supported PDF layouts are
+recognized automatically; there is no inspected-edition selection flow.
 HA's authenticated `file_upload` dependency receives the file and returns an opaque
 UUID. A single executor operation consumes and cleans up the upload context, reads
 at most the format limit plus one byte, and inspects structure/encoding. The mapping flow keeps
@@ -76,13 +75,10 @@ Options import/review requires a loaded config entry so every operation uses its
 storage lock. Timezone settings remain accessible when the integration is not loaded.
 The coordinator refreshes immediately after approval. Unchanged settings are preserved.
 
-Publication profiles add an explicit edition/year picker and manual PDF upload. They
-require the profile's timezone without silently editing mosque settings, prefill the
-existing mapping form and reuse ordinary persisted approval. Their exact date-range
-contract rejects a mismatched publication. `publication_profile_id` is optional source
-metadata validated against the immutable catalogue; older candidates omit it. It
-survives staged/approved serialization without changing schema 3, original PDF bytes,
-canonical rows or warnings. No current profile contains a verified live HTTPS URL.
+Old `publication_profile_id` metadata is ignored when loading existing stored
+sources after removal of the inspected-edition picker. The original PDF bytes,
+source/parser identity, approved values and staging/review lifecycle are preserved.
+Normal PDF/URL inputs still use strict automatic adapter recognition.
 
 ## Source and coverage
 

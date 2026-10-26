@@ -217,13 +217,6 @@ try {
   assert.ok(calendarFajr.uid);
   assert.equal((await request("/api/calendars")).filter(item => item.entity_id === calendarId).length, 1);
   report.checks.push("native_calendar_approved_instant_events");
-  let profileFlow = await optionsFlow(entry, "publication_profile");
-  assert.equal(profileFlow.step_id, "publication_profile");
-  profileFlow = await request(`/api/config/config_entries/options/flow/${profileFlow.flow_id}`, {profile_id: "nms_annual_2026_v1", year: 2026});
-  assert.equal(profileFlow.errors.base, "invalid_publication_profile");
-  assert.ok(profileFlow.description_placeholders.detail.includes("Europe/London"));
-  await request(`/api/config/config_entries/options/flow/${profileFlow.flow_id}`, undefined, {method: "DELETE"});
-  report.checks.push("publication_profile_picker_timezone_guard");
   let ws = await websocket();
   const version = JSON.parse(await readFile(join(root, "custom_components/salah_timetable/manifest.json"), "utf8")).version;
   const cardUrl = `/salah_timetable/salah-timetable-card.js?v=${version}`;
@@ -246,6 +239,19 @@ try {
   assert.equal((await state("fajr_beginning")).state, `${today}T06:00:00+00:00`);
   const secondIds = (await request("/api/states")).filter(item => item.entity_id.startsWith("sensor.second_mosque_")).map(item => item.entity_id).sort();
   assert.equal(secondIds.length, ids.length);
+  // A single custom card type can be used repeatedly; each instance must
+  // reference its mosque's own dashboard sensor (not a prayer-time sensor).
+  const dashboardCards = [
+    {type: "custom:salah-timetable-card", entity: "sensor.smoke_mosque_prayer_timetable"},
+    {type: "custom:salah-timetable-card", entity: "sensor.second_mosque_prayer_timetable"}
+  ];
+  await ws("lovelace/config/save", {url_path: "salah-smoke", config: {views: [{title: "Salah Smoke", path: "smoke", cards: dashboardCards}]}});
+  const dashboardConfig = await ws("lovelace/config", {url_path: "salah-smoke"});
+  assert.deepEqual(dashboardConfig.views[0].cards, dashboardCards);
+  assert.equal((await state("prayer_timetable")).attributes.mosque_name, "Smoke Mosque");
+  const secondDashboard = (await request("/api/states")).find(item => item.entity_id === "sensor.second_mosque_prayer_timetable");
+  assert.equal(secondDashboard?.attributes.mosque_name, "Second Mosque");
+  report.checks.push("two_mosque_dashboard_cards");
   await request(`/api/config/config_entries/entry/${second}`, undefined, {method: "DELETE"});
   await until(() => request("/api/states"), value => !value.some(item => item.entity_id.startsWith("sensor.second_mosque_")), "Deleted mosque retained live sensors");
   assert.deepEqual((await request("/api/states")).filter(item => item.entity_id.startsWith("sensor.smoke_mosque_")).map(item => item.entity_id).sort(), ids);

@@ -33,41 +33,20 @@ The mapping and approval screens report recognized layout and date range.
 | `zak_ramadan_v1` | Same publication, separate Ramadan page | Extracts only the final Ramadan table; annual tables use their own layout |
 | `pdf_table_v1` | Synthetic sample only | Text-based, pipe-delimited table described below |
 
-## Publication setup profiles
+## Supported editions and automatic recognition
 
-Use **Configure → Choose an inspected publication profile** for a named edition
-below. Select the edition and enter its printed Gregorian year explicitly, then
-upload the matching PDF. The profile prefills its layout, source kind, Date column,
-canonical 24-hour format and inspected field mapping. Review or omit fields on the
-mapping screen, then review the complete proposal before approving it. Known column
-meanings cannot be reassigned.
-
-| Versioned profile ID | Inspected edition and exact date range | Kind |
-| --- | --- | --- |
-| `nms_annual_2026_v1` | NMS annual 2026; January 1–December 31, 2026 | Annual |
-| `nms_monthly_may_june_2022_v1` | NMS monthly May–June 2022; May 1–June 30, 2022 | Annual (partial/monthly) |
-| `zak_annual_2026_v1` | Zakariyya annual 2026; January 1–December 31, 2026 | Annual |
-| `zak_ramadan_2026_v1` | Zakariyya separate Ramadan page 2026; February 18–March 20, 2026 | Ramadan |
-
-Every current profile uses `Europe/London`. A mosque configured for another timezone
-must review **Mosque settings** before proceeding; selecting a profile never silently
-changes the timezone. Wrong years and PDFs whose dates do not match the selected
-edition are rejected. Another edition requires ordinary import with an already
-supported layout or a new inspected adapter/profile; an existing profile does not
-promise compatibility with later publications.
-
-These are **manual-upload profiles**. No public HTTPS URL has been verified for
-their current publications, so selecting a profile does not configure downloads or
-automatic checks. The ordinary URL, PDF and CSV routes remain available. The original
-PDF bytes, mapping and versioned profile ID are retained with staged and approved
-sources. The profile ID is metadata; it does not alter extracted rows or published
-times. Printed Hijri dates and the Ramadan profile's date range never confirm
-Ramadan activation. Set the actual confirmed window separately after approval.
+Use **Configure → Upload a supported PDF** or **Add or replace a URL source**.
+Choose **Annual**, **Monthly** or **Ramadan** and the printed Gregorian year.
+The integration identifies known layouts automatically and suggests their
+published columns; the user must still inspect the mapping and approve.
+There is no edition-specific profile picker or hard-coded mosque timezone.
+All strict PDF parsers, independent fixture comparisons, limits and automatic
+layout detection remain in place. Unsupported editions fail closed rather
+than guessing times.
 
 ## NMS monthly pages (`nms_monthly_v1`)
 
-Choose **Monthly**, year **2022**, and upload the matching PDF, or choose its
-exact inspected publication profile. The contributed file
+Choose **Monthly**, year **2022**, and upload the matching PDF. The contributed file
 named `nms ramadhan.pdf` actually contains **May and June 2022**, with 61 dates and
 854 event values. Every date/value matches an independent Poppler extraction.
 It is not a complete Ramadan-only publication: May 1 is printed Hijri 30, May 2
@@ -92,7 +71,7 @@ unrecognized footer still fails validation, rather than fabricating a time.
 ## Zakariyya annual calendar (`zak_annual_v1`)
 
 Choose **Annual**, year **2026**, and upload the supplied fourteen-page
-`zak.pdf`, or choose its exact inspected publication profile. The adapter imports its twelve
+`zak.pdf`. The adapter imports its twelve
 annual tables only. The separate Ramadan page remains an independently approved
 Ramadan source; importing the annual tables never activates Ramadan.
 
@@ -124,8 +103,7 @@ and reload. Unknown clipping or missing time cells are rejected.
 
 ## Zakariyya Ramadan page (`zak_ramadan_v1`)
 
-Choose **Ramadan**, year **2026**, and upload the matching PDF, or choose its
-exact inspected publication profile. The supplied 3,213,250-byte, fourteen-page publication fits the bounded
+Choose **Ramadan**, year **2026**, and upload the matching PDF. The supplied 3,213,250-byte, fourteen-page publication fits the bounded
 4 MiB input limit. The cover and twelve ordered monthly titles establish the known
 publication; only its final **Ramadhan 2026 / 1447 AH** table is imported. This does
 not import its annual tables; choose Annual to import those separately. Other editions
@@ -164,7 +142,7 @@ the user-confirmed window. Fixture hashes and attribution are recorded in the
 ## Nuneaton Muslim Society annual calendar (`nms_annual_v1`)
 
 Choose **Upload a supported PDF**, **Annual** and the printed year (2026 for
-the supplied file), or choose the exact inspected publication profile. Use mosque timezone
+the supplied file). Use mosque timezone
 `Europe/London`. Keep the Date column, 24-hour format and the suggested labelled
 prayer fields. Fields may be left unselected; their meaning cannot be reassigned.
 

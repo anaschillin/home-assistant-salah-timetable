@@ -45,6 +45,8 @@ async def test_invalid_input(hass):
 async def test_options(hass, entry):
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] == FlowResultType.MENU
+    assert "publication_profile" not in result["menu_options"]
+    assert set(result["menu_options"]) >= {"import_url", "import_pdf", "import_csv"}
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "settings"}
     )

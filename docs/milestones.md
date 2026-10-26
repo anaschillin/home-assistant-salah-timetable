@@ -37,7 +37,7 @@ their completion requires implementation and the stated acceptance evidence.
 | 7A | Adhan, Jamaat and Sehri automation blueprints | Implemented | Existing timestamp sensors |
 | 7B | Approved-date coverage monitoring and opt-in health alerts | Implemented | Effective timetable resolver; blueprint pattern |
 | 8 | Native prayer calendar | Implemented; release acceptance pending | Approved dated records and event engine |
-| 9 | Supported-publication setup profiles | Implemented; release acceptance pending | Secure downloads, inspected layouts and approval flows |
+| 9 | Inspected-edition setup picker | Retired in 0.9.1; automatic PDF recognition retained | Standard PDF/URL imports |
 | 10A | Card/editor English, Arabic, bilingual labels and RTL layout | Implemented; release acceptance pending | Stable prayer keys and current card |
 | 10B | Integration forms/entities and reviewed translations | Planned | 10A catalogue conventions; fluent-language review |
 | 11 | Minimum/current compatibility tests and weekly validation | Implemented; hosted minimum/current validation passed | Existing CI and reproducible dependency lock |
@@ -49,7 +49,7 @@ their completion requires implementation and the stated acceptance evidence.
 | 17 | Before/after import change review | Implemented; release acceptance pending | Existing durable staging and source replacement scope |
 | 18 | Optional offline Islamic history companion | Proposed; research only | Reviewed catalogue, date precision and attribution; 10A card conventions |
 
-The **8 → 12 → 13 → 9** feature sequence is implemented in candidate 0.7.0.
+The original **8 → 12 → 13 → 9** sequence was implemented in candidate 0.7.0; the optional Milestone 9 picker was later retired in 0.9.1.
 Its exact commit `737b636` passed hosted Validate, including both HA live lanes.
 Milestone **17** is also implemented; candidate 0.8.0 combines its canonical
 comparison with original-cell/provenance review and fresh-baseline approval checks.
@@ -301,23 +301,15 @@ bounded range queries; DST, leap-day and year boundaries; every Friday congregat
 missing dates/fields; changed approvals; and correct HA calendar-trigger behavior.
 Add calendar-based automation examples after those semantics pass.
 
-## Milestone 9 — supported-publication source profiles (implemented; release acceptance pending)
+## Milestone 9 — inspected-edition picker (retired in 0.9.1)
 
-Implemented: four immutable profiles for the inspected NMS annual 2026, NMS
-May–June 2022, Zakariyya annual 2026 and separate Ramadan 2026 editions. Each
-requires the printed year and Europe/London timezone; all use manual PDF upload.
-Profile identity survives staging, approval and reload without altering printed
-data. See the [profile catalogue](pdf_layouts.md). No live source URL is claimed.
-
-Offer a curated profile picker that prefills known layout, timezone and mapping
-defaults for an inspected publication. Identify the exact supported edition and
-require an explicit year. Include a URL only after its public HTTPS source has
-been verified; a profile may support manual upload instead. Users can inspect or
-edit defaults before following the existing preview/approve/reject flow.
-
-Acceptance: versioned profile IDs, exact-edition fixtures, predictable updates to
-saved profiles, clear unsupported-edition errors, manual-import fallback, unchanged
-HTTPS/redirect restrictions and no automatic activation of changed source data.
+The previously implemented manual edition/profile picker was removed following
+maintainer acceptance testing: ordinary users upload a PDF or configure a URL.
+The strict NMS and Zakariyya PDF adapters, automatic layout detection, ordinary
+source/URL profiles, stage/compare/approve flow and independent fixture oracles
+are **retained**. Older approved records containing legacy
+`publication_profile_id` remain loadable; that field is not persisted for new
+imports. See [PDF layouts](pdf_layouts.md). No published times are changed.
 
 ## Milestone 10 — localization and right-to-left layouts (in progress)
 
