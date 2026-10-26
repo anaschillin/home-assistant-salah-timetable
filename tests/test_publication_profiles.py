@@ -246,8 +246,8 @@ async def test_manual_profile_upload_requires_review_and_persists_on_approval(
 ):
     # The mock HTTP router is frozen once the test client starts; initialize
     # the integration's bundled frontend path before constructing that client.
-    assert await hass.config_entries.async_setup(entry.entry_id)
     assert await async_setup_component(hass, "file_upload", {})
+    assert await hass.config_entries.async_setup(entry.entry_id)
     client = await hass_client()
     await hass.async_block_till_done()
     profile = publication_profile("nms_monthly_may_june_2022_v1")

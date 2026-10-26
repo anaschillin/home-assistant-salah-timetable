@@ -84,6 +84,18 @@ minimum-lane artifact or readable archived log. Therefore the proposed
 12-minute process watchdog has **not been shown to work** in that stuck
 runner environment; it is not a proven fix for the underlying stall.
 
+The sharded experiment revealed a distinct, reproducible failure in the
+Home Assistant **2026.10.0 test fixture**: creating the pytest `hass_client`
+before setting up the Salah Timetable entry freezes aiohttp's test router.
+A later call to `async_setup_frontend()` fails with
+`RuntimeError: Cannot register a resource into frozen router` and causes
+PDF/CSV import approval tests to fail. Production Home Assistant deliberately
+keeps its running HTTP router mutable; the test client is not equivalent.
+These tests now set up `file_upload`, then the Salah Timetable entry
+(including its static paths), **before** creating `hass_client()`, preserving
+the complete HTTP upload/import/approval test coverage. The fix is test
+fixture initialization order, not suppression of a runtime exception.
+
 For isolation, the minimum lane now runs **four independent pytest jobs**,
 each executing a disjoint, deterministic subset of the `tests/test_*.py`
 modules in sorted order (`file_index % 4`). Collectively they run every

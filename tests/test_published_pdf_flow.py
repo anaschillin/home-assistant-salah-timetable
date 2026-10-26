@@ -36,8 +36,8 @@ async def test_real_pdf_upload_staging_approval_and_persistence(
 ):
     # The mocked HTTP test client freezes the router; production HA's server
     # leaves it mutable. Register the integration card before starting client.
-    assert await hass.config_entries.async_setup(entry.entry_id)
     assert await async_setup_component(hass, "file_upload", {})
+    assert await hass.config_entries.async_setup(entry.entry_id)
     client = await hass_client()
     await hass.async_block_till_done()
     result = await hass.config_entries.options.async_init(entry.entry_id)

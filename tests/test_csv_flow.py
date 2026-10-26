@@ -27,8 +27,8 @@ def import_clock(freezer):
 @pytest.fixture
 async def upload_client(hass, hass_client, entry):
     """Register bundled routes before the mock HTTP client freezes its router."""
-    assert await hass.config_entries.async_setup(entry.entry_id)
     assert await async_setup_component(hass, "file_upload", {})
+    assert await hass.config_entries.async_setup(entry.entry_id)
     return await hass_client()
 
 
