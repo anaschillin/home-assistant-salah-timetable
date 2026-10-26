@@ -104,7 +104,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     for (const language of ["en", "ar"]) for (const bilingual of [false, true]) {
       await setEditorOption("language", language);
       await setEditorOption("bilingual_prayer_labels", bilingual);
-      await until(expression(`const card=${previewCard};const label=card?.shadowRoot.querySelector('tbody th .prayer-labels');const names=label&&[...label.querySelectorAll('bdi')];return card?.getAttribute('lang')===${JSON.stringify(language)}&&card.getAttribute('dir')===${JSON.stringify(language === "ar" ? "rtl" : "ltr")}&&window.salahEditor.getAttribute('dir')===card.getAttribute('dir')&&names?.length===${bilingual ? 2 : 1}&&names[0].getAttribute('lang')===${JSON.stringify(language)}${bilingual ? `&&names[1].getAttribute('lang')===${JSON.stringify(language === "ar" ? "en" : "ar")}` : ""}`), `Actual language/bilingual controls did not update preview: ${language}/${bilingual}`);
+      await until(expression(`const card=${previewCard};const label=card?.shadowRoot.querySelector('tbody th .prayer-labels');const names=label&&[...label.querySelectorAll('bdi')];return card?.getAttribute('lang')===${safeJsLiteral(language)}&&card.getAttribute('dir')===${safeJsLiteral(language === "ar" ? "rtl" : "ltr")}&&window.salahEditor.getAttribute('dir')===card.getAttribute('dir')&&names?.length===${bilingual ? 2 : 1}&&names[0].getAttribute('lang')===${safeJsLiteral(language)}${bilingual ? `&&names[1].getAttribute('lang')===${safeJsLiteral(language === "ar" ? "en" : "ar")}` : ""}`), `Actual language/bilingual controls did not update preview: ${language}/${bilingual}`);
       await until(expression(`const root=${previewCard}?.shadowRoot;return root?.querySelector('header').children[1]===root?.querySelector('.hijri')&&root?.querySelector('header').children[2]===root?.querySelector('.gregorian')`), `Hijri-first header missing: ${language}/${bilingual}`);
       await setEditorOption("show_gregorian_date", false);
       await until(expression(`const root=${previewCard}?.shadowRoot;return !!root?.querySelector('.hijri')&&!root?.querySelector('.gregorian')`), `Gregorian visibility affected Hijri date: ${language}/${bilingual}`);
@@ -118,7 +118,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
       if (typeof value === "boolean" && key !== "bilingual_prayer_labels") await until(expression(`
         const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');
         const card=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='salah-timetable-card');
-        if(!card?.shadowRoot||card._config[${JSON.stringify(key)}]!==${value})return false;
+        if(!card?.shadowRoot||card._config[${safeJsLiteral(key)}]!==${value})return false;
         const root=card.shadowRoot;
         const nodes={
           show_hijri_date:root.querySelector('.hijri'),
@@ -130,7 +130,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
           show_iftar_countdown:root.querySelector('[data-ramadan="iftar"] .count'),
           show_timezone_note:root.querySelector('[data-role="timezone-note"]')
         };
-        return Boolean(nodes[${JSON.stringify(key)}]?.getClientRects().length)===${value};
+        return Boolean(nodes[${safeJsLiteral(key)}]?.getClientRects().length)===${value};
       `), `Editor option did not change preview visibility: ${key}=${value}`);
     }
     await until(expression("const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');const save=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='ha-button'&&element.getAttribute('slot')==='primaryAction');if(!save)return false;save.click();return true"), "Real card editor Save button missing");
