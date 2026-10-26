@@ -5,6 +5,29 @@ acceptance checklist. See [remaining work](remaining-work.md) for engineering
 priorities and [release readiness](releasing.md#current-release-readiness) for
 blocking manual sign-offs.
 
+## 0.9.1 acceptance report — 26 October 2026
+
+The maintainer reports successfully **removing and reinstalling Salah
+Timetable completely** and subsequently creating/configuring a second
+independent mosque instance in their Home Assistant installation. These
+are user-reported observations, not independently captured test logs.
+The second mosque was **not obvious as a separate dashboard card**.
+
+The 0.9.1 change removes the inspected-publication-profile menu and
+catalogue, and makes the existing card editor list each mosque's own
+dashboard sensor by name. One custom card **type** is registered with
+Home Assistant; add another instance of that card in the dashboard
+and choose the second mosque to display its timetable. The integration
+does not silently add cards to user dashboards. The bundled resource
+cache version is updated. Tests cover independent instances, preserved
+entity references and legacy profile metadata, and the disposable
+HA live runner now saves a two-card dashboard.
+
+This work does not itself certify a full HAOS/Supervisor restore,
+public asset redistribution permission or all manual HACS acceptance
+gates. Exact-commit PR and post-merge hosted validation are required;
+see the associated 0.9.1 pull request and CI evidence.
+
 ## Latest merged CI evidence — 26 October 2026
 
 On code commit `b6dbe14bb75b791fbb1171e981494d2a21dbe07e`,
