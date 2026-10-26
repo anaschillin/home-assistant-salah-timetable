@@ -24,16 +24,24 @@ The older [0.5.1 phone](images/card-mobile.png) and
 1. Install/restart the integration, configure a mosque and approve a timetable.
 2. Open a dashboard, choose **Edit dashboard → Add card**, and select
    **Salah Timetable**. Reload the browser page if a newly installed card is absent.
-3. In the graphical editor, choose that mosque's **Prayer timetable** sensor. Its
-   entity ID typically ends in `_prayer_timetable`; HA permits users to rename it.
-   Individual beginning/Jamaat sensors do not contain the full card data.
+3. In the graphical editor, choose the mosque by name from the **Prayer timetable**
+   selector. Every loaded mosque has a separate sensor, normally ending in
+   `_prayer_timetable` (entity IDs can be renamed). The selector lists only
+   dashboard sensors, not individual beginning/Jamaat sensors.
 4. Optionally set a title, language and bilingual prayer labels, then choose
    compact/expanded layout, countdown visibility, time format, date visibility,
    Hijri adjustment and additional details, then save.
    **Upcoming Jamaat** is the default; **Context aware** and **Previous Jamaat** remain available.
 
-Create a separate card for each mosque. The integration creates one device/config
-entry per mosque, and each card follows the selected entity's mosque timezone.
+**To display a second mosque, repeat Edit dashboard → Add card → Salah
+Timetable**, then choose the second mosque in the editor and save. Home Assistant
+shows one *card type* in the picker; it does not automatically create dashboard
+cards for new integration instances. Create a separate card for each mosque.
+The integration creates one device/config entry and dashboard sensor per mosque,
+and each card follows the selected entity's mosque timezone. Existing cards
+are not overwritten. If the second mosque is missing, check
+**Developer Tools → States** for its `sensor.*_prayer_timetable` entity,
+then reload the dashboard browser tab after integration setup.
 
 ## What the card shows
 
