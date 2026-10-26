@@ -1,0 +1,402 @@
+{
+  "schema_version": 1,
+  "lifecycle": "RESEARCH_ONLY_NOT_BUNDLED",
+  "audited_on": "2026-10-25",
+  "license_note": "Original summaries only. Confirm third-party reuse rights before automatic imports or redistribution.",
+  "date_policy": "An occurrence is not an exact anniversary unless its day is evidenced. Null month/day means unknown, not first day of the period. Traditional anniversary remains separate.",
+  "entries": [
+    {
+      "id": "battle-of-badr",
+      "title_en": "Battle of Badr",
+      "event_type": "battle",
+      "categories": [
+        "prophetic",
+        "sahabah"
+      ],
+      "summary_en": "The Muslims under the Prophet Muhammad ﷺ fought the Quraysh near Badr in 2 AH.",
+      "hijri": {
+        "era": "AH",
+        "year": 2,
+        "month": 9,
+        "day": 17
+      },
+      "date_assessment": {
+        "precision": "day",
+        "status": "supported_historical_report",
+        "display": "exact_day"
+      },
+      "sources": [
+        {
+          "role": "discovery",
+          "url": "https://islamicdates.org/en/on-this-day/badr/"
+        },
+        {
+          "role": "independent_historical_date",
+          "url": "https://www.islamweb.net/ar/library/index.php?ID=386&bk_no=215&flag=1&page=bookcontents"
+        }
+      ],
+      "review": "Candidate only; locate the classical citation precisely and sign off before release."
+    },
+    {
+      "id": "martyrdom-of-husayn",
+      "title_en": "Martyrdom of al-Husayn ibn Ali (RA)",
+      "event_type": "martyrdom",
+      "categories": [
+        "sahabah",
+        "ahl_al_bayt"
+      ],
+      "summary_en": "Al-Husayn ibn Ali (RA), grandson of the Prophet ﷺ, was killed at Karbala in 61 AH.",
+      "hijri": {
+        "era": "AH",
+        "year": 61,
+        "month": 1,
+        "day": 10
+      },
+      "date_assessment": {
+        "precision": "day",
+        "status": "supported_historical_report",
+        "display": "exact_day"
+      },
+      "sources": [
+        {
+          "role": "discovery",
+          "url": "https://islamicdates.org/en/on-this-day/karbala/"
+        },
+        {
+          "role": "independent_historical_date",
+          "url": "https://dorar.net/history/event/289"
+        }
+      ],
+      "review": "Candidate; independent history article explicitly identifies the 10th of Muharram."
+    },
+    {
+      "id": "ahmad-ibn-hanbal-death",
+      "title_en": "Death of Imam Ahmad ibn Hanbal",
+      "event_type": "death",
+      "categories": [
+        "hadith_scholars"
+      ],
+      "summary_en": "The Sunni hadith scholar and jurist Ahmad ibn Hanbal died in Baghdad in 241 AH.",
+      "hijri": {
+        "era": "AH",
+        "year": 241,
+        "month": 3,
+        "day": 12
+      },
+      "date_assessment": {
+        "precision": "day",
+        "status": "supported_historical_report",
+        "display": "exact_day"
+      },
+      "sources": [
+        {
+          "role": "discovery",
+          "url": "https://islamicdates.org/en/on-this-day/imam-ahmad-death/"
+        },
+        {
+          "role": "classical_text",
+          "url": "https://islamweb.net/ar/library/content/200/19422/"
+        }
+      ],
+      "review": "Ibn Kathir explicitly reports 12 Rabi al-Awwal. Editorial review still required."
+    },
+    {
+      "id": "bukhari-birth",
+      "title_en": "Birth of Imam al-Bukhari",
+      "event_type": "birth",
+      "categories": [
+        "hadith_scholars"
+      ],
+      "summary_en": "Muhammad ibn Ismail al-Bukhari, compiler of Sahih al-Bukhari, was born in 194 AH.",
+      "hijri": {
+        "era": "AH",
+        "year": 194,
+        "month": 10,
+        "day": 13
+      },
+      "date_assessment": {
+        "precision": "day",
+        "status": "supported_historical_report",
+        "display": "exact_day"
+      },
+      "sources": [
+        {
+          "role": "classical_text",
+          "url": "https://www.islamweb.net/ar/library/content/59/1380/%D9%85%D9%86-%D8%AA%D9%88%D9%81%D9%8A-%D9%81%D9%8A%D9%87%D8%A7-%D9%85%D9%86-%D8%A7%D9%84%D8%A3%D8%B9%D9%8A%D8%A7%D9%86"
+        }
+      ],
+      "review": "Ibn Kathir states 13 Shawwal 194 AH, night of Friday; no artificial extra anniversary."
+    },
+    {
+      "id": "bukhari-death",
+      "title_en": "Death of Imam al-Bukhari",
+      "event_type": "death",
+      "categories": [
+        "hadith_scholars"
+      ],
+      "summary_en": "Imam al-Bukhari died in 256 AH near Samarqand on the night of Eid al-Fitr.",
+      "hijri": {
+        "era": "AH",
+        "year": 256,
+        "month": 10,
+        "day": 1
+      },
+      "date_assessment": {
+        "precision": "day",
+        "status": "night_boundary_requires_review",
+        "display": "hold"
+      },
+      "sources": [
+        {
+          "role": "discovery",
+          "url": "https://islamicdates.org/en/on-this-day/bukhari-death/"
+        },
+        {
+          "role": "contrasting_month_index",
+          "url": "https://dorar.net/history/event/845"
+        },
+        {
+          "role": "classical_text",
+          "url": "https://www.islamweb.net/ar/library/content/59/1380/%D9%85%D9%86-%D8%AA%D9%88%D9%81%D9%8A-%D9%81%D9%8A%D9%87%D8%A7-%D9%85%D9%86-%D8%A7%D9%84%D8%A3%D8%B9%D9%8A%D8%A7%D9%86"
+        }
+      ],
+      "review": "Night of Eid can be described as the end of Ramadan or start of Shawwal. Confirm exact date and display convention before enabling."
+    },
+    {
+      "id": "prophet-birth",
+      "title_en": "Birth of the Prophet Muhammad ﷺ",
+      "event_type": "birth",
+      "categories": [
+        "prophetic"
+      ],
+      "summary_en": "The Prophet Muhammad ﷺ was born in Makkah in the Year of the Elephant.",
+      "hijri": {
+        "era": "pre_hijrah",
+        "year": null,
+        "month": 3,
+        "day": null
+      },
+      "traditional_placement": {
+        "month": 3,
+        "day": 12
+      },
+      "date_assessment": {
+        "precision": "month",
+        "status": "specific_day_disputed",
+        "display": "month_highlight"
+      },
+      "sources": [
+        {
+          "role": "date_discussion",
+          "url": "https://islamicdates.org/en/on-this-day/mawlid/"
+        }
+      ],
+      "review": "Multiple days reported; do not describe the 12th as an established birthday or treat traditional placement as attested."
+    },
+    {
+      "id": "isra-miraj",
+      "title_en": "Isra and Mi'raj",
+      "event_type": "prophetic_event",
+      "categories": [
+        "prophetic"
+      ],
+      "summary_en": "The Prophet Muhammad ﷺ experienced the Night Journey and Ascension; the precise night is not reliably known.",
+      "hijri": {
+        "era": "pre_hijrah",
+        "year": null,
+        "month": null,
+        "day": null
+      },
+      "traditional_placement": {
+        "month": 7,
+        "day": 27
+      },
+      "date_assessment": {
+        "precision": "unknown",
+        "status": "traditional_day_not_established",
+        "display": "undated_only"
+      },
+      "sources": [
+        {
+          "role": "date_discussion",
+          "url": "https://islamicdates.org/en/on-this-day/isra-miraj/"
+        }
+      ],
+      "review": "The occurrence is scripturally established; no authentic hadith establishes 27 Rajab as the date."
+    },
+    {
+      "id": "battle-of-mutah",
+      "title_en": "Battle of Mu'tah",
+      "event_type": "battle",
+      "categories": [
+        "prophetic",
+        "sahabah"
+      ],
+      "summary_en": "A Muslim expedition fought at Mu'tah in the eighth year after Hijrah; Zayd ibn Harithah, Ja'far ibn Abi Talib and Abdullah ibn Rawahah were martyred.",
+      "hijri": {
+        "era": "AH",
+        "year": 8,
+        "month": 5,
+        "day": null
+      },
+      "traditional_placement": {
+        "month": 5,
+        "day": 15
+      },
+      "date_assessment": {
+        "precision": "month",
+        "status": "day_not_established",
+        "display": "month_highlight"
+      },
+      "sources": [
+        {
+          "role": "discovery",
+          "url": "https://islamicdates.org/en/on-this-day/mutah/"
+        },
+        {
+          "role": "independent_month",
+          "url": "https://dorar.net/history/event/122"
+        }
+      ],
+      "review": "Both sites accept Jumada al-Ula 8 AH without evidence of the 15th."
+    },
+    {
+      "id": "malik-ibn-anas-death",
+      "title_en": "Death of Imam Malik ibn Anas",
+      "event_type": "death",
+      "categories": [
+        "hadith_scholars"
+      ],
+      "summary_en": "Imam Malik ibn Anas, scholar of Madinah and author of al-Muwatta, died in 179 AH.",
+      "hijri": {
+        "era": "AH",
+        "year": 179,
+        "month": null,
+        "day": null
+      },
+      "alternative_reports": [
+        "Safar 179 AH",
+        "10 Rabi al-Awwal 179 AH",
+        "11 Rabi al-Awwal 179 AH",
+        "13 Rabi al-Awwal 179 AH",
+        "14 Rabi al-Awwal 179 AH"
+      ],
+      "date_assessment": {
+        "precision": "year",
+        "status": "month_and_day_disputed",
+        "display": "year_biography_only"
+      },
+      "sources": [
+        {
+          "role": "discovery",
+          "url": "https://islamicdates.org/en/on-this-day/imam-malik-death/"
+        },
+        {
+          "role": "independent_month_index",
+          "url": "https://dorar.net/history/event/585"
+        },
+        {
+          "role": "classical_biography",
+          "url": "https://islamweb.net/ar/library/index.php?ID=1200&bk_no=60&idfrom=1298&idto=1298&page=bookcontents_ver3"
+        }
+      ],
+      "review": "Do not silently prefer IslamicDates 14 Rabi al-Awwal over other classical reports."
+    },
+    {
+      "id": "anas-ibn-malik-death",
+      "title_en": "Death of Anas ibn Malik (RA)",
+      "event_type": "death",
+      "categories": [
+        "sahabah",
+        "hadith_narrators"
+      ],
+      "summary_en": "Anas ibn Malik (RA), Companion, attendant of the Prophet ﷺ and prolific hadith narrator, died in Basrah in 93 AH.",
+      "hijri": {
+        "era": "AH",
+        "year": 93,
+        "month": null,
+        "day": null
+      },
+      "date_assessment": {
+        "precision": "year",
+        "status": "year_reported",
+        "display": "year_biography_only"
+      },
+      "sources": [
+        {
+          "role": "independent_biography",
+          "url": "https://dorar.net/history/event/374"
+        }
+      ],
+      "review": "No verified exact month/day located in this initial audit."
+    },
+    {
+      "id": "abu-al-tufayl-death",
+      "title_en": "Death of Abu al-Tufayl Amir ibn Wathilah (RA)",
+      "event_type": "death",
+      "categories": [
+        "sahabah",
+        "hadith_narrators"
+      ],
+      "summary_en": "Abu al-Tufayl is widely described as the last surviving Companion to have seen the Prophet ﷺ.",
+      "hijri": {
+        "era": "AH",
+        "year": null,
+        "month": null,
+        "day": null
+      },
+      "alternative_year_reports": [
+        100,
+        110
+      ],
+      "date_assessment": {
+        "precision": "year_disputed",
+        "status": "different_classical_death_years",
+        "display": "undated_only"
+      },
+      "sources": [
+        {
+          "role": "classical_biography",
+          "url": "https://g1.islamweb.net/ar/library/content/60/627/"
+        },
+        {
+          "role": "alternative_classical_biography",
+          "url": "https://www.islamweb.net/amp/ar/library/content/1080/3094/"
+        }
+      ],
+      "review": "Al-Dhahabi reports 110 AH; Ibn Abd al-Barr gives 100 AH. Neither establishes day/month."
+    },
+    {
+      "id": "muslim-ibn-hajjaj-death",
+      "title_en": "Death of Imam Muslim ibn al-Hajjaj",
+      "event_type": "death",
+      "categories": [
+        "hadith_scholars"
+      ],
+      "summary_en": "Imam Muslim, compiler of Sahih Muslim, died in 261 AH in Nishapur.",
+      "hijri": {
+        "era": "AH",
+        "year": 261,
+        "month": 7,
+        "day": null
+      },
+      "proposed_day": 25,
+      "date_assessment": {
+        "precision": "month",
+        "status": "day_requires_additional_confirmation",
+        "display": "month_highlight"
+      },
+      "sources": [
+        {
+          "role": "discovery",
+          "url": "https://islamicdates.org/en/on-this-day/imam-muslim-death/"
+        },
+        {
+          "role": "independent_month",
+          "url": "https://dorar.net/history/event/869"
+        }
+      ],
+      "review": "IslamicDates assigns 25 Rajab; Dorar confirms Rajab 261 AH without day. Require exact-day primary text."
+    }
+  ]
+}
