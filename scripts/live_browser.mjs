@@ -9,6 +9,8 @@ import {waitForDebuggerPort} from "../tests/frontend/browser-startup.mjs";
 
 const pause = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const deep = "function deep(root=document){let result=[];for(const element of root.querySelectorAll('*')){result.push(element);if(element.shadowRoot)result.push(...deep(element.shadowRoot));}return result}";
+const unsafeJsCharMap = {"<":"\\u003C",">":"\\u003E","/":"\\u002F","\\":"\\\\","\b":"\\b","\f":"\\f","\n":"\\n","\r":"\\r","\t":"\\t","\0":"\\0","\u2028":"\\u2028","\u2029":"\\u2029"};
+const safeJsLiteral = value => JSON.stringify(value).replace(/[<>\/\\\b\f\n\r\t\0\u2028\u2029]/g, character => unsafeJsCharMap[character] ?? character);
 
 export async function runBrowserSmoke({base, tokens, output, signal}) {
   let browser;
@@ -150,7 +152,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
       await until(`document.querySelector('home-assistant').hass.locale.language.startsWith(${JSON.stringify(language)})&&window.salahAutoCard.getAttribute('lang')===${JSON.stringify(language)}`, `Automatic language did not follow real HA locale: ${language}`);
       for (const bilingual of [false, true]) {
         await evaluate(`window.salahAutoCard.setConfig({...window.salahAutoCard._config,bilingual_prayer_labels:${bilingual}})`);
-        assert.equal(await evaluate(`(()=>{const root=window.salahAutoCard.shadowRoot;const labels=[...root.querySelectorAll('tbody th .prayer-labels')];return labels.length>0&&labels.every(label=>label.querySelectorAll('bdi').length===${bilingual ? 2 : 1})&&root.querySelector('thead th').textContent===${JSON.stringify(language === "ar" ? "الصلاة" : "Prayer")}&&window.salahAutoCard.getAttribute('dir')===${JSON.stringify(language === "ar" ? "rtl" : "ltr")}})()`), true, `Automatic-language labels did not update: ${language}/${bilingual}`);
+        assert.equal(await evaluate(`(()=>{const root=window.salahAutoCard.shadowRoot;const labels=[...root.querySelectorAll('tbody th .prayer-labels')];return labels.length>0&&labels.every(label=>label.querySelectorAll('bdi').length===${bilingual ? 2 : 1})&&root.querySelector('thead th').textContent===${safeJsLiteral(language === "ar" ? "الصلاة" : "Prayer")}&&window.salahAutoCard.getAttribute('dir')===${safeJsLiteral(language === "ar" ? "rtl" : "ltr")}})()`), true, `Automatic-language labels did not update: ${language}/${bilingual}`);
         for (const width of [320, 360, 400, 900]) {
           await call("Emulation.setDeviceMetricsOverride", {width, height: 1100, deviceScaleFactor: 1, mobile: width === 360});
           await evaluate("document.documentElement.style.fontSize='200%'"); await pause(100);
