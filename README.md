@@ -82,7 +82,8 @@ allows users to rename entity IDs independently.
    dates, time changes, previously absent fields and original-cell changes against
    this exact approved source. The comparison is read-only; return to review afterward.
 7. Choose **Approve and save timetable**, or **Reject and keep the active timetable**.
-   See [import comparison](docs/import_comparison.md) for details and limits.
+   See [the import review and comparison guide](docs/import_review.md) for
+   replacement scope, paging, source changes and safety limits.
 
 Nothing becomes active before approval. Closing/cancelling after the preview leaves
 the staged import available under **Configure → Review pending import**, including
@@ -91,12 +92,6 @@ Closing before the preview discards the in-progress mapping; upload the file aga
 A saving error keeps the existing timetable; check Home Assistant logs and retry.
 For a URL import, the reproducible source settings are saved with the staged file.
 The UI's source-import menu is URL-first after initial mosque identity setup.
-
-The [change comparison](docs/import_review.md) lists added/removed dates, changed
-published times and source details against the exact approved source being replaced.
-Browse its pages before approving a whole-source replacement. If the approved
-baseline changes while the preview is open, review the refreshed comparison and
-approve again.
 
 Publication profiles cover exact inspected editions and require the printed Gregorian
 year. They prefill layout, kind, field mappings and canonical time format, then retain

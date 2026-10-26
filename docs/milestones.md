@@ -1,34 +1,25 @@
 # Implementation plan
 
-The [release checklist](releasing.md#current-release-readiness--25-october-2026)
-is the single source of truth for release blockers; the
-[remaining-work backlog](remaining-work.md) tracks later feature additions.
+The [release checklist](releasing.md#current-release-readiness) owns publication
+and manual acceptance gates. The [remaining-work backlog](remaining-work.md)
+owns subsequent feature priorities. This document records implemented and
+proposed milestone scope, not another current-release checklist.
 
-Milestones 1–5 are implemented; the current candidate is 0.9.0. Keep follow-up
-work in focused PRs with tests and documentation. The local 0.8.0 paged-review
-and Adhan fixes passed the [recorded pre-merge checks](validation.md#paged-import-review--candidate-080).
-Those results do not validate the combined tree. Separately, Milestone 17's
-[main Validate run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
-passed all six jobs and **880 Python tests**. Dashboard enhancements in
-[PR #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16)
-were subsequently squash-merged; their
-[post-merge main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119)
-passed all six jobs and **884 Python tests** on
-`c8e65bd01250af0b892782c0e1ef04b99072e37a` (first attempt).
-The subsequent 0.8.0 [main run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40229412033)
-passed all six jobs and **936 tests**. The 0.8.1
-[feature-branch run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40242996936)
-passed all six jobs and **955 Python tests** (source `888e4cd`).
-Publication still requires final release-commit CI and manual acceptance.
-The earlier [calendar-trigger flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-remains open for hosted stability evidence after the later documented local
-synchronization diagnosis and fix.
-Earlier manual-install, dependency and physical-device evidence remains scoped to
-the versions and environments in the [validation record](validation.md).
-**Unfinished release acceptance** still includes asset redistribution rights,
-full HAOS/Supervisor backup restoration and HACS UI removal/reinstallation;
-automated Home Assistant Container restore and config-entry removal tests do not
-substitute for these sign-offs. Validate the exact future release commit again.
+The current integration candidate is **0.9.0**. Minimum HA 2026.10.0 and
+supported-current 2026.10.3 unit and live validation have now passed on
+the [26 October 2026 main commit `b6dbe14`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b6dbe14bb75b791fbb1171e981494d2a21dbe07e):
+[Validate 40337238065](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238065)
+passed all **12 jobs**, with [CodeQL 40337238192](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238192)
+passing separately. The historical calendar timing issue
+[#13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+and minimum-HA cancellation issue
+[#24](https://github.com/anaschillin/home-assistant-salah-timetable/issues/24)
+are closed; the five-group minimum-HA approach remains required.
+
+The dated evidence for earlier 0.7.0–0.9.0 candidates remains in
+[validation.md](validation.md). The latest green CI establishes code validation,
+**not** redistribution rights, full HAOS/Supervisor restoration, authenticated
+HACS UI removal/re-addition or the required manual release sign-offs.
 
 ## Next increments
 
@@ -49,7 +40,7 @@ their completion requires implementation and the stated acceptance evidence.
 | 9 | Supported-publication setup profiles | Implemented; release acceptance pending | Secure downloads, inspected layouts and approval flows |
 | 10A | Card/editor English, Arabic, bilingual labels and RTL layout | Implemented; release acceptance pending | Stable prayer keys and current card |
 | 10B | Integration forms/entities and reviewed translations | Planned | 10A catalogue conventions; fluent-language review |
-| 11 | Minimum/current compatibility tests and weekly validation | Implemented; merged-workflow hosted validation pending | Existing CI and reproducible dependency lock |
+| 11 | Minimum/current compatibility tests and weekly validation | Implemented; hosted minimum/current validation passed | Existing CI and reproducible dependency lock |
 | 12 | Richer Adhan playback controls | Implemented; release acceptance pending | 7A; calendar triggers from 8 when available |
 | 13 | Pause/resume media around prayer events | Implemented; release acceptance pending | Published event timestamps; 7A/8 automation patterns |
 | 14 | Calculated night midpoint and last third | Planned | Actual Maghrib and next-day Fajr timestamps |
@@ -230,7 +221,7 @@ isolation and config-entry removal/re-addition. This **does not** establish full
 recovery or HACS UI uninstall/reinstallation. See the [validation record](validation.md)
 and [release acceptance checklist](releasing.md).
 
-The [release guide](releasing.md#current-release-readiness--25-october-2026)
+The [release guide](releasing.md#current-release-readiness)
 maintains the acceptance criteria and required evidence for asset rights, full
 HAOS/Supervisor recovery, HACS UI lifecycle, applicable runtime/device checks,
 exact-commit validation and reviewed publication. The 24 October physical-device
@@ -357,36 +348,34 @@ speaker before claiming reviewed translation quality. Add translated setup
 guidance and further languages as reviewed contributions become available.
 Keep machine identifiers, approved source data and event identities unchanged.
 
-## Milestone 11 — compatibility and scheduled validation (implemented; hosted validation pending)
+## Milestone 11 — compatibility and scheduled validation (implemented; hosted CI passed)
 
-Implemented: Validate calls the real HA 2026.10.0/2026.10.3 live matrix and
-separate complete unit-suite lanes for the same versions. Each unit project has
-its own lock and matching HA test-plugin version, isolated interpreter and
-temporary directory, and checked distribution/import/runtime identity. Both
-complete suites passed 978 tests locally. The development/release lock stays on
-HA 2026.10.2. Reusable workflows support manual and weekly runs; hosted validation
-of the new unit workflow remains pending. See [compatibility guidance](compatibility.md).
-Typing and broader lint rules remain separate focused follow-ups.
-The [calendar end-trigger timing test follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-tracks the earlier hosted failure that passed on rerun. The later
-[diagnosis and synchronization fix](validation.md#combined-080-review-and-calendar-synchronization)
-reproduced the missing end event when background calendar refresh work was not
-drained before clock advancement. Normal and delayed-refresh cases now explicitly
-wait for that work. Keep the issue open for hosted stability evidence; a green
-rerun alone did not establish the cause or close the follow-up.
+Validate includes the separately locked Home Assistant **2026.10.0** minimum and
+**2026.10.3** supported-current unit suites and real disposable Container live
+checks. Each compatibility lock pins the matching HA test plugin, verifies
+Python/distribution/import identity and isolates its temporary directory.
+The development/release lock stays on HA 2026.10.2.
 
-Add separate tests for the declared minimum HA version and the supported locked
-version, plus a weekly scheduled compatibility run. Make each job report and verify
-the HA/Python versions actually installed. Keep compatibility environments separate
-from the reproducible development/release lock, and retain required native Chrome,
-hassfest, HACS and exact-release-commit checks.
+An initial unsharded minimum-HA job stalled on hosted runners. The test-client
+frozen-router fixture regression was fixed by
+[PR #23](https://github.com/anaschillin/home-assistant-salah-timetable/pull/23).
+[PR #26](https://github.com/anaschillin/home-assistant-salah-timetable/pull/26)
+replaced the 16 diagnostic jobs with five deterministic, exhaustive
+minimum-HA test groups; the complete supported-current suite still runs
+unsharded. See the [compatibility guide](compatibility.md) for the evidence,
+original-hang limitation and local commands. [Issue #24](https://github.com/anaschillin/home-assistant-salah-timetable/issues/24)
+was closed after both PR and merged-main CI passed.
 
-Acceptance: both supported lanes exercise configuration, storage migration,
-imports, entities and resource registration; version assertions prevent accidentally
-testing the same HA release twice. Upstream failures produce actionable logs.
-Review support and dependency changes before promoting a newer version into the
-release gate. Introduce type checking and additional lint rules in focused follow-up
-changes once the existing modules have an agreed baseline.
+The calendar synchronization regression (completed
+[issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13))
+also passed repeated normal/delayed refresh cases and subsequent hosted CI.
+Both required HA versions passed the
+[main Validate run 40337238065](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238065).
+Reusable unit/live workflows run weekly and on demand. HACS, hassfest, native
+Chromium, version assertions and the exact-release-commit gate remain required.
+
+Further static typing and expanded lint rules are potential focused future
+improvements, not prerequisites that justify weakening present test coverage.
 
 ## Milestone 12 — richer Adhan playback controls (implemented; release acceptance pending)
 
@@ -481,8 +470,8 @@ URL-shaped tokens redacted. Browsing retains the pending stage ID and never
 approves it. A fresh-disk check under the shared storage lock blocks approval if
 the exact approved source changed after review; the comparison resets and requires
 another explicit decision. No storage migration or automatic source activation
-is introduced. See [import review](import_review.md) and the
-[comparison guide](import_comparison.md). Further human acceptance on large real
+is introduced. See the [import review and comparison guide](import_review.md).
+Further human acceptance on large real
 PDF publications and supported UI devices is still required.
 
 Extend import review with a date/field comparison between the approved source being

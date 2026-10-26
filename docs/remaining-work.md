@@ -1,127 +1,67 @@
-# Remaining work
+# Remaining development work
 
-Milestones 1–5 are implemented. Release hardening is in progress; an item below is
-complete only when its stated evidence exists. See [recorded validation](validation.md).
+This is the **feature and engineering backlog**, not a second release checklist.
+The current integration candidate is **0.9.0**. For release blockers,
+sign-offs and version-specific manual acceptance, use the
+[release readiness checklist](releasing.md#current-release-readiness).
+For completed milestones and future scope, see the
+[implementation plan](milestones.md); dated test evidence is preserved in
+[validation](validation.md).
 
-The implementation fixes from the 25 October review (REV-01–03) and
-supporting acceptance tooling (REV-04–06) are merged. The original
-[review action plan](archive/review-action-plan-2026-10-25.md) is retained
-as a **historical archive**, not another active checklist. The
-[release guide](releasing.md#current-release-readiness--25-october-2026) is
-the **single source of truth** for outstanding redistribution rights, full
-HAOS restore, HACS UI uninstall/re-addition, and other release sign-offs.
+## Current engineering status
 
-The next feature increments are specified in the [implementation plan](milestones.md#next-increments).
-Milestone 7 now has implemented prayer automation blueprints, approved-date coverage
-monitoring and real automation-engine acceptance tests. Milestones 8, 9, 12 and 13
-add native calendar, inspected publication profiles, richer Adhan controls and media
-pause/resume. Candidate 0.8.0 combined Milestone 17's read-only paged canonical
-comparison with original-cell/provenance review and fresh-baseline approval checks.
-Candidate 0.8.1 adds Hijri-first dashboard rendering, independently optional
-Gregorian date and strict automatic known-PDF detection behind user-facing
-Annual / Monthly / Ramadan choices.
-Candidate 0.9.0 implements Milestone 10A card/editor English/Arabic selection,
-bilingual prayer labels and RTL while retaining those date and import controls.
-Local unit/native-browser checks and 29 live HA checks passed; exact-commit CI
-and applicable release acceptance remain required. Milestone 10B
-integration translations, fluent-language review of draft Arabic and broader
-compatibility maintenance follow separately. Applicable release acceptance
-is tracked in [the release guide](releasing.md), not in this feature backlog.
+The minimum/current Home Assistant unit lanes, complete
+`test_source_flow.py` compatibility suite, live Container acceptance,
+HACS, hassfest, frontend/Chromium and CodeQL all passed on the
+[26 October 2026 main commit `b6dbe14`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b6dbe14bb75b791fbb1171e981494d2a21dbe07e).
+[Validate run 40337238065](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238065)
+finished **12/12 jobs successfully**; [CodeQL 40337238192](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238192)
+also passed. CI simplification and diagnostics were squash-merged in
+[PR #26](https://github.com/anaschillin/home-assistant-salah-timetable/pull/26)
+and [PR #27](https://github.com/anaschillin/home-assistant-salah-timetable/pull/27).
+Calendar test timing [#13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+and minimum-HA hosted cancellation [#24](https://github.com/anaschillin/home-assistant-salah-timetable/issues/24)
+are **closed**. The original unsharded minimum-HA hang was not conclusively
+diagnosed; the maintained five-group approach remains documented in
+[compatibility](compatibility.md).
 
-## Release readiness
+Green CI is **not** a published release or proof of full HAOS restore,
+rights clearance, authenticated HACS UI acceptance or manual/device checks.
+Those decisions are owned by [releasing.md](releasing.md).
 
-For the current release gates, their actual evidence, and outstanding sign-offs
-see [Building and accepting a release](releasing.md#current-release-readiness--25-october-2026).
-The [validation record](validation.md) contains dated test outcomes. Do not use
-this feature backlog as a separate release acceptance checklist.
+## Next development priorities
 
-## Completed hardening
+1. **Milestone 10B — Home Assistant integration translations.**
+   Translate setup/options forms, entity labels and generated summaries through
+   Home Assistant translation facilities. Arrange fluent review of draft Arabic
+   wording before claiming linguistic sign-off; retain stable entity IDs,
+   canonical prayer values and storage formats.
+2. **Support additional verified publications.**
+   Check a public HTTPS source for the Nuneaton Muslim Society timetable;
+   retain HTTPS-only downloads. Add a fully inspected NMS Ramadan edition and
+   additional annual/monthly/Ramadan adapters only when the printed source
+   and independent expected results can be reviewed. Support cross-Gregorian-year
+   Ramadan publications without altering printed dates.
+3. **Milestones 14–16 — optional features.**
+   Investigate calculated night midpoint/last third, mosque wall/tablet
+   display and explicitly approved special prayer events. Label calculations
+   distinctly and never invent missing or disputed prayer-event dates.
+4. **Milestone 18 — Islamic history research, not runtime data.**
+   Review [Sunni-source candidates](islamic-history-source-audit.md) for
+   attribution, disputed dates and date precision. Editorial approval is
+   required before any optional offline dashboard/history companion is added.
+5. **Potential HACS catalogue submission.**
+   Consider the default catalogue once the release workflow and user acceptance
+   have been completed; custom-repository installation remains supported.
 
-- Persistent Repairs for invalid structured timetable records, with safe guidance
-  and cleanup after recovery/removal.
-- Independent, frozen schema-1/schema-2 fixtures and real HA migration tests,
-  including pending approval, failed writes, retries and future-schema rejection.
-- Complete timetable-store backup restoration tests, preserving approved sources,
-  Ramadan settings, pending proposals and entity IDs while clearing Repairs.
-- Accurate diagnostic entry state and allowlisted row/event availability summaries;
-  no source identities, imported values, dates, times or URLs are exposed.
-- Reproducible manual-install archives, SHA-256 checksums, required-asset/version
-  checks and tested release-note preparation.
-- A manual draft-release workflow that requires an existing reviewed tag,
-  a green run for the exact commit, and cleared public-asset redistribution
-  rights; it neither creates tags nor publishes or overwrites releases.
-- Calendar presentation-interval overlap/trigger fixes, coordinator teardown
-  cleanup, and rejected-versus-approved source status (REV-01–03).
-- Public asset inventory and fail-closed release audit (REV-04 tooling);
-  full Container archive restore into a second disposable configuration
-  (REV-05 tooling); two-mosque remove/re-add isolation (REV-06 tooling).
-  Their **separate release acceptance gates** remain open in
-  [releasing.md](releasing.md#current-release-readiness--25-october-2026).
+## Historical implementation evidence
 
-The live runner is available in `scripts/live_smoke.mjs`. The local 0.8.0
-candidate before this merge passed 25 checks on disposable HA 2026.10.0,
-including fresh dependency installation, paged review, calendar/profile checks,
-approved/pending/Ramadan restart state, 26 sensors plus a calendar, real card
-picker/editor and display toggles. These are
-[pre-merge results](validation.md#paged-import-review--candidate-080), not evidence
-for the combined tree. Earlier 0.7.0 results are also retained in the validation log.
-
-Validate requires the reusable minimum/current live matrix with explicit fresh-
-dependency proof; the live matrix also runs weekly.
-Milestone 17's [main Validate run](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40208986292)
-passed six jobs and **880 Python tests**. The subsequent dashboard
-[PR #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16)
-merged, and [post-merge main Validate run
-40212875119](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40212875119)
-passed all six jobs and **884 Python tests on the first attempt** for
-`c8e65bd01250af0b892782c0e1ef04b99072e37a`. The later
-[0.8.0 main run 40229412033](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40229412033)
-passed all six jobs and **936 tests**. The 0.8.1
-[PR #21 branch run 40242996936](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40242996936)
-passed all six jobs and **955 Python tests**, including monthly-source
-coexistence and PDF auto-recognition regression tests. The independent
-[calendar-trigger timing flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-remains open for hosted stability evidence after the documented local
-background-refresh synchronization diagnosis and fix. Green main CI is not a
-public release sign-off.
-Hosted acceptance includes automated config-entry removal/re-addition and actual
-Home Assistant **Container** archive restoration. HACS UI uninstall/reinstallation
-and full **HAOS** archive restoration remain unverified release gates.
-Recent dashboard additions (Fajr end at published Sunrise, NMS Friday second-
-khutbah notes, mosque Hijri-date setup/options visibility) also require manual
-preview and persisted-settings acceptance on supported installations; see
-[dashboard](dashboard.md) and the [release checklist](releasing.md).
-
-## Subsequent additions
-
-Ramadan import review now checks adjusted confirmed-window coverage, inherited and
-unavailable values, advisory time ordering and approval-time source ambiguity. The
-real NMS May–June 2022 and Zakariyya 2026 annual/Ramadan fixtures have strict
-adapters and independent expected-value comparisons. See [Ramadan validation](ramadan_validation.md).
-
-1. Verify the NMS website's public HTTPS timetable URL and scheduled changes on a
-   network that can access it. Its supplied HTTP URL remains intentionally rejected;
-   manual import of the attached NMS PDF is tested.
-2. Add a complete NMS Ramadan publication and additional inspected mosque editions.
-   Support native cross-year Ramadan publications without changing printed dates; current imports use one
-   Gregorian year per source. Add further adapters only after obtaining inspectable,
-   redistributable fixtures and an independent expected-results comparison. Unknown
-   layouts and scanned/encrypted PDFs remain unsupported.
-3. Follow [the feature roadmap](milestones.md#next-increments). Milestones **8,
-   9, 12, 13 and 17** are implemented through candidate 0.8.0 (release acceptance
-   pending). Milestone **10A** card/editor localization and RTL is implemented
-   in 0.9.0, with local/live validation passed and release acceptance pending; continue **10B** integration
-   forms/entities and fluent review of the draft Arabic wording. Milestone **11**
-   now has separately locked minimum/current unit suites, both passing locally;
-   its merged-workflow hosted validation and the
-   [calendar-trigger CI follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-   remain to track. Milestones **14–16** (night periods, wall-tablet
-   display and published special events) are subsequent additions.
-4. Consider the HACS default catalogue after the full user workflow and release
-   process are established. Custom-repository support is the current route.
-
-5. Review proposed [Milestone 18's optional offline history companion](milestones.md#milestone-18--optional-offline-history-companion-proposed)
-   using the [source audit](islamic-history-source-audit.md). The candidate dataset
-   remains research only. Complete its editorial, date-precision and attribution
-   criteria before considering runtime promotion; the proposal does not authorize
-   a historical event feed or alter approved prayer events.
+Milestones 1–5, 7A/7B, 8, 9, 10A, 11, 12, 13 and 17 have implemented
+features or tests. Their exact scopes remain in [milestones.md](milestones.md).
+Original 0.7.0–0.9.0 acceptance runs, earlier failed CI attempts and
+manual-install evidence remain in [validation.md](validation.md).
+The [25 October review action plan](archive/review-action-plan-2026-10-25.md)
+is historical, not an active task list. The
+[import review guide](import_review.md) is the authoritative explanation of
+source comparison and approval; historical links to `import_comparison.md`
+continue to resolve.

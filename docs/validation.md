@@ -1,6 +1,38 @@
 # Validation record
 
-## Current recorded status — 26 October 2026
+This is a **dated evidence log**, not the live feature backlog or the release
+acceptance checklist. See [remaining work](remaining-work.md) for engineering
+priorities and [release readiness](releasing.md#current-release-readiness) for
+blocking manual sign-offs.
+
+## Latest merged CI evidence — 26 October 2026
+
+On code commit `b6dbe14bb75b791fbb1171e981494d2a21dbe07e`,
+[Validate 40337238065](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238065)
+passed **12 of 12 jobs on the first attempt**, and
+[CodeQL 40337238192](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238192)
+passed. Validation covers the locked development Python suite, frontend/Chromium,
+HACS, hassfest, all five exhaustive HA 2026.10.0 minimum-compatibility groups,
+the unsharded 2026.10.3 supported-current suite, and both real Container live
+smoke checks (including fresh dependency and backup/restore coverage).
+
+[PR #23](https://github.com/anaschillin/home-assistant-salah-timetable/pull/23)
+corrected the frozen-router test fixture and invalid-PDF lifecycle.
+[PR #26](https://github.com/anaschillin/home-assistant-salah-timetable/pull/26)
+simplified the compatibility test matrix; [PR #27](https://github.com/anaschillin/home-assistant-salah-timetable/pull/27)
+removed redundant CI setup and improved disposable HA startup diagnostics.
+[Calendar issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+and [minimum-HA CI issue #24](https://github.com/anaschillin/home-assistant-salah-timetable/issues/24)
+are **closed**, though the root cause of the *original unsharded*
+minimum-HA hang was never conclusively identified. Five bounded minimum
+groups are retained rather than claiming the old single-process run is reliable.
+
+This evidence applies to the exact code commit above, not a future release
+tag. No draft/published release or full HAOS/Supervisor restore was verified by
+these CI runs, and manual HACS UI acceptance and redistribution rights remain
+tracked in [releasing.md](releasing.md).
+
+## 0.9.0 candidate validation — 26 October 2026
 
 Candidate **0.9.0** combines the merged 0.8.1 Hijri-first/import changes with
 Milestone **10A**: automatic or explicit English/Arabic card and editor labels,
@@ -149,7 +181,7 @@ user-confirmed removal/reinstall result above (REV-06).
 A passed HACS *repository check* or a Container config-entry lifecycle test
 is not evidence of HACS UI reinstallation. All three remain **open**, with
 the current decision criteria in the
-[single release checklist](releasing.md#current-release-readiness--25-october-2026)
+[single release checklist](releasing.md#current-release-readiness)
 and executable evidence procedures in
 [asset provenance](asset-provenance.md),
 [backup restore](backup-restore-acceptance.md) and
