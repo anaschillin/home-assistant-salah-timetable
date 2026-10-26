@@ -66,6 +66,32 @@ changes a committed lock. Each lane creates its own `TMPDIR` before installation
 and testing. A compatibility failure is not resolved by silently
 switching both jobs to the same HA version or relaxing the plugin's HA pin.
 
+## Diagnosing a stalled hosted minimum-version suite
+
+On 26 October 2026, [Validate run 40294570513](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40294570513) on `1aa2719`
+reported the HA 2026.10.0 unit job as **cancelled** while executing pytest.
+Its installation and exact-version checks succeeded; the HA 2026.10.3 suite
+finished 978 tests, while the minimum job did not publish a JUnit artifact.
+The cancelled job's archived log could not be retrieved, so there is **no
+identified failing test**. A job-level `timeout-minutes: 15` was configured,
+but the observed job lifetime was roughly 20 minutes; that discrepancy alone
+does not prove pytest itself emitted a timeout.
+
+The compatibility workflow now streams verbose per-test progress (`-vv`),
+keeps Python output unbuffered, emits a faulthandler traceback after 120
+seconds in a stuck pytest phase, and writes `pytest.log` to the compatibility
+artifact folder. An explicit **12-minute process watchdog** exits before the
+15-minute Actions job timeout, so the `if: always()` artifact step has an
+opportunity to preserve the log and any partial JUnit/coverage outputs. Existing
+`--timeout=30` per-test enforcement is unchanged. The watchdog does not
+silently skip tests or claim a timeout is a passing result.
+
+If the minimum suite stalls again, inspect the latest `ha-unit-compatibility-2026.10.0`
+artifact's `pytest.log`, identify the last `-vv` test and traceback, and
+reproduce that test against the **separate minimum lock** before considering
+any test or application changes. Rerun evidence from the original commit is
+separate from testing this diagnostic workflow.
+
 When changing a support target, update its project pins, regenerate only that
 project's lock, update the workflow matrix and this guide, then run the lane and
 the corresponding live Container checks before claiming compatibility.
