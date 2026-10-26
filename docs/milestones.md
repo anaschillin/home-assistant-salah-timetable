@@ -47,7 +47,7 @@ their completion requires implementation and the stated acceptance evidence.
 | 7B | Approved-date coverage monitoring and opt-in health alerts | Implemented | Effective timetable resolver; blueprint pattern |
 | 8 | Native prayer calendar | Implemented; release acceptance pending | Approved dated records and event engine |
 | 9 | Supported-publication setup profiles | Implemented; release acceptance pending | Secure downloads, inspected layouts and approval flows |
-| 10A | Card/editor English, Arabic, bilingual labels and RTL layout | Implemented; validation and acceptance pending | Stable prayer keys and current card |
+| 10A | Card/editor English, Arabic, bilingual labels and RTL layout | Implemented; release acceptance pending | Stable prayer keys and current card |
 | 10B | Integration forms/entities and reviewed translations | Planned | 10A catalogue conventions; fluent-language review |
 | 11 | Minimum/current compatibility tests and weekly validation | In progress | Existing CI and reproducible dependency lock |
 | 12 | Richer Adhan playback controls | Implemented; release acceptance pending | 7A; calendar triggers from 8 when available |
@@ -70,7 +70,8 @@ REV-08's import-difference portion is fulfilled by Milestone 17. Candidate
 0.9.0 implements **10A** for the card/editor, including English/Arabic selection,
 bilingual known prayer labels and RTL presentation, while preserving 0.8.1's
 Hijri-first header and automatic Annual/Monthly/Ramadan import choices.
-Validation and applicable acceptance are pending. Continue **10B** (integration
+Local unit/native-browser checks and 29 live HA checks passed; exact-commit CI
+and applicable manual acceptance remain required. Continue **10B** (integration
 translations and reviewed wording) with **11** (broader compatibility testing)
 in parallel; 14–16 follow. Milestone numbering does not set release order.
 
@@ -328,7 +329,7 @@ HTTPS/redirect restrictions and no automatic activation of changed source data.
 
 ## Milestone 10 — localization and right-to-left layouts (in progress)
 
-### 10A — bundled card/editor (implemented; validation and acceptance pending)
+### 10A — bundled card/editor (implemented; release acceptance pending)
 
 The card/editor supports automatic HA-language selection or explicit English and
 Arabic, English fallback, optional bilingual known prayer labels and RTL layout.

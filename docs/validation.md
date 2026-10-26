@@ -21,8 +21,18 @@ sequentially to avoid starving debugger requests. Local evidence files are
 
 The base 0.8.1 main commit `10f63c8ed80f5419379a194f4fec494a37ef4e7a` passed
 [Validate 40243730141](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40243730141).
-That result does not validate the later 0.9.0 changes. Actual HA editor/live
-validation and exact final-commit hosted CI will be recorded separately.
+That result does not validate the later 0.9.0 changes.
+
+The clean 0.9.0 source commit `5942654` subsequently passed **29 live checks**
+on official HA **2026.10.0**, including fresh `pypdf==6.21.1` installation,
+real Container backup archive restore, two-mosque isolation, paged import review
+and the actual HA graphical editor. The browser exercised English and Arabic,
+both bilingual modes, four widths, 200% text, keyboard focus, theme changes,
+saved configuration after reload and automatic HA language changes en → ar → en.
+`/tmp/salah-live-0.9.0/results.json` records status `passed` and
+`working_tree_dirty: false`. This is Container/browser acceptance, not a full
+HAOS restore or physical-device sign-off. Exact final-commit hosted CI remains
+required.
 Arabic wording remains a draft awaiting fluent-language review; physical-device
 acceptance and the external release gates remain open. No tag or release was
 published.

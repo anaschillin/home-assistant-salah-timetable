@@ -20,8 +20,8 @@ SHAs; a final release commit still needs its own successful required jobs.
 records REV-01–06 implementation history; use this section for the outstanding
 sign-offs. REV-07 compatibility expansion remains ongoing; REV-08's
 import-change comparison is implemented in Milestone 17. Milestone 10A's
-card/editor localization and RTL is implemented in candidate 0.9.0 with validation
-and acceptance pending; integration translations and reviewed wording remain 10B. These follow-ups belong in
+card/editor localization and RTL is implemented in candidate 0.9.0 with local
+and live checks passed; release acceptance remains pending, while integration translations and reviewed wording remain 10B. These follow-ups belong in
 [remaining work](remaining-work.md), not in the current release gate unless
 they uncover a blocking regression.
 

@@ -22,7 +22,8 @@ Gregorian date and strict automatic known-PDF detection behind user-facing
 Annual / Monthly / Ramadan choices.
 Candidate 0.9.0 implements Milestone 10A card/editor English/Arabic selection,
 bilingual prayer labels and RTL while retaining those date and import controls.
-Validation and applicable release acceptance remain pending. Milestone 10B
+Local unit/native-browser checks and 29 live HA checks passed; exact-commit CI
+and applicable release acceptance remain required. Milestone 10B
 integration translations, fluent-language review of draft Arabic and broader
 compatibility tests follow separately. Applicable release acceptance
 is tracked in [the release guide](releasing.md), not in this feature backlog.
@@ -109,7 +110,7 @@ adapters and independent expected-value comparisons. See [Ramadan validation](ra
 3. Follow [the feature roadmap](milestones.md#next-increments). Milestones **8,
    9, 12, 13 and 17** are implemented through candidate 0.8.0 (release acceptance
    pending). Milestone **10A** card/editor localization and RTL is implemented
-   in 0.9.0, with validation and acceptance pending; continue **10B** integration
+   in 0.9.0, with local/live validation passed and release acceptance pending; continue **10B** integration
    forms/entities and fluent review of the draft Arabic wording. Continue **11**
    (expanded compatibility and the
    [calendar-trigger CI follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13))
