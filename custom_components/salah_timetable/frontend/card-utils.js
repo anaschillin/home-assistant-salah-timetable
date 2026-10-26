@@ -91,8 +91,17 @@ export function isTimetableState(state) {
   return Boolean(state && Array.isArray(state.attributes?.prayers) && typeof state.attributes?.mosque_name === "string");
 }
 
+export function discoverTimetableEntities(hass) {
+  // Each mosque exposes its own dashboard sensor. Do not use the integration-wide
+  // entity selector, which also lists individual prayer and status sensors.
+  return Object.entries(hass?.states || {})
+    .filter(([entity, state]) => entity.startsWith("sensor.") && isTimetableState(state))
+    .map(([entity, state]) => ({entity, name: state.attributes.mosque_name}))
+    .sort((left, right) => left.name.localeCompare(right.name) || left.entity.localeCompare(right.entity));
+}
+
 export function discoverEntity(hass) {
-  return Object.entries(hass?.states || {}).find(([, state]) => isTimetableState(state))?.[0] || "";
+  return discoverTimetableEntities(hass)[0]?.entity || "";
 }
 
 function eventOf(event) {
