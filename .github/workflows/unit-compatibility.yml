@@ -30,11 +30,18 @@ jobs:
             plugin-version: '0.13.374'
     env:
       COMPAT_PROJECT: compatibility/${{ matrix.lane }}
-      UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/salah-unit-${{ matrix.ha-version }}
-      COMPAT_EVIDENCE: ${{ runner.temp }}/salah-unit-evidence-${{ matrix.ha-version }}
-      COVERAGE_FILE: ${{ runner.temp }}/salah-unit-${{ matrix.ha-version }}.coverage
-      TMPDIR: ${{ runner.temp }}/salah-unit-temp-${{ matrix.ha-version }}
     steps:
+      - name: Configure isolated runner paths
+        env:
+          COMPAT_HA_VERSION: ${{ matrix.ha-version }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/salah-unit-temp-$COMPAT_HA_VERSION"
+          {
+            echo "UV_PROJECT_ENVIRONMENT=$RUNNER_TEMP/salah-unit-$COMPAT_HA_VERSION"
+            echo "COMPAT_EVIDENCE=$RUNNER_TEMP/salah-unit-evidence-$COMPAT_HA_VERSION"
+            echo "COVERAGE_FILE=$RUNNER_TEMP/salah-unit-$COMPAT_HA_VERSION.coverage"
+            echo "TMPDIR=$RUNNER_TEMP/salah-unit-temp-$COMPAT_HA_VERSION"
+          } >> "$GITHUB_ENV"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:

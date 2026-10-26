@@ -58,8 +58,10 @@ HA's shared temporary upload directory; per-lane temporary directories removed
 that interference, and the workflow/local guide now isolate these directories.
 
 The new reusable unit workflow runs on Validate, weekly and manually, with version,
-JUnit and coverage artifacts. Its exact merged-commit hosted result remains
-pending. HA 2026.10.3 is the reviewed support target; these checks do not claim
+JUnit and coverage artifacts. Its first hosted submission on `116498e` was rejected
+before job execution because `runner.temp` was used in job-level `env`. Path
+configuration now occurs in a runtime setup step, and actionlint 1.7.7 validates
+the workflow expressions. The corrected commit still requires hosted validation. HA 2026.10.3 is the reviewed support target; these checks do not claim
 compatibility with every newer HA release. See [the compatibility guide](compatibility.md).
 The historical-events branch was also reviewed and merged as **research-only**
 documentation: twelve candidates, explicit date precision and future editorial
