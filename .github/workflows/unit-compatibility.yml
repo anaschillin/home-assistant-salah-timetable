@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   compatibility:
-    name: Unit tests on HA ${{ matrix.ha-version }} (${{ matrix.lane }}, shard ${{ matrix.shard-index }}/${{ matrix.shard-count }})
+    name: Unit tests on HA ${{ matrix.ha-version }} (${{ matrix.lane }}, shard ${{ matrix.shard-index }}/${{ matrix.shard-count }}, cases ${{ matrix.case-index || 0 }}/${{ matrix.case-count || 1 }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -52,11 +52,51 @@ jobs:
             plugin-version: '0.13.371'
             shard-index: 24
             shard-count: 64
+          # Isolate the only remaining stalled module, test_source_flow.py,
+          # into six full-function groups; parameterizations remain together.
+          # The same module's every top-level test function is run exactly once.
           - lane: minimum
             ha-version: '2026.10.0'
             plugin-version: '0.13.371'
             shard-index: 40
             shard-count: 64
+            case-index: 0
+            case-count: 6
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 40
+            shard-count: 64
+            case-index: 1
+            case-count: 6
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 40
+            shard-count: 64
+            case-index: 2
+            case-count: 6
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 40
+            shard-count: 64
+            case-index: 3
+            case-count: 6
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 40
+            shard-count: 64
+            case-index: 4
+            case-count: 6
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 40
+            shard-count: 64
+            case-index: 5
+            case-count: 6
           - lane: minimum
             ha-version: '2026.10.0'
             plugin-version: '0.13.371'
@@ -122,6 +162,8 @@ jobs:
         env:
           SHARD_INDEX: ${{ matrix.shard-index }}
           SHARD_COUNT: ${{ matrix.shard-count }}
+          CASE_INDEX: ${{ matrix.case-index || 0 }}
+          CASE_COUNT: ${{ matrix.case-count || 1 }}
         run: |
           set -euo pipefail
           # Every tests/test_*.py file is assigned to exactly one shard in
@@ -141,6 +183,40 @@ jobs:
             "$SHARD_INDEX" "$SHARD_COUNT" \
             "${#TEST_FILES[@]}" "${#ALL_TEST_FILES[@]}"
           printf '%s\n' "${TEST_FILES[@]}" | tee "$COMPAT_EVIDENCE/test-files.txt"
+          TEST_NODES=("${TEST_FILES[@]}")
+          if (( CASE_COUNT > 1 )); then
+            # This split is only for one module: use AST so every top-level
+            # test function (including every parametrization) is selected once.
+            test "${#TEST_FILES[@]}" -eq 1
+            "$UV_PROJECT_ENVIRONMENT/bin/python" - "${TEST_FILES[0]}" \
+              "$CASE_INDEX" "$CASE_COUNT" > "$COMPAT_EVIDENCE/selected-tests.txt" <<'PY'
+          import ast
+          import sys
+          from pathlib import Path
+
+          path = Path(sys.argv[1])
+          index, count = int(sys.argv[2]), int(sys.argv[3])
+          tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+          tests = [
+              node.name for node in tree.body
+              if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+              and node.name.startswith("test_")
+          ]
+          if not tests or not 0 <= index < count:
+              raise SystemExit("No tests or invalid source-flow subshard")
+          selected = [name for i, name in enumerate(tests) if i % count == index]
+          if not selected:
+              raise SystemExit("Empty source-flow subshard")
+          for name in selected:
+              print(f"{path}::{name}")
+          PY
+            mapfile -t TEST_NODES < "$COMPAT_EVIDENCE/selected-tests.txt"
+          else
+            printf '%s\n' "${TEST_NODES[@]}" > "$COMPAT_EVIDENCE/selected-tests.txt"
+          fi
+          test "${#TEST_NODES[@]}" -gt 0
+          echo "Executing ${#TEST_NODES[@]} test selectors:"
+          printf '%s\n' "${TEST_NODES[@]}"
           # Redirect directly to a file (avoid inherited tee pipe descriptors).
           touch "$COMPAT_EVIDENCE/pytest.log"
           trap 'tail -n 160 "$COMPAT_EVIDENCE/pytest.log" || true' EXIT
@@ -150,7 +226,7 @@ jobs:
               --timeout=30 -vv -o faulthandler_timeout=120 \
               --junitxml="$COMPAT_EVIDENCE/junit.xml" \
               --cov-report="xml:$COMPAT_EVIDENCE/coverage.xml" \
-              "${TEST_FILES[@]}" \
+              "${TEST_NODES[@]}" \
             > "$COMPAT_EVIDENCE/pytest.log" 2>&1
       - name: Verify reproducible development and compatibility locks were unchanged
         if: always()
@@ -159,7 +235,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: ha-unit-compatibility-${{ matrix.ha-version }}-shard-${{ matrix.shard-index }}
+          name: ha-unit-compatibility-${{ matrix.ha-version }}-shard-${{ matrix.shard-index }}-case-${{ matrix.case-index || 0 }}
           path: ${{ env.COMPAT_EVIDENCE }}/
           if-no-files-found: ignore
           retention-days: 7

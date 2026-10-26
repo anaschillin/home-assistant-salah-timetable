@@ -131,3 +131,9 @@ Rerun evidence from the original commit is separate from this branch.
 When changing a support target, update its project pins, regenerate only that
 project's lock, update the workflow matrix and this guide, then run the lane and
 the corresponding live Container checks before claiming compatibility.
+
+## Source import test-module isolation (26 October 2026)
+
+[Validate run 40313772094](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40313772094) completed eight of the nine minimum HA 2026.10.0 shards, all with success; **40/64** alone was cancelled without a log or artifact. It contained only `tests/test_source_flow.py`, so no single test could be named from that run. The entire current-version HA unit suite, standalone Python suite, live checks, frontend, HACS and hassfest all passed.
+
+To isolate test interactions, the minimum 40/64 module runs in six independent processes. The subprocess selects top-level test functions by their stable AST order modulo six, keeping every pytest parameterization associated with its test function. The six case groups together cover every test in this file exactly once, while the other eight minimum groups and the full supported-current suite retain their test coverage. Each case group records `selected-tests.txt` separately, with a unique artifact name. This is an **isolation experiment**, not permission to omit failing tests or treat cancelled jobs as success.
