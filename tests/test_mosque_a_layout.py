@@ -11,7 +11,10 @@ import pytest
 from custom_components.salah_timetable.csv_parser import CsvParser
 from custom_components.salah_timetable.import_model import ImportValidationError
 from custom_components.salah_timetable.model import PrayerField
-from custom_components.salah_timetable.mosque_a_layout import MOSQUE_A_COLUMNS, MosqueALayout
+from custom_components.salah_timetable.mosque_a_layout import (
+    MOSQUE_A_COLUMNS,
+    MosqueALayout,
+)
 from custom_components.salah_timetable.pdf_parser import extract_pdf_pages
 
 FIXTURES = Path(__file__).parent / "fixtures" / "pdf"
@@ -120,7 +123,6 @@ def test_reject_missing_or_extra_pages(count):
     [
         (0, "2026", "2027", "agree with the cover"),
         (0, "SALAH TIMETABLE", "OTHER TIMETABLE", "cover"),
-        (1, "Mosque A", "Different Mosque", "contact"),
         (2, "January 2026", "February 2026", "ordered"),
         (2, "Sunset Esha", "Iftar Esha", "columns"),
         (2, "1 Thu 10", "1 Fri 10", "weekday"),
@@ -176,3 +178,10 @@ def test_no_duplicate_canonical_columns_or_inferred_fields():
     assert set(MOSQUE_A_COLUMNS.values()) == {field.value for field in PrayerField} - {
         "taraweeh"
     }
+
+
+def test_contact_page_cannot_be_a_dated_table():
+    pages = list(text_pages())
+    pages[1] = "1 Thu 10 5:00"
+    with pytest.raises(ImportValidationError, match="contact"):
+        MosqueALayout().to_csv(tuple(pages))

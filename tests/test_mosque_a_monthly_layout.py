@@ -81,7 +81,6 @@ def test_monthly_csv_provenance_and_wrong_year(pages):
     (0, "5:07", "5:99"),
     (0, "Dawn Sunrise", "Dawn Moonrise"),
     (0, "Dates Beginning / End Times Jamaat Times", "Unknown footer"),
-    (0, "www.mosque-a.example.org", "not-a-url.example.org"),
 ])
 def test_reject_modified_structure_and_times(pages, page, old, new):
     assert old in pages[page]
@@ -101,3 +100,8 @@ def test_reject_duplicate_missing_or_reordered_rows(pages):
     ):
         with pytest.raises(ImportValidationError):
             MosqueAMonthlyLayout().to_csv(("\n".join(variant), pages[1]))
+
+
+def test_monthly_layout_does_not_depend_on_a_specific_publisher_url(pages):
+    changed = tuple(page.replace("www.mosque-a.example.org", "www.other-example.test") for page in pages)
+    assert MosqueAMonthlyLayout().to_csv(changed) == MosqueAMonthlyLayout().to_csv(pages)

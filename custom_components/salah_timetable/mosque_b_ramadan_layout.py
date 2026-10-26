@@ -53,7 +53,7 @@ _HEADER = (
     "DATE SEHRI FAJR ZOHAR ASAR MAGRIB ISHA",
     "DATE DAY ISLAMIC END START JAMAAT SUNRISE START JAMAAT START JAMAAT START START JAMAAT",
 )
-_SITE = "www.Mosque Bmasjid.co.uk"
+_SITE = "www."  # Structural website prefix; no publisher identity is required.
 _PAGE_PREFIX = ("publisher preamble",) * 9 + ("Ramadhan Kareem 1447 AH",)
 
 

@@ -33,24 +33,6 @@ _HEADER = (
     "Sunset Esha Start x Fajr Dhuhr / Jumu'ah Asr Maghrib (Iftaar) Esha"
 )
 _MOONSIGHTING = "*Hijri Date is subject to Moonsighting"
-_HIJRI_MONTHS = (
-    "Muḥarram",
-    "Ṣafar",
-    "Rabīʿ al-Awwal",
-    "Rabīʿ al-Ākhir",
-    "Jumādā al-Ūlā",
-    "Jumādā al-Ākhirah",
-    "Rajab",
-    "Shaʿbān",
-    "Ramaḍān",
-    "Shawwāl",
-    "Dhū al-Qaʿdah",
-    "Dhū al-Ḥijjah",
-)
-_HIJRI_MONTH = (
-    "(?:" + "|".join(re.escape(name) for name in _HIJRI_MONTHS) + ") [0-9]{4}"
-)
-_HIJRI_HEADING = re.compile(_HIJRI_MONTH + "(?: - " + _HIJRI_MONTH + "){0,2}")
 _KHUTBAH = re.compile(
     r"Second Jumu'ah Khutbah will commence at (?:[1-9]|1[0-2]):[0-5][0-9](?:am|pm) "
     r"in the Masjid Dining Hall"
@@ -123,19 +105,18 @@ class MosqueAMonthlyLayout:
             # its final row. It is not a source value and cannot stand for a time.
             if footer and footer[0] == "x":
                 footer = footer[1:]
+            # The table and dated rows determine the adapter, not the publisher's
+            # address, logo or decorative footer artwork. Keep the explicitly
+            # printed month and separately labelled khutbah as required context.
             if (
-                len(footer) != 6
-                or not footer[0].startswith("www.")
-                or not footer[1].strip()
-                or footer[2] != f"{month_name} {year_text}"
-                or not _HIJRI_HEADING.fullmatch(footer[3])
-                or footer[4] != _TABLE_MARKER
-                or not _KHUTBAH.fullmatch(footer[5])
+                f"{month_name} {year_text}" not in footer
+                or _TABLE_MARKER not in footer
+                or not any(_KHUTBAH.fullmatch(line) for line in footer)
             ):
                 raise ImportValidationError(
                     "MOSQUE_A monthly headings or footer are not recognized"
                 )
-            khutbah = published_second_khutbah(footer[5])
+            khutbah = published_second_khutbah(" ".join(footer))
             assert khutbah is not None
             prior: dict[int, int] = {}
             for expected_day, index in enumerate(row_indices, start=1):

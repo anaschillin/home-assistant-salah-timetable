@@ -20,7 +20,7 @@ from custom_components.salah_timetable.import_flow import IGNORE_COLUMN
 from custom_components.salah_timetable.model import PrayerField
 from custom_components.salah_timetable.source_model import RemoteSource
 
-FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_b.pdf"
+FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_b_2026.pdf"
 SOURCE_URL = "https://mosque.example.org/mosque-b-2026.pdf"
 
 
@@ -50,7 +50,7 @@ async def upload(hass, entry, client, *, kind="annual"):
     result = await open_step(hass, entry, "import_pdf")
     body = FormData()
     body.add_field(
-        "file", FIXTURE.read_bytes(), filename="mosque_b.pdf", content_type="application/pdf"
+        "file", FIXTURE.read_bytes(), filename="mosque_b_2026.pdf", content_type="application/pdf"
     )
     response = await client.post("/api/file_upload", data=body)
     assert response.status == 200
