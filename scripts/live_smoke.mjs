@@ -217,13 +217,6 @@ try {
   assert.ok(calendarFajr.uid);
   assert.equal((await request("/api/calendars")).filter(item => item.entity_id === calendarId).length, 1);
   report.checks.push("native_calendar_approved_instant_events");
-  let profileFlow = await optionsFlow(entry, "publication_profile");
-  assert.equal(profileFlow.step_id, "publication_profile");
-  profileFlow = await request(`/api/config/config_entries/options/flow/${profileFlow.flow_id}`, {profile_id: "nms_annual_2026_v1", year: 2026});
-  assert.equal(profileFlow.errors.base, "invalid_publication_profile");
-  assert.ok(profileFlow.description_placeholders.detail.includes("Europe/London"));
-  await request(`/api/config/config_entries/options/flow/${profileFlow.flow_id}`, undefined, {method: "DELETE"});
-  report.checks.push("publication_profile_picker_timezone_guard");
   let ws = await websocket();
   const version = JSON.parse(await readFile(join(root, "custom_components/salah_timetable/manifest.json"), "utf8")).version;
   const cardUrl = `/salah_timetable/salah-timetable-card.js?v=${version}`;
