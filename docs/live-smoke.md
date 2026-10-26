@@ -1,4 +1,4 @@
-# Opt-in live Home Assistant acceptance runner
+# Disposable Home Assistant live acceptance runner
 
 The runner is used by the required minimum/current HA matrix in Validate and can
 also run manually. The reusable live workflow runs weekly as a compatibility check. It creates a
@@ -36,7 +36,7 @@ entity IDs and resource registration survived restart. The actual card picker,
 keyboard title/focus, themes and phone/tablet viewports passed. Every display
 control was exercised; saved settings survived page reload, changed the rendered
 card, and preserved prayer data and Ramadan activation. See
-[validation](../docs/validation.md#peer-review-follow-up--candidate-061).
+[validation](validation.md#peer-review-follow-up--candidate-061).
 The subsequent hosted live run
 [40131759984](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40131759984)
 passed HA 2026.10.0 and 2026.10.3, including per-toggle visible preview checks, on

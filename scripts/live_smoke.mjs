@@ -52,6 +52,8 @@ const report = {ha_version: options.version, dependency_preloaded: options.prelo
 let created = false;
 let activeSocket;
 let userRequested = false;
+let startupPhase = "container setup";
+let startupStartedAt = null;
 
 function command(executable, args, {cleanup = false} = {}) {
   return new Promise((resolve, reject) => {
@@ -65,10 +67,10 @@ function command(executable, args, {cleanup = false} = {}) {
 }
 
 let base; let tokens;
-async function request(path, data, {auth = true, method = data === undefined ? "GET" : "POST", form = false} = {}) {
+async function request(path, data, {auth = true, method = data === undefined ? "GET" : "POST", form = false, timeoutMs = 90000} = {}) {
   const headers = auth && tokens ? {Authorization: `Bearer ${tokens.access_token}`} : {};
   if (data !== undefined && !form) headers["Content-Type"] = "application/json";
-  const response = await fetch(base + path, {method, headers, body: data === undefined ? undefined : form ? data : JSON.stringify(data), signal: AbortSignal.any([abort.signal, AbortSignal.timeout(90000)])});
+  const response = await fetch(base + path, {method, headers, body: data === undefined ? undefined : form ? data : JSON.stringify(data), signal: AbortSignal.any([abort.signal, AbortSignal.timeout(timeoutMs)])});
   if (!response.ok) throw Object.assign(new Error(`${method} ${path} returned HTTP ${response.status}`), {status: response.status});
   return response.status === 204 ? null : response.json();
 }
@@ -149,6 +151,7 @@ try {
   report.custom_ca_bundle = Boolean(options.caBundle);
   await command("docker", ["create", ...trust, "--name", container, "--publish", `127.0.0.1:${hostPort}:8123`, "--mount", `type=bind,src=${config},dst=/config`, "--mount", `type=bind,src=${join(root, "custom_components")},dst=/config/custom_components,readonly`, image]);
   created = true;
+  startupPhase = "container created";
   if (options.preload) {
     const discovery = "import importlib.metadata,importlib.util,json,pathlib; d=importlib.metadata.distribution('pypdf'); print(json.dumps({'version':d.version,'package':str(pathlib.Path(importlib.util.find_spec('pypdf').origin).parent),'metadata':str(d.locate_file(next(p.parts[0] for p in d.files if p.parts[0].endswith('.dist-info'))))}))";
     const dependency = JSON.parse(await command(join(root, ".venv/bin/python"), ["-c", discovery]));
@@ -159,13 +162,17 @@ try {
     await command("docker", ["cp", dependency.metadata, `${container}:${site}/${basename(dependency.metadata)}`]);
     console.log(`Explicitly preloaded locked pypdf ${expected}; fresh dependency installation is not tested`);
   }
+  startupStartedAt = Date.now();
+  startupPhase = "starting container";
   await command("docker", ["start", container]);
   const port = await command("docker", ["port", container, "8123/tcp"]);
   assert.equal(port, `127.0.0.1:${hostPort}`); base = `http://${port}`;
-  console.log(`Waiting for disposable HA ${options.version}`);
-  await until(() => request("/api/onboarding", undefined, {auth: false}), value => Array.isArray(value), "HA did not start", 120);
+  startupPhase = "waiting for onboarding API";
+  console.log(`Waiting for disposable HA ${options.version} on loopback (5-second probes)`);
+  await until(() => request("/api/onboarding", undefined, {auth: false, timeoutMs: 5000}), value => Array.isArray(value), "HA did not start", 120);
   const client = base + "/";
   userRequested = true;
+  startupPhase = "onboarding";
   const user = await request("/api/onboarding/users", {name: "Salah Smoke", username: "salah_smoke", password: randomBytes(24).toString("hex"), client_id: client, language: "en"}, {auth: false});
   tokens = await request("/auth/token", new URLSearchParams({grant_type: "authorization_code", code: user.auth_code, client_id: client}), {auth: false, form: true});
   for (const [step, body] of [["core_config", {}], ["analytics", {}], ["integration", {client_id: client, redirect_uri: `${client}?auth_callback=1`}]]) {
@@ -332,6 +339,29 @@ try {
   // Startup logs are safe before credentials exist; never export configuration
   // files or authenticated-session logs into the public result directory.
   if (created && !userRequested) {
+    // Capture only container process state and pre-authentication startup logs.
+    // Never export the private /config volume or Docker environment variables.
+    const diagnostics = {
+      phase: startupPhase,
+      elapsed_seconds: startupStartedAt === null ? null : Math.round((Date.now() - startupStartedAt) / 1000),
+    };
+    const rawState = await command("docker", ["inspect", "--format", "{{json .State}}", container], {cleanup: true}).catch(() => null);
+    if (rawState) {
+      try {
+        const state = JSON.parse(rawState);
+        diagnostics.container = {
+          status: state.Status,
+          running: state.Running,
+          exit_code: state.ExitCode,
+          oom_killed: state.OOMKilled,
+          started_at: state.StartedAt,
+        };
+      } catch {
+        diagnostics.container = {status: "inspect response unavailable"};
+      }
+    }
+    report.startup_diagnostics = diagnostics;
+    console.error(`Pre-onboarding HA startup diagnostics: ${JSON.stringify(diagnostics)}`);
     console.error(await command("docker", ["logs", "--tail", "40", container], {cleanup: true}).catch(() => "Startup logs unavailable"));
   }
   if (options.output) { await mkdir(options.output, {recursive: true}); await writeFile(join(options.output, "results.json"), JSON.stringify(report, null, 2) + "\n"); }
