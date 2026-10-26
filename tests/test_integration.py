@@ -109,6 +109,12 @@ async def test_two_mosques_are_isolated(hass, populated, freezer):
     second_id = registry.async_get_entity_id("sensor", DOMAIN, "other_fajr_begin")
     assert hass.states.get(first_id).state != "unavailable"
     assert hass.states.get(second_id).state == "unavailable"
+    # Each mosque has its own dashboard entity, even before its first import.
+    first_dashboard = registry.async_get_entity_id("sensor", DOMAIN, "example_dashboard")
+    second_dashboard = registry.async_get_entity_id("sensor", DOMAIN, "other_dashboard")
+    assert first_dashboard != second_dashboard
+    assert hass.states.get(first_dashboard).attributes["mosque_name"] == "Example Mosque"
+    assert hass.states.get(second_dashboard).attributes["mosque_name"] == "Other Mosque"
     assert len(registry.entities) == 2 * (len(PrayerField) + 11)
 
 
