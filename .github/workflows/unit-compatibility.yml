@@ -64,10 +64,18 @@ jobs:
             --output "$COMPAT_EVIDENCE/environment.json"
           uv pip freeze --python "$UV_PROJECT_ENVIRONMENT/bin/python" > "$COMPAT_EVIDENCE/installed.txt"
       - name: Run the complete Python suite from the repository root
+        shell: bash
         run: |
-          "$UV_PROJECT_ENVIRONMENT/bin/python" -m pytest -c pyproject.toml --timeout=30 \
-            --junitxml="$COMPAT_EVIDENCE/junit.xml" \
-            --cov-report="xml:$COMPAT_EVIDENCE/coverage.xml"
+          set -euo pipefail
+          # Keep enough time inside the 15-minute job limit to upload the
+          # last active test and traceback even if collection/teardown stalls.
+          timeout --signal=TERM --kill-after=30s 12m \
+            env PYTHONUNBUFFERED=1 PYTHONFAULTHANDLER=1 \
+            "$UV_PROJECT_ENVIRONMENT/bin/python" -m pytest -c pyproject.toml \
+              --timeout=30 -vv -o faulthandler_timeout=120 \
+              --junitxml="$COMPAT_EVIDENCE/junit.xml" \
+              --cov-report="xml:$COMPAT_EVIDENCE/coverage.xml" \
+            2>&1 | tee "$COMPAT_EVIDENCE/pytest.log"
       - name: Verify reproducible development and compatibility locks were unchanged
         if: always()
         run: git diff --exit-code -- pyproject.toml uv.lock compatibility/
