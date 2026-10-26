@@ -1,8 +1,14 @@
 # REV-05 — Real Home Assistant backup-archive restore acceptance
 
-**Status:** Reproducible tooling provided; a **full, observed restore on a
-disposable HAOS instance** is still required to close REV-05. The existing
-migration/per-entry storage tests cannot substitute for this release gate.
+**Status: deferred / lower priority (26 October 2026).** Reproducible
+tooling and passing disposable Home Assistant Container archive/restore checks
+are available. A **full, observed restore on a separate disposable HAOS
+instance** has not been performed; the existing migration/per-entry storage
+checks are narrower and must not be represented as a full HAOS restore.
+The maintainer has prioritised asset rights, HACS acceptance and focused
+runtime checks ahead of this relatively low-complexity setup. See the
+[release sign-off list](releasing.md#next-priorities-and-final-sign-off)
+for its outstanding acceptance status or an expressly documented scope decision.
 
 Home Assistant Container supports configuration backups and the official
 `homeassistant.backup_restore` module; HAOS has a broader full-backup
