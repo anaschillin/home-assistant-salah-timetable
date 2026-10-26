@@ -28,7 +28,9 @@ def source_clock(freezer):
 
 
 @pytest.fixture
-async def source_upload_client(hass, hass_client):
+async def source_upload_client(hass, hass_client, entry):
+    # The test HTTP client freezes its aiohttp router before entry setup.
+    assert await hass.config_entries.async_setup(entry.entry_id)
     assert await async_setup_component(hass, "file_upload", {})
     return await hass_client()
 
