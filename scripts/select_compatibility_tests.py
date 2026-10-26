@@ -21,7 +21,9 @@ def partition_test_files(test_dir: Path) -> dict[str, list[Path]]:
 
     other_modules = [path for path in modules if path != source_flow]
     if len(other_modules) < CORE_GROUPS:
-        raise ValueError("Not enough test modules for the configured compatibility groups")
+        raise ValueError(
+            "Not enough test modules for the configured compatibility groups"
+        )
 
     groups = {f"core-{index}": [] for index in range(CORE_GROUPS)}
     for index, path in enumerate(other_modules):
@@ -36,7 +38,10 @@ def partition_test_files(test_dir: Path) -> dict[str, list[Path]]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("group", choices=("all", "source-flow", *(f"core-{i}" for i in range(CORE_GROUPS))))
+    parser.add_argument(
+        "group",
+        choices=("all", "source-flow", *(f"core-{i}" for i in range(CORE_GROUPS))),
+    )
     parser.add_argument("--tests-dir", type=Path, default=Path("tests"))
     args = parser.parse_args()
 
