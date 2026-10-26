@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.9.1 — unreleased
+
+- Remove the optional inspected-publication-profile picker, edition catalogue,
+  profile-specific parser wrapper, metadata validation, translations and its
+  dedicated tests. Keep ordinary PDF/HTTPS imports, automatically detected
+  strict NMS/Zakariyya layouts and all approval and safety checks.
+- Continue loading older approved/staged imports containing legacy
+  `publication_profile_id` metadata; omit the retired field on future saves
+  without changing imported prayer data.
+- List each configured mosque's actual **Prayer timetable** dashboard sensor by
+  mosque name in the card editor. One reusable custom card type can be added
+  more than once, with each card bound to its own mosque. Preserve stored
+  selections through temporary sensor unavailability and test two cards in a
+  real disposable Lovelace dashboard.
+- Update the bundled card resource URL to invalidate cached 0.9.0 JavaScript,
+  with matching manifest, project, frontend, import-cache and lock versions.
+- Record successful full HACS removal/reinstallation and second-instance setup
+  as user-reported acceptance; repeat full multi-mosque dashboard checks in CI.
+
 ## 0.9.0 — unreleased
 
 - Add automatic or explicit English/Arabic dashboard and graphical-editor labels,
