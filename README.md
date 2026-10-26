@@ -11,8 +11,8 @@ Configure a mosque, add a public HTTPS PDF/CSV source or upload a file, map colu
 and approve a validated timetable in the Home Assistant UI. Changes are never
 activated automatically. No YAML sensors, templates or regex setup are required.
 
-**PDF compatibility is limited to documented layouts.** The inspected Nuneaton Muslim
-Society annual and monthly calendars, Zakariyya Masjid’s 2026 annual tables and
+**PDF compatibility is limited to documented layouts.** The inspected Mosque A
+Society annual and monthly calendars, Mosque B’s 2026 annual tables and
 separate Ramadan page, and the synthetic sample layout are validated. Other editions
 and mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layouts.md).
 
@@ -146,7 +146,7 @@ The card presents the **full calculated Umm al-Qura Hijri date first**, with
 its actual Islamic month name, day and year; the Gregorian date is secondary and
 can be hidden independently per card. Independent Salah/Jamaat countdowns,
 highlighted prayer rows and Ramadan details follow. The Fajr row shows **Ends at sunrise** using the
-published Sunrise value, or unavailable if Sunrise is absent. Inspected NMS
+published Sunrise value, or unavailable if Sunrise is absent. Inspected Mosque A
 publications also show a separately printed **Second Jumu’ah khutbah** time on
 Fridays; it is **not** an extra Jamaat and does not change Dhuhr/Jumu’ah times.
 Choose Hijri header visibility when first configuring the mosque; change it later
@@ -224,23 +224,23 @@ misleading content types/signatures and oversized streamed bodies are rejected.
 
 Only layouts listed in [PDF layouts](docs/pdf_layouts.md) are supported.
 Automatic recognition matches a single tested adapter after bounded PDF
-extraction, guided by **Annual / Monthly / Ramadan**. A combined Zakariyya PDF
+extraction, guided by **Annual / Monthly / Ramadan**. A combined Mosque B PDF
 supplies annual tables or the separate Ramadan page according to the selected
 type; it never imports both silently. Unsupported and ambiguous layouts fail
 rather than guessing. Check detected format, dates, column mapping
-and source warnings before approval. The NMS 2026 annual adapter's 365 dates and
+and source warnings before approval. The Mosque A 2026 annual adapter's 365 dates and
 5,110 event values were compared with an independent extraction. Additional real
-fixtures validate the NMS May–June 2022 monthly layout, all twelve annual tables and the separate Ramadan page in
-Zakariyya’s 2026 calendar. Its annual adapter validates 365 dates and 3,770 published
+fixtures validate the Mosque A May–June 2022 monthly layout, all twelve annual tables and the separate Ramadan page in
+Mosque B’s 2026 calendar. Its annual adapter validates 365 dates and 3,770 published
 values; review explicitly explains the clipped May first-date label. The
 `pdf_table_v1` adapter remains a separate synthetic sample, not a general recognizer. Unknown
 layouts, scanned/image-only PDFs, encrypted and corrupt documents are rejected.
 There is no OCR or fallback that guesses a missing time.
 
-For NMS, Dawn supplies Fajr beginning; Sehri Ends is separate. Sunset supplies
+For Mosque A, Dawn supplies Fajr beginning; Sehri Ends is separate. Sunset supplies
 Maghrib beginning, while the distinct published Maghrib (Iftaar) cell supplies both
 Jamaat and Iftar. Friday's shared Dhuhr/Jumu’ah slot supplies Jumu’ah only. Second-Jumu’ah khutbah notes are retained when explicitly printed by the
-inspected NMS layouts and shown as **Friday-only annotations**, not imported
+inspected Mosque A layouts and shown as **Friday-only annotations**, not imported
 as congregation times. Printed Hijri dates do not confirm Ramadan activation. No Taraweeh time is invented. The adapter documents its fixed
 morning/noon/evening interpretation of the printed 12-hour columns.
 
