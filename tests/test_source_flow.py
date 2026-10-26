@@ -13,8 +13,8 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.download import DownloadError, DownloadResult
+from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.import_model import MAX_PDF_BYTES
 
 PDF_FIXTURE = Path(__file__).parent / "fixtures/pdf/sample_table.pdf"

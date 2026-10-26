@@ -14,8 +14,8 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.download import DownloadResult
+from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.model import PrayerField
 
 FIXTURE = Path(__file__).parent / "fixtures/pdf/nms_synthetic_2026.pdf"

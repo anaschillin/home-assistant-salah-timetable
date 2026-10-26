@@ -10,8 +10,8 @@ from aiohttp import FormData
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.setup import async_setup_component
 
-from custom_components.salah_timetable.import_model import ImportCandidate
 from custom_components.salah_timetable.frontend import async_setup_frontend
+from custom_components.salah_timetable.import_model import ImportCandidate
 from custom_components.salah_timetable.model import PrayerField
 from custom_components.salah_timetable.pdf_parser import PdfParser
 from custom_components.salah_timetable.ramadan import RamadanSettings, resolve_day
