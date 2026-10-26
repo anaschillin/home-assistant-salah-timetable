@@ -39,11 +39,24 @@ jobs:
             plugin-version: '0.13.371'
             shard-index: 4
             shard-count: 16
+          # The former 8/16 group contains precisely three modules:
+          # coordinator lifecycle (index 8), model (24), source flow (40).
+          # Test each independently to identify the remaining stuck module.
           - lane: minimum
             ha-version: '2026.10.0'
             plugin-version: '0.13.371'
             shard-index: 8
-            shard-count: 16
+            shard-count: 64
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 24
+            shard-count: 64
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 40
+            shard-count: 64
           - lane: minimum
             ha-version: '2026.10.0'
             plugin-version: '0.13.371'

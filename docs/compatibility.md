@@ -101,10 +101,11 @@ sets it up. This preserves every import, approval and reload assertion. It
 avoids the older pytest client's frozen-router artifact without changing
 production behavior or suppressing errors.
 
-For isolation, the minimum lane runs **seven independent pytest jobs**:
+For isolation, the minimum lane runs **nine independent pytest jobs**:
 the three modulo-4 groups that completed (indices 1, 2 and 3) remain
-unchanged; the slower previous index-0 group is subdivided into four modulo-16
-groups (indices 0, 4, 8 and 12). All 50 sorted `tests/test_*.py` modules
+unchanged; the slower previous index-0 group is subdivided into modulo-16
+groups 0, 4, and 12, plus three single-module groups 8/64, 24/64
+and 40/64 (splitting previous 8/16). All 50 sorted `tests/test_*.py` modules
 are still covered **exactly once**, with no test exclusions or changes to
 version pins. This split lets each independently running group finish and
 publish a useful log without depending on a stalled sibling. The
