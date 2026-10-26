@@ -9,7 +9,7 @@ dependency preload used by those earlier runs. The later local 0.6.2 run verifie
 fresh dependency installation using a trusted CA bundle for the proxy, without
 preloading packages. The [physical-device confirmation from 24 October 2026](validation.md#user-confirmed-physical-device-acceptance--24-october-2026)
 predates 0.7.0 and does not identify an installed version. Acceptance of the newer
-calendar, publication profiles, speaker controls, import review, Hijri-first
+calendar, recognized PDF layouts, speaker controls, import review, Hijri-first
 header and Arabic/RTL controls remains separate. Hosted validation is recorded separately for exact commit
 SHAs; a final release commit still needs its own successful required jobs.
 
@@ -149,11 +149,16 @@ where possible. Record the HA/integration versions and browser/device used.
   without deleting earlier dates, overlapping month sources are rejected, and
   changed monthly URL spans fail safely for both PDF and CSV sources. Check the supported NMS annual layout against
   its publication. Confirm an unsupported PDF fails with a useful message.
-- Exercise the [publication-profile picker](pdf_layouts.md#publication-setup-profiles)
-  with a matching inspected PDF and explicit printed year. Check prefilled mappings,
-  review and retained profile identity after approval/restart. Wrong years and a
-  mosque timezone other than `Europe/London` must block the profile without silently
-  changing settings or activating data.
+- Verify the inspected-edition picker is **absent**. Upload an identified PDF
+  through the standard manual route and verify strict automatic recognition,
+  the printed year, mapping, timezone handling and explicit approval. Reload a
+  previously stored approved import whose saved metadata included a legacy
+  `publication_profile_id`; its original data must remain valid and the
+  obsolete profile field must not be re-emitted.
+- Configure two distinct mosques and add **two separate Salah Timetable cards**
+  in a storage-mode dashboard. The graphical editor must offer both mosque
+  names with only their dashboard sensors; each card displays the selected
+  mosque's data, and removal/re-addition must not reassign the other card.
 - Browse every page of a [large import comparison](import_review.md), including
   added/removed dates, changed times, all Jumu’ah congregations and source-token
   changes. Navigation must keep approved values and the staged identity unchanged;
