@@ -140,6 +140,28 @@ To isolate test interactions, the minimum 40/64 module runs in six independent p
 
 Run [40318231655](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40318231655) confirmed source-flow case groups 1/6 through 5/6 succeeded in HA 2026.10.0. Only case group 0/6 remained in progress (three top-level test functions, including their parametrizations). The next experiment splits only these into separate `0/24`, `6/24`, `12/24` groups. Together with cases 1/6 to 5/6 and the other eight minimum shards, test coverage stays complete, with no skipped case or changed dependency pin.
 
-## Individual invalid-PDF variants (26 October 2026)
+## Invalid-PDF rejection lifecycle (26 October 2026)
 
-[Validate run 40318506526](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40318506526) narrowed the remaining minimum-HA 2026.10.0 cancellation to case **6/24**, `test_invalid_pdf_upload_is_cleaned_up`. Its other fourteen compatibility groups and all other validations passed. Case 6/24 contains three parameter variants. Because cancelled job logs and artifacts were not preserved, the specific failing input was unknown. The compatibility matrix now runs all three with stable, explicit pytest param IDs: `non_pdf`, `malformed_pdf`, and `oversized_pdf`. The other function-level groups remain unchanged; none of the test inputs or assertions were removed. Each variant produces its own result and artifact.
+[Validate run 40318506526](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40318506526)
+narrowed the remaining minimum-HA cancellation to
+`test_invalid_pdf_upload_is_cleaned_up`. In the subsequent
+[run 40324816158](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40324816158),
+the `non_pdf`, `malformed_pdf`, and `oversized_pdf` variants each
+passed in an independent pytest process. The cancelled run did not preserve
+usable logs, so no specific parametrization or root cause was established.
+
+The test now sends all three invalid uploads **sequentially through one
+Home Assistant options flow and test client**. Each upload must be rejected,
+its temporary file and one-time upload reference must be removed, and no
+timetable candidate may be staged. Reusing the failed import form also
+tests recovery for a user who selects another file after a rejection.
+This removes repeated HA test-client fixture creation/teardown between
+the three variants while retaining all three checks; it does not weaken
+input limits or production PDF validation.
+
+The minimum compatibility workflow selects this combined test as one
+source-flow case group (`40/64, 6/24`), rather than allocating a separate
+CI job to each input. Passing this job establishes that the sequence is
+compatible with minimum HA 2026.10.0; it is not evidence that the older
+single-process suite's original cancellation cause has been definitively
+identified.
