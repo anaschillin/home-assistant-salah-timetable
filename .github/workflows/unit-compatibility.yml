@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   compatibility:
-    name: Unit tests on HA ${{ matrix.ha-version }} (${{ matrix.lane }}, shard ${{ matrix.shard-index }}/${{ matrix.shard-count }}, cases ${{ matrix.case-index || 0 }}/${{ matrix.case-count || 1 }}, pdf ${{ matrix.parameter-id || 'all' }})
+    name: Unit tests on HA ${{ matrix.ha-version }} (${{ matrix.lane }}, shard ${{ matrix.shard-index }}/${{ matrix.shard-count }}, cases ${{ matrix.case-index || 0 }}/${{ matrix.case-count || 1 }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -65,9 +65,7 @@ jobs:
             shard-count: 64
             case-index: 0
             case-count: 24
-          # Prior run 40318506526 stalled ONLY the three-param invalid-PDF
-          # upload test. Run all three parametrizations independently to
-          # distinguish malformed extraction from large upload transport.
+          # Reuse one HA options flow for all three invalid PDF inputs.
           - lane: minimum
             ha-version: '2026.10.0'
             plugin-version: '0.13.371'
@@ -75,23 +73,6 @@ jobs:
             shard-count: 64
             case-index: 6
             case-count: 24
-            parameter-id: 'non_pdf'
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 40
-            shard-count: 64
-            case-index: 6
-            case-count: 24
-            parameter-id: 'malformed_pdf'
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 40
-            shard-count: 64
-            case-index: 6
-            case-count: 24
-            parameter-id: 'oversized_pdf'
           - lane: minimum
             ha-version: '2026.10.0'
             plugin-version: '0.13.371'
@@ -201,7 +182,6 @@ jobs:
           SHARD_COUNT: ${{ matrix.shard-count }}
           CASE_INDEX: ${{ matrix.case-index || 0 }}
           CASE_COUNT: ${{ matrix.case-count || 1 }}
-          PARAMETER_ID: ${{ matrix.parameter-id || '' }}
         run: |
           set -euo pipefail
           # Every tests/test_*.py file is assigned to exactly one shard in
@@ -252,14 +232,6 @@ jobs:
           else
             printf '%s\n' "${TEST_NODES[@]}" > "$COMPAT_EVIDENCE/selected-tests.txt"
           fi
-          if [[ -n "$PARAMETER_ID" ]]; then
-            # This is a fully qualified pytest param ID (one test function),
-            # not a filter that might silently exclude other parameters.
-            test "${#TEST_NODES[@]}" -eq 1
-            test "${TEST_NODES[0]}" = "tests/test_source_flow.py::test_invalid_pdf_upload_is_cleaned_up"
-            TEST_NODES=("${TEST_NODES[0]}[${PARAMETER_ID}]")
-            printf '%s\n' "${TEST_NODES[@]}" > "$COMPAT_EVIDENCE/selected-tests.txt"
-          fi
           test "${#TEST_NODES[@]}" -gt 0
           echo "Executing ${#TEST_NODES[@]} test selectors:"
           printf '%s\n' "${TEST_NODES[@]}"
@@ -281,7 +253,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: ha-unit-compatibility-${{ matrix.ha-version }}-shard-${{ matrix.shard-index }}-case-${{ matrix.case-index || 0 }}-param-${{ matrix.parameter-id || 'all' }}
+          name: ha-unit-compatibility-${{ matrix.ha-version }}-shard-${{ matrix.shard-index }}-case-${{ matrix.case-index || 0 }}
           path: ${{ env.COMPAT_EVIDENCE }}/
           if-no-files-found: ignore
           retention-days: 7
