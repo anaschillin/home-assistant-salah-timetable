@@ -18,8 +18,8 @@ and mosque layouts are unsupported. See [supported PDF layouts](docs/pdf_layouts
 
 The integration includes independent next-Salah/next-Jamaat events, a read-only
 prayer calendar, confirmed-date Ramadan overrides and a graphical Lovelace card.
-Inspected-publication profiles simplify setup; optional automation blueprints provide
-Adhan controls and conservative media pause/resume. A disposable Home Assistant runtime
+Optional automation blueprints provide Adhan controls and conservative media
+pause/resume. PDFs are automatically recognized when they match a supported layout. A disposable Home Assistant runtime
 and real frontend have passed the [recorded checks](docs/validation.md). HACS
 installation and updates are user-confirmed; further release acceptance remains. See [milestones](docs/milestones.md),
 the [remaining work](docs/remaining-work.md), and the [release checklist](docs/releasing.md).
@@ -69,8 +69,7 @@ allows users to rename entity IDs independently.
    **Annual**, **Monthly** or **Ramadan** timetable type. The integration
    automatically recognizes a supported PDF; no PDF-layout selection is needed.
    Alternatively use **Upload a supported PDF** or
-   **Import CSV timetable**. For a named inspected edition, **Choose an inspected
-   publication profile** prefills its manual PDF setup. CSV ignores PDF recognition.
+   **Import CSV timetable**. CSV ignores PDF recognition.
    Monthly coverage is stored as a partial ordinary annual source; Ramadan is a
    separately confirmed override source.
 3. Select the date column and each published prayer column. Recognized headings are
@@ -92,14 +91,6 @@ Closing before the preview discards the in-progress mapping; upload the file aga
 A saving error keeps the existing timetable; check Home Assistant logs and retry.
 For a URL import, the reproducible source settings are saved with the staged file.
 The UI's source-import menu is URL-first after initial mosque identity setup.
-
-Publication profiles cover exact inspected editions and require the printed Gregorian
-year. They prefill layout, kind, field mappings and canonical time format, then retain
-the normal mapping/review/approval screens. The current profiles require
-`Europe/London`; a timezone mismatch directs you to Mosque settings without changing
-it automatically. Profiles accept manual PDF uploads only because no current public
-HTTPS source has been verified for them. Use ordinary import for other supported
-source defaults. See the [profile catalogue](docs/pdf_layouts.md#publication-setup-profiles).
 
 Annual and Ramadan sources use kind/year identities (such as `annual-2026`).
 When **Monthly** is selected for a PDF upload or a PDF/CSV URL source, the source has
@@ -178,6 +169,12 @@ and uses responsive layouts. Ordinary ticks update clocks and progress in place;
 unrelated Home Assistant updates preserve the rendered card. See
 [dashboard setup and behavior](docs/dashboard.md)
 for resource troubleshooting and the event boundary rules.
+
+The integration registers **one reusable card type**, not an automatic
+card per mosque. To display a second configured mosque, edit the dashboard,
+add **another Salah Timetable card**, and select its separate **Prayer timetable**
+sensor in the card editor. Each card keeps its own entity and timezone; adding
+or removing a mosque never silently edits your dashboard.
 
 ## Automations and coverage alerts
 
@@ -394,7 +391,7 @@ Python suite on both support targets while preserving the development lock;
 local 0.6.2 acceptance also verified fresh dependency installation and real editor
 controls. The [physical-device confirmation from 24 October 2026](docs/validation.md#user-confirmed-physical-device-acceptance--24-october-2026)
 predates 0.7.0; the installed version was not recorded. It does not establish
-physical testing of the new calendar, publication profiles, speaker controls or
+physical testing of the new calendar, source imports, speaker controls or
 0.8.0 review flow. HACS installation, restart and updates are also user-confirmed;
 HACS UI uninstall/reinstallation remains acceptance work. Automated Container
 backup restoration and config-entry removal/re-addition have narrower recorded
