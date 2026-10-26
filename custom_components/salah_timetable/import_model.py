@@ -128,7 +128,6 @@ class ImportCandidate:
     source_url: str | None = None
     etag: str | None = None
     last_modified: str | None = None
-    publication_profile_id: str | None = None
 
     def __post_init__(self) -> None:
         if type(self.year) is not int or not 1 <= self.year <= 9999:
@@ -184,10 +183,6 @@ class ImportCandidate:
                 "The warning report does not match the timetable"
             )
         object.__setattr__(self, "warnings", warnings)
-        if self.publication_profile_id is not None:
-            from .publication_profiles import publication_profile
-
-            publication_profile(self.publication_profile_id).validate_candidate(self)
 
     def _validate_provenance(self) -> None:
         from .source_model import PDF_PARSER_IDS
@@ -257,8 +252,6 @@ class ImportCandidate:
             "etag": self.etag,
             "last_modified": self.last_modified,
         }
-        if self.publication_profile_id is not None:
-            result["publication_profile_id"] = self.publication_profile_id
         return result
 
     @classmethod
@@ -281,7 +274,6 @@ class ImportCandidate:
                 source_url=data.get("source_url"),
                 etag=data.get("etag"),
                 last_modified=data.get("last_modified"),
-                publication_profile_id=data.get("publication_profile_id"),
             )
         except (AttributeError, KeyError, TypeError, ValueError, OverflowError) as err:
             raise ImportValidationError("Stored import data is invalid") from err
