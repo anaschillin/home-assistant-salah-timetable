@@ -296,26 +296,31 @@ async def test_manual_pdf_upload_approval_uses_same_persistence(
     assert entry.runtime_data.storage.for_date(date(2026, 1, 2)).times
 
 
-@pytest.mark.parametrize(
-    "content",
-    [b"not a pdf", b"%PDF-invalid", b"%PDF-" + b"x" * MAX_PDF_BYTES],
-    ids=["non_pdf", "malformed_pdf", "oversized_pdf"],
-)
-async def test_invalid_pdf_upload_is_cleaned_up(
-    hass, entry, source_upload_client, content
-):
+async def test_invalid_pdf_upload_is_cleaned_up(hass, entry, source_upload_client):
+    """Reject each bad PDF and allow another upload on the same options flow.
+
+    Reusing one HA/client lifecycle avoids repeated mocked-server teardown
+    between parametrizations on the minimum supported HA version.
+    """
     await setup_mosque(hass, entry)
     result = await open_step(hass, entry, "import_pdf")
-    file_id, path = await upload_pdf(hass, source_upload_client, content)
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"],
-        {"file": file_id, "kind": "annual", "year": 2026},
+
+    invalid_uploads = (
+        ("non_pdf", b"not a pdf"),
+        ("malformed_pdf", b"%PDF-invalid"),
+        ("oversized_pdf", b"%PDF-" + b"x" * MAX_PDF_BYTES),
     )
-    assert result["step_id"] == "import_pdf"
-    assert result["errors"] == {"base": "invalid_pdf"}
-    assert not await hass.async_add_executor_job(path.exists)
-    assert file_id not in hass.data[UPLOAD_DATA].files
-    assert entry.runtime_data.storage.staged is None
+    for case, content in invalid_uploads:
+        file_id, path = await upload_pdf(hass, source_upload_client, content)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {"file": file_id, "kind": "annual", "year": 2026},
+        )
+        assert result["step_id"] == "import_pdf", case
+        assert result["errors"] == {"base": "invalid_pdf"}, case
+        assert not await hass.async_add_executor_job(path.exists), case
+        assert file_id not in hass.data[UPLOAD_DATA].files, case
+        assert entry.runtime_data.storage.staged is None, case
 
 
 async def test_monthly_upload_detects_pdf_and_stores_partial_annual_kind(
