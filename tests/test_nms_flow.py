@@ -28,7 +28,11 @@ def nms_clock(freezer):
 
 
 @pytest.fixture
-async def nms_upload_client(hass, hass_client):
+async def nms_upload_client(hass, hass_client, entry):
+    # The test client freezes aiohttp's router; unlike the production HA HTTP
+    # server it cannot accept registrations once started. Register the bundled
+    # integration static path before starting the simulated upload client.
+    assert await hass.config_entries.async_setup(entry.entry_id)
     assert await async_setup_component(hass, "file_upload", {})
     return await hass_client()
 
