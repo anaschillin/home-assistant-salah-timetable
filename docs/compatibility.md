@@ -77,21 +77,35 @@ identified failing test**. A job-level `timeout-minutes: 15` was configured,
 but the observed job lifetime was roughly 20 minutes; that discrepancy alone
 does not prove pytest itself emitted a timeout.
 
-The compatibility workflow now records verbose per-test progress (`-vv`)
-in a dedicated `pytest.log` without piping the test process through `tee`.
-It keeps Python output unbuffered, emits a faulthandler traceback after 120
-seconds in a stuck pytest phase, and prints the last 160 log lines when the
-test step exits. The full log is retained in the compatibility artifact folder. An explicit **12-minute process watchdog** exits before the
-15-minute Actions job timeout, so the `if: always()` artifact step has an
-opportunity to preserve the log and any partial JUnit/coverage outputs. Existing
-`--timeout=30` per-test enforcement is unchanged. The watchdog does not
-silently skip tests or claim a timeout is a passing result.
+The first single-process diagnostic attempt,
+[Validate run 40305158405](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40305158405),
+again cancelled the minimum job after about 20 minutes **without** a
+minimum-lane artifact or readable archived log. Therefore the proposed
+12-minute process watchdog has **not been shown to work** in that stuck
+runner environment; it is not a proven fix for the underlying stall.
 
-If the minimum suite stalls again, inspect the latest `ha-unit-compatibility-2026.10.0`
-artifact's `pytest.log`, identify the last `-vv` test and traceback, and
-reproduce that test against the **separate minimum lock** before considering
-any test or application changes. Rerun evidence from the original commit is
-separate from testing this diagnostic workflow.
+For isolation, the minimum lane now runs **four independent pytest jobs**,
+each executing a disjoint, deterministic subset of the `tests/test_*.py`
+modules in sorted order (`file_index % 4`). Collectively they run every
+test module, with no exclusions or changes to version pins. The
+supported-current HA lane runs all modules in one job. The shard number
+appears in each job name and artifact name; every shard writes a
+`test-files.txt` manifest and an unbuffered `-vv` pytest transcript,
+plus JUnit/coverage artifacts if produced. Pytest retains the per-test
+`--timeout=30`; Python faulthandler can dump stacks after 120 seconds.
+A process-level 12-minute watchdog attempts to leave time within the
+15-minute job limit for the existing `if: always()` upload, but may still
+not take effect if the underlying runner stalls or is externally cancelled.
+
+Inspect each `ha-unit-compatibility-2026.10.0-shard-N` artifact,
+especially `test-files.txt`, `pytest.log` and JUnit. If only one shard
+fails, subdivide **that** set further, then reproduce the identified
+test under the separate minimum-version lock. If all shards fail before
+producing a test transcript, investigate pytest collection, runner or
+fixture startup rather than blaming an individual test. A successful
+sharded run proves the complete test-module set passed independently;
+it does **not** prove that the original single-process hang is fixed.
+Rerun evidence from the original commit is separate from this branch.
 
 When changing a support target, update its project pins, regenerate only that
 project's lock, update the workflow matrix and this guide, then run the lane and
