@@ -77,10 +77,11 @@ identified failing test**. A job-level `timeout-minutes: 15` was configured,
 but the observed job lifetime was roughly 20 minutes; that discrepancy alone
 does not prove pytest itself emitted a timeout.
 
-The compatibility workflow now streams verbose per-test progress (`-vv`),
-keeps Python output unbuffered, emits a faulthandler traceback after 120
-seconds in a stuck pytest phase, and writes `pytest.log` to the compatibility
-artifact folder. An explicit **12-minute process watchdog** exits before the
+The compatibility workflow now records verbose per-test progress (`-vv`)
+in a dedicated `pytest.log` without piping the test process through `tee`.
+It keeps Python output unbuffered, emits a faulthandler traceback after 120
+seconds in a stuck pytest phase, and prints the last 160 log lines when the
+test step exits. The full log is retained in the compatibility artifact folder. An explicit **12-minute process watchdog** exits before the
 15-minute Actions job timeout, so the `if: always()` artifact step has an
 opportunity to preserve the log and any partial JUnit/coverage outputs. Existing
 `--timeout=30` per-test enforcement is unchanged. The watchdog does not
