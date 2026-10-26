@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {countdown, duration, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, prayerName, timestamp, discoverEntity, nextRamadanEvent} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+import {countdown, duration, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, prayerName, timestamp, discoverEntity, discoverTimetableEntities, nextRamadanEvent} from "../../custom_components/salah_timetable/frontend/card-utils.js";
 import {resolveUi} from "../../custom_components/salah_timetable/frontend/card-i18n.js";
 
 const instant = value => Date.parse(`2026-10-21T${value}:00Z`);
@@ -164,4 +164,19 @@ test("configuration errors preserve English messages with localization metadata"
     assert.deepEqual(error.params, params);
     return true;
   });
+});
+
+test("discovery lists each mosque dashboard sensor but no individual prayer sensor", () => {
+  const hass = {states: {
+    "sensor.second_prayer_timetable": {attributes: {...data, mosque_name: "Second Mosque"}},
+    "sensor.example_prayer_timetable": {attributes: {...data, mosque_name: "Example Mosque"}},
+    "sensor.example_fajr_beginning": {state: "2026-10-21T04:45:00Z", attributes: {}},
+    "binary_sensor.other": {attributes: {...data, mosque_name: "Not a mosque sensor"}},
+  }};
+  assert.deepEqual(discoverTimetableEntities(hass), [
+    {entity: "sensor.example_prayer_timetable", name: "Example Mosque"},
+    {entity: "sensor.second_prayer_timetable", name: "Second Mosque"},
+  ]);
+  assert.equal(discoverEntity(hass), "sensor.example_prayer_timetable");
+  assert.deepEqual(discoverTimetableEntities({states: {}}), []);
 });
