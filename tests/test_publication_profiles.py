@@ -244,9 +244,11 @@ async def test_timezone_changed_after_upload_cannot_stage_profiled_rows(hass, en
 async def test_manual_profile_upload_requires_review_and_persists_on_approval(
     hass, entry, hass_client, decision
 ):
+    # The mock HTTP router is frozen once the test client starts; initialize
+    # the integration's bundled frontend path before constructing that client.
+    assert await hass.config_entries.async_setup(entry.entry_id)
     assert await async_setup_component(hass, "file_upload", {})
     client = await hass_client()
-    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     profile = publication_profile("nms_monthly_may_june_2022_v1")
     content = (FIXTURES / "nms ramadhan.pdf").read_bytes()
