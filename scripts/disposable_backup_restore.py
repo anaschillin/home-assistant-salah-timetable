@@ -153,10 +153,15 @@ def restore(backup: Path, original: Path, version: str, *, serve: bool) -> dict:
     with restored_directory(image) as path:
         config = path / "config"
         config.mkdir(mode=0o700)
-        password = os.environ.get("SALAH_TEST_BACKUP_PASSWORD") or None
+        password = os.environ.get("SALAH_TEST_BACKUP_PASSWORD")
+        if password:
+            raise ValueError(
+                "Password-protected backups are not supported by this disposable "
+                "helper because it avoids writing secrets to disk."
+            )
         instruction = {
             "path": "/restore/input.tar",
-            "password": password,
+            "password": None,
             "remove_after_restore": False,
             "restore_database": True,
             "restore_homeassistant": True,
