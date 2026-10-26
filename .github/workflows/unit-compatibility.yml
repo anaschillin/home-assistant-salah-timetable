@@ -77,15 +77,24 @@ jobs:
           test "${#TEST_FILES[@]}" -gt 0
           printf '%s\n' "${TEST_FILES[@]}" | tee "$COMPAT_EVIDENCE/test-files.txt"
           touch "$COMPAT_EVIDENCE/pytest.log"
-          trap 'tail -n 100 "$COMPAT_EVIDENCE/pytest.log" || true' EXIT
-          timeout --signal=TERM --kill-after=30s 12m \
+          # A single stalled core shard previously produced no live output and
+          # its cancelled run lost the runner-local logfile and evidence upload.
+          # Stream pytest's test names so the last started test is visible.
+          if [[ "$TEST_GROUP" == "all" ]]; then
+            wall_timeout=10m
+          else
+            wall_timeout=5m
+          fi
+          echo "Running $TEST_GROUP with $wall_timeout wall timeout and 30s per-test timeout"
+          trap 'status=$?; if (( status != 0 )); then echo "::error::Test shard $TEST_GROUP exited with $status"; tail -n 100 "$COMPAT_EVIDENCE/pytest.log" || true; fi' EXIT
+          timeout --signal=TERM --kill-after=15s "$wall_timeout" \
             env PYTHONUNBUFFERED=1 PYTHONFAULTHANDLER=1 \
             "$UV_PROJECT_ENVIRONMENT/bin/python" -m pytest -c pyproject.toml \
-              --timeout=30 -vv -o faulthandler_timeout=120 \
+              --timeout=30 -vv -o faulthandler_timeout=90 \
               --junitxml="$COMPAT_EVIDENCE/junit.xml" \
               --cov-report="xml:$COMPAT_EVIDENCE/coverage.xml" \
               "${TEST_FILES[@]}" \
-            > "$COMPAT_EVIDENCE/pytest.log" 2>&1
+            2>&1 | tee "$COMPAT_EVIDENCE/pytest.log"
       - name: Verify dependency locks remain unchanged
         if: always()
         run: git diff --exit-code -- pyproject.toml uv.lock compatibility/
