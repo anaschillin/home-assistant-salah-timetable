@@ -123,9 +123,12 @@ before the unchanged commit passed on attempt 2. The later local
 reproduced background calendar refresh work completing after the test advanced
 its clock; the test now drains that work before checking the exact end event.
 [Issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-remains open for hosted stability evidence. Review recurrence and release impact
-before sign-off; a green rerun alone did not resolve the underlying cause. Preserve the artifact
-checksum with the reviewed release notes.
+was closed after reproducing the background-refresh race locally, passing
+20/20 repeated normal/delayed regression cases, and confirming the unchanged
+start/end assertions in subsequent successful hosted validation, including
+[main Validate run 40327531675](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40327531675).
+Reopen if the timing failure recurs. Preserve the artifact checksum with the
+reviewed release notes.
 
 ## Manual Home Assistant and HACS acceptance
 

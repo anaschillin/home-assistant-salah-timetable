@@ -11,135 +11,26 @@ permissions:
 
 concurrency:
   group: unit-compatibility-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   compatibility:
-    name: Unit tests on HA ${{ matrix.ha-version }} (${{ matrix.lane }}, shard ${{ matrix.shard-index }}/${{ matrix.shard-count }}, cases ${{ matrix.case-index || 0 }}/${{ matrix.case-count || 1 }})
+    name: HA ${{ matrix.ha-version }} (${{ matrix.group }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Keep all 50 test modules in the matrix, but isolate the
-          # minimum environment into independent, bounded runner processes.
-          # Any hanging module group is immediately identifiable from its shard.
-          # The previous minimum shard 0 contains a suspected long-running
-          # test group. Split ONLY that group into four independent subshards,
-          # retaining the three already-successful modulo-4 groups unchanged.
-          # 0/16 + 4/16 + 8/16 + 12/16 == the prior 0/4 group.
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 0
-            shard-count: 16
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 4
-            shard-count: 16
-          # The former 8/16 group contains precisely three modules:
-          # coordinator lifecycle (index 8), model (24), source flow (40).
-          # Test each independently to identify the remaining stuck module.
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 8
-            shard-count: 64
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 24
-            shard-count: 64
-          # Isolate the only remaining stalled module, test_source_flow.py,
-          # into six full-function groups; parameterizations remain together.
-          # The same module's every top-level test function is run exactly once.
-          # 5 of 6 source_flow test groups passed; split the one remaining
-          # 0/6 group (function indices 0, 6 and 12) into three single
-          # top-level test-function groups, preserving all 16 functions.
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 40
-            shard-count: 64
-            case-index: 0
-            case-count: 24
-          # Reuse one HA options flow for all three invalid PDF inputs.
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 40
-            shard-count: 64
-            case-index: 6
-            case-count: 24
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 40
-            shard-count: 64
-            case-index: 12
-            case-count: 24
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 40
-            shard-count: 64
-            case-index: 1
-            case-count: 6
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 40
-            shard-count: 64
-            case-index: 2
-            case-count: 6
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 40
-            shard-count: 64
-            case-index: 3
-            case-count: 6
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 40
-            shard-count: 64
-            case-index: 4
-            case-count: 6
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 40
-            shard-count: 64
-            case-index: 5
-            case-count: 6
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 12
-            shard-count: 16
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 1
-            shard-count: 4
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 2
-            shard-count: 4
-          - lane: minimum
-            ha-version: '2026.10.0'
-            plugin-version: '0.13.371'
-            shard-index: 3
-            shard-count: 4
-          - lane: supported-current
-            ha-version: '2026.10.3'
-            plugin-version: '0.13.374'
-            shard-index: 0
-            shard-count: 1
+          # Exhaustive minimum-version coverage in four core groups and one
+          # dedicated source-flow group (where mocked HTTP uploads run).
+          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371', group: core-0}
+          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371', group: core-1}
+          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371', group: core-2}
+          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371', group: core-3}
+          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371', group: source-flow}
+          # Run the complete, unsharded suite on the supported-current version.
+          - {lane: supported-current, ha-version: '2026.10.3', plugin-version: '0.13.374', group: all}
     env:
       COMPAT_PROJECT: compatibility/${{ matrix.lane }}
     steps:
@@ -148,6 +39,7 @@ jobs:
           COMPAT_HA_VERSION: ${{ matrix.ha-version }}
         run: |
           mkdir -p "$RUNNER_TEMP/salah-unit-temp-$COMPAT_HA_VERSION"
+          mkdir -p "$RUNNER_TEMP/salah-unit-evidence-$COMPAT_HA_VERSION"
           {
             echo "UV_PROJECT_ENVIRONMENT=$RUNNER_TEMP/salah-unit-$COMPAT_HA_VERSION"
             echo "COMPAT_EVIDENCE=$RUNNER_TEMP/salah-unit-evidence-$COMPAT_HA_VERSION"
@@ -161,13 +53,11 @@ jobs:
       - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           version: '0.12.23'
-      - name: Install the separately locked compatibility environment
+      - name: Install separately locked compatibility environment
         run: |
-          mkdir -p "$TMPDIR"
-          uv --version
           uv sync --project "$COMPAT_PROJECT" --frozen --python python3.14 --no-python-downloads
           uv pip check --python "$UV_PROJECT_ENVIRONMENT/bin/python"
-      - name: Assert the exact HA, plugin and Python environment
+      - name: Assert exact HA, plugin and Python versions
         run: |
           "$UV_PROJECT_ENVIRONMENT/bin/python" scripts/check_compatibility_environment.py \
             --ha-version '${{ matrix.ha-version }}' \
@@ -175,85 +65,35 @@ jobs:
             --environment "$UV_PROJECT_ENVIRONMENT" \
             --output "$COMPAT_EVIDENCE/environment.json"
           uv pip freeze --python "$UV_PROJECT_ENVIRONMENT/bin/python" > "$COMPAT_EVIDENCE/installed.txt"
-      - name: Run assigned Python test shard from the repository root
+      - name: Run assigned Python tests
         shell: bash
         env:
-          SHARD_INDEX: ${{ matrix.shard-index }}
-          SHARD_COUNT: ${{ matrix.shard-count }}
-          CASE_INDEX: ${{ matrix.case-index || 0 }}
-          CASE_COUNT: ${{ matrix.case-count || 1 }}
+          TEST_GROUP: ${{ matrix.group }}
         run: |
           set -euo pipefail
-          # Every tests/test_*.py file is assigned to exactly one shard in
-          # stable, alphabetic order; the current lane uses one full shard.
-          mapfile -t ALL_TEST_FILES < <(
-            find tests -maxdepth 1 -type f -name 'test_*.py' | LC_ALL=C sort
+          mapfile -t TEST_FILES < <(
+            "$UV_PROJECT_ENVIRONMENT/bin/python" scripts/select_compatibility_tests.py "$TEST_GROUP"
           )
-          test "${#ALL_TEST_FILES[@]}" -gt 0
-          TEST_FILES=()
-          for i in "${!ALL_TEST_FILES[@]}"; do
-            if (( i % SHARD_COUNT == SHARD_INDEX )); then
-              TEST_FILES+=("${ALL_TEST_FILES[i]}")
-            fi
-          done
           test "${#TEST_FILES[@]}" -gt 0
-          printf 'Shard %s/%s contains %s test files out of %s:\n' \
-            "$SHARD_INDEX" "$SHARD_COUNT" \
-            "${#TEST_FILES[@]}" "${#ALL_TEST_FILES[@]}"
           printf '%s\n' "${TEST_FILES[@]}" | tee "$COMPAT_EVIDENCE/test-files.txt"
-          TEST_NODES=("${TEST_FILES[@]}")
-          if (( CASE_COUNT > 1 )); then
-            # This split is only for one module: use AST so every top-level
-            # test function (including every parametrization) is selected once.
-            test "${#TEST_FILES[@]}" -eq 1
-            "$UV_PROJECT_ENVIRONMENT/bin/python" - "${TEST_FILES[0]}" \
-              "$CASE_INDEX" "$CASE_COUNT" > "$COMPAT_EVIDENCE/selected-tests.txt" <<'PY'
-          import ast
-          import sys
-          from pathlib import Path
-
-          path = Path(sys.argv[1])
-          index, count = int(sys.argv[2]), int(sys.argv[3])
-          tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-          tests = [
-              node.name for node in tree.body
-              if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-              and node.name.startswith("test_")
-          ]
-          if not tests or not 0 <= index < count:
-              raise SystemExit("No tests or invalid source-flow subshard")
-          selected = [name for i, name in enumerate(tests) if i % count == index]
-          if not selected:
-              raise SystemExit("Empty source-flow subshard")
-          for name in selected:
-              print(f"{path}::{name}")
-          PY
-            mapfile -t TEST_NODES < "$COMPAT_EVIDENCE/selected-tests.txt"
-          else
-            printf '%s\n' "${TEST_NODES[@]}" > "$COMPAT_EVIDENCE/selected-tests.txt"
-          fi
-          test "${#TEST_NODES[@]}" -gt 0
-          echo "Executing ${#TEST_NODES[@]} test selectors:"
-          printf '%s\n' "${TEST_NODES[@]}"
-          # Redirect directly to a file (avoid inherited tee pipe descriptors).
           touch "$COMPAT_EVIDENCE/pytest.log"
-          trap 'tail -n 160 "$COMPAT_EVIDENCE/pytest.log" || true' EXIT
+          trap 'tail -n 100 "$COMPAT_EVIDENCE/pytest.log" || true' EXIT
           timeout --signal=TERM --kill-after=30s 12m \
             env PYTHONUNBUFFERED=1 PYTHONFAULTHANDLER=1 \
             "$UV_PROJECT_ENVIRONMENT/bin/python" -m pytest -c pyproject.toml \
               --timeout=30 -vv -o faulthandler_timeout=120 \
               --junitxml="$COMPAT_EVIDENCE/junit.xml" \
               --cov-report="xml:$COMPAT_EVIDENCE/coverage.xml" \
-              "${TEST_NODES[@]}" \
+              "${TEST_FILES[@]}" \
             > "$COMPAT_EVIDENCE/pytest.log" 2>&1
-      - name: Verify reproducible development and compatibility locks were unchanged
+      - name: Verify dependency locks remain unchanged
         if: always()
         run: git diff --exit-code -- pyproject.toml uv.lock compatibility/
       - name: Preserve compatibility evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: ha-unit-compatibility-${{ matrix.ha-version }}-shard-${{ matrix.shard-index }}-case-${{ matrix.case-index || 0 }}
+          name: ha-unit-compatibility-${{ matrix.ha-version }}-${{ matrix.group }}
           path: ${{ env.COMPAT_EVIDENCE }}/
           if-no-files-found: ignore
           retention-days: 7
