@@ -109,6 +109,7 @@ def test_invalid_parser_provenance_is_rejected(mutation):
     with pytest.raises(ImportValidationError, match="Stored import data"):
         ImportCandidate.from_dict(data)
 
+
 def test_previous_publication_profile_metadata_loads_without_catalogue():
     """Removing the profile picker must not invalidate existing approved data."""
     original = candidate()
