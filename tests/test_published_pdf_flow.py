@@ -10,6 +10,7 @@ from aiohttp import FormData
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.setup import async_setup_component
 
+from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.import_model import ImportCandidate
 from custom_components.salah_timetable.model import PrayerField
 from custom_components.salah_timetable.pdf_parser import PdfParser
@@ -34,7 +35,9 @@ def published_clock(freezer):
 async def test_real_pdf_upload_staging_approval_and_persistence(
     hass, entry, hass_client, filename, layout, year, count, start, end
 ):
+    # Install the bundled assets before the test HTTP client freezes routes.
     assert await async_setup_component(hass, "file_upload", {})
+    await async_setup_frontend(hass)
     client = await hass_client()
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
