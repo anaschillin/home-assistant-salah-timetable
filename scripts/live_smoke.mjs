@@ -239,6 +239,19 @@ try {
   assert.equal((await state("fajr_beginning")).state, `${today}T06:00:00+00:00`);
   const secondIds = (await request("/api/states")).filter(item => item.entity_id.startsWith("sensor.second_mosque_")).map(item => item.entity_id).sort();
   assert.equal(secondIds.length, ids.length);
+  // A single custom card type can be used repeatedly; each instance must
+  // reference its mosque's own dashboard sensor (not a prayer-time sensor).
+  const dashboardCards = [
+    {type: "custom:salah-timetable-card", entity: "sensor.smoke_mosque_prayer_timetable"},
+    {type: "custom:salah-timetable-card", entity: "sensor.second_mosque_prayer_timetable"}
+  ];
+  await ws("lovelace/config/save", {url_path: "salah-smoke", config: {views: [{title: "Salah Smoke", path: "smoke", cards: dashboardCards}]}});
+  const dashboardConfig = await ws("lovelace/config", {url_path: "salah-smoke"});
+  assert.deepEqual(dashboardConfig.views[0].cards, dashboardCards);
+  assert.equal((await state("prayer_timetable")).attributes.mosque_name, "Smoke Mosque");
+  const secondDashboard = (await request("/api/states")).find(item => item.entity_id === "sensor.second_mosque_prayer_timetable");
+  assert.equal(secondDashboard?.attributes.mosque_name, "Second Mosque");
+  report.checks.push("two_mosque_dashboard_cards");
   await request(`/api/config/config_entries/entry/${second}`, undefined, {method: "DELETE"});
   await until(() => request("/api/states"), value => !value.some(item => item.entity_id.startsWith("sensor.second_mosque_")), "Deleted mosque retained live sensors");
   assert.deepEqual((await request("/api/states")).filter(item => item.entity_id.startsWith("sensor.smoke_mosque_")).map(item => item.entity_id).sort(), ids);
