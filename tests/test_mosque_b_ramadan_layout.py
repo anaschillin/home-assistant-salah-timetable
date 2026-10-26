@@ -59,15 +59,18 @@ def test_csv_has_independently_labeled_prayer_fields(pages):
     assert rows[0]["Published Sehri End"] == "5:00"
 
 
-@pytest.mark.parametrize("page,old,new", [
-    (0, "2026", "2027"),
-    (13, "RAMADHAN 2026", "RAMADHAN 2027"),
-    (13, "Ramadhan Kareem", "Unknown"),
-    (13, "Feb 18,...", "Feb 19,..."),
-    (13, "5:07", "5:99"),
-    (13, "DATE SEHRI", "DATE UNKNOWN"),
-    (13, "www.mosque-b.example.org", "not-a-site.example"),
-])
+@pytest.mark.parametrize(
+    "page,old,new",
+    [
+        (0, "2026", "2027"),
+        (13, "RAMADHAN 2026", "RAMADHAN 2027"),
+        (13, "Ramadhan Kareem", "Unknown"),
+        (13, "Feb 18,...", "Feb 19,..."),
+        (13, "5:07", "5:99"),
+        (13, "DATE SEHRI", "DATE UNKNOWN"),
+        (13, "www.mosque-b.example.org", "not-a-site.example"),
+    ],
+)
 def test_reject_malformed_ramadan_publications(pages, page, old, new):
     assert old in pages[page]
     changed = list(pages)

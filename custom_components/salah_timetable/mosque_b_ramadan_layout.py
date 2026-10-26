@@ -85,7 +85,7 @@ def _publication_year(pages: tuple[str, ...]) -> int:
         )
         if (
             _SITE not in page
-                or titles != [(calendar.month_name[month].upper(), str(year))] * 2
+            or titles != [(calendar.month_name[month].upper(), str(year))] * 2
         ):
             raise ImportValidationError(
                 "Mosque B monthly pages must be recognized, ordered and agree with the cover year"
@@ -96,9 +96,7 @@ def _publication_year(pages: tuple[str, ...]) -> int:
 def _clock(value: str, column: int) -> int:
     """Apply only the inspected layout's morning/noon/evening column convention."""
     if not re.fullmatch(r"(?:[1-9]|1[0-2]):[0-5][0-9]", value):
-        raise ImportValidationError(
-            "Mosque B table contains an invalid published time"
-        )
+        raise ImportValidationError("Mosque B table contains an invalid published time")
     hour, minute = map(int, value.split(":"))
     if column < 4:
         hour %= 12
@@ -130,7 +128,7 @@ class MosqueBRamadanLayout:
         if (
             titles != [str(year)]
             or _SITE not in page
-                or "Ramadhan Kareem 1447 AH" not in page
+            or "Ramadhan Kareem 1447 AH" not in page
         ):
             raise ImportValidationError(
                 "Mosque B Ramadan page or year is not recognized"
@@ -148,7 +146,9 @@ class MosqueBRamadanLayout:
                 "Mosque B Ramadan table columns are not recognized"
             )
         start = markers[0] + 2
-        end = next((i for i in range(start, len(lines)) if lines[i].startswith(_SITE)), None)
+        end = next(
+            (i for i in range(start, len(lines)) if lines[i].startswith(_SITE)), None
+        )
         if end is None:
             raise ImportValidationError("Mosque B Ramadan table footer is missing")
         rows = lines[start:end]

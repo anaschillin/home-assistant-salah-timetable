@@ -38,16 +38,20 @@ def test_permission_cannot_be_declared_without_evidence(tmp_path, monkeypatch):
     asset_dir.mkdir()
     (asset_dir / "sample.png").write_bytes(b"synthetic test image")
     (root / "docs/asset-provenance.json").write_text(
-        json.dumps({
-            "schema_version": 1,
-            "assets": [{
-                "path": "assets/sample.png",
-                "rights": "permission_documented",
-                "owner": "Example",
-                "basis": "Claimed permission",
-                "evidence": None,
-            }],
-        })
+        json.dumps(
+            {
+                "schema_version": 1,
+                "assets": [
+                    {
+                        "path": "assets/sample.png",
+                        "rights": "permission_documented",
+                        "owner": "Example",
+                        "basis": "Claimed permission",
+                        "evidence": None,
+                    }
+                ],
+            }
+        )
     )
     monkeypatch.setattr(provenance, "ASSET_DIRS", (Path("assets"),))
     with pytest.raises(ValueError, match="lacks documented evidence"):

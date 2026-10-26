@@ -115,7 +115,9 @@ _LAYOUTS: dict[str, PdfLayout] = {
 _AUTO_LAYOUTS = {
     "annual": frozenset({"mosque_a_annual_v1", "mosque_b_annual_v1", "pdf_table_v1"}),
     "monthly": frozenset({"mosque_a_monthly_v1", "pdf_table_v1"}),
-    "ramadan": frozenset({"mosque_a_monthly_v1", "mosque_b_ramadan_v1", "pdf_table_v1"}),
+    "ramadan": frozenset(
+        {"mosque_a_monthly_v1", "mosque_b_ramadan_v1", "pdf_table_v1"}
+    ),
 }
 
 
@@ -245,7 +247,9 @@ class PdfParser:
             "mosque_b_annual_v1": MOSQUE_B_ANNUAL_COLUMNS,
         }.get(self.layout_id)
         if self.layout_id == "mosque_a_annual_v1" and kind != "annual":
-            raise ImportValidationError("Use Annual kind for the MOSQUE_A annual layout")
+            raise ImportValidationError(
+                "Use Annual kind for the MOSQUE_A annual layout"
+            )
         if self.layout_id == "mosque_b_ramadan_v1" and kind != "ramadan":
             raise ImportValidationError(
                 "Use Ramadan kind for the Mosque B Ramadan page layout"

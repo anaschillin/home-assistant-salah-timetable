@@ -71,16 +71,19 @@ def test_full_csv_shape_and_declared_year(pages):
         parsed(pages, year=2027)
 
 
-@pytest.mark.parametrize("page,old,new", [
-    (0, "2026", "2027"),
-    (1, "JANUARY 2026", "JANUARY 2027"),
-    (1, "DATE FAJR ZOHAR", "DATE FAJR UNKNOWN"),
-    (1, "Jan 1,...", "Jan 2,..."),
-    (1, "1,... Thu", "1,... Fri"),
-    (1, "5:07", "5:99"),
-    (5, "May ... Fri", "May ... Sat"),
-    (13, "RAMADHAN 2026", "RAMADHAN 2027"),
-])
+@pytest.mark.parametrize(
+    "page,old,new",
+    [
+        (0, "2026", "2027"),
+        (1, "JANUARY 2026", "JANUARY 2027"),
+        (1, "DATE FAJR ZOHAR", "DATE FAJR UNKNOWN"),
+        (1, "Jan 1,...", "Jan 2,..."),
+        (1, "1,... Thu", "1,... Fri"),
+        (1, "5:07", "5:99"),
+        (5, "May ... Fri", "May ... Sat"),
+        (13, "RAMADHAN 2026", "RAMADHAN 2027"),
+    ],
+)
 def test_invalid_dates_headers_and_times_are_rejected(pages, page, old, new):
     assert old in pages[page]
     changed = list(pages)

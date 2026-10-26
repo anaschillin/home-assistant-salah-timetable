@@ -103,7 +103,9 @@ def _format(value: int) -> str:
 def _check_order(values: list[int]) -> None:
     # These checks validate the fixed AM/PM interpretation; they never repair times.
     if not all(a < b for a, b in zip(values[:8], values[1:8], strict=False)):
-        raise ImportValidationError("MOSQUE_A beginning/end times are not in daily order")
+        raise ImportValidationError(
+            "MOSQUE_A beginning/end times are not in daily order"
+        )
     if not (
         values[1] <= values[8] <= values[2]
         and values[4] <= values[9] < values[6]
@@ -126,10 +128,7 @@ class MosqueALayout:
             )
         cover = pages[0]
         cover_years = re.findall(r"^([0-9]{4})$", cover, re.MULTILINE)
-        if (
-            "SALAH TIMETABLE" not in cover
-            or len(cover_years) != 1
-        ):
+        if "SALAH TIMETABLE" not in cover or len(cover_years) != 1:
             raise ImportValidationError("MOSQUE_A annual cover is not recognized")
         year = int(cover_years[0])
         if not 1900 <= year <= 2199:

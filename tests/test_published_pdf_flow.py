@@ -28,8 +28,22 @@ def published_clock(freezer):
 @pytest.mark.parametrize(
     "filename,layout,year,count,start,end",
     [
-        ("mosque_a_monthly_2022.pdf", "mosque_a_monthly_v1", 2022, 61, "2022-05-01", "2022-06-30"),
-        ("mosque_b_2026.pdf", "mosque_b_ramadan_v1", 2026, 31, "2026-02-18", "2026-03-20"),
+        (
+            "mosque_a_monthly_2022.pdf",
+            "mosque_a_monthly_v1",
+            2022,
+            61,
+            "2022-05-01",
+            "2022-06-30",
+        ),
+        (
+            "mosque_b_2026.pdf",
+            "mosque_b_ramadan_v1",
+            2026,
+            31,
+            "2026-02-18",
+            "2026-03-20",
+        ),
     ],
 )
 async def test_synthetic_pdf_upload_staging_approval_and_persistence(
@@ -137,7 +151,11 @@ async def test_synthetic_pdf_upload_staging_approval_and_persistence(
             {"columns": {"Fajr Begin": "isha_begin"}},
         ),
         ("mosque_b_ramadan_v1", "mosque_b_2026.pdf", {"kind": "annual"}),
-        ("mosque_b_ramadan_v1", "mosque_b_2026.pdf", {"columns": {"Dhuhr Jamaat": "jumuah"}}),
+        (
+            "mosque_b_ramadan_v1",
+            "mosque_b_2026.pdf",
+            {"columns": {"Dhuhr Jamaat": "jumuah"}},
+        ),
     ],
 )
 def test_synthetic_layout_semantics_cannot_be_reassigned(layout, filename, overrides):

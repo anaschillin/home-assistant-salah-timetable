@@ -21,7 +21,11 @@ FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_a_monthly_2022.pdf"
 
 @pytest.fixture(scope="module")
 def pages():
-    return extract_pdf_pages(FIXTURE.read_bytes())
+    extracted = extract_pdf_pages(FIXTURE.read_bytes())
+    print("MONTHLY_FIXTURE_FOOTERS")
+    for page in extracted:
+        print(repr(page.splitlines()[-7:]))
+    return extracted
 
 
 def parsed(pages, year=2022):
@@ -50,7 +54,9 @@ def test_synthetic_two_months_are_complete_and_fictional(pages):
     assert first.times[PrayerField.MAGHRIB_BEGIN] == (time(18, 17),)
     assert first.times[PrayerField.IFTAR] == (time(18, 22),)
     assert first.original["Published Dawn"] == "5:07"
-    assert all(PrayerField.TARAWEEH not in row.times for row in candidate.timetable.days)
+    assert all(
+        PrayerField.TARAWEEH not in row.times for row in candidate.timetable.days
+    )
 
 
 def test_friday_field_and_khutbah_annotation_remain_separate(pages):
@@ -74,14 +80,17 @@ def test_monthly_csv_provenance_and_wrong_year(pages):
         parsed(pages, year=2026)
 
 
-@pytest.mark.parametrize("page,old,new", [
-    (0, "May 2022", "May 2023"),
-    (0, "1 Sun", "1 Mon"),
-    (0, "1 Sun", "2 Sun"),
-    (0, "5:07", "5:99"),
-    (0, "Dawn Sunrise", "Dawn Moonrise"),
-    (0, "Dates Beginning / End Times Jamaat Times", "Unknown footer"),
-])
+@pytest.mark.parametrize(
+    "page,old,new",
+    [
+        (0, "May 2022", "May 2023"),
+        (0, "1 Sun", "1 Mon"),
+        (0, "1 Sun", "2 Sun"),
+        (0, "5:07", "5:99"),
+        (0, "Dawn Sunrise", "Dawn Moonrise"),
+        (0, "Dates Beginning / End Times Jamaat Times", "Unknown footer"),
+    ],
+)
 def test_reject_modified_structure_and_times(pages, page, old, new):
     assert old in pages[page]
     changed = list(pages)
@@ -94,14 +103,19 @@ def test_reject_duplicate_missing_or_reordered_rows(pages):
     lines = pages[0].splitlines()
     first = next(i for i, line in enumerate(lines) if line.startswith("1 Sun"))
     for variant in (
-        lines[:first] + lines[first + 1:],
+        lines[:first] + lines[first + 1 :],
         lines[:first] + [lines[first]] + lines[first:],
-        lines[:first] + [lines[first + 1], lines[first]] + lines[first + 2:],
+        lines[:first] + [lines[first + 1], lines[first]] + lines[first + 2 :],
     ):
         with pytest.raises(ImportValidationError):
             MosqueAMonthlyLayout().to_csv(("\n".join(variant), pages[1]))
 
 
 def test_monthly_layout_does_not_depend_on_a_specific_publisher_url(pages):
-    changed = tuple(page.replace("www.mosque-a.example.org", "www.other-example.test") for page in pages)
-    assert MosqueAMonthlyLayout().to_csv(changed) == MosqueAMonthlyLayout().to_csv(pages)
+    changed = tuple(
+        page.replace("www.mosque-a.example.org", "www.other-example.test")
+        for page in pages
+    )
+    assert MosqueAMonthlyLayout().to_csv(changed) == MosqueAMonthlyLayout().to_csv(
+        pages
+    )

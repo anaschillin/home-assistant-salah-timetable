@@ -1,7 +1,7 @@
 """The published Mosque B annual calendar survives native HA import and use."""
 
 import base64
-from datetime import date, time
+from datetime import date, datetime, time
 from hashlib import sha256
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
@@ -50,7 +50,10 @@ async def upload(hass, entry, client, *, kind="annual"):
     result = await open_step(hass, entry, "import_pdf")
     body = FormData()
     body.add_field(
-        "file", FIXTURE.read_bytes(), filename="mosque_b_2026.pdf", content_type="application/pdf"
+        "file",
+        FIXTURE.read_bytes(),
+        filename="mosque_b_2026.pdf",
+        content_type="application/pdf",
     )
     response = await client.post("/api/file_upload", data=body)
     assert response.status == 200
@@ -139,12 +142,12 @@ async def test_annual_upload_review_approval_reload_and_dst_events(
     ):
         freezer.move_to(instant)
         await entry.runtime_data.async_refresh()
-        assert entity_state(hass, "fajr_begin") == expected
+        assert datetime.fromisoformat(entity_state(hass, "fajr_begin")) == datetime.fromisoformat(expected)
     # The same local Fajr remains correctly timezone-aware across the DST change.
     freezer.move_to("2026-03-28T23:00:00+00:00")
     await entry.runtime_data.async_refresh()
     assert entity_state(hass, "fajr_begin") == "2026-03-28T05:07:00+00:00"
-    assert entity_state(hass, "next_salah") == "2026-03-29T05:07:00+01:00"
+    assert datetime.fromisoformat(entity_state(hass, "next_salah")) == datetime.fromisoformat("2026-03-29T05:07:00+01:00")
 
 
 async def test_annual_url_profile_and_separate_ramadan_confirmation(

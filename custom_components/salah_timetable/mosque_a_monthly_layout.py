@@ -46,7 +46,9 @@ class MosqueAMonthlyLayout:
         if not 1 <= len(pages) <= 12 or any(
             not isinstance(page, str) or not page.strip() for page in pages
         ):
-            raise ImportValidationError("MOSQUE_A monthly layout needs 1 to 12 text pages")
+            raise ImportValidationError(
+                "MOSQUE_A monthly layout needs 1 to 12 text pages"
+            )
         output = io.StringIO(newline="")
         writer = csv.writer(output, lineterminator="\n")
         writer.writerow(

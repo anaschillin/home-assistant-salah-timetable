@@ -29,11 +29,25 @@ A_HEADER = (
     "Sunset Esha Start x Fajr Dhuhr / Jumu'ah Asr Maghrib (Iftaar) Esha"
 )
 A_VALUES = "5:00 5:07 7:00 12:05 12:12 3:15 6:17 8:11 x 6:05 1:45 4:20 6:22 9:07"
-B_VALUES = ("5:00", "5:07", "6:05", "7:00", "12:05", "12:45", "3:15", "4:20", "6:17", "8:11", "9:07")
+B_VALUES = (
+    "5:00",
+    "5:07",
+    "6:05",
+    "7:00",
+    "12:05",
+    "12:45",
+    "3:15",
+    "4:20",
+    "6:17",
+    "8:11",
+    "9:07",
+)
 H0 = "DATE SEHRI FAJR ZOHAR ASAR MAGRIB ISHA"
 H1 = "DATE DAY ISLAMIC END START JAMAAT SUNRISE START JAMAAT START JAMAAT START START JAMAAT"
 P0 = "DATE FAJR ZOHAR ASAR MAGRIB ISHA"
-P1 = "DATE DAY ISLAMIC START JAMAAT SUNRISE START JAMAAT START JAMAAT START START JAMAAT"
+P1 = (
+    "DATE DAY ISLAMIC START JAMAAT SUNRISE START JAMAAT START JAMAAT START START JAMAAT"
+)
 FEB1 = "DATE DAY ISLAMIC SEHRI START JAMAAT SUNRISE START JAMAAT START JAMAAT START START JAMAAT"
 
 
@@ -61,12 +75,14 @@ def monthly_a() -> list[list[str]]:
 
 
 def annual_and_ramadan_b() -> list[list[str]]:
-    pages = [[
-        "MOSQUE B - SYNTHETIC CALENDAR & TIMETABLE",
-        "2026",
-        "www.mosque-b.example.org",
-        "FICTIONAL TIMES - DO NOT USE",
-    ]]
+    pages = [
+        [
+            "MOSQUE B - SYNTHETIC CALENDAR & TIMETABLE",
+            "2026",
+            "www.mosque-b.example.org",
+            "FICTIONAL TIMES - DO NOT USE",
+        ]
+    ]
     for month in range(1, 13):
         sehri = 2 <= month <= 5
         header = (P0, FEB1) if month == 2 else (H0, H1) if sehri else (P0, P1)
@@ -92,7 +108,11 @@ def annual_and_ramadan_b() -> list[list[str]]:
     ramadan = [*PRELUDE, "Ramadhan Kareem 1447 AH", H0, H1]
     for offset in range(31):
         day = date(2026, 2, 18) + timedelta(days=offset)
-        name = f"{calendar.month_abbr[day.month]} {day.day},..." if offset == 0 or day.day == 1 else str(day.day)
+        name = (
+            f"{calendar.month_abbr[day.month]} {day.day},..."
+            if offset == 0 or day.day == 1
+            else str(day.day)
+        )
         ramadan.append(
             f"{name} {day_name(day)} {offset + 1 if offset < 30 else 1} {' '.join(B_VALUES)}"
         )

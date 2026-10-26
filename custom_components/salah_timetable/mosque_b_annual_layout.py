@@ -139,9 +139,7 @@ class MosqueBAnnualLayout:
             )
             lines = [line.strip() for line in page.splitlines() if line.strip()]
             prefix_length = len(_PAGE_PREFIX) - 1
-            if (
-                tuple(lines[prefix_length : prefix_length + 2]) != header
-            ):
+            if tuple(lines[prefix_length : prefix_length + 2]) != header:
                 raise ImportValidationError(
                     "Mosque B annual table columns or preamble are not recognized"
                 )
@@ -157,8 +155,8 @@ class MosqueBAnnualLayout:
                 or not footer[1].startswith(_CONTACT_LABELS[0])
                 or not footer[2].startswith(_CONTACT_LABELS[1])
                 or not footer[-1].startswith(_SHOP_PREFIX)
-                or _compact("".join(footer[3:-1]))
-                .startswith(_compact(title * 2)) is False
+                or _compact("".join(footer[3:-1])).startswith(_compact(title * 2))
+                is False
             ):
                 raise ImportValidationError(
                     "Mosque B annual month needs every dated row and its known footer"
