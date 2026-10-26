@@ -15,19 +15,41 @@ concurrency:
 
 jobs:
   compatibility:
-    name: Unit tests on HA ${{ matrix.ha-version }} (${{ matrix.lane }})
+    name: Unit tests on HA ${{ matrix.ha-version }} (${{ matrix.lane }}, shard ${{ matrix.shard-index }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         include:
+          # Keep all 50 test modules in the matrix, but isolate the
+          # minimum environment into independent, bounded runner processes.
+          # Any hanging module group is immediately identifiable from its shard.
           - lane: minimum
             ha-version: '2026.10.0'
             plugin-version: '0.13.371'
+            shard-index: 0
+            shard-count: 4
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 1
+            shard-count: 4
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 2
+            shard-count: 4
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 3
+            shard-count: 4
           - lane: supported-current
             ha-version: '2026.10.3'
             plugin-version: '0.13.374'
+            shard-index: 0
+            shard-count: 1
     env:
       COMPAT_PROJECT: compatibility/${{ matrix.lane }}
     steps:
@@ -63,22 +85,40 @@ jobs:
             --environment "$UV_PROJECT_ENVIRONMENT" \
             --output "$COMPAT_EVIDENCE/environment.json"
           uv pip freeze --python "$UV_PROJECT_ENVIRONMENT/bin/python" > "$COMPAT_EVIDENCE/installed.txt"
-      - name: Run the complete Python suite from the repository root
+      - name: Run assigned Python test shard from the repository root
         shell: bash
+        env:
+          SHARD_INDEX: ${{ matrix.shard-index }}
+          SHARD_COUNT: ${{ matrix.shard-count }}
         run: |
           set -euo pipefail
-          # Capture directly to a file: unlike a tee pipe, this cannot stay
-          # open because a test child inherited the command's stdout.
-          # Always print the tail on pytest failure/watchdog expiry as well.
+          # Every tests/test_*.py file is assigned to exactly one shard in
+          # stable, alphabetic order; the current lane uses one full shard.
+          mapfile -t ALL_TEST_FILES < <(
+            find tests -maxdepth 1 -type f -name 'test_*.py' | LC_ALL=C sort
+          )
+          test "${#ALL_TEST_FILES[@]}" -gt 0
+          TEST_FILES=()
+          for i in "${!ALL_TEST_FILES[@]}"; do
+            if (( i % SHARD_COUNT == SHARD_INDEX )); then
+              TEST_FILES+=("${ALL_TEST_FILES[i]}")
+            fi
+          done
+          test "${#TEST_FILES[@]}" -gt 0
+          printf 'Shard %s/%s contains %s test files out of %s:\n' \
+            "$SHARD_INDEX" "$SHARD_COUNT" \
+            "${#TEST_FILES[@]}" "${#ALL_TEST_FILES[@]}"
+          printf '%s\n' "${TEST_FILES[@]}" | tee "$COMPAT_EVIDENCE/test-files.txt"
+          # Redirect directly to a file (avoid inherited tee pipe descriptors).
           touch "$COMPAT_EVIDENCE/pytest.log"
           trap 'tail -n 160 "$COMPAT_EVIDENCE/pytest.log" || true' EXIT
-          # Leave time inside the 15-minute job limit to upload the trace.
           timeout --signal=TERM --kill-after=30s 12m \
             env PYTHONUNBUFFERED=1 PYTHONFAULTHANDLER=1 \
             "$UV_PROJECT_ENVIRONMENT/bin/python" -m pytest -c pyproject.toml \
               --timeout=30 -vv -o faulthandler_timeout=120 \
               --junitxml="$COMPAT_EVIDENCE/junit.xml" \
               --cov-report="xml:$COMPAT_EVIDENCE/coverage.xml" \
+              "${TEST_FILES[@]}" \
             > "$COMPAT_EVIDENCE/pytest.log" 2>&1
       - name: Verify reproducible development and compatibility locks were unchanged
         if: always()
@@ -87,7 +127,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: ha-unit-compatibility-${{ matrix.ha-version }}
+          name: ha-unit-compatibility-${{ matrix.ha-version }}-shard-${{ matrix.shard-index }}
           path: ${{ env.COMPAT_EVIDENCE }}/
           if-no-files-found: ignore
           retention-days: 7
