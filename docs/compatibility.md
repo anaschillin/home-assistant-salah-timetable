@@ -101,12 +101,15 @@ sets it up. This preserves every import, approval and reload assertion. It
 avoids the older pytest client's frozen-router artifact without changing
 production behavior or suppressing errors.
 
-For isolation, the minimum lane now runs **four independent pytest jobs**,
-each executing a disjoint, deterministic subset of the `tests/test_*.py`
-modules in sorted order (`file_index % 4`). Collectively they run every
-test module, with no exclusions or changes to version pins. The
-supported-current HA lane runs all modules in one job. The shard number
-appears in each job name and artifact name; every shard writes a
+For isolation, the minimum lane runs **seven independent pytest jobs**:
+the three modulo-4 groups that completed (indices 1, 2 and 3) remain
+unchanged; the slower previous index-0 group is subdivided into four modulo-16
+groups (indices 0, 4, 8 and 12). All 50 sorted `tests/test_*.py` modules
+are still covered **exactly once**, with no test exclusions or changes to
+version pins. This split lets each independently running group finish and
+publish a useful log without depending on a stalled sibling. The
+supported-current HA lane runs all modules in one job. The shard index and modulus
+appear in each job name, and the index in its artifact name; every shard writes a
 `test-files.txt` manifest and an unbuffered `-vv` pytest transcript,
 plus JUnit/coverage artifacts if produced. Pytest retains the per-test
 `--timeout=30`; Python faulthandler can dump stacks after 120 seconds.

@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   compatibility:
-    name: Unit tests on HA ${{ matrix.ha-version }} (${{ matrix.lane }}, shard ${{ matrix.shard-index }})
+    name: Unit tests on HA ${{ matrix.ha-version }} (${{ matrix.lane }}, shard ${{ matrix.shard-index }}/${{ matrix.shard-count }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -25,11 +25,30 @@ jobs:
           # Keep all 50 test modules in the matrix, but isolate the
           # minimum environment into independent, bounded runner processes.
           # Any hanging module group is immediately identifiable from its shard.
+          # The previous minimum shard 0 contains a suspected long-running
+          # test group. Split ONLY that group into four independent subshards,
+          # retaining the three already-successful modulo-4 groups unchanged.
+          # 0/16 + 4/16 + 8/16 + 12/16 == the prior 0/4 group.
           - lane: minimum
             ha-version: '2026.10.0'
             plugin-version: '0.13.371'
             shard-index: 0
-            shard-count: 4
+            shard-count: 16
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 4
+            shard-count: 16
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 8
+            shard-count: 16
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 12
+            shard-count: 16
           - lane: minimum
             ha-version: '2026.10.0'
             plugin-version: '0.13.371'
