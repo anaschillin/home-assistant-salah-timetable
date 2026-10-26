@@ -1,4 +1,4 @@
-import {eventProgress, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.0";
+import {eventProgress, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.0";
 import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9.0";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
@@ -325,6 +325,14 @@ export class SalahTimetableCardEditor extends HTMLElement {
     }
     const {entity, mode, title, titleLabel, error, help} = this._controls;
     entity.hass = this._hass; entity.label = tr(ui, "editor.entity");
+    const mosques = discoverTimetableEntities(this._hass);
+    const options = mosques.map(({entity: value, name}) => ({value, label: `${name} (${value})`}));
+    // Preserve a saved selection while Home Assistant is starting or the
+    // selected mosque is temporarily unavailable.
+    if (this._config.entity && !mosques.some(item => item.entity === this._config.entity)) {
+      options.push({value: this._config.entity, label: this._config.entity});
+    }
+    entity.selector = {select: {options}};
     mode.hass = this._hass; mode.label = tr(ui, "editor.mode");
     mode.selector = {select: {options: ["context", "previous", "upcoming"].map(value => ({value, label: tr(ui, `editor.mode.${value}`)}))}};
     titleLabel.textContent = tr(ui, "editor.title");
@@ -339,7 +347,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
     if (this._controls) { this._updateControls(); return; }
     const style = node("style", ":host{display:block}.form{display:grid;gap:16px;padding:12px 0}.help{color:var(--secondary-text-color);font-size:.9rem}.error{color:var(--error-color)}.setting{display:flex;justify-content:space-between;gap:12px;align-items:center}.setting select{font:inherit;color:var(--primary-text-color);background:var(--card-background-color);padding:8px;max-width:55%}.setting span{overflow-wrap:anywhere}.title-field{display:grid;gap:7px}.title-field label{font:inherit;color:var(--primary-text-color)}.title-field input{box-sizing:border-box;width:100%;padding:12px;border:1px solid var(--divider-color);border-radius:4px;background:var(--card-background-color);color:var(--primary-text-color);font:inherit}.title-field input:focus{outline:2px solid var(--primary-color);outline-offset:1px}@media(max-width:420px){.setting{gap:8px}}");
     const form = node("div", undefined, "form"); this._form = form;
-    const entity = node("ha-selector"); entity.selector = {entity: {filter: [{domain: "sensor", integration: "salah_timetable"}]}};
+    const entity = node("ha-selector");
     const error = node("div", "", "error"); error.setAttribute("role", "alert");
     entity.addEventListener("value-changed", event => {
       const value = event.detail?.value;
