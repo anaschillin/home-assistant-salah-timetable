@@ -13,19 +13,19 @@ calendar, publication profiles, speaker controls, import review, Hijri-first
 header and Arabic/RTL controls remains separate. Hosted validation is recorded separately for exact commit
 SHAs; a final release commit still needs its own successful required jobs.
 
-## Current release readiness — 25 October 2026
+## Current release readiness
 
-**This document is the single active checklist for release acceptance.** The
-[archived 25 October review plan](archive/review-action-plan-2026-10-25.md)
-records REV-01–06 implementation history; use this section for the outstanding
-sign-offs. REV-07 now has isolated minimum/current unit suites and live lanes;
-hosted validation of the new unit workflow remains pending; REV-08's
-import-change comparison is implemented in Milestone 17. Milestone 10A's
-card/editor localization and RTL is implemented in candidate 0.9.0 with local
-and live checks passed; release acceptance remains pending. Integration
-translations and reviewed wording remain 10B. These follow-ups belong in
-[remaining work](remaining-work.md), not in the current release gate unless
-they uncover a blocking regression.
+**Status reviewed 26 October 2026.** This is the **only active release
+acceptance checklist**. The [archived review plan](archive/review-action-plan-2026-10-25.md)
+preserves the original REV-01–06 implementation history. REV-07's isolated
+minimum/current unit and live-HA testing is implemented and has passed
+hosted validation; REV-08's import change comparison is implemented in
+Milestone 17. Milestone 10A's card/editor language and RTL features are
+implemented in candidate **0.9.0**, with applicable manual release acceptance
+still outstanding. Milestone 10B's integration translations and reviewed
+Arabic wording belong in the [development backlog](remaining-work.md) unless
+they uncover a blocker. The automated checks do not replace the manual or
+asset-rights gates below.
 
 | Gate | Recorded evidence | Decision / remaining action |
 | --- | --- | --- |
@@ -33,7 +33,7 @@ they uncover a blocking regression.
 | REV-04 asset redistribution | [PR #9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9) merged; [asset inventory](asset-provenance.json) and [rights review](asset-provenance.md) available | **Blocking:** obtain documented rights for contributed PDFs/derived oracles, icon and screenshots, or replace with rights-cleared originals and assess public Git history; `python scripts/check_asset_provenance.py --require-cleared` must pass |
 | REV-05 full HAOS restore | [PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11) merged; real **Home Assistant Container** backup archive creation and isolated restore passed on Core 2026.10.0 and 2026.10.3 | **Blocking:** restore an actual *full HAOS/Supervisor* backup into a **second disposable HAOS instance**, verify entry/entity IDs, approved versus pending source data, Ramadan options, dashboard resources, Repairs and a second restart; record redacted evidence using the [restore procedure](backup-restore-acceptance.md) |
 | REV-06 HACS removal/re-addition | [PR #10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10) merged; real HA Container two-mosque isolation and config-entry removal/re-addition passed. **On 25 October the user also confirmed removal and reinstallation worked** in their installation; [evidence and limits](hacs-removal-acceptance.md#reported-hacs-removereinstall-outcome--25-october-2026). | **Partially user-confirmed, full gate pending:** capture whether the UI route was HACS and the environment/version, then verify two-mosque isolation, deleted-entry cleanup, single frontend resource/device identity and restart in the documented disposable acceptance sequence. Do not equate a successful reinstall alone with full REV-06 sign-off. |
-| Required hosted validation | [Latest merged 0.8.0 main run 40229412033](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40229412033) passed six jobs with **936 Python tests**. For the new 0.8.1 features, [PR #21 branch run 40242996936](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40242996936) passed **955 Python tests**, frontend/Chromium, HACS, hassfest and disposable live HA 2026.10.0 / 2026.10.3 on source `888e4cd`. Earlier calendar timing flakiness remains tracked in [issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13). | **Code/branch validation passed but not a tagged release:** verify exact future merge/release commit and manually accept Hijri-first rendering, monthly coexistence, real PDF sources and REV-04–06 gates before sign-off. |
+| Required hosted validation | [26 October 2026 main Validate 40337238065](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238065) passed **12/12** jobs on `b6dbe14bb75b791fbb1171e981494d2a21dbe07e`: locked Python tests, five exhaustive minimum-HA 2026.10.0 groups, full current-HA 2026.10.3 unit suite, frontend/Chromium, hassfest, HACS and both live Container lanes. [CodeQL 40337238192](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238192) also passed. Calendar timing [#13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13) and minimum-HA cancellation [#24](https://github.com/anaschillin/home-assistant-salah-timetable/issues/24) are **closed**; consult [compatibility notes](compatibility.md) for the unsharded-hang limitation. | **Automated code validation complete at this SHA, not a tagged release:** the *eventual release-tagged commit* must independently pass its exact `main` validation, and the outstanding REV-04–06 and manual acceptance gates below must still be signed off. |
 | Manual release acceptance | See [the UI/runtime checks below](#manual-home-assistant-and-hacs-acceptance) and [validation log](validation.md) | **Still requires recorded results** for every applicable real-world/UI scenario; a passing automated workflow is not a substitute |
 | Version, packaging and publication | Build/release scripts and draft workflow exist | **Pending:** match manifest/project/card/cache versions, changelog and notes; review existing tag, successful CI and prepared draft before publishing |
 
@@ -282,7 +282,7 @@ and review the draft before publishing through GitHub.
 For local asset review, without creating any GitHub tag or release:
 
 ```sh
-uv run --frozen python -m scripts.prepare_release --tag v0.8.0 --output-dir /tmp/salah-release-review
+uv run --frozen python -m scripts.prepare_release --tag v0.9.0 --output-dir /tmp/salah-release-review
 ```
 
 Use the manifest's current version in the tag argument. Local preparation validates
