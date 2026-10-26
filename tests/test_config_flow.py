@@ -87,6 +87,18 @@ async def test_hijri_mosque_setting_at_setup_and_afterwards(hass):
     assert changed["type"] == FlowResultType.CREATE_ENTRY
     assert entry.options["show_hijri_date"] is True
 
+    # An options change schedules an integration reload; wait for the new
+    # coordinator to finish loading before testing its explicit shutdown.
+    # Otherwise the HA 2026.10.3 timer-leak fixture may discover the
+    # midnight callback left behind when this test tears down.
+    await hass.async_block_till_done()
+    assert entry.state == ConfigEntryState.LOADED
+    current = entry.runtime_data
+    assert current._boundary_unsub is not None
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    assert entry.state == ConfigEntryState.NOT_LOADED
+    assert current._boundary_unsub is None
+
 
 async def test_config_flow_creates_loaded_entry_with_sensors(hass):
     """Creating a mosque through the UI flow loads its sensors."""
