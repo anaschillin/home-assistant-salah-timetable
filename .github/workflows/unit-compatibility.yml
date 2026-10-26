@@ -55,13 +55,30 @@ jobs:
           # Isolate the only remaining stalled module, test_source_flow.py,
           # into six full-function groups; parameterizations remain together.
           # The same module's every top-level test function is run exactly once.
+          # 5 of 6 source_flow test groups passed; split the one remaining
+          # 0/6 group (function indices 0, 6 and 12) into three single
+          # top-level test-function groups, preserving all 16 functions.
           - lane: minimum
             ha-version: '2026.10.0'
             plugin-version: '0.13.371'
             shard-index: 40
             shard-count: 64
             case-index: 0
-            case-count: 6
+            case-count: 24
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 40
+            shard-count: 64
+            case-index: 6
+            case-count: 24
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+            shard-index: 40
+            shard-count: 64
+            case-index: 12
+            case-count: 24
           - lane: minimum
             ha-version: '2026.10.0'
             plugin-version: '0.13.371'
