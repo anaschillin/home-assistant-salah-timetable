@@ -142,12 +142,16 @@ async def test_annual_upload_review_approval_reload_and_dst_events(
     ):
         freezer.move_to(instant)
         await entry.runtime_data.async_refresh()
-        assert datetime.fromisoformat(entity_state(hass, "fajr_begin")) == datetime.fromisoformat(expected)
+        assert datetime.fromisoformat(
+            entity_state(hass, "fajr_begin")
+        ) == datetime.fromisoformat(expected)
     # The same local Fajr remains correctly timezone-aware across the DST change.
     freezer.move_to("2026-03-28T23:00:00+00:00")
     await entry.runtime_data.async_refresh()
     assert entity_state(hass, "fajr_begin") == "2026-03-28T05:07:00+00:00"
-    assert datetime.fromisoformat(entity_state(hass, "next_salah")) == datetime.fromisoformat("2026-03-29T05:07:00+01:00")
+    assert datetime.fromisoformat(
+        entity_state(hass, "next_salah")
+    ) == datetime.fromisoformat("2026-03-29T05:07:00+01:00")
 
 
 async def test_annual_url_profile_and_separate_ramadan_confirmation(

@@ -8,7 +8,6 @@ shares the inspected annual layout's column meanings, not its page structure.
 import calendar
 import csv
 import io
-import re
 from datetime import date
 
 from .csv_parser import DITTO_MARKERS
@@ -33,12 +32,6 @@ _HEADER = (
     "Sunset Esha Start x Fajr Dhuhr / Jumu'ah Asr Maghrib (Iftaar) Esha"
 )
 _MOONSIGHTING = "*Hijri Date is subject to Moonsighting"
-_KHUTBAH = re.compile(
-    r"Second Jumu'ah Khutbah will commence at (?:[1-9]|1[0-2]):[0-5][0-9](?:am|pm) "
-    r"in the Masjid Dining Hall"
-)
-
-
 class MosqueAMonthlyLayout:
     """One to twelve complete consecutive monthly pages in one printed year."""
 
@@ -110,16 +103,15 @@ class MosqueAMonthlyLayout:
             # The table and dated rows determine the adapter, not the publisher's
             # address, logo or decorative footer artwork. Keep the explicitly
             # printed month and separately labelled khutbah as required context.
+            khutbah = published_second_khutbah(" ".join(footer))
             if (
                 f"{month_name} {year_text}" not in footer
                 or _TABLE_MARKER not in footer
-                or not any(_KHUTBAH.fullmatch(line) for line in footer)
+                or khutbah is None
             ):
                 raise ImportValidationError(
                     "MOSQUE_A monthly headings or footer are not recognized"
                 )
-            khutbah = published_second_khutbah(" ".join(footer))
-            assert khutbah is not None
             prior: dict[int, int] = {}
             for expected_day, index in enumerate(row_indices, start=1):
                 match = _ROW_PATTERN.fullmatch(lines[index])

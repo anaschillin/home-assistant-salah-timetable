@@ -21,11 +21,7 @@ FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_a_monthly_2022.pdf"
 
 @pytest.fixture(scope="module")
 def pages():
-    extracted = extract_pdf_pages(FIXTURE.read_bytes())
-    print("MONTHLY_FIXTURE_FOOTERS")
-    for page in extracted:
-        print(repr(page.splitlines()[-7:]))
-    return extracted
+    return extract_pdf_pages(FIXTURE.read_bytes())
 
 
 def parsed(pages, year=2022):
