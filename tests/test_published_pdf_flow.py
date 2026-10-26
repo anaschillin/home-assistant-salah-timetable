@@ -11,6 +11,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.import_model import ImportCandidate
+from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.model import PrayerField
 from custom_components.salah_timetable.pdf_parser import PdfParser
 from custom_components.salah_timetable.ramadan import RamadanSettings, resolve_day
@@ -34,11 +35,11 @@ def published_clock(freezer):
 async def test_real_pdf_upload_staging_approval_and_persistence(
     hass, entry, hass_client, filename, layout, year, count, start, end
 ):
-    # The mocked HTTP test client freezes the router; production HA's server
-    # leaves it mutable. Register the integration card before starting client.
+    # Install the bundled assets before the test HTTP client freezes routes.
     assert await async_setup_component(hass, "file_upload", {})
-    assert await hass.config_entries.async_setup(entry.entry_id)
+    await async_setup_frontend(hass)
     client = await hass_client()
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(

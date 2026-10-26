@@ -13,6 +13,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.const import DOMAIN
+from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.download import DownloadError, DownloadResult
 from custom_components.salah_timetable.import_model import MAX_PDF_BYTES
 
@@ -28,10 +29,10 @@ def source_clock(freezer):
 
 
 @pytest.fixture
-async def source_upload_client(hass, hass_client, entry):
-    # The test HTTP client freezes its aiohttp router before entry setup.
+async def source_upload_client(hass, hass_client):
+    # Register bundled static assets before the mocked HTTP router freezes.
     assert await async_setup_component(hass, "file_upload", {})
-    assert await hass.config_entries.async_setup(entry.entry_id)
+    await async_setup_frontend(hass)
     return await hass_client()
 
 

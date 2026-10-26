@@ -91,10 +91,15 @@ A later call to `async_setup_frontend()` fails with
 `RuntimeError: Cannot register a resource into frozen router` and causes
 PDF/CSV import approval tests to fail. Production Home Assistant deliberately
 keeps its running HTTP router mutable; the test client is not equivalent.
-These tests now set up `file_upload`, then the Salah Timetable entry
-(including its static paths), **before** creating `hass_client()`, preserving
-the complete HTTP upload/import/approval test coverage. The fix is test
-fixture initialization order, not suppression of a runtime exception.
+The first fixture-order attempt set up the entire mosque entry before the
+client, but HA 2026.10.0 then correctly rejected a **second entry setup**
+with `ConfigEntryState.LOADED`. The corrected fixtures initialize the HTTP
+component, call the integration's public `async_setup_frontend(hass)` helper
+**only to register the card's static assets**, and then start `hass_client()`.
+The actual mosque config entry remains NOT_LOADED until each test explicitly
+sets it up. This preserves every import, approval and reload assertion. It
+avoids the older pytest client's frozen-router artifact without changing
+production behavior or suppressing errors.
 
 For isolation, the minimum lane now runs **four independent pytest jobs**,
 each executing a disjoint, deterministic subset of the `tests/test_*.py`

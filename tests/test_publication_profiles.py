@@ -15,6 +15,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.csv_parser import CsvParser
+from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.import_model import (
     ImportCandidate,
     ImportValidationError,
@@ -244,11 +245,11 @@ async def test_timezone_changed_after_upload_cannot_stage_profiled_rows(hass, en
 async def test_manual_profile_upload_requires_review_and_persists_on_approval(
     hass, entry, hass_client, decision
 ):
-    # The mock HTTP router is frozen once the test client starts; initialize
-    # the integration's bundled frontend path before constructing that client.
+    # Install bundled card assets before the test HTTP client freezes routes.
     assert await async_setup_component(hass, "file_upload", {})
-    assert await hass.config_entries.async_setup(entry.entry_id)
+    await async_setup_frontend(hass)
     client = await hass_client()
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     profile = publication_profile("nms_monthly_may_june_2022_v1")
     content = (FIXTURES / "nms ramadhan.pdf").read_bytes()
