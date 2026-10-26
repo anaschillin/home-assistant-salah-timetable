@@ -1,7 +1,7 @@
-"""Original MIT-licensed synthetic fixtures for the inspected NMS table structure.
+"""Original MIT-licensed synthetic fixtures for the inspected MOSQUE_A table structure.
 
 No published mosque times, PDF graphics, address or contact details are copied.
-The NMS name/URL identify the adapter's required document signature only.
+The MOSQUE_A name/URL identify the adapter's required document signature only.
 Run from the repository root to regenerate deterministic PDF/golden fixtures.
 """
 
@@ -57,7 +57,7 @@ def synthetic_data(year=2026):
     """Return document pages and an independent explicit 24-hour golden CSV."""
     pages = [
         ["SALAH TIMETABLE", str(year), "MUSLIM SOCIETY", "SYNTHETIC TEST DATA"],
-        ["Nuneaton Muslim Society", "www.nmsuk.org", "SYNTHETIC TEST DATA"],
+        ["Mosque A", "www.mosque-a.example.org", "SYNTHETIC TEST DATA"],
     ]
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
@@ -158,5 +158,5 @@ def make_pdf(pages):
 
 if __name__ == "__main__":
     pages, expected = synthetic_data()
-    (ROOT / "nms_synthetic_2026.pdf").write_bytes(make_pdf(pages))
-    (ROOT / "nms_synthetic_2026.expected.csv").write_text(expected)
+    (ROOT / "mosque_a_synthetic_2026.pdf").write_bytes(make_pdf(pages))
+    (ROOT / "mosque_a_synthetic_2026.expected.csv").write_text(expected)

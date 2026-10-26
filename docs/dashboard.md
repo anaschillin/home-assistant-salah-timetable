@@ -56,7 +56,7 @@ then reload the dashboard browser tab after integration setup.
   shows **Ends at sunrise**, sourced only from that day's published Sunrise value;
   an absent Sunrise displays an unavailable end boundary.
 - Published Friday Jumu’ah congregations remain in the Dhuhr row; on supported
-  NMS publications, the distinct **second Jumu’ah khutbah** footer appears in a
+  MOSQUE_A publications, the distinct **second Jumu’ah khutbah** footer appears in a
   Friday-only note, **not** as a second Jamaat or replacement Dhuhr beginning.
 - When Ramadan is active: Sehri and Iftar countdowns, plus published Taraweeh time
   or **After Isha Jamaat**.

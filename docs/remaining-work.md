@@ -37,8 +37,8 @@ Those decisions are owned by [releasing.md](releasing.md).
    wording before claiming linguistic sign-off; retain stable entity IDs,
    canonical prayer values and storage formats.
 2. **Support additional verified publications.**
-   Check a public HTTPS source for the Nuneaton Muslim Society timetable;
-   retain HTTPS-only downloads. Add a fully inspected NMS Ramadan edition and
+   Check a public HTTPS source for the Mosque A timetable;
+   retain HTTPS-only downloads. Add a fully inspected MOSQUE_A Ramadan edition and
    additional annual/monthly/Ramadan adapters only when the printed source
    and independent expected results can be reviewed. Support cross-Gregorian-year
    Ramadan publications without altering printed dates.

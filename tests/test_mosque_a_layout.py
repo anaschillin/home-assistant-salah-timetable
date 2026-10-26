@@ -1,4 +1,4 @@
-"""Golden and malformed-layout checks for the inspected NMS annual structure."""
+"""Golden and malformed-layout checks for the inspected MOSQUE_A annual structure."""
 
 import csv
 import importlib.util
@@ -11,7 +11,7 @@ import pytest
 from custom_components.salah_timetable.csv_parser import CsvParser
 from custom_components.salah_timetable.import_model import ImportValidationError
 from custom_components.salah_timetable.model import PrayerField
-from custom_components.salah_timetable.nms_layout import NMS_COLUMNS, NmsLayout
+from custom_components.salah_timetable.mosque_a_layout import MOSQUE_A_COLUMNS, MosqueALayout
 from custom_components.salah_timetable.pdf_parser import extract_pdf_pages
 
 FIXTURES = Path(__file__).parent / "fixtures" / "pdf"
@@ -19,7 +19,7 @@ FIXTURES = Path(__file__).parent / "fixtures" / "pdf"
 
 def fixture_data(year=2026):
     spec = importlib.util.spec_from_file_location(
-        "nms_fixture_generator", FIXTURES / "nms_generate.py"
+        "mosque_a_fixture_generator", FIXTURES / "mosque_a_generate.py"
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -31,14 +31,14 @@ def text_pages(year=2026):
 
 
 def parsed(pages=None, year=2026):
-    content = NmsLayout().to_csv(pages or text_pages(year)).encode()
+    content = MosqueALayout().to_csv(pages or text_pages(year)).encode()
     return CsvParser().parse(
         content,
         timetable_id=f"annual-{year}",
         kind="annual",
         year=year,
         date_column="Date",
-        columns=NMS_COLUMNS,
+        columns=MOSQUE_A_COLUMNS,
     )
 
 
@@ -50,11 +50,11 @@ def mutate_line(pages, page, original, replacement):
 
 
 def test_real_pdf_golden_extraction():
-    pages = extract_pdf_pages((FIXTURES / "nms_synthetic_2026.pdf").read_bytes())
+    pages = extract_pdf_pages((FIXTURES / "mosque_a_synthetic_2026.pdf").read_bytes())
     assert len(pages) == 14
     assert (
-        NmsLayout().to_csv(pages)
-        == (FIXTURES / "nms_synthetic_2026.expected.csv").read_text()
+        MosqueALayout().to_csv(pages)
+        == (FIXTURES / "mosque_a_synthetic_2026.expected.csv").read_text()
     )
 
 
@@ -112,7 +112,7 @@ def test_reject_missing_or_extra_pages(count):
     pages = text_pages()
     changed = pages[:count] if count <= 14 else pages + (pages[-1],)
     with pytest.raises(ImportValidationError, match="fourteen|twelve"):
-        NmsLayout().to_csv(changed)
+        MosqueALayout().to_csv(changed)
 
 
 @pytest.mark.parametrize(
@@ -120,7 +120,7 @@ def test_reject_missing_or_extra_pages(count):
     [
         (0, "2026", "2027", "agree with the cover"),
         (0, "SALAH TIMETABLE", "OTHER TIMETABLE", "cover"),
-        (1, "Nuneaton Muslim Society", "Different Mosque", "contact"),
+        (1, "Mosque A", "Different Mosque", "contact"),
         (2, "January 2026", "February 2026", "ordered"),
         (2, "Sunset Esha", "Iftar Esha", "columns"),
         (2, "1 Thu 10", "1 Fri 10", "weekday"),
@@ -136,7 +136,7 @@ def test_reject_missing_or_extra_pages(count):
 def test_malformed_source_fails_closed(page, old, new, message):
     pages = mutate_line(text_pages(), page, old, new)
     with pytest.raises(ImportValidationError, match=message):
-        NmsLayout().to_csv(pages)
+        MosqueALayout().to_csv(pages)
 
 
 def test_missing_row_or_extra_cell_rejected():
@@ -146,11 +146,11 @@ def test_missing_row_or_extra_cell_rejected():
     removed = pages.copy()
     removed[2] = "\n".join(lines[:first] + lines[first + 1 :])
     with pytest.raises(ImportValidationError, match="every dated row"):
-        NmsLayout().to_csv(tuple(removed))
+        MosqueALayout().to_csv(tuple(removed))
     lines[first] += " 9:00"
     pages[2] = "\n".join(lines)
     with pytest.raises(ImportValidationError, match="thirteen"):
-        NmsLayout().to_csv(tuple(pages))
+        MosqueALayout().to_csv(tuple(pages))
 
 
 def test_table_interruption_rejected():
@@ -159,20 +159,20 @@ def test_table_interruption_rejected():
         pages, 2, "2 Fri 11", "Unexpected table interruption\n2 Fri 11"
     )
     with pytest.raises(ImportValidationError, match="every dated row"):
-        NmsLayout().to_csv(changed)
+        MosqueALayout().to_csv(changed)
 
 
 def test_each_month_needs_explicit_first_jamaat():
     pages = text_pages()
     changed = mutate_line(pages, 2, "6:05 1:45 4:20", '" 1:45 4:20')
     with pytest.raises(ImportValidationError, match="no preceding explicit"):
-        NmsLayout().to_csv(changed)
+        MosqueALayout().to_csv(changed)
 
 
 def test_no_duplicate_canonical_columns_or_inferred_fields():
-    rows = list(csv.DictReader(io.StringIO(NmsLayout().to_csv(text_pages()))))
+    rows = list(csv.DictReader(io.StringIO(MosqueALayout().to_csv(text_pages()))))
     assert len(rows[0]) == 32
     assert "Taraweeh" not in rows[0]
-    assert set(NMS_COLUMNS.values()) == {field.value for field in PrayerField} - {
+    assert set(MOSQUE_A_COLUMNS.values()) == {field.value for field in PrayerField} - {
         "taraweeh"
     }

@@ -4,8 +4,8 @@ Import approval and Ramadan activation are separate decisions. A publication may
 include days before Ramadan, Eid, later months or provisional Hijri labels. None
 of those confirms the mosque's observed Ramadan dates.
 
-The contributed NMS file is May–June **2022**, not a complete current Ramadan
-timetable. The Zakariyya 2026 publication has a separate Ramadan page containing
+The contributed MOSQUE_A file is May–June **2022**, not a complete current Ramadan
+timetable. The Mosque B 2026 publication has a separate Ramadan page containing
 thirty Ramadan rows plus a following Hijri-1 row. Both are useful regression cases
 against activating every imported date. See [PDF layouts](pdf_layouts.md).
 
@@ -53,6 +53,6 @@ counts are not lunar-date validation. Users must confirm observed dates themselv
 
 Each import is still limited to one declared Gregorian year. A publication crossing
 December–January needs separate year-specific sources; native cross-year PDF
-imports require further work. The supplied NMS sample does not validate a complete
-Ramadan publication. Zakariyya's annual and Ramadan tables use separate explicit
+imports require further work. The supplied MOSQUE_A sample does not validate a complete
+Ramadan publication. Mosque B's annual and Ramadan tables use separate explicit
 layouts; neither source confirms observed Ramadan dates.

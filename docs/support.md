@@ -9,12 +9,12 @@ versions and the scope of each check. Supported Home Assistant OS/Container syst
 provide the Linux/POSIX process resource limits required for isolated PDF extraction.
 Other installation methods are not part of the recorded acceptance matrix.
 
-PDF support covers the inspected Nuneaton Muslim Society annual and May–June 2022
-monthly layouts, Zakariyya Masjid's 2026 annual tables and separate Ramadan page,
+PDF support covers the inspected Mosque A annual and May–June 2022
+monthly layouts, Mosque B Masjid's 2026 annual tables and separate Ramadan page,
 and the synthetic sample layout. Other editions and layouts remain unsupported;
 CSV provides the alternative for unsupported publications. Missing data remains
 unavailable. The dashboard displays **Fajr ends at sunrise** only when Sunrise
-is published, and NMS second-Jumu’ah khutbah footers only as separate Friday
+is published, and MOSQUE_A second-Jumu’ah khutbah footers only as separate Friday
 notes; neither is an additional congregation. Full calculated Umm al-Qura Hijri
 dates can be hidden during mosque setup, later under Configure → Mosque settings,
 or per card. Confirm Ramadan dates explicitly: Hijri display never activates

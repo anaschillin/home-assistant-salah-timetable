@@ -158,7 +158,7 @@ where possible. Record the HA/integration versions and browser/device used.
   Annual / Monthly / Ramadan without a PDF-layout picker and recognizes known
   PDFs automatically. Verify January and February monthly approvals coexist
   without deleting earlier dates, overlapping month sources are rejected, and
-  changed monthly URL spans fail safely for both PDF and CSV sources. Check the supported NMS annual layout against
+  changed monthly URL spans fail safely for both PDF and CSV sources. Check the supported MOSQUE_A annual layout against
   its publication. Confirm an unsupported PDF fails with a useful message.
 - Verify the inspected-edition picker is **absent**. Upload an identified PDF
   through the standard manual route and verify strict automatic recognition,
@@ -214,7 +214,7 @@ where possible. Record the HA/integration versions and browser/device used.
   through language changes. Record fluent-language review of the draft Arabic and
   actual mobile/tablet results separately from automated browser checks.
   On a published-source day, verify **Fajr ends at Sunrise** in the correct mosque
-  timezone (unavailable if the source omits Sunrise). On an NMS Friday, verify
+  timezone (unavailable if the source omits Sunrise). On an MOSQUE_A Friday, verify
   the separately published **second khutbah** displays **only** as a note and
   does not alter Dhuhr beginning or Jumu’ah Jamaat; compare an ordinary weekday
   and a timetable without a recognized footer. Verify emphasis through the final
@@ -255,10 +255,10 @@ tests pass.
 
 ## Current support limits
 
-Only inspected editions of the Nuneaton Muslim Society annual/monthly calendars,
-Zakariyya 2026 annual tables and Ramadan appendix, and the synthetic PDF layout are
+Only inspected editions of the Mosque A annual/monthly calendars,
+Mosque B 2026 annual tables and Ramadan appendix, and the synthetic PDF layout are
 supported; see [PDF layouts](pdf_layouts.md). There is no general PDF recognizer, OCR,
-scanned/encrypted-PDF support or invented-time fallback. The NMS website's live
+scanned/encrypted-PDF support or invented-time fallback. The MOSQUE_A website's live
 HTTPS availability remains unverified; its supplied HTTP URL is unsupported.
 Downloads require public HTTPS and do not support environment proxies. Ambiguous
 or nonexistent local DST times are rejected instead of choosing a fold. Ramadan

@@ -1,4 +1,4 @@
-"""Strict adapter for the inspected NMS May/June 2022 monthly pages.
+"""Strict adapter for the inspected MOSQUE_A May/June 2022 monthly pages.
 
 Printed Gregorian month/year headings provide every source date. Printed Hijri
 dates and the source's moonsighting note never activate Ramadan. This adapter
@@ -13,13 +13,13 @@ from datetime import date
 
 from .csv_parser import DITTO_MARKERS
 from .import_model import ImportValidationError
-from .nms_layout import (
+from .mosque_a_layout import (
     _MONTH_PATTERN,
     _RAW_NAMES,
     _ROW_PATTERN,
     _TABLE_MARKER,
     _WEEKDAYS,
-    NMS_COLUMNS,
+    MOSQUE_A_COLUMNS,
     _check_order,
     _clock,
     _compact_header,
@@ -27,16 +27,12 @@ from .nms_layout import (
     published_second_khutbah,
 )
 
-NMS_MONTHLY_COLUMNS = dict(NMS_COLUMNS)
+MOSQUE_A_MONTHLY_COLUMNS = dict(MOSQUE_A_COLUMNS)
 _HEADER = (
     "Date Day Hijri Sehri Ends Dawn Sunrise Istewa (Noon) Dhuhr Start Asr Start "
     "Sunset Esha Start x Fajr Dhuhr / Jumu'ah Asr Maghrib (Iftaar) Esha"
 )
 _MOONSIGHTING = "*Hijri Date is subject to Moonsighting"
-_CONTACT = (
-    "www.nmsuk.org  /  admin@nmsuk.org  /   Twitter: @NuneatonMasjid  /   Receiver: 454.80625",
-    "The Mosque, Frank Street, Nuneaton, Warwickshire, CV11 5RB. Tel 024 76382372 | Charity No. 514390",
-)
 _HIJRI_MONTHS = (
     "Muḥarram",
     "Ṣafar",
@@ -61,20 +57,20 @@ _KHUTBAH = re.compile(
 )
 
 
-class NmsMonthlyLayout:
+class MosqueAMonthlyLayout:
     """One to twelve complete consecutive monthly pages in one printed year."""
 
     def to_csv(self, pages: tuple[str, ...]) -> str:
         if not 1 <= len(pages) <= 12 or any(
             not isinstance(page, str) or not page.strip() for page in pages
         ):
-            raise ImportValidationError("NMS monthly layout needs 1 to 12 text pages")
+            raise ImportValidationError("MOSQUE_A monthly layout needs 1 to 12 text pages")
         output = io.StringIO(newline="")
         writer = csv.writer(output, lineterminator="\n")
         writer.writerow(
             [
                 "Date",
-                *NMS_MONTHLY_COLUMNS,
+                *MOSQUE_A_MONTHLY_COLUMNS,
                 *(f"Published {name}" for name in _RAW_NAMES),
                 "Published Day",
                 "Published Hijri",
@@ -86,21 +82,21 @@ class NmsMonthlyLayout:
             titles = _MONTH_PATTERN.findall(page)
             if len(titles) != 1:
                 raise ImportValidationError(
-                    "Each NMS monthly page needs one explicit month and year"
+                    "Each MOSQUE_A monthly page needs one explicit month and year"
                 )
             month_name, year_text = titles[0]
             month = list(calendar.month_name).index(month_name)
             year = int(year_text)
             if not 1900 <= year <= 2199:
                 raise ImportValidationError(
-                    "NMS monthly year is outside the supported range"
+                    "MOSQUE_A monthly year is outside the supported range"
                 )
             if previous_month is not None and (year, month) != (
                 previous_month[0],
                 previous_month[1] + 1,
             ):
                 raise ImportValidationError(
-                    "NMS monthly pages must be consecutive and use the same printed year"
+                    "MOSQUE_A monthly pages must be consecutive and use the same printed year"
                 )
             previous_month = (year, month)
             lines = [line.strip() for line in page.splitlines() if line.strip()]
@@ -114,13 +110,13 @@ class NmsMonthlyLayout:
                 range(row_indices[0], row_indices[0] + count)
             ):
                 raise ImportValidationError(
-                    "NMS month must contain every dated row exactly once without interruptions"
+                    "MOSQUE_A month must contain every dated row exactly once without interruptions"
                 )
             if lines[0] != _MOONSIGHTING or _compact_header(
                 "\n".join(lines[1 : row_indices[0]])
             ) != _compact_header(_HEADER):
                 raise ImportValidationError(
-                    "NMS monthly table columns differ from the supported layout"
+                    "MOSQUE_A monthly table columns differ from the supported layout"
                 )
             footer = lines[row_indices[-1] + 1 :]
             # The inspected June extraction contains one non-time separator after
@@ -129,14 +125,15 @@ class NmsMonthlyLayout:
                 footer = footer[1:]
             if (
                 len(footer) != 6
-                or tuple(footer[:2]) != _CONTACT
+                or not footer[0].startswith("www.")
+                or not footer[1].strip()
                 or footer[2] != f"{month_name} {year_text}"
                 or not _HIJRI_HEADING.fullmatch(footer[3])
                 or footer[4] != _TABLE_MARKER
                 or not _KHUTBAH.fullmatch(footer[5])
             ):
                 raise ImportValidationError(
-                    "NMS monthly headings or footer are not recognized"
+                    "MOSQUE_A monthly headings or footer are not recognized"
                 )
             khutbah = published_second_khutbah(footer[5])
             assert khutbah is not None
@@ -152,12 +149,12 @@ class NmsMonthlyLayout:
                     or not 1 <= int(hijri) <= 30
                 ):
                     raise ImportValidationError(
-                        "NMS row date, weekday or Hijri day is invalid"
+                        "MOSQUE_A row date, weekday or Hijri day is invalid"
                     )
                 cells = body.split()
                 if len(cells) != 14 or cells[8] != "x":
                     raise ImportValidationError(
-                        "NMS monthly row needs thirteen published time cells and its x separator"
+                        "MOSQUE_A monthly row needs thirteen published time cells and its x separator"
                     )
                 raw = cells[:8] + cells[9:]
                 values = []
@@ -165,7 +162,7 @@ class NmsMonthlyLayout:
                     if value in DITTO_MARKERS:
                         if column < 8 or column not in prior:
                             raise ImportValidationError(
-                                "NMS Jamaat quotation mark has no preceding explicit value in this month"
+                                "MOSQUE_A Jamaat quotation mark has no preceding explicit value in this month"
                             )
                         minute = prior[column]
                     else:

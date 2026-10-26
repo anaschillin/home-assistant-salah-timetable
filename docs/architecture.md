@@ -129,7 +129,7 @@ validators are bounded. No environment proxy or authenticated shared session is 
 `pdf_parser.py` dispatches tested layouts, converts extracted values into canonical
 CSV and delegates value validation to the existing parser. `pdf_worker.py` extracts
 untrusted PDF text in a separate, isolated, resource-limited process. Unknown layouts
-fail closed. `nms_layout.py` validates the inspected annual table: 14 pages, explicit
+fail closed. `mosque_a_layout.py` validates the inspected annual table: 14 pages, explicit
 cover/month years, exact headings, all Gregorian dates/weekdays and 13 physical time
 columns. It applies documented column meridiems, resolves same-column quotation marks
 before splitting Friday Jumu’ah from ordinary Dhuhr, and retains all raw cells. The
@@ -137,7 +137,7 @@ selected field subset must keep the known meanings and 24-hour canonical format.
 It records an explicitly recognized second-Jumu’ah khutbah footer separately in
 per-row original source metadata for Fridays; the footer **never** becomes a
 congregation event or changes the published Dhuhr beginning. The inspected
-NMS monthly adapter applies the same separation. Printed Hijri cells never
+MOSQUE_A monthly adapter applies the same separation. Printed Hijri cells never
 confirm Ramadan. See [PDF layouts](pdf_layouts.md).
 
 `source_model.py` holds immutable URL/parser profiles and allowlisted check metadata.
@@ -295,9 +295,9 @@ or dashboard additions. See the
 
 ## Remaining limitations
 
-Only the documented Nuneaton Muslim Society annual/monthly, Zakariyya 2026
+Only the documented Mosque A annual/monthly, Mosque B 2026
 annual/Ramadan and synthetic sample layouts are supported. Other mosque layouts, OCR and scanned PDFs remain unsupported.
-The live NMS HTTPS source is unverified. DST gaps and ambiguous folds are rejected
+The live MOSQUE_A HTTPS source is unverified. DST gaps and ambiguous folds are rejected
 rather than guessed; explicit fold handling needs a separately reviewed source model.
 The calculated Hijri header is display-only; users explicitly confirm Ramadan.
 
