@@ -1,70 +1,96 @@
-# Review an import's changes
+# Review and compare an imported timetable
 
-Every PDF, CSV or URL proposal still requires an explicit **Approve and save
-timetable** decision. The review compares the proposal with the currently approved
-source it will replace, in addition to the existing coverage, warnings, sample values
-and Ramadan review. A changed download is never activated automatically.
+Every PDF, CSV or URL proposal requires an explicit **Approve and save timetable**
+decision. Nothing is activated automatically, including a changed publication
+download. The review includes date coverage, missing fields, warnings, sample
+values, Ramadan effects, and an optional read-only comparison against the
+currently approved publication.
 
 ## Replacement scope
 
-The comparison uses the proposal's exact source ID, usually its kind and year such
-as `annual-2026`. Approval replaces that entire source. It does not merge only the
-dates supplied by the proposal, and it does not compare against an unrelated year or
-another source whose dates happen to overlap. If a legacy source contains several
-years, the comparison includes all dates in that source, so dates removed by a
-replacement remain visible. Other source IDs remain stored.
+A comparison targets the **exact source ID** that approval will replace (for
+example, `annual-2026`), not an unrelated timetable with overlapping dates.
+Approving a replacement changes the **whole source**, not just the dates
+displayed in the preview. Separate approved source IDs, other mosques and
+separately approved Ramadan tables are unchanged. A legacy source containing
+multiple years is compared across all of its dates.
 
-Check added and removed dates as well as changed times. A shorter replacement can
-remove previously available prayers or dates even when its first sample rows look
-correct. An initial import has no previous source: its dates and published values
-are additions.
+An initial import has no previous source: its published dates and values are
+additions. Before replacing any existing source, check whether a shorter
+publication removes previously available dates or prayers.
 
-## Published values and source details
+## Understanding the changes
 
-The comparison reports canonical published values by Gregorian date and prayer
-field. It retains every Jumu’ah congregation in the field's ordered time list.
-Each difference shows the previous and proposed value in 24-hour format; a missing
-published value is labelled **absent**. Removing a field never fills it from another
-date. The counts treat one field on one date as one entry, including a Jumu’ah list
-with several congregations.
+The comparison uses the original source's **canonical published** prayer values,
+indexed by Gregorian date and prayer field. Times are displayed as 24-hour
+HH:MM. Every published Friday Jumu’ah congregation remains in its ordered
+sequence, not just the first time.
 
-This comparison concerns the imported source. Effective Ramadan overrides and the
-documented Maghrib-to-Iftar fallback are assessed separately in the Ramadan review.
-A source value can be absent while an approved annual value or effective fallback
-still supplies a dashboard event. The change comparison does not rewrite either
-the publication or the Ramadan settings.
+| Difference | Meaning |
+| --- | --- |
+| Added date | A date is present only in the new source; its published fields are also additions |
+| Removed date | A date is present only in the approved source and would be removed on replacement |
+| Changed time | Both sources publish a field but its canonical time or ordered Jumu’ah list differs |
+| Added or removed field | An explicit published value appears or disappears on an existing date; missing is **absent**, never `00:00` |
+| Additional original-cell change | Retained text or unmapped source cells differ beyond the canonical prayer values |
+| No canonical changes | Published prayer values agree, although the file, provenance, checksum or original text may still differ |
 
-Source details identify changes to retained original tokens and available parser,
-format, mapping, checksum and publication-profile metadata. Original text is escaped
-for display; long displayed tokens are truncated and URLs are omitted from this
-comparison. Retained original cells remain in protected import provenance; keep the
-publication available when checking them.
-A changed source file or checksum can have unchanged canonical prayer
-values: it may contain different notes, labels or document structure. That is not
-a guarantee that only formatting changed. Where an older stored source lacks its
-original provenance, the review identifies that limitation rather than inventing
-previous text or metadata.
+One field on one date counts as a single changed entry, even when Jumu’ah
+contains multiple times. Date and field ordering is deterministic.
 
-## Browse and decide
+Source details may also identify differences in available parser, time format,
+column mapping, checksum or publication-profile metadata. Retained original
+tokens are escaped and truncated for safe display; URL-shaped text is redacted
+and actual download URLs are not included. Where older stored records lack
+original provenance, the UI reports the limitation rather than inventing the
+previous values.
 
-Choose **Compare changes before approval** on the review form. The read-only
-comparison is paginated in groups of ten entries, including date additions/removals,
-canonical field differences and additional original-cell changes. Use **Next page**
-and **Previous page** to inspect the lists. Each choice appears when that page
-exists. Navigation does not approve, reject or replace the proposal. The summary
-counts cover the full comparison, including changes on other pages. Choose
-**Return to approval/rejection** to return to the review form, then explicitly
-**Approve and save timetable** or **Reject and keep the active timetable**.
-Approve only after checking the publication and the complete replacement scope.
+**A matching canonical timetable does not prove that two source files are
+identical.** Changes in notes, labels, original cells or layout still require
+review of the actual mosque publication.
 
-Closing the review keeps its staged proposal for **Configure → Review pending
-import**, including after a restart. The page position is a temporary UI choice and
-resets when a new review flow opens. Rejection removes the staged proposal and keeps
-the approved records. A save failure keeps the prior approved snapshot.
+## Ramadan and calculated values
 
-If the approved source changes while your review is open, approval is stopped. The
-review refreshes the comparison against the new approved baseline, returns to the
-first page and requires a new approval decision. Changes to another source ID or
-another mosque do not invalidate this baseline. A decision from an older preview
-cannot silently overwrite a source you did not review. If another proposal replaces the staged identity, or the
-integration reloads while the flow is active, reopen the current pending review.
+The source comparison shows what was **printed and imported**, not derived
+dashboard values. Effective Ramadan overrides, the documented Maghrib-to-Iftar
+fallback and other approved annual sources are evaluated separately in the
+Ramadan review. No calculated Hijri dates, time-zone conversions or effective
+fallbacks are inserted into the published-value comparison. The comparison
+never rewrites the publication or Ramadan settings.
+
+## Browse, approve or reject
+
+1. In the pending import review, choose **Compare changes before approval**.
+2. Inspect **every page** of additions, removals, canonical field differences
+   and extra original-cell changes. Each page contains at most **10 entries**.
+   **Next page** and **Previous page** are available where applicable;
+   summary counts cover the full comparison.
+3. Choose **Return to approval/rejection**. The comparison does not save,
+   reject or replace anything. Explicitly select **Approve and save timetable**
+   or **Reject and keep the active timetable**.
+
+Closing the review retains the staged proposal under **Configure → Review
+pending import**, including after a Home Assistant restart. The current page
+position is temporary and resets when a new review flow opens. Rejection
+removes the pending proposal but preserves approved data. A failed save leaves
+the approved snapshot intact.
+
+If the approved baseline for the target source changes during review, the
+comparison refreshes, returns to its first page and requires another explicit
+approval. Changes to unrelated source IDs or other mosques do not invalidate
+this baseline. Approval checks the baseline again under the shared storage
+lock; an old preview cannot silently overwrite a changed source. If the
+pending stage is rejected/replaced, or the integration reloads mid-flow,
+reopen the current pending review before deciding.
+
+## Security and limitations
+
+The comparison is displayed in the authenticated Home Assistant Options UI.
+Private source bodies, URLs, original cells, validators and published times
+are **not logged or exposed through diagnostics** by this comparison; stored
+source provenance remains protected. Existing atomic storage approvals and
+Ramadan validation remain authoritative.
+
+Inspect the complete original PDF/CSV as well as **all** pages before
+approving. Comparison does **not** assess copyright, religious authenticity,
+source accuracy or redistribution permission.
