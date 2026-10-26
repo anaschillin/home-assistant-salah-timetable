@@ -1,0 +1,74 @@
+name: Home Assistant unit compatibility
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 4 * * 0' # Weekly Sunday compatibility check, UTC
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unit-compatibility-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compatibility:
+    name: Unit tests on HA ${{ matrix.ha-version }} (${{ matrix.lane }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lane: minimum
+            ha-version: '2026.10.0'
+            plugin-version: '0.13.371'
+          - lane: supported-current
+            ha-version: '2026.10.3'
+            plugin-version: '0.13.374'
+    env:
+      COMPAT_PROJECT: compatibility/${{ matrix.lane }}
+      UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/salah-unit-${{ matrix.ha-version }}
+      COMPAT_EVIDENCE: ${{ runner.temp }}/salah-unit-evidence-${{ matrix.ha-version }}
+      COVERAGE_FILE: ${{ runner.temp }}/salah-unit-${{ matrix.ha-version }}.coverage
+      TMPDIR: ${{ runner.temp }}/salah-unit-temp-${{ matrix.ha-version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: '0.12.23'
+      - name: Install the separately locked compatibility environment
+        run: |
+          mkdir -p "$TMPDIR"
+          uv --version
+          uv sync --project "$COMPAT_PROJECT" --frozen --python python3.14 --no-python-downloads
+          uv pip check --python "$UV_PROJECT_ENVIRONMENT/bin/python"
+      - name: Assert the exact HA, plugin and Python environment
+        run: |
+          "$UV_PROJECT_ENVIRONMENT/bin/python" scripts/check_compatibility_environment.py \
+            --ha-version '${{ matrix.ha-version }}' \
+            --plugin-version '${{ matrix.plugin-version }}' \
+            --environment "$UV_PROJECT_ENVIRONMENT" \
+            --output "$COMPAT_EVIDENCE/environment.json"
+          uv pip freeze --python "$UV_PROJECT_ENVIRONMENT/bin/python" > "$COMPAT_EVIDENCE/installed.txt"
+      - name: Run the complete Python suite from the repository root
+        run: |
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -m pytest -c pyproject.toml --timeout=30 \
+            --junitxml="$COMPAT_EVIDENCE/junit.xml" \
+            --cov-report="xml:$COMPAT_EVIDENCE/coverage.xml"
+      - name: Verify reproducible development and compatibility locks were unchanged
+        if: always()
+        run: git diff --exit-code -- pyproject.toml uv.lock compatibility/
+      - name: Preserve compatibility evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: ha-unit-compatibility-${{ matrix.ha-version }}
+          path: ${{ env.COMPAT_EVIDENCE }}/
+          if-no-files-found: ignore
+          retention-days: 7
