@@ -168,14 +168,25 @@ class PdfParser:
     """Convert an explicitly selected or unambiguously detected strict PDF layout."""
 
     def __init__(
-        self, layout_id: str = "pdf_table_v1", *, import_type: str = "annual"
+        self, layout_id: str = "pdf_table_v1", *, import_type: str | None = None
     ) -> None:
         if layout_id not in _LAYOUTS and layout_id != "auto":
             raise ImportValidationError("Unsupported PDF layout")
-        if import_type not in _AUTO_LAYOUTS:
+        if import_type is not None and import_type not in _AUTO_LAYOUTS:
             raise ImportValidationError("Unsupported timetable type")
+        if (
+            import_type is not None
+            and layout_id != "auto"
+            and layout_id not in _AUTO_LAYOUTS[import_type]
+        ):
+            raise ImportValidationError(
+                "This PDF layout does not match the chosen timetable type. "
+                "Choose Annual, Monthly or Ramadan to match the publication."
+            )
         self.layout_id = layout_id
-        self.import_type = import_type
+        # Stored concrete layouts predate the Monthly choice; preserve their
+        # canonical annual kind when no new user-facing type was requested.
+        self.import_type = import_type or "annual"
 
     def _csv(self, content: bytes) -> str:
         # Every candidate checks the SAME bounded, isolated PDF extraction. Unknown
@@ -205,7 +216,7 @@ class PdfParser:
             )
         if len(selected) != 1:
             raise ImportValidationError(
-                "Ambiguous PDF layout. Choose an inspected layout manually; "
+                "Ambiguous PDF layout. Use a supported CSV instead; "
                 "no timetable has been staged."
             )
         self.layout_id, converted = selected[0]
@@ -260,14 +271,6 @@ class PdfParser:
             columns=columns,
             time_format=time_format,
         )
-        if re.fullmatch(r"annual-[0-9]{4}-monthly-[0-9]{4}-[0-9]{4}", timetable_id):
-            first, last = candidate.coverage.start_date, candidate.coverage.end_date
-            expected = f"annual-{year}-monthly-{first:%m%d}-{last:%m%d}"
-            if timetable_id != expected:
-                raise ImportValidationError(
-                    "This monthly URL source now covers different dates. Import the "
-                    "new period as a separate source so older dates are preserved."
-                )
         return replace(
             candidate,
             source_format="pdf",

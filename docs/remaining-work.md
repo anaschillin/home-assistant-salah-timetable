@@ -20,8 +20,11 @@ comparison with original-cell/provenance review and fresh-baseline approval chec
 Candidate 0.8.1 adds Hijri-first dashboard rendering, independently optional
 Gregorian date and strict automatic known-PDF detection behind user-facing
 Annual / Monthly / Ramadan choices.
-These milestones are implemented, with release acceptance pending. Localization/RTL
-and broader compatibility tests follow separately. Applicable release acceptance
+Candidate 0.9.0 implements Milestone 10A card/editor English/Arabic selection,
+bilingual prayer labels and RTL while retaining those date and import controls.
+Validation and applicable release acceptance remain pending. Milestone 10B
+integration translations, fluent-language review of draft Arabic and broader
+compatibility tests follow separately. Applicable release acceptance
 is tracked in [the release guide](releasing.md), not in this feature backlog.
 
 ## Release readiness
@@ -77,8 +80,9 @@ passed all six jobs and **936 tests**. The 0.8.1
 passed all six jobs and **955 Python tests**, including monthly-source
 coexistence and PDF auto-recognition regression tests. The independent
 [calendar-trigger timing flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-remains open despite passing on rerun. Green main CI is not a public release
-sign-off.
+remains open for hosted stability evidence after the documented local
+background-refresh synchronization diagnosis and fix. Green main CI is not a
+public release sign-off.
 Hosted acceptance includes automated config-entry removal/re-addition and actual
 Home Assistant **Container** archive restoration. HACS UI uninstall/reinstallation
 and full **HAOS** archive restoration remain unverified release gates.
@@ -104,8 +108,10 @@ adapters and independent expected-value comparisons. See [Ramadan validation](ra
    layouts and scanned/encrypted PDFs remain unsupported.
 3. Follow [the feature roadmap](milestones.md#next-increments). Milestones **8,
    9, 12, 13 and 17** are implemented through candidate 0.8.0 (release acceptance
-   pending). Next pursue **10** (localization and RTL); the initial catalogue alone
-   does not complete it. Continue **11** (expanded compatibility and the
+   pending). Milestone **10A** card/editor localization and RTL is implemented
+   in 0.9.0, with validation and acceptance pending; continue **10B** integration
+   forms/entities and fluent review of the draft Arabic wording. Continue **11**
+   (expanded compatibility and the
    [calendar-trigger CI follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13))
    in parallel. Milestones **14–16** (night periods, wall-tablet
    display and published special events) are subsequent additions.

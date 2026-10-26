@@ -17,6 +17,8 @@ for (const candidate of [process.env.CHROME_BIN, "/usr/bin/google-chrome", "/usr
 }
 const skip = !browser && process.env.REQUIRE_BROWSER_TESTS !== "1" && process.env.REQUIRE_BROWSER !== "1" ? "Chromium/Chrome is not installed; set CHROME_BIN or REQUIRE_BROWSER_TESTS=1" : false;
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+const widths = [320, 360, 400, 900];
+const fixtures = widths.flatMap(width => ["en", "ar"].flatMap(language => [false, true].map(bilingual => ({width, language, bilingual}))));
 
 async function connectDebugger(url) {
   const socket = new WebSocket(url);
@@ -63,14 +65,34 @@ test("real Chromium card and editor smoke", {skip, timeout: 45000}, async t => {
   t.diagnostic(`Browser executable: ${browser}`);
   const directory = await mkdtemp(join(tmpdir(), "salah-card-browser-"));
   const main = `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0}#result{display:none}</style></head><body><pre id="result">pending</pre><script>
-window.salahBrowserReports = []; window.addEventListener('message', event => { if(event.origin === location.origin && event.data.kind === 'salah-browser-result') { window.salahBrowserReports.push(event.data); document.querySelector('#result').textContent = JSON.stringify(window.salahBrowserReports); } });
-for (const width of [320, 360, 400, 900]) { const frame = document.createElement('iframe'); frame.style.cssText = 'display:block;border:0;height:1200px;width:'+width+'px'; frame.src = '/frame.html'; document.body.append(frame); }
+// Run one fixture at a time so synchronous layout checks cannot starve CDP.
+// Retain completed frames in fixture order for optional screenshots.
+const fixtures = ${JSON.stringify(fixtures)};
+let activeFrame;
+window.salahBrowserReports = [];
+function nextFixture() {
+  const fixture = fixtures[window.salahBrowserReports.length];
+  if (!fixture) return;
+  activeFrame = document.createElement('iframe');
+  activeFrame.style.cssText = 'display:block;border:0;height:1500px;width:'+fixture.width+'px';
+  activeFrame.src = '/frame.html?'+new URLSearchParams(fixture);
+  document.body.append(activeFrame);
+}
+window.addEventListener('message', event => {
+  if(event.origin !== location.origin || event.source !== activeFrame?.contentWindow || event.data.kind !== 'salah-browser-result') return;
+  window.salahBrowserReports.push(event.data);
+  document.querySelector('#result').textContent = JSON.stringify(window.salahBrowserReports);
+  activeFrame = undefined;
+  setTimeout(nextFixture, 0);
+});
+nextFixture();
 </script></body></html>`;
   const frame = '<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:8px;box-sizing:border-box;font-family:sans-serif}html{--primary-text-color:rgb(20,20,20);--primary-color:#387f8d;--secondary-text-color:#687478;--secondary-background-color:#f2f5f5;--divider-color:#ddd;--card-background-color:white}</style></head><body><script type="module" src="/tests/frontend/browser-harness.js"></script></body></html>';
   const files = new Map([
     ["/tests/frontend/browser-harness.js", join(root, "tests/frontend/browser-harness.js")],
     ["/custom_components/salah_timetable/frontend/salah-timetable-card.js", join(root, "custom_components/salah_timetable/frontend/salah-timetable-card.js")],
     ["/custom_components/salah_timetable/frontend/card-utils.js", join(root, "custom_components/salah_timetable/frontend/card-utils.js")],
+    ["/custom_components/salah_timetable/frontend/card-i18n.js", join(root, "custom_components/salah_timetable/frontend/card-i18n.js")],
   ]);
   const server = createServer(async (request, response) => {
     const path = new URL(request.url, "http://127.0.0.1").pathname;
@@ -99,19 +121,20 @@ for (const width of [320, 360, 400, 900]) { const frame = document.createElement
     await debuggerSession.call("Emulation.setDeviceMetricsOverride", {width: 1000, height: 2600, deviceScaleFactor: 1, mobile: false});
     await debuggerSession.call("Page.navigate", {url: `http://127.0.0.1:${server.address().port}/`});
     let reports = [];
-    for (let attempt = 0; attempt < 80; attempt++) {
+    const reportDeadline = Date.now() + 30000;
+    while (Date.now() < reportDeadline) {
       const evaluation = await debuggerSession.call("Runtime.evaluate", {expression: "JSON.stringify(window.salahBrowserReports || [])", returnByValue: true});
       reports = JSON.parse(evaluation.result?.value || "[]");
-      if (reports.length === 4) break;
+      if (reports.length === fixtures.length) break;
       await pause(100);
     }
-    assert.equal(reports.length, 4, `Browser did not finish all fixtures: ${JSON.stringify(reports)}\n${stderr}`);
-    for (const width of [320, 360, 400, 900]) await t.test(`${width}px native DOM, theme and editor`, () => {
-      const report = reports.find(item => item.width === width);
-      assert.ok(report, `No report for ${width}px: ${JSON.stringify(reports)}`);
+    assert.equal(reports.length, fixtures.length, `Browser did not finish all fixtures: ${JSON.stringify(reports)}\n${stderr}`);
+    for (const {width, language, bilingual} of fixtures) await t.test(`${width}px ${language}${bilingual ? " bilingual" : ""} native DOM, theme and editor`, () => {
+      const report = reports.find(item => item.width === width && item.language === language && item.bilingual === bilingual);
+      assert.ok(report, `No report for ${width}px ${language} bilingual=${bilingual}: ${JSON.stringify(reports)}`);
       assert.equal(report.status, "passed", report.error);
-      for (const name of ["card contains 200% text without overflowing", "Gregorian and calculated Hijri dates are visible", "future countdowns show bounded progress", "countdown tick preserves table keyboard focus"]) assert.ok(report.checks.includes(name), `Missing browser check: ${name}`);
-      for (const option of ["show_hijri_date", "show_salah_countdown", "show_jamaat_countdown", "show_ramadan_details", "show_sehri_countdown", "show_iftar_countdown", "show_timezone_note"]) for (const value of [false, true]) assert.ok(report.checks.includes(`editor ${option}=${value} changes the expected visible content`), `Missing browser visibility check: ${option}=${value}`);
+      for (const name of ["card contains 200% text without overflowing", "Gregorian and calculated Hijri dates are visible", "Hijri date appears before the independent Gregorian date", "Gregorian can be hidden while Hijri remains visible", "Hijri can be hidden while Gregorian remains visible", "mosque-configured Hijri visibility remains authoritative", "future countdowns show bounded progress", "countdown tick preserves table keyboard focus", "ordinary ticks retain table nodes and text selection", "numeric times use LTR isolation", "prayer labels use the selected languages", "long mixed-direction title fits without overflow", "graphical language and bilingual controls round trip", "all graphical options survive configuration reload", "RTL overflow uses Chromium negative scrollLeft"]) assert.ok(report.checks.includes(name), `Missing browser check: ${name}`);
+      for (const option of ["show_hijri_date", "show_gregorian_date", "show_salah_countdown", "show_jamaat_countdown", "show_ramadan_details", "show_sehri_countdown", "show_iftar_countdown", "show_timezone_note"]) for (const value of [false, true]) assert.ok(report.checks.includes(`editor ${option}=${value} changes the expected visible content`), `Missing browser visibility check: ${option}=${value}`);
     });
     if (process.env.BROWSER_SCREENSHOT_DIR) {
       await debuggerSession.call("Runtime.evaluate", {expression: "window.scrollTo(0,0);for(const frame of document.querySelectorAll('iframe'))frame.contentWindow.scrollTo(0,0)"});
@@ -121,7 +144,9 @@ for (const width of [320, 360, 400, 900]) { const frame = document.createElement
       const rectangles = await debuggerSession.call("Runtime.evaluate", {expression: "JSON.stringify([...document.querySelectorAll('iframe')].map(frame => {const bounds=frame.getBoundingClientRect(); const card=frame.contentDocument.querySelector('salah-timetable-card').getBoundingClientRect();return {x:bounds.x+window.scrollX+card.x,y:bounds.y+window.scrollY+card.y,width:card.width,height:card.height,scale:1}}))", returnByValue: true});
       for (const [index, clip] of JSON.parse(rectangles.result.value).entries()) {
         const screenshot = await debuggerSession.call("Page.captureScreenshot", {format: "png", captureBeyondViewport: true, clip});
-        await writeFile(join(output, `salah-card-${[320, 360, 400, 900][index]}.png`), Buffer.from(screenshot.data, "base64"));
+        const {width, language, bilingual} = fixtures[index];
+        const suffix = language === "en" && !bilingual ? "" : `-${language}${bilingual ? "-bilingual" : ""}`;
+        await writeFile(join(output, `salah-card-${width}${suffix}.png`), Buffer.from(screenshot.data, "base64"));
       }
     }
   } finally {

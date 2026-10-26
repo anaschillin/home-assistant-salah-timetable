@@ -18,6 +18,7 @@ globalThis.customElements = {get: name => registry.get(name), define: (name, typ
 globalThis.document = {createElement: name => registry.has(name) ? new (registry.get(name))() : new Element(name)};
 globalThis.window = {setInterval: callback => { timers.set(++timerId, callback); return timerId; }, clearInterval: id => timers.delete(id), customCards: []};
 const {SalahTimetableCard, SalahTimetableCardEditor} = await import("../../custom_components/salah_timetable/frontend/salah-timetable-card.js");
+const {tr} = await import("../../custom_components/salah_timetable/frontend/card-i18n.js");
 function find(root, tag) { return [root, ...root.children.flatMap(child => find(child, tag))].filter(node => node.tagName === tag); }
 const attributes = {
   mosque_name: "Example Mosque", date: "2026-10-21", time_zone: "Europe/London",
@@ -75,21 +76,34 @@ test("mosque-wide Hijri preference overrides card visibility and remains configu
   assert.doesNotMatch(find(card.shadowRoot, "header")[0].textContent, /Hijri/);
 });
 
-test("Hijri is the primary date and Gregorian has an independent editor toggle", () => {
+for (const [language, locale, month, gregorianMonth] of [["en", "en-GB", "Ramadan", "February"], ["ar", "ar-EG", "رمضان", "فبراير"]]) test(`Hijri-first header and independent date controls in ${language}`, () => {
   const card = new SalahTimetableCard();
-  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
-  card.hass = hass({...attributes, show_hijri_date: true});
+  const data = {...attributes, date: "2026-02-18", show_hijri_date: true};
+  const localizedHass = {...hass(data), locale: {language: locale}};
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", language, bilingual_prayer_labels: true});
+  card.hass = localizedHass;
   const header = find(card.shadowRoot, "header")[0];
-  assert.match(header.children[1].textContent, /Hijri \(calculated\)/);
-  assert.doesNotMatch(header.children[1].textContent, /October/);
-  assert.match(header.children[2].textContent, /October/);
-  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_gregorian_date: false});
-  assert.equal(find(card.shadowRoot, "header")[0].children.length, 2);
-  assert.doesNotMatch(find(card.shadowRoot, "header")[0].textContent, /October/);
+  assert.equal(header.children[1].className, "date hijri");
+  assert.ok(header.children[1].textContent.includes(month));
+  assert.ok(header.children[1].textContent.includes(tr(language, "card.hijri_calculated")));
+  assert.equal(header.children[2].className, "date gregorian");
+  assert.ok(header.children[2].textContent.includes(gregorianMonth));
+  for (const show_hijri_date of [true, false]) for (const show_gregorian_date of [true, false]) {
+    card.setConfig({entity: "sensor.mosque_prayer_timetable", language, show_hijri_date, show_gregorian_date});
+    const currentHeader = find(card.shadowRoot, "header")[0];
+    assert.equal(currentHeader.children.length, 1 + Number(show_hijri_date) + Number(show_gregorian_date));
+    assert.equal(currentHeader.children.some(element => element.className === "date hijri"), show_hijri_date);
+    assert.equal(currentHeader.children.some(element => element.className === "date gregorian"), show_gregorian_date);
+    assert.equal(find(card.shadowRoot, "table").length, 1);
+  }
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", language, show_hijri_date: true, show_gregorian_date: false});
+  card.hass = {...localizedHass, states: {"sensor.mosque_prayer_timetable": {state: data.date, attributes: {...data, show_hijri_date: false}}}};
+  assert.equal(find(card.shadowRoot, "header")[0].children.length, 1);
   const editor = SalahTimetableCard.getConfigElement();
-  editor.hass = hass();
-  editor.setConfig({entity: "sensor.mosque_prayer_timetable", show_gregorian_date: false});
+  editor.hass = localizedHass;
+  editor.setConfig({entity: "sensor.mosque_prayer_timetable", language, show_gregorian_date: false});
   assert.equal(editor._extraControls.show_gregorian_date.control.checked, false);
+  assert.equal(editor._extraControls.show_gregorian_date.label.textContent, tr(language, "editor.show_gregorian_date"));
   assert.equal(editor._extraControls.show_hijri_date.control.checked, true);
 });
 
@@ -119,7 +133,7 @@ test("Friday Dhuhr congregation is labelled Jumuah", () => {
   const dhuhr = rows.find(row => row.textContent.includes("Dhuhr"));
 
   assert.ok(dhuhr, "Dhuhr row should exist");
-  assert.match(dhuhr.textContent, /Jumuah\s+13:25/);
+  assert.match(dhuhr.textContent, /Jumu[’\']?ah\s+13:25/);
 });
 
 test("weekday Dhuhr Jamaat is not labelled Jumuah", () => {
@@ -243,7 +257,7 @@ test("new editor controls round trip and retain nodes through HA config echoes",
   for (const [key, entry] of Object.entries(editor._extraControls)) {
     const control = entry.control;
     if (entry.checkbox) control.checked = false;
-    else control.value = key === "layout" ? "compact" : key === "time_format" ? "12h" : "-2";
+    else control.value = key === "language" ? "ar" : key === "layout" ? "compact" : key === "time_format" ? "12h" : "-2";
     control.dispatchEvent(new Event("change")); editor.hass = hass();
     assert.equal(editor._extraControls[key].control, control);
     assert.equal(changes.at(-1)[key], entry.checkbox ? false : key === "hijri_adjustment" ? -2 : control.value);
@@ -388,4 +402,140 @@ test("ordinary ticks advance previous elapsed, progress and Ramadan clocks in pl
   card._tick(Date.parse("2026-10-21T04:20:01Z"));
   assert.equal(find(card.shadowRoot, "progress")[0], bar);
   assert.ok(bar.value > before);
+});
+
+function withLanguage(language, data = attributes) {
+  const current = hass(data); current.locale.language = language; return current;
+}
+function classNodes(root, className) { return find(root, "div").filter(element => element.className === className); }
+
+
+test("automatic Arabic localizes labels, published names, dates and isolated digits", () => {
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = withLanguage("ar-SA-u-nu-arab", {...attributes, prayers: [{...attributes.prayers[0], name: "Backend English Fajr"}]});
+  card._render(Date.parse("2026-10-21T04:40:00Z"));
+  assert.equal(card.attributes.dir, "rtl"); assert.equal(card.attributes.lang, "ar");
+  assert.equal(find(card.shadowRoot, "ha-card")[0].attributes.dir, "rtl");
+  const table = find(card.shadowRoot, "table")[0];
+  assert.match(table.textContent, /الفجر/); assert.match(table.textContent, /دخول الوقت/); assert.doesNotMatch(table.textContent, /Backend English Fajr/);
+  assert.match(classNodes(card.shadowRoot, "count")[0].textContent, /٠٠:٠٥:٠٠/);
+  for (const cell of find(table, "td")) assert.ok(find(cell, "bdi").some(run => run.attributes.dir === "ltr"));
+  for (const clock of classNodes(card.shadowRoot, "count")) assert.equal(find(clock, "bdi")[0].attributes.dir, "ltr");
+  assert.match(find(card.shadowRoot, "header")[0].textContent, /هجري \(محسوب\)/);
+  const region = classNodes(card.shadowRoot, "table-scroll")[0];
+  assert.equal(region.attributes["aria-label"], tr("ar", "table.region"));
+  const timezone = find(card.shadowRoot, "p").find(element => element.attributes["data-role"] === "timezone-note");
+  assert.equal(find(timezone, "bdi")[0].textContent, "Europe/London");
+  assert.match(find(card.shadowRoot, "style")[0].textContent, /text-align:start/);
+  assert.match(find(card.shadowRoot, "style")[0].textContent, /text-align:end/);
+});
+
+test("explicit language overrides HA and unsupported label languages retain local date formatting", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "en"}); card.hass = withLanguage("ar-SA");
+  card._render(Date.parse("2026-10-21T04:40:00Z"));
+  assert.equal(card.attributes.dir, "ltr"); assert.equal(card.attributes.lang, "en");
+  assert.match(find(card.shadowRoot, "table")[0].textContent, /Fajr/); assert.match(classNodes(card.shadowRoot, "count")[0].textContent, /00:05:00/);
+  card.setConfig({...card._config, language: "ar"});
+  assert.equal(card.attributes.dir, "rtl"); assert.match(find(card.shadowRoot, "table")[0].textContent, /الفجر/);
+  card.setConfig({...card._config, language: "auto"}); card.hass = withLanguage("fr-FR");
+  assert.equal(card.attributes.lang, "en"); assert.match(find(card.shadowRoot, "table")[0].textContent, /Beginning/);
+  assert.match(find(card.shadowRoot, "header")[0].textContent, /mercredi/);
+  card.hass = withLanguage("not_a_locale");
+  assert.equal(card.attributes.lang, "en"); assert.match(find(card.shadowRoot, "header")[0].textContent, /Wednesday/);
+});
+
+test("bilingual names isolate both languages while custom published content stays literal", () => {
+  const malicious = '<img src=x onerror="alert(1)">';
+  const data = {...attributes, mosque_name: malicious, prayers: [...attributes.prayers, {key: "custom", name: malicious, begin: null, jamaat: []}], ramadan: {active: true, taraweeh_text: malicious}};
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", bilingual_prayer_labels: true}); card.hass = hass(data);
+  card._render(Date.parse("2026-10-21T04:40:00Z"));
+  const table = find(card.shadowRoot, "table")[0];
+  const labels = find(table, "span").find(element => element.className === "prayer-labels");
+  assert.deepEqual(find(labels, "bdi").map(run => [run.textContent, run.attributes.lang, run.attributes.dir]), [["الفجر", "ar", "rtl"], ["Fajr", "en", "ltr"]]);
+  const custom = find(table, "th").find(element => element.textContent === malicious);
+  assert.ok(custom); assert.equal(find(custom, "bdi")[0].attributes.dir, "auto");
+  assert.equal(find(card.shadowRoot, "h2")[0].textContent, malicious);
+  assert.match(card.shadowRoot.textContent, /<img src=x/); assert.equal(find(card.shadowRoot, "img").length, 0);
+  card.setConfig({...card._config, language: "en"});
+  const englishLabels = find(find(card.shadowRoot, "table")[0], "span").find(element => element.className === "prayer-labels");
+  assert.deepEqual(find(englishLabels, "bdi").map(run => run.attributes.lang), ["en", "ar"]);
+});
+
+test("Arabic empty, unavailable, disconnected and Ramadan states use the catalog", () => {
+  const card = new SalahTimetableCard(); card.setConfig({language: "ar"});
+  assert.equal(find(card.shadowRoot, "ha-card")[0].textContent, tr("ar", "card.choose_entity"));
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar"}); card.hass = {states: {}};
+  assert.equal(find(card.shadowRoot, "ha-card")[0].textContent, tr("ar", "card.entity_missing"));
+  card.hass = {states: {"sensor.mosque_prayer_timetable": {state: "unavailable", attributes}}};
+  assert.equal(find(card.shadowRoot, "ha-card")[0].textContent, tr("ar", "card.unavailable"));
+  const current = withLanguage("ar", {...attributes, prayers: [], next_salah: null, next_jamaat: null, previous_jamaat: null, ramadan: {active: true}}); current.connection.connected = false;
+  card.hass = current; card._render(Date.parse("2026-10-21T04:40:00Z"));
+  for (const key of ["card.disconnected", "panel.no_event", "status.unavailable", "ramadan.title", "ramadan.sehri_ends", "ramadan.iftar", "ramadan.taraweeh", "ramadan.no_time"]) assert.ok(card.shadowRoot.textContent.includes(tr("ar", key)), key);
+});
+
+test("Arabic ticks retain table and numeric runs while crossing a passed boundary refreshes selection", () => {
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", mode: "previous"});
+  card.hass = withLanguage("ar-SA-u-nu-arab", {...attributes, ramadan: {active: true, sehri: "2026-10-21T04:40:02Z", iftar: "2026-10-21T17:00:00Z"}});
+  card._render(Date.parse("2026-10-21T04:40:00Z"));
+  const table = find(card.shadowRoot, "table")[0]; const clocks = classNodes(card.shadowRoot, "count"); const run = find(clocks[0], "bdi")[0];
+  card._tick(Date.parse("2026-10-21T04:40:01Z"));
+  assert.equal(find(card.shadowRoot, "table")[0], table); assert.equal(classNodes(card.shadowRoot, "count")[0], clocks[0]); assert.equal(find(clocks[0], "bdi")[0], run);
+  assert.equal(clocks[0].textContent, "٠٠:٠٤:٥٩"); assert.match(clocks[1].textContent, /مضى/); assert.match(clocks[1].textContent, /٠٩:٤٠:٠١/);
+  card._tick(Date.parse("2026-10-21T04:40:03Z"));
+  assert.notEqual(find(card.shadowRoot, "table")[0], table);
+  const sehri = classNodes(card.shadowRoot, "ramadan-grid")[0].children.find(element => element.attributes["data-ramadan"] === "sehri");
+  assert.match(sehri.textContent, new RegExp(tr("ar", "status.passed")));
+});
+
+test("editor language changes localize existing controls without replacing a focused title", () => {
+  const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "sensor.mosque_prayer_timetable", title: "My مسجد"}); editor.hass = hass();
+  const title = editor._controls.title; const language = editor._extraControls.language.control; const bilingual = editor._extraControls.bilingual_prayer_labels.control;
+  title.selectionStart = 1; title.selectionEnd = 5; editor.shadowRoot.activeElement = title;
+  editor.hass = withLanguage("ar-SA");
+  assert.equal(editor.attributes.dir, "rtl"); assert.equal(editor.attributes.lang, "ar");
+  assert.equal(editor._controls.title, title); assert.equal(title.value, "My مسجد"); assert.equal(title.selectionStart, 1); assert.equal(title.selectionEnd, 5);
+  assert.equal(editor._controls.titleLabel.textContent, tr("ar", "editor.title"));
+  assert.equal(editor._controls.entity.label, tr("ar", "editor.entity"));
+  assert.deepEqual(editor._controls.mode.selector.select.options.map(option => option.value), ["context", "previous", "upcoming"]);
+  assert.equal(language.attributes["aria-label"], tr("ar", "editor.language"));
+  assert.deepEqual(language.children.map(option => option.value), ["auto", "en", "ar"]);
+  const changes = []; editor.addEventListener("config-changed", event => { changes.push(event.detail.config); editor.setConfig(event.detail.config); });
+  language.value = "en"; language.dispatchEvent(new Event("change"));
+  bilingual.checked = true; bilingual.dispatchEvent(new Event("change"));
+  assert.equal(editor.attributes.dir, "ltr"); assert.equal(editor._controls.titleLabel.textContent, "Title (optional)");
+  assert.equal(editor._extraControls.language.control, language); assert.equal(editor._extraControls.bilingual_prayer_labels.control, bilingual);
+  assert.equal(editor._controls.title, title); assert.equal(title.selectionStart, 1); assert.equal(title.selectionEnd, 5);
+  assert.equal(changes.at(-1).language, "en"); assert.equal(changes.at(-1).bilingual_prayer_labels, true);
+  assert.equal(Object.hasOwn(changes.at(-1), "اللغة"), false);
+});
+
+test("editor validation errors follow the UI language without changing YAML values", () => {
+  const editor = new SalahTimetableCardEditor(); editor.hass = withLanguage("ar");
+  let emitted = false; editor.addEventListener("config-changed", () => { emitted = true; });
+  editor._controls.entity.dispatchEvent(new CustomEvent("value-changed", {detail: {value: "sensor.fajr"}}));
+  assert.equal(emitted, false); assert.equal(editor._controls.error.textContent, tr("ar", "editor.invalid_entity"));
+  const error = editor._controls.error; editor.hass = hass();
+  assert.equal(editor._controls.error, error); assert.equal(error.textContent, tr("en", "editor.invalid_entity"));
+  for (const Type of [SalahTimetableCard, SalahTimetableCardEditor]) {
+    const element = new Type(); element.hass = withLanguage("ar");
+    assert.throws(() => element.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "invalid"}), {message: tr("ar", "config.mode")});
+    assert.throws(() => element.setConfig({language: "ar", title: "x".repeat(101)}), {message: tr("ar", "config.title")});
+  }
+});
+
+test("localized Fajr end, Friday khutbah and mosque Hijri visibility preserve the merged features", () => {
+  const friday = {...attributes, date: "2026-10-23", second_khutbah: "2026-10-23T13:00:00Z", show_hijri_date: false,
+    prayers: [{key: "fajr", name: "Fajr", begin: "2026-10-23T04:45:00Z", end: "2026-10-23T06:30:00Z", jamaat: []}, {key: "dhuhr", name: "Dhuhr", begin: "2026-10-23T11:55:00Z", jamaat: ["2026-10-23T12:25:00Z"]}],
+    jamaat_events: [{timestamp: "2026-10-23T12:25:00Z", prayer: "jumuah", field: "jumuah"}]};
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", bilingual_prayer_labels: true}); card.hass = withLanguage("ar-SA-u-nu-arab", friday);
+  card._render(Date.parse("2026-10-23T11:00:00Z"));
+  assert.doesNotMatch(find(card.shadowRoot, "header")[0].textContent, /هجري/);
+  const end = classNodes(card.shadowRoot, "note fajr-end")[0]; assert.match(end.textContent, /الشروق/); assert.match(end.textContent, /٠٧:٣٠/); assert.equal(find(end, "bdi")[0].attributes.dir, "ltr");
+  const khutbah = find(card.shadowRoot, "p").find(element => element.className === "note khutbah"); assert.match(khutbah.textContent, /خطبة الجمعة الثانية/); assert.equal(find(khutbah, "bdi")[0].attributes.dir, "ltr");
+  const dhuhr = find(card.shadowRoot, "tr").find(row => row.textContent.includes("الظهر")); assert.match(dhuhr.textContent, /الجمعة/); assert.match(dhuhr.textContent, /Jumu’ah/);
+  const current = hass({...friday, show_hijri_date: true}); card.hass = current;
+  assert.match(find(card.shadowRoot, "header")[0].textContent, /هجري \(محسوب\)/);
+  current.states["sensor.mosque_prayer_timetable"].attributes.date = "2026-10-22"; card.hass = current;
+  assert.equal(find(card.shadowRoot, "p").some(element => element.className === "note khutbah"), false);
 });

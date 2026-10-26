@@ -1,9 +1,11 @@
 """Remote checks exercise real persistence while mocking only outbound transport."""
 
 import asyncio
+import runpy
 from dataclasses import replace
 from datetime import date
 from hashlib import sha256
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 from zoneinfo import ZoneInfo
 
@@ -88,6 +90,71 @@ async def test_changed_update_keeps_last_approved(manager):
         manager.storage.approved_sources[source().source_id].sha256
         == sha256(CSV).hexdigest()
     )
+
+
+@pytest.mark.parametrize("media_type", ["csv", "pdf"])
+@pytest.mark.parametrize("same_window", [False, True])
+async def test_monthly_url_update_preserves_original_date_window(
+    manager, media_type, same_window
+):
+    monthly = source(
+        source_id="annual-2026-monthly-0101-0103",
+        media_type=media_type,
+        parser_id="csv_v1" if media_type == "csv" else "pdf_table_v1",
+    )
+    await manager.storage.async_set_remote_source(monthly)
+
+    def content(month, minute):
+        dates = [f"2026-{month:02d}-{day:02d}" for day in range(1, 4)]
+        if media_type == "csv":
+            rows = ["Date,Fajr Begin"] + [f"{day},05:{minute:02d}" for day in dates]
+            return ("\n".join(rows) + "\n").encode()
+        make_pdf = runpy.run_path(
+            str(Path(__file__).parent / "fixtures/pdf/generate.py")
+        )["make_pdf"]
+        return make_pdf(
+            [
+                ["Salah Timetable", "Year 2026", "Date | Fajr Begin"]
+                + [f"{day} | 05:{minute:02d}" for day in dates]
+            ]
+        )
+
+    initial = content(1, 40)
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=replace(response(initial), media_type=media_type)),
+    ):
+        await manager.async_check(monthly.source_id)
+    await manager.storage.async_approve(manager.storage.staged.stage_id)
+    previous_tables = manager.storage.timetables
+    previous_approved = manager.storage.approved_sources[monthly.source_id]
+    previous_checks = manager.storage.remote_checks[monthly.source_id]
+    changed = content(1 if same_window else 2, 45)
+    with patch(
+        "custom_components.salah_timetable.source_updates.download.async_download",
+        AsyncMock(return_value=replace(response(changed), media_type=media_type)),
+    ):
+        await manager.async_check(monthly.source_id)
+    assert manager.storage.timetables == previous_tables
+    assert manager.storage.approved_sources[monthly.source_id] == previous_approved
+    assert manager.storage.for_date(date(2026, 1, 1)) is not None
+    if same_window:
+        assert manager.storage.staged is not None
+        assert (
+            manager.storage.staged.candidate.timetable.timetable_id == monthly.source_id
+        )
+        await manager.storage.async_approve(manager.storage.staged.stage_id)
+        assert (
+            manager.storage.for_date(date(2026, 1, 1)).times
+            != previous_tables[0].days[0].times
+        )
+    else:
+        assert manager.storage.staged is None
+        assert manager.storage.for_date(date(2026, 2, 1)) is None
+        current = manager.storage.remote_checks[monthly.source_id]
+        assert current["status"] == "error"
+        assert current["error_code"] == "invalid_timetable"
+        assert current["last_seen_sha256"] == previous_checks["last_seen_sha256"]
 
 
 async def test_rejected_unchanged_content_is_not_restaged(manager):

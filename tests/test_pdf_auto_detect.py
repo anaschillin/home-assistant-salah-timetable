@@ -99,6 +99,34 @@ def test_rejects_unrecognized_source_type_before_parsing():
         PdfParser("auto", import_type="weekly")
 
 
+@pytest.mark.parametrize(
+    ("layout", "import_type"),
+    [
+        ("nms_annual_v1", "monthly"),
+        ("nms_monthly_v1", "annual"),
+        ("zak_annual_v1", "ramadan"),
+        ("zak_ramadan_v1", "annual"),
+    ],
+)
+def test_explicit_layout_cannot_bypass_new_timetable_type(layout, import_type):
+    with pytest.raises(ImportValidationError, match="does not match"):
+        PdfParser(layout, import_type=import_type)
+
+
+def test_legacy_stored_monthly_adapter_keeps_annual_canonical_kind():
+    candidate = PdfParser("nms_monthly_v1").parse(
+        (FIXTURES / "nms ramadhan.pdf").read_bytes(),
+        timetable_id="annual-2022",
+        kind="annual",
+        year=2022,
+        date_column="Date",
+        columns={"Fajr Begin": "fajr_begin"},
+    )
+    assert candidate.timetable.kind == "annual"
+    assert candidate.parser_id == "nms_monthly_v1"
+    assert candidate.coverage.row_count == 61
+
+
 def test_monthly_url_profile_rejects_changed_date_window():
     parser = PdfParser("auto", import_type="monthly")
     with pytest.raises(ImportValidationError, match="different dates"):

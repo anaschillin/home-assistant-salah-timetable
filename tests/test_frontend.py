@@ -47,6 +47,11 @@ async def test_bundled_modules_are_served_and_paths_registered_once(hass, hass_c
     utility = await client.get("/salah_timetable/card-utils.js")
     assert utility.status == 200
     assert "export" in await utility.text()
+    translations = await client.get("/salah_timetable/card-i18n.js")
+    assert translations.status == 200
+    source = await translations.text()
+    assert "CATALOGS" in source
+    assert "الفجر" in source
 
 
 async def test_resource_created_once_across_entries_and_reload(hass):

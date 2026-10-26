@@ -1,0 +1,219 @@
+/** Pure card translations and locale resolution. Arabic wording is a draft. */
+export const CATALOGS = Object.freeze({
+  en: Object.freeze({
+    "card.name": "Salah Timetable",
+    "card.description": "Mosque prayer times, contextual Jamaat and Ramadan countdowns",
+    "card.choose_entity": "Choose a mosque Prayer timetable sensor in the card editor.",
+    "card.entity_missing": "Timetable entity was not found. Check the selected mosque.",
+    "card.unavailable": "Timetable unavailable. Check the mosque integration and imported dates.",
+    "card.hijri_calculated": "Hijri (calculated)",
+    "card.disconnected": "Home Assistant disconnected — showing the last received timetable.",
+    "card.timezone_note": "Times shown in {zone}. Missing times are not estimated.",
+    "card.second_khutbah": "Second Jumu’ah khutbah: {time} (published; not Jamaat)",
+    "panel.next_salah": "Next Salah Begins",
+    "panel.next_jamaat": "Next Jamaat",
+    "panel.previous_jamaat": "Previous Jamaat",
+    "panel.no_event": "No published event",
+    "panel.progress_aria": "{label}: progress between published events",
+    "panel.salah_progress": "Since previous Salah beginning",
+    "panel.jamaat_progress": "Since previous Jamaat",
+    "status.unavailable": "Unavailable",
+    "status.passed": "Passed",
+    "status.elapsed": "{time} elapsed",
+    "status.date_unavailable": "Date unavailable",
+    "status.hijri_unavailable": "Hijri date unavailable",
+    "duration.days": "{days}d {clock}",
+    "table.caption": "Published prayer beginning and congregation times",
+    "table.prayer": "Prayer",
+    "table.beginning": "Beginning",
+    "table.jamaat": "Jamaat",
+    "table.region": "Prayer beginning and Jamaat times",
+    "table.scroll_help": "Swipe or scroll horizontally for all prayer times. Keyboard: focus the table and use the arrow keys.",
+    "table.jumuah_time": "Jumuah {time}",
+    "table.fajr_end": "Ends at sunrise: {time}",
+    "ramadan.title": "Ramadan",
+    "ramadan.sehri_ends": "Sehri ends",
+    "ramadan.iftar": "Iftar",
+    "ramadan.taraweeh": "Taraweeh",
+    "ramadan.no_time": "No published time",
+    "prayer.prayer": "Prayer",
+    "prayer.fajr": "Fajr",
+    "prayer.sunrise": "Sunrise",
+    "prayer.dhuhr": "Dhuhr",
+    "prayer.jumuah": "Jumu’ah",
+    "prayer.asr": "Asr",
+    "prayer.maghrib": "Maghrib",
+    "prayer.isha": "Isha",
+    "editor.entity": "Mosque Prayer timetable sensor",
+    "editor.invalid_entity": "Choose the Prayer timetable sensor, rather than an individual prayer sensor.",
+    "editor.mode": "Jamaat panel",
+    "editor.mode.context": "Context aware",
+    "editor.mode.previous": "Previous Jamaat",
+    "editor.mode.upcoming": "Upcoming Jamaat",
+    "editor.title": "Title (optional)",
+    "editor.layout": "Layout",
+    "editor.layout.expanded": "expanded",
+    "editor.layout.compact": "compact",
+    "editor.time_format": "Time format",
+    "editor.time_format.24h": "24h",
+    "editor.time_format.12h": "12h",
+    "editor.hijri_adjustment": "Hijri date adjustment (days)",
+    "editor.show_hijri_date": "Show calculated Hijri date",
+    "editor.show_gregorian_date": "Show Gregorian date",
+    "editor.show_salah_countdown": "Show Salah countdown",
+    "editor.show_jamaat_countdown": "Show Jamaat countdown",
+    "editor.show_ramadan_details": "Show Ramadan details",
+    "editor.show_sehri_countdown": "Show Sehri countdown",
+    "editor.show_iftar_countdown": "Show Iftar countdown",
+    "editor.show_timezone_note": "Show timezone and help text",
+    "editor.language": "Language",
+    "editor.language.auto": "Automatic (Home Assistant)",
+    "editor.language.en": "English",
+    "editor.language.ar": "العربية",
+    "editor.bilingual_prayer_labels": "Bilingual prayer labels",
+    "editor.help": "Choose the mosque’s Prayer timetable entity. Countdowns run in this card; no per-second sensor updates or Card Mod are required. The full Hijri date appears first when enabled; the Gregorian date can be hidden independently. Hijri visibility is also controlled under mosque setup and Configure → Mosque settings; the card switch can hide it further. The calculated Hijri date adjustment affects display only, not Ramadan activation.",
+    "config.required": "A card configuration is required",
+    "config.mode": "Choose context, previous or upcoming Jamaat mode",
+    "config.entity": "Choose a timetable sensor",
+    "config.title": "Title must be at most 100 characters",
+    "config.layout": "Choose compact or expanded layout",
+    "config.time_format": "Choose 12h or 24h time format",
+    "config.hijri_adjustment": "Hijri adjustment must be a whole day from −3 to +3",
+    "config.language": "Choose auto, en or ar language",
+    "config.boolean": "{option} must be true or false",
+  }),
+  ar: Object.freeze({
+    "card.name": "مواقيت الصلاة",
+    "card.description": "مواقيت الصلاة في المسجد، والجماعة بحسب السياق، والعد التنازلي في رمضان",
+    "card.choose_entity": "اختر مستشعر جدول مواقيت الصلاة للمسجد في محرر البطاقة.",
+    "card.entity_missing": "لم يُعثر على كيان جدول المواقيت. تحقق من المسجد المحدد.",
+    "card.unavailable": "جدول المواقيت غير متاح. تحقق من تكامل المسجد والتواريخ المستوردة.",
+    "card.hijri_calculated": "هجري (محسوب)",
+    "card.disconnected": "انقطع اتصال Home Assistant — يُعرض آخر جدول مواقيت تم استلامه.",
+    "card.timezone_note": "تُعرض الأوقات حسب المنطقة الزمنية {zone}. لا تُقدَّر الأوقات الناقصة.",
+    "card.second_khutbah": "خطبة الجمعة الثانية: {time} (وقت منشور؛ وليس وقت الجماعة)",
+    "panel.next_salah": "دخول وقت الصلاة التالية",
+    "panel.next_jamaat": "الجماعة التالية",
+    "panel.previous_jamaat": "الجماعة السابقة",
+    "panel.no_event": "لا يوجد موعد منشور",
+    "panel.progress_aria": "{label}: التقدم بين المواعيد المنشورة",
+    "panel.salah_progress": "منذ دخول وقت الصلاة السابقة",
+    "panel.jamaat_progress": "منذ الجماعة السابقة",
+    "status.unavailable": "غير متاح",
+    "status.passed": "انقضى",
+    "status.elapsed": "مضى {time}",
+    "status.date_unavailable": "التاريخ غير متاح",
+    "status.hijri_unavailable": "التاريخ الهجري غير متاح",
+    "duration.days": "{days} يوم {clock}",
+    "table.caption": "أوقات دخول الصلاة والجماعة المنشورة",
+    "table.prayer": "الصلاة",
+    "table.beginning": "دخول الوقت",
+    "table.jamaat": "الجماعة",
+    "table.region": "أوقات دخول الصلاة والجماعة",
+    "table.scroll_help": "اسحب أو مرّر أفقيًا لعرض جميع مواقيت الصلاة. بلوحة المفاتيح: ركّز على الجدول واستخدم مفاتيح الأسهم.",
+    "table.jumuah_time": "الجمعة {time}",
+    "table.fajr_end": "ينتهي وقتها عند الشروق: {time}",
+    "ramadan.title": "رمضان",
+    "ramadan.sehri_ends": "انتهاء السحور",
+    "ramadan.iftar": "الإفطار",
+    "ramadan.taraweeh": "التراويح",
+    "ramadan.no_time": "لا يوجد وقت منشور",
+    "prayer.prayer": "الصلاة",
+    "prayer.fajr": "الفجر",
+    "prayer.sunrise": "الشروق",
+    "prayer.dhuhr": "الظهر",
+    "prayer.jumuah": "الجمعة",
+    "prayer.asr": "العصر",
+    "prayer.maghrib": "المغرب",
+    "prayer.isha": "العشاء",
+    "editor.entity": "مستشعر جدول مواقيت الصلاة للمسجد",
+    "editor.invalid_entity": "اختر مستشعر جدول مواقيت الصلاة بدلًا من مستشعر صلاة منفردة.",
+    "editor.mode": "لوحة الجماعة",
+    "editor.mode.context": "بحسب السياق",
+    "editor.mode.previous": "الجماعة السابقة",
+    "editor.mode.upcoming": "الجماعة القادمة",
+    "editor.title": "العنوان (اختياري)",
+    "editor.layout": "التخطيط",
+    "editor.layout.expanded": "موسّع",
+    "editor.layout.compact": "مضغوط",
+    "editor.time_format": "تنسيق الوقت",
+    "editor.time_format.24h": "٢٤ ساعة",
+    "editor.time_format.12h": "١٢ ساعة",
+    "editor.hijri_adjustment": "تعديل التاريخ الهجري (بالأيام)",
+    "editor.show_hijri_date": "إظهار التاريخ الهجري المحسوب",
+    "editor.show_gregorian_date": "إظهار التاريخ الميلادي",
+    "editor.show_salah_countdown": "إظهار العد التنازلي لدخول وقت الصلاة",
+    "editor.show_jamaat_countdown": "إظهار العد التنازلي للجماعة",
+    "editor.show_ramadan_details": "إظهار تفاصيل رمضان",
+    "editor.show_sehri_countdown": "إظهار العد التنازلي لانتهاء السحور",
+    "editor.show_iftar_countdown": "إظهار العد التنازلي للإفطار",
+    "editor.show_timezone_note": "إظهار المنطقة الزمنية ونص المساعدة",
+    "editor.language": "اللغة",
+    "editor.language.auto": "تلقائي (Home Assistant)",
+    "editor.language.en": "English",
+    "editor.language.ar": "العربية",
+    "editor.bilingual_prayer_labels": "أسماء الصلاة باللغتين",
+    "editor.help": "اختر كيان جدول مواقيت الصلاة للمسجد. تعمل العدادات التنازلية داخل هذه البطاقة؛ ولا تتطلب تحديثات للمستشعر كل ثانية أو Card Mod. يظهر التاريخ الهجري الكامل أولًا عند تفعيله، ويمكن إخفاء التاريخ الميلادي بشكل مستقل. يمكن أيضًا ضبط ظهور التاريخ الهجري أثناء إعداد المسجد ومن تهيئة ← إعدادات المسجد؛ ويمكن لمفتاح البطاقة إخفاؤه كذلك. يؤثر تعديل التاريخ الهجري المحسوب على العرض فقط، ولا يؤثر على تفعيل رمضان.",
+    "config.required": "يلزم إعداد للبطاقة",
+    "config.mode": "اختر وضع الجماعة context أو previous أو upcoming",
+    "config.entity": "اختر مستشعر جدول المواقيت",
+    "config.title": "يجب ألا يتجاوز العنوان ١٠٠ حرف",
+    "config.layout": "اختر التخطيط compact أو expanded",
+    "config.time_format": "اختر تنسيق الوقت 12h أو 24h",
+    "config.hijri_adjustment": "يجب أن يكون تعديل التاريخ الهجري عدد أيام صحيحًا من −٣ إلى +٣",
+    "config.language": "اختر اللغة auto أو en أو ar",
+    "config.boolean": "يجب أن تكون قيمة {option} إما true أو false",
+  }),
+});
+
+/** Return a canonical locale only when the runtime can format it. */
+function supportedLocale(value) {
+  if (typeof value !== "string" || !value) return null;
+  try {
+    const [locale] = Intl.getCanonicalLocales(value);
+    return locale && Intl.DateTimeFormat.supportedLocalesOf([locale]).length && Intl.NumberFormat.supportedLocalesOf([locale]).length ? locale : null;
+  } catch { return null; }
+}
+
+function localeLanguage(locale) { return locale?.split("-")[0]; }
+
+function languageOf(uiOrLanguage) {
+  const value = typeof uiOrLanguage === "string" ? uiOrLanguage : uiOrLanguage?.language;
+  return localeLanguage(supportedLocale(value)) === "ar" ? "ar" : "en";
+}
+
+/** Resolve card language separately from the locale used for dates and digits. */
+export function resolveUi(config = {}, hass = {}) {
+  const requested = ["en", "ar"].includes(config?.language) ? config.language : "auto";
+  const homeAssistantLocale = supportedLocale(hass?.locale?.language || hass?.language);
+  const language = requested === "auto" ? (localeLanguage(homeAssistantLocale) === "ar" ? "ar" : "en") : requested;
+  const locale = homeAssistantLocale && (requested === "auto" || localeLanguage(homeAssistantLocale) === requested) ? homeAssistantLocale : language;
+  return {language, locale, dir: language === "ar" ? "rtl" : "ltr"};
+}
+
+/** Translate plain text; callers decide which DOM nodes carry direction metadata. */
+export function tr(uiOrLanguage, key, params = {}) {
+  const language = languageOf(uiOrLanguage);
+  const template = Object.hasOwn(CATALOGS[language], key) ? CATALOGS[language][key] : Object.hasOwn(CATALOGS.en, key) ? CATALOGS.en[key] : String(key);
+  return template.replace(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g, (placeholder, name) => Object.hasOwn(params || {}, name) ? String(params[name]) : placeholder);
+}
+
+/** Known prayer names only; custom published names stay with the calling card. */
+export function prayerLabels(key, uiOrLanguage, bilingual = false) {
+  const language = languageOf(uiOrLanguage);
+  const catalogKey = Object.hasOwn(CATALOGS.en, `prayer.${key}`) ? `prayer.${key}` : "prayer.prayer";
+  const languages = bilingual ? [language, language === "ar" ? "en" : "ar"] : [language];
+  return languages.map(lang => ({text: tr(lang, catalogKey), lang, dir: lang === "ar" ? "rtl" : "ltr"}));
+}
+
+/** Format numeric display values, including zero-padded countdown components. */
+export function localizedNumber(value, uiOrLanguage, options = {}) {
+  if (typeof value !== "bigint" && (typeof value !== "number" || !Number.isFinite(value))) return "—";
+  const language = languageOf(uiOrLanguage);
+  const locale = supportedLocale(typeof uiOrLanguage === "string" ? uiOrLanguage : uiOrLanguage?.locale) || language;
+  try {
+    return new Intl.NumberFormat(locale, {useGrouping: false, ...options}).format(value);
+  } catch {
+    return new Intl.NumberFormat("en", {useGrouping: false}).format(value);
+  }
+}

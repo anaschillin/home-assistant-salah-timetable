@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {eventProgress, formatHijriDate, formatTime, highlightedPrayer, normalizeConfig, prayerIsPast} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+import {eventProgress, formatDate, formatHijriDate, formatTime, highlightedPrayer, normalizeConfig, prayerIsPast} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+import {resolveUi} from "../../custom_components/salah_timetable/frontend/card-i18n.js";
 const stamp = clock => `2026-10-23T${clock}:00Z`;
 const at = clock => Date.parse(stamp(clock));
 const row = (key, begin, ...jamaat) => ({key, begin: stamp(begin), jamaat: jamaat.map(stamp)});
@@ -87,4 +88,58 @@ test("progress remains congregation-to-congregation for multiple Friday events",
   assert.equal(eventProgress(data, true, {timestamp: stamp("13:30")}, at("13:00")), 50);
   const overnight = {jamaat_events: [{prayer: "isha", timestamp: "2026-10-23T19:30:00Z"}, {prayer: "fajr", timestamp: "2026-10-24T05:30:00Z"}]};
   assert.equal(eventProgress(overnight, true, overnight.jamaat_events[1], Date.parse("2026-10-24T00:30:00Z")), 50);
+});
+
+test("language and bilingual settings validate YAML types and survive config round trips", () => {
+  const defaults = normalizeConfig({});
+  assert.equal(defaults.language, "auto");
+  assert.equal(defaults.bilingual_prayer_labels, false);
+  for (const language of ["auto", "en", "ar"]) for (const bilingual_prayer_labels of [false, true]) {
+    const config = normalizeConfig({entity: "sensor.mosque", mode: "context", title: "My mosque", language, bilingual_prayer_labels, show_hijri_date: false, show_gregorian_date: false, hijri_adjustment: -3});
+    assert.deepEqual(normalizeConfig(JSON.parse(JSON.stringify(config))), config);
+    assert.equal(config.language, language);
+    assert.equal(config.bilingual_prayer_labels, bilingual_prayer_labels);
+    assert.equal(config.show_hijri_date, false);
+    assert.equal(config.show_gregorian_date, false);
+    assert.equal(config.mode, "context");
+  }
+  for (const language of [null, true, false, 0, 1, {}, [], "", "AR", "ar-EG", "fr"]) assert.throws(() => normalizeConfig({language}), error => error.translationKey === "config.language");
+  for (const bilingual_prayer_labels of [null, 0, 1, {}, [], "", "false", "true"]) assert.throws(() => normalizeConfig({bilingual_prayer_labels}), error => error.translationKey === "config.boolean" && error.params.option === "bilingual_prayer_labels");
+  // Existing graphical and falsy-option defaults retain their earlier behavior.
+  assert.equal(normalizeConfig({mode: null, entity: ""}).mode, "upcoming");
+});
+
+test("Gregorian source dates override locale calendar extensions while Hijri stays Umm al-Qura", () => {
+  for (const locale of ["en-GB-u-ca-islamic", "ar-EG-u-ca-islamic"]) {
+    const ui = resolveUi({language: "auto"}, {locale: {language: locale}});
+    const expected = new Intl.DateTimeFormat(locale, {calendar: "gregory", dateStyle: "full", timeZone: "UTC"}).format(Date.parse("2026-10-25T12:00:00Z"));
+    assert.equal(formatDate("2026-10-25", locale), expected);
+    assert.equal(formatDate("2026-10-25", ui), expected);
+  }
+  for (const locale of ["en-GB", "ar-EG"]) assert.equal(formatHijriDate("2026-02-18", 0, `${locale}-u-ca-gregory`), formatHijriDate("2026-02-18", 0, locale));
+  const ui = resolveUi({language: "ar"});
+  for (const date of ["2026-02-29", "1900-02-29", "2026-04-31", "2026-00-01", "2026-13-01", "2026-2-18"]) {
+    assert.equal(formatDate(date, ui), "التاريخ غير متاح", date);
+    assert.equal(formatHijriDate(date, 0, ui), "التاريخ الهجري غير متاح", date);
+  }
+  for (const date of ["2024-02-29", "2000-02-29"]) {
+    assert.notEqual(formatDate(date, ui), "التاريخ غير متاح");
+    assert.notEqual(formatHijriDate(date, 0, ui), "التاريخ الهجري غير متاح");
+  }
+});
+
+test("localized times keep mosque timezone and hour format across both DST transitions", () => {
+  const ui = resolveUi({}, {locale: {language: "ar-EG-u-ca-islamic"}});
+  for (const value of ["2026-10-25T00:30:00Z", "2026-10-25T01:30:00Z"]) assert.equal(formatTime(value, "Europe/London", ui, "24h"), "٠١:٣٠");
+  assert.equal(formatTime("2026-03-29T00:30:00Z", "Europe/London", ui, "24h"), "٠٠:٣٠");
+  assert.equal(formatTime("2026-03-29T01:30:00Z", "Europe/London", ui, "24h"), "٠٢:٣٠");
+  assert.equal(formatTime(stamp("12:30"), "Europe/London", ui, "24h"), "١٣:٣٠");
+  assert.match(formatTime(stamp("12:30"), "Europe/London", ui, "12h"), /^٠١:٣٠\s*م$/u);
+  assert.equal(formatTime(null, "Europe/London", ui), "—");
+});
+
+test("invalid direct locale inputs preserve graceful formatter fallbacks", () => {
+  assert.equal(formatDate("2026-10-23", "bad_locale!"), "2026-10-23");
+  assert.equal(formatTime(stamp("12:30"), "UTC", "bad_locale!"), "—");
+  assert.equal(formatHijriDate("2026-10-23", 0, "bad_locale!"), "Hijri date unavailable");
 });

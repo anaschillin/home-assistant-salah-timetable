@@ -60,9 +60,9 @@ allows users to rename entity IDs independently.
 
 1. Open the mosque's **Configure → Add or replace a URL source (recommended)**.
 2. Enter a public HTTPS URL, PDF/CSV type, explicit Gregorian year and
-   **Annual**, **Monthly** or **Ramadan** timetable type. Supported PDFs default
-   to **Automatic** recognition; a manual inspected-layout choice remains available
-   as an advanced override. Alternatively use **Upload a supported PDF** or
+   **Annual**, **Monthly** or **Ramadan** timetable type. The integration
+   automatically recognizes a supported PDF; no PDF-layout selection is needed.
+   Alternatively use **Upload a supported PDF** or
    **Import CSV timetable**. For a named inspected edition, **Choose an inspected
    publication profile** prefills its manual PDF setup. CSV ignores PDF recognition.
    Monthly coverage is stored as a partial ordinary annual source; Ramadan is a
@@ -101,7 +101,7 @@ HTTPS source has been verified for them. Use ordinary import for other supported
 source defaults. See the [profile catalogue](docs/pdf_layouts.md#publication-setup-profiles).
 
 Annual and Ramadan sources use kind/year identities (such as `annual-2026`).
-When **Monthly** is selected in ordinary PDF/URL import, the source instead has
+When **Monthly** is selected for a PDF upload or a PDF/CSV URL source, the source has
 a **distinct identity per exact published date span** (such as
 `annual-2026-monthly-0101-0131`); January and February then coexist without
 one upload deleting the other. Re-importing the same span replaces that source
@@ -163,6 +163,14 @@ particular card, independently hide the Gregorian date, and offers
 compact/expanded layouts, 12/24-hour times, countdown visibility and a
 −3 to +3 calculated Hijri display-day adjustment. Neither
 visibility nor adjustment changes source data or activates Ramadan.
+
+Choose **Automatic (Home Assistant)**, **English** or **العربية** in the card
+editor, and optionally enable bilingual English/Arabic prayer names. Arabic uses
+right-to-left layout with isolated clock values; dates and numbers follow the
+selected locale. Automatic follows Arabic HA interfaces and uses English labels
+for other languages. Arabic wording is a draft awaiting review. Integration
+settings and entity translations remain a separate Milestone 10B follow-up.
+
 Countdowns run in the browser from absolute timestamps, without per-second Home
 Assistant state writes. The card follows HA's theme
 and uses responsive layouts. Ordinary ticks update clocks and progress in place;
@@ -217,15 +225,14 @@ misleading content types/signatures and oversized streamed bodies are rejected.
 ## PDF format and limits
 
 Only layouts listed in [PDF layouts](docs/pdf_layouts.md) are supported.
-The default **Automatic** recognition matches a single tested adapter after
-bounded PDF extraction, guided by **Annual / Monthly / Ramadan**. A combined
-Zakariyya PDF supplies annual tables or the separate Ramadan page according
-to the selected type; it never imports both silently. Unsupported and ambiguous
-layouts fail rather than guessing. The advanced manual layout override remains
-available for known publications. Check detected format, dates, column mapping
-and source warnings before approval. Its 365 dates and 5,110 event values were compared with an
-independent extraction. Additional real fixtures validate the NMS May–June 2022
-monthly layout, all twelve annual tables and the separate Ramadan page in
+Automatic recognition matches a single tested adapter after bounded PDF
+extraction, guided by **Annual / Monthly / Ramadan**. A combined Zakariyya PDF
+supplies annual tables or the separate Ramadan page according to the selected
+type; it never imports both silently. Unsupported and ambiguous layouts fail
+rather than guessing. Check detected format, dates, column mapping
+and source warnings before approval. The NMS 2026 annual adapter's 365 dates and
+5,110 event values were compared with an independent extraction. Additional real
+fixtures validate the NMS May–June 2022 monthly layout, all twelve annual tables and the separate Ramadan page in
 Zakariyya’s 2026 calendar. Its annual adapter validates 365 dates and 3,770 published
 values; review explicitly explains the clipped May first-date label. The
 `pdf_table_v1` adapter remains a separate synthetic sample, not a general recognizer. Unknown

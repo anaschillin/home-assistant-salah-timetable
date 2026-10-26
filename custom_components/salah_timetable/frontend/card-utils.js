@@ -1,6 +1,8 @@
 /** Pure timestamp and display logic shared by the bundled card and its tests. */
+import {localizedNumber, prayerLabels, tr} from "./card-i18n.js?v=0.9.0";
+
 export const MODES = Object.freeze(["context", "previous", "upcoming"]);
-const NAMES = Object.freeze({fajr: "Fajr", dhuhr: "Dhuhr", jumuah: "Jumu’ah", asr: "Asr", maghrib: "Maghrib", isha: "Isha"});
+const PRAYERS = Object.freeze(["fajr", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
 export function timestamp(value) {
   if (typeof value !== "string" || !/T.*(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return null;
@@ -8,60 +10,80 @@ export function timestamp(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-export function duration(milliseconds) {
-  if (!Number.isFinite(milliseconds)) return "Unavailable";
+export function duration(milliseconds, ui = "en") {
+  if (!Number.isFinite(milliseconds)) return tr(ui, "status.unavailable");
   let seconds = Math.max(0, Math.floor(Math.abs(milliseconds) / 1000));
   const days = Math.floor(seconds / 86400); seconds %= 86400;
   const hours = Math.floor(seconds / 3600); seconds %= 3600;
   const minutes = Math.floor(seconds / 60); seconds %= 60;
-  const clock = [hours, minutes, seconds].map(value => String(value).padStart(2, "0")).join(":");
-  return days ? `${days}d ${clock}` : clock;
+  const clock = [hours, minutes, seconds].map(value => localizedNumber(value, ui, {minimumIntegerDigits: 2})).join(":");
+  return days ? tr(ui, "duration.days", {days: localizedNumber(days, ui), clock}) : clock;
 }
 
-export function countdown(value, now = Date.now()) {
+export function countdown(value, now = Date.now(), ui = "en") {
   const target = timestamp(value);
-  if (target === null) return "Unavailable";
-  if (target < now) return "Passed";
-  return duration(target - now);
+  if (target === null) return tr(ui, "status.unavailable");
+  if (target < now) return tr(ui, "status.passed");
+  return duration(target - now, ui);
 }
 
-export function elapsed(value, now = Date.now()) {
+export function elapsed(value, now = Date.now(), ui = "en") {
   const target = timestamp(value);
-  return target === null || target > now ? "Unavailable" : duration(now - target);
+  return target === null || target > now ? tr(ui, "status.unavailable") : duration(now - target, ui);
 }
 
-export function prayerName(event) {
-  return event ? NAMES[event.prayer] || NAMES[String(event.field || "").replace(/_(?:begin|jamaat)$/, "")] || "Prayer" : "Unavailable";
+export function prayerName(event, ui = "en") {
+  if (!event) return tr(ui, "status.unavailable");
+  const key = PRAYERS.includes(event.prayer) ? event.prayer : String(event.field || "").replace(/_(?:begin|jamaat)$/, "");
+  return prayerLabels(PRAYERS.includes(key) ? key : "prayer", ui)[0].text;
+}
+
+function displayLocale(localeOrUi) {
+  return localeOrUi && typeof localeOrUi === "object" ? localeOrUi.locale : localeOrUi;
 }
 
 export function formatTime(value, timeZone = "UTC", locale, timeFormat = "24h") {
   const instant = timestamp(value);
   if (instant === null) return "—";
   try {
-    return new Intl.DateTimeFormat(locale, {hour: "2-digit", minute: "2-digit", hourCycle: timeFormat === "12h" ? "h12" : "h23", timeZone}).format(instant);
+    return new Intl.DateTimeFormat(displayLocale(locale), {calendar: "gregory", hour: "2-digit", minute: "2-digit", hourCycle: timeFormat === "12h" ? "h12" : "h23", timeZone}).format(instant);
   } catch { return "—"; }
 }
 
-export function formatDate(value, locale) {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return "Date unavailable";
+/** Validate a published Gregorian date without formatting or calendar conversion. */
+function dateInstant(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const instant = Date.parse(`${value}T12:00:00Z`);
-  if (!Number.isFinite(instant)) return "Date unavailable";
-  if (new Date(instant).toISOString().slice(0, 10) !== value) return "Date unavailable";
-  try { return new Intl.DateTimeFormat(locale, {dateStyle: "full", timeZone: "UTC"}).format(instant); } catch { return value; }
+  return Number.isFinite(instant) && new Date(instant).toISOString().slice(0, 10) === value ? instant : null;
+}
+
+export function formatDate(value, locale) {
+  const instant = dateInstant(value);
+  if (instant === null) return tr(locale, "status.date_unavailable");
+  try { return new Intl.DateTimeFormat(displayLocale(locale), {calendar: "gregory", dateStyle: "full", timeZone: "UTC"}).format(instant); } catch { return value; }
+}
+
+function configError(key, params = {}) {
+  const translationKey = `config.${key}`;
+  const error = new Error(tr("en", translationKey, params));
+  error.translationKey = translationKey;
+  error.params = params;
+  return error;
 }
 
 export function normalizeConfig(config) {
-  if (!config || typeof config !== "object" || Array.isArray(config)) throw new Error("A card configuration is required");
+  if (!config || typeof config !== "object" || Array.isArray(config)) throw configError("required");
   const mode = config.mode || "upcoming";
-  if (!MODES.includes(mode)) throw new Error("Choose context, previous or upcoming Jamaat mode");
-  if (config.entity && (typeof config.entity !== "string" || !/^sensor\.[a-z0-9_]+$/.test(config.entity))) throw new Error("Choose a timetable sensor");
-  if (config.title !== undefined && (typeof config.title !== "string" || config.title.length > 100)) throw new Error("Title must be at most 100 characters");
-  const defaults = {layout: "expanded", time_format: "24h", hijri_adjustment: 0, show_hijri_date: true, show_gregorian_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true};
+  if (!MODES.includes(mode)) throw configError("mode");
+  if (config.entity && (typeof config.entity !== "string" || !/^sensor\.[a-z0-9_]+$/.test(config.entity))) throw configError("entity");
+  if (config.title !== undefined && (typeof config.title !== "string" || config.title.length > 100)) throw configError("title");
+  const defaults = {layout: "expanded", time_format: "24h", hijri_adjustment: 0, language: "auto", bilingual_prayer_labels: false, show_hijri_date: true, show_gregorian_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true};
   const result = {...defaults, ...config};
-  if (!["expanded", "compact"].includes(result.layout)) throw new Error("Choose compact or expanded layout");
-  if (!["12h", "24h"].includes(result.time_format)) throw new Error("Choose 12h or 24h time format");
-  if (!Number.isInteger(result.hijri_adjustment) || Math.abs(result.hijri_adjustment) > 3) throw new Error("Hijri adjustment must be a whole day from −3 to +3");
-  for (const key of Object.keys(defaults).filter(key => key.startsWith("show_"))) if (typeof result[key] !== "boolean") throw new Error(`${key} must be true or false`);
+  if (!["expanded", "compact"].includes(result.layout)) throw configError("layout");
+  if (!["12h", "24h"].includes(result.time_format)) throw configError("time_format");
+  if (!Number.isInteger(result.hijri_adjustment) || Math.abs(result.hijri_adjustment) > 3) throw configError("hijri_adjustment");
+  if (!["auto", "en", "ar"].includes(result.language)) throw configError("language");
+  for (const key of Object.keys(defaults).filter(key => key.startsWith("show_") || key === "bilingual_prayer_labels")) if (typeof result[key] !== "boolean") throw configError("boolean", {option: key});
   return {...result, type: "custom:salah-timetable-card", entity: config.entity || "", mode};
 }
 
@@ -136,12 +158,13 @@ export function nextRamadanEvent(attributes, kind, now = Date.now()) {
 
 /** Calculated display date only; never used for Ramadan activation. */
 export function formatHijriDate(value, adjustment = 0, locale) {
-  if (formatDate(value, "en") === "Date unavailable") return "Hijri date unavailable";
+  const instant = dateInstant(value);
+  if (instant === null) return tr(locale, "status.hijri_unavailable");
   try {
-    const formatter = new Intl.DateTimeFormat(locale, {calendar: "islamic-umalqura", day: "numeric", month: "long", year: "numeric", timeZone: "UTC"});
-    if (formatter.resolvedOptions().calendar !== "islamic-umalqura") return "Hijri date unavailable";
-    return formatter.format(Date.parse(`${value}T12:00:00Z`) + adjustment * 86400000);
-  } catch { return "Hijri date unavailable"; }
+    const formatter = new Intl.DateTimeFormat(displayLocale(locale), {calendar: "islamic-umalqura", day: "numeric", month: "long", year: "numeric", timeZone: "UTC"});
+    if (formatter.resolvedOptions().calendar !== "islamic-umalqura") return tr(locale, "status.hijri_unavailable");
+    return formatter.format(instant + adjustment * 86400000);
+  } catch { return tr(locale, "status.hijri_unavailable"); }
 }
 
 export function eventProgress(attributes, congregation, event, now = Date.now()) {

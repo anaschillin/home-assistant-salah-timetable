@@ -9,8 +9,8 @@ dependency preload used by those earlier runs. The later local 0.6.2 run verifie
 fresh dependency installation using a trusted CA bundle for the proxy, without
 preloading packages. The [physical-device confirmation from 24 October 2026](validation.md#user-confirmed-physical-device-acceptance--24-october-2026)
 predates 0.7.0 and does not identify an installed version. Acceptance of the newer
-calendar, publication profiles, speaker controls and 0.8.0 review flow remains
-separate. Hosted validation is recorded separately for exact commit
+calendar, publication profiles, speaker controls, import review, Hijri-first
+header and Arabic/RTL controls remains separate. Hosted validation is recorded separately for exact commit
 SHAs; a final release commit still needs its own successful required jobs.
 
 ## Current release readiness — 25 October 2026
@@ -19,8 +19,9 @@ SHAs; a final release commit still needs its own successful required jobs.
 [archived 25 October review plan](archive/review-action-plan-2026-10-25.md)
 records REV-01–06 implementation history; use this section for the outstanding
 sign-offs. REV-07 compatibility expansion remains ongoing; REV-08's
-import-change comparison is implemented in Milestone 17, while localization/RTL
-remains planned under Milestone 10. These follow-ups belong in
+import-change comparison is implemented in Milestone 17. Milestone 10A's
+card/editor localization and RTL is implemented in candidate 0.9.0 with validation
+and acceptance pending; integration translations and reviewed wording remain 10B. These follow-ups belong in
 [remaining work](remaining-work.md), not in the current release gate unless
 they uncover a blocking regression.
 
@@ -38,7 +39,7 @@ The [validation log](validation.md) is the evidence record, **not** a second
 checklist. The `--require-cleared` provenance audit deliberately blocks draft
 release preparation while rights remain unresolved; this is not a licence grant
 and must not be bypassed just because a release ZIP excludes the PDF fixtures.
-No GitHub release has been published for candidate 0.8.1 or its 0.8.0/0.7.0 predecessors; successful
+No GitHub release has been published for candidate 0.9.0 or its 0.8.1/0.8.0/0.7.0 predecessors; successful
 PR and main CI runs are implementation evidence, not publication or manual
 release acceptance.
 
@@ -65,8 +66,9 @@ integration behavior or bundled assets:
 - `custom_components/salah_timetable/manifest.json`: `version`.
 - `pyproject.toml`: project version, then refresh `uv.lock` with `uv lock`.
 - `custom_components/salah_timetable/frontend.py`: `CARD_VERSION`.
-- `custom_components/salah_timetable/frontend/salah-timetable-card.js`: the
-  `card-utils.js?v=…` import cache version.
+- `custom_components/salah_timetable/frontend/salah-timetable-card.js` and
+  `frontend/card-utils.js`: all `card-utils.js?v=…` and `card-i18n.js?v=…`
+  import cache versions.
 
 Run the checks and build from the repository root:
 
@@ -113,10 +115,13 @@ cannot replace a check of real HA selectors, card discovery or resource loading.
 Review the workflow results on GitHub, rather than assuming local checks establish
 hosted validation. One calendar end-trigger timing test failed on the first attempt
 of [run 40195818111](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40195818111)
-before the unchanged commit passed on attempt 2. Its root cause is unknown;
-[issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-tracks investigation. Review recurrence and release impact before sign-off; do not
-claim a green rerun alone resolved the underlying cause. Preserve the artifact
+before the unchanged commit passed on attempt 2. The later local
+[diagnosis](validation.md#combined-080-review-and-calendar-synchronization)
+reproduced background calendar refresh work completing after the test advanced
+its clock; the test now drains that work before checking the exact end event.
+[Issue #13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+remains open for hosted stability evidence. Review recurrence and release impact
+before sign-off; a green rerun alone did not resolve the underlying cause. Preserve the artifact
 checksum with the reviewed release notes.
 
 ## Manual Home Assistant and HACS acceptance
@@ -132,10 +137,11 @@ where possible. Record the HA/integration versions and browser/device used.
   Record the installed version and confirm it was not preloaded. A successful
   development `uv sync` or preloaded live run does not complete this check.
 - Exercise URL-first import and manual PDF/CSV upload, graphical column mapping,
-  preview, approval and rejection. Test automatic known-PDF recognition and
-  Annual / Monthly / Ramadan choices; verify January and February monthly
-  approvals coexist without deleting earlier dates and that overlapping
-  month sources and changed monthly URL spans fail safely. Check the supported NMS annual layout against
+  preview, approval and rejection. Verify the import form offers
+  Annual / Monthly / Ramadan without a PDF-layout picker and recognizes known
+  PDFs automatically. Verify January and February monthly approvals coexist
+  without deleting earlier dates, overlapping month sources are rejected, and
+  changed monthly URL spans fail safely for both PDF and CSV sources. Check the supported NMS annual layout against
   its publication. Confirm an unsupported PDF fails with a useful message.
 - Exercise the [publication-profile picker](pdf_layouts.md#publication-setup-profiles)
   with a matching inspected PDF and explicit printed year. Check prefilled mappings,
@@ -179,6 +185,12 @@ where possible. Record the HA/integration versions and browser/device used.
   Enable and disable the **full Hijri date** during initial mosque setup and later
   under **Configure → Mosque settings**; verify the per-card toggle can also hide
   it, older entries default to visible, and preferences persist after restart.
+  Verify Hijri appears first with a named Islamic month, and independently hide
+  or show Gregorian without changing either calendar's meaning. Check Arabic HA
+  automatic selection, explicit English/Arabic overrides, bilingual prayer names,
+  RTL table/clock direction, 12/24-hour formatting and focused editor title/selection
+  through language changes. Record fluent-language review of the draft Arabic and
+  actual mobile/tablet results separately from automated browser checks.
   On a published-source day, verify **Fajr ends at Sunrise** in the correct mosque
   timezone (unavailable if the source omits Sunrise). On an NMS Friday, verify
   the separately published **second khutbah** displays **only** as a note and

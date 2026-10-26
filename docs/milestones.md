@@ -4,7 +4,7 @@ The [release checklist](releasing.md#current-release-readiness--25-october-2026)
 is the single source of truth for release blockers; the
 [remaining-work backlog](remaining-work.md) tracks later feature additions.
 
-Milestones 1–5 are implemented; the current candidate is 0.8.1. Keep follow-up
+Milestones 1–5 are implemented; the current candidate is 0.9.0. Keep follow-up
 work in focused PRs with tests and documentation. The local 0.8.0 paged-review
 and Adhan fixes passed the [recorded pre-merge checks](validation.md#paged-import-review--candidate-080).
 Those results do not validate the combined tree. Separately, Milestone 17's
@@ -21,7 +21,8 @@ passed all six jobs and **936 tests**. The 0.8.1
 passed all six jobs and **955 Python tests** (source `888e4cd`).
 Publication still requires final release-commit CI and manual acceptance.
 The earlier [calendar-trigger flake](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-remains open despite passing on rerun.
+remains open for hosted stability evidence after the later documented local
+synchronization diagnosis and fix.
 Earlier manual-install, dependency and physical-device evidence remains scoped to
 the versions and environments in the [validation record](validation.md).
 **Unfinished release acceptance** still includes asset redistribution rights,
@@ -46,7 +47,8 @@ their completion requires implementation and the stated acceptance evidence.
 | 7B | Approved-date coverage monitoring and opt-in health alerts | Implemented | Effective timetable resolver; blueprint pattern |
 | 8 | Native prayer calendar | Implemented; release acceptance pending | Approved dated records and event engine |
 | 9 | Supported-publication setup profiles | Implemented; release acceptance pending | Secure downloads, inspected layouts and approval flows |
-| 10 | Translations, bilingual labels and RTL layout | Planned | Stable entity/config keys and current UI |
+| 10A | Card/editor English, Arabic, bilingual labels and RTL layout | Implemented; validation and acceptance pending | Stable prayer keys and current card |
+| 10B | Integration forms/entities and reviewed translations | Planned | 10A catalogue conventions; fluent-language review |
 | 11 | Minimum/current compatibility tests and weekly validation | In progress | Existing CI and reproducible dependency lock |
 | 12 | Richer Adhan playback controls | Implemented; release acceptance pending | 7A; calendar triggers from 8 when available |
 | 13 | Pause/resume media around prayer events | Implemented; release acceptance pending | Published event timestamps; 7A/8 automation patterns |
@@ -64,11 +66,13 @@ The merged dashboard enhancement adds published Fajr end
 (Sunrise), NMS Friday second-khutbah notes and a mosque-wide full-Hijri-date
 display preference (see [dashboard](dashboard.md)). This addition is
 **implemented, with real-device/source and restart release acceptance pending**.
-REV-08's import-difference portion is fulfilled by Milestone 17, but its
-translation/RTL portion remains pending. Next pursue **10** (localization/RTL)
-with **11** (broader compatibility testing) in parallel; 14–16 follow.
-Milestone numbering does not set release order. The new localization catalogue
-is initial work for 10; translations, bilingual labels and RTL are not complete.
+REV-08's import-difference portion is fulfilled by Milestone 17. Candidate
+0.9.0 implements **10A** for the card/editor, including English/Arabic selection,
+bilingual known prayer labels and RTL presentation, while preserving 0.8.1's
+Hijri-first header and automatic Annual/Monthly/Ramadan import choices.
+Validation and applicable acceptance are pending. Continue **10B** (integration
+translations and reviewed wording) with **11** (broader compatibility testing)
+in parallel; 14–16 follow. Milestone numbering does not set release order.
 
 Every increment needs focused tests, user documentation, successful CI for its
 exact commit and applicable live checks before release. Imported values stay
@@ -177,7 +181,7 @@ event and midnight callbacks with a one-minute fallback.
    do not write sensor states every second.
 3. Add responsive mobile/tablet layouts, HA theme variables, accessibility, empty and
    error states, locale-aware dates/times, resource lifecycle and upgrade/cache
-   handling. Card interface labels are currently English.
+   handling. Milestone 10A extends card/editor interface labels to English and Arabic.
 4. Add frontend unit and browser tests for editor round trips, all event contexts,
    disconnections, countdown boundaries, theme switching and narrow screens.
 
@@ -206,8 +210,10 @@ The latest dashboard changes show Fajr's **published sunrise end** within its ro
 show explicitly published NMS second-Jumu’ah khutbah times as **Friday-only notes**
 without modifying existing Dhuhr/Jamaat events, and add the mosque-level full-Hijri
 visibility preference during setup and under Configure → Mosque settings. The
-per-card Hijri toggle and ±3-day display adjustment remain available. Imported
-times and Ramadan activation stay unchanged; see [dashboard](dashboard.md).
+per-card Hijri toggle and ±3-day display adjustment remain available. Candidate
+0.8.1 places the full Hijri date first and adds an independent Gregorian switch;
+0.9.0 retains these controls in English and Arabic. Imported times and Ramadan
+activation stay unchanged; see [dashboard](dashboard.md).
 Real-device sign-off for these refinements remains part of release acceptance.
 Current validation limits are recorded in [validation](validation.md).
 
@@ -320,17 +326,34 @@ Acceptance: versioned profile IDs, exact-edition fixtures, predictable updates t
 saved profiles, clear unsupported-edition errors, manual-import fallback, unchanged
 HTTPS/redirect restrictions and no automatic activation of changed source data.
 
-## Milestone 10 — localization and right-to-left layouts (planned)
+## Milestone 10 — localization and right-to-left layouts (in progress)
 
-Translate integration forms/entities and bundled card/editor labels, starting with
-Arabic and additional languages with reviewed translations. Provide English
-fallback, optional bilingual prayer labels and right-to-left layout support. Stored field names, blueprint inputs,
-unique IDs and event identifiers remain stable when the UI language changes.
+### 10A — bundled card/editor (implemented; validation and acceptance pending)
 
-Acceptance: translation-key completeness, fallback behavior, readable long labels,
-RTL keyboard/focus order, both time formats, mosque-timezone dates and narrow
-layouts at 200% text scale. Record real-device acceptance separately from browser
-emulation and add translated setup guidance as it becomes available.
+The card/editor supports automatic HA-language selection or explicit English and
+Arabic, English fallback, optional bilingual known prayer labels and RTL layout.
+Date and number formatting uses the selected locale, with explicit Gregorian and
+Umm al-Qura calendars. Hijri remains the primary date when enabled; the Gregorian
+line is independently optional, and the mosque-wide Hijri preference remains
+authoritative. Local countdowns retain stable numeric nodes through ordinary
+ticks; editor language/configuration updates preserve focused title text and
+selection. Stored field names, blueprint inputs, unique IDs and event identifiers
+remain stable. See [dashboard options](dashboard.md#language-and-direction).
+
+Arabic wording is a draft awaiting fluent-language review. Required validation
+covers catalogue completeness, fallback, long and bilingual labels, RTL focus
+order, both time formats, mosque-local dates and 200% text at narrow widths.
+Record actual Home Assistant editor acceptance and physical-device results
+separately from the isolated browser harness. No earlier device confirmation
+establishes acceptance of these changes.
+
+### 10B — integration translations and reviewed wording (planned)
+
+Translate integration forms, entity labels and backend-generated summaries using
+stable keys and HA's translation facilities. Review Arabic wording with a fluent
+speaker before claiming reviewed translation quality. Add translated setup
+guidance and further languages as reviewed contributions become available.
+Keep machine identifiers, approved source data and event identities unchanged.
 
 ## Milestone 11 — compatibility and scheduled validation (in progress)
 
@@ -341,9 +364,12 @@ the manifest-pinned import after setup. The reproducible Python suite remains
 locked to HA 2026.10.2. Separate compatibility unit-test environments covering
 migrations and the typing/lint follow-ups below remain to be implemented.
 The [calendar end-trigger timing test follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-tracks one failure on the initial 25 October hosted run that passed on rerun;
-its root cause has **not** been established and must not be silently treated as
-resolved by the green rerun.
+tracks the earlier hosted failure that passed on rerun. The later
+[diagnosis and synchronization fix](validation.md#combined-080-review-and-calendar-synchronization)
+reproduced the missing end event when background calendar refresh work was not
+drained before clock advancement. Normal and delayed-refresh cases now explicitly
+wait for that work. Keep the issue open for hosted stability evidence; a green
+rerun alone did not establish the cause or close the follow-up.
 
 Add separate tests for the declared minimum HA version and the supported locked
 version, plus a weekly scheduled compatibility run. Make each job report and verify

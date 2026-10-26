@@ -1,6 +1,33 @@
 # Validation record
 
-## Current recorded status — 25 October 2026
+## Current recorded status — 26 October 2026
+
+Candidate **0.9.0** combines the merged 0.8.1 Hijri-first/import changes with
+Milestone **10A**: automatic or explicit English/Arabic card and editor labels,
+bilingual prayer names and RTL layouts. Review removed the remaining PDF layout
+selector and extended monthly date-window protection to CSV URL updates as well
+as PDFs. Stored concrete parsers remain compatible with existing sources.
+
+Local validation of the combined candidate passed **970 Python tests** (**95%**
+coverage), **109 Node tests**, Ruff lint/formatting, the frozen lock consistency
+check, release packaging and **16 native Chromium fixtures** (four widths × two
+languages × both bilingual modes; 17 runner tests including their parent).
+The fixtures include independent Gregorian/Hijri controls, mosque-level Hijri
+authority, named Islamic months, 200% text, keyboard focus, RTL scrolling and
+configuration round trips. The larger browser matrix now loads fixtures
+sequentially to avoid starving debugger requests. Local evidence files are
+`/tmp/salah-m10-final-python.log`, `/tmp/salah-m10-final-node.log` and
+`/tmp/salah-m10-browser-final.log`; these ephemeral paths are not repository assets.
+
+The base 0.8.1 main commit `10f63c8ed80f5419379a194f4fec494a37ef4e7a` passed
+[Validate 40243730141](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40243730141).
+That result does not validate the later 0.9.0 changes. Actual HA editor/live
+validation and exact final-commit hosted CI will be recorded separately.
+Arabic wording remains a draft awaiting fluent-language review; physical-device
+acceptance and the external release gates remain open. No tag or release was
+published.
+
+## Recorded status — 25 October 2026
 
 The current integration candidate is **0.8.1**, developed in
 [PR #21](https://github.com/anaschillin/home-assistant-salah-timetable/pull/21).
@@ -17,7 +44,7 @@ The combined candidate based on `0850ca6` and `ffc56c6` now passes **936 Python
 tests** (95% coverage), **83 Node tests**, required native Chromium, **29 live
 HA 2026.10.0 checks** (including a real Container backup restore), and the
 [calendar synchronization regression](#combined-080-review-and-calendar-synchronization)
-below. The exact merge commit still requires its own hosted Validate result.
+below. Those local results preceded the merged-tree hosted result recorded next.
 
 **Merged 0.8.0 evidence:** [Validate run
 40229412033](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40229412033)

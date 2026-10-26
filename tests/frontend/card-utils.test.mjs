@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {countdown, duration, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, timestamp, discoverEntity, nextRamadanEvent} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+import {countdown, duration, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, prayerName, timestamp, discoverEntity, nextRamadanEvent} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+import {resolveUi} from "../../custom_components/salah_timetable/frontend/card-i18n.js";
 
 const instant = value => Date.parse(`2026-10-21T${value}:00Z`);
 const event = (time, prayer, field = `${prayer}_jamaat`) => ({timestamp: `2026-10-21T${time}:00Z`, prayer, field});
@@ -114,4 +115,53 @@ test("published Ramadan times remain visible after the last confirmed day's even
     assert.equal(countdown(value, instant("20:00")), "Passed");
     assert.notEqual(formatTime(value, "Europe/London"), "—");
   }
+});
+
+test("Arabic countdowns localize digits, days and statuses at exact boundaries", () => {
+  const ui = resolveUi(normalizeConfig({}), {locale: {language: "ar-EG"}});
+  const value = "2026-10-21T05:30:00Z";
+  assert.equal(duration(90061000, ui), "١ يوم ٠١:٠١:٠١");
+  assert.equal(countdown(value, instant("05:29"), ui), "٠٠:٠١:٠٠");
+  assert.equal(countdown(value, instant("05:30"), ui), "٠٠:٠٠:٠٠");
+  assert.equal(countdown(value, instant("05:31"), ui), "انقضى");
+  assert.equal(elapsed(value, instant("05:31"), ui), "٠٠:٠١:٠٠");
+  for (const unavailable of [duration(NaN, ui), countdown(null, instant("05:30"), ui), elapsed(value, instant("05:29"), ui)]) assert.equal(unavailable, "غير متاح");
+  assert.equal(prayerName(event("05:30", "fajr"), ui), "الفجر");
+  assert.equal(prayerName({field: "jumuah_jamaat"}, ui), "الجمعة");
+  assert.equal(prayerName(null, ui), "غير متاح");
+  assert.equal(prayerName({prayer: "unknown"}, ui), "الصلاة");
+});
+
+test("automatic French locale retains English UI while formatting published dates in French", () => {
+  const ui = resolveUi(normalizeConfig({}), {locale: {language: "fr-FR"}});
+  assert.equal(ui.language, "en");
+  assert.equal(ui.locale, "fr-FR");
+  assert.equal(formatDate("2026-10-21", ui), "mercredi 21 octobre 2026");
+  assert.equal(duration(90061000, ui), "1d 01:01:01");
+  assert.equal(countdown(null, instant("05:30"), ui), "Unavailable");
+  const invalidUi = resolveUi(normalizeConfig({}), {locale: {language: "bad_locale!"}});
+  assert.deepEqual(invalidUi, {language: "en", locale: "en", dir: "ltr"});
+  assert.notEqual(formatDate("2026-10-21", invalidUi), "Date unavailable");
+  assert.equal(formatTime(event("05:00", "fajr").timestamp, "UTC", invalidUi), "05:00");
+});
+
+test("configuration errors preserve English messages with localization metadata", () => {
+  const cases = [
+    [null, "required", "A card configuration is required"],
+    [{mode: "interval"}, "mode", "Choose context, previous or upcoming Jamaat mode"],
+    [{entity: "light.example"}, "entity", "Choose a timetable sensor"],
+    [{title: "a".repeat(101)}, "title", "Title must be at most 100 characters"],
+    [{layout: "tiny"}, "layout", "Choose compact or expanded layout"],
+    [{time_format: "auto"}, "time_format", "Choose 12h or 24h time format"],
+    [{hijri_adjustment: 4}, "hijri_adjustment", "Hijri adjustment must be a whole day from −3 to +3"],
+    [{language: "fr"}, "language", "Choose auto, en or ar language"],
+    [{show_hijri_date: "false"}, "boolean", "show_hijri_date must be true or false", {option: "show_hijri_date"}],
+    [{bilingual_prayer_labels: "true"}, "boolean", "bilingual_prayer_labels must be true or false", {option: "bilingual_prayer_labels"}],
+  ];
+  for (const [config, key, message, params = {}] of cases) assert.throws(() => normalizeConfig(config), error => {
+    assert.equal(error.message, message);
+    assert.equal(error.translationKey, `config.${key}`);
+    assert.deepEqual(error.params, params);
+    return true;
+  });
 });

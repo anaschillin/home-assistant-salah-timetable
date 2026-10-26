@@ -107,7 +107,6 @@ async def test_nms_upload_default_mapping_approval_and_weekday_sensors(
         result["flow_id"],
         {
             "file": file_id,
-            "pdf_layout": "nms_annual_v1",
             "kind": "annual",
             "year": 2026,
         },
@@ -188,7 +187,6 @@ async def test_nms_url_profile_and_changed_pdf_require_new_approval(
             {
                 "url": SOURCE_URL,
                 "media_type": "pdf",
-                "pdf_layout": "nms_annual_v1",
                 "kind": "annual",
                 "year": 2026,
             },
@@ -309,7 +307,6 @@ async def test_nms_monthly_pdf_ramadan_upload_approval_and_activation(
         result["flow_id"],
         {
             "file": file_id,
-            "pdf_layout": "nms_monthly_v1",
             "kind": "ramadan",
             "year": 2022,
         },

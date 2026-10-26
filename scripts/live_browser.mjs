@@ -20,8 +20,9 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
   const child = spawn(browser, ["--headless", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--disable-background-networking", "--no-first-run", `--user-data-dir=${profile}`, "--remote-debugging-port=0", "about:blank"], {detached: process.platform !== "win32", stdio: ["ignore", "ignore", "pipe"]});
   let stderr = ""; child.stderr.on("data", value => { stderr = (stderr + value).slice(-2000); });
   const stop = () => { try { process.kill(process.platform === "win32" ? child.pid : -child.pid, "SIGKILL"); } catch { /* Already stopped. */ } };
-  const deadline = setTimeout(stop, 120000); signal.addEventListener("abort", stop, {once: true});
+  const deadline = setTimeout(stop, 180000); signal.addEventListener("abort", stop, {once: true});
   let socket; let sequence = 0; const pending = new Map();
+  let originalLocale;
   function call(method, params = {}) {
     return new Promise((resolve, reject) => {
       const id = ++sequence;
@@ -45,6 +46,11 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
   }
   const expression = body => `(()=>{${deep};${body}})()`;
   const findCard = "deep().find(element=>element.localName==='salah-timetable-card')";
+  const previewCard = "(()=>{const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');return dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='salah-timetable-card')})()";
+  async function setEditorOption(key, value) {
+    await evaluate(`(()=>{const control=window.salahEditor.shadowRoot.querySelector('[data-option="${key}"]');if(!control)throw new Error('Missing editor control: ${key}');${typeof value === "boolean" ? `control.checked=${value};` : `control.value=${JSON.stringify(String(value))};`}control.dispatchEvent(new Event('change',{bubbles:true}));return true})()`);
+    await until(`window.salahEditor._config[${JSON.stringify(key)}]===${JSON.stringify(value)}`, `Editor option did not update: ${key}`);
+  }
   try {
     const port = await waitForDebuggerPort(child, profile, {timeoutMs: 30000, stderr: () => stderr});
     const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`, {signal: AbortSignal.timeout(5000)})).json();
@@ -60,6 +66,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await call("Emulation.setDeviceMetricsOverride", {width: 900, height: 1100, deviceScaleFactor: 1, mobile: false});
     await call("Page.navigate", {url: `${base}/salah-smoke/smoke`});
     await until(expression(`const card=${findCard};return card?.shadowRoot?.textContent?.includes('Smoke Mosque')`), "Bundled card did not render in real HA");
+    originalLocale = await evaluate("({...document.querySelector('home-assistant').hass.locale})");
     console.log("Real HA frontend loaded the bundled card");
     for (const width of [320, 360, 400, 900]) {
       await call("Emulation.setDeviceMetricsOverride", {width, height: 1100, deviceScaleFactor: 1, mobile: width === 360}); await pause(250);
@@ -92,23 +99,34 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await call("Input.dispatchKeyEvent", {type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9});
     assert.equal(await evaluate("window.salahEditor.shadowRoot.activeElement===window.salahEditor.shadowRoot.querySelector('#mosque-title')"), false, "Tab did not leave title field");
     const originalData = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.entity);const data=card._hass.states[card._config.entity].attributes;return {prayers:data.prayers,active:data.ramadan.active}"));
-    const selected = {layout: "compact", time_format: "12h", hijri_adjustment: 2, show_hijri_date: true, show_salah_countdown: false, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: false, show_iftar_countdown: false, show_timezone_note: false};
+    for (const language of ["en", "ar"]) for (const bilingual of [false, true]) {
+      await setEditorOption("language", language);
+      await setEditorOption("bilingual_prayer_labels", bilingual);
+      await until(expression(`const card=${previewCard};const label=card?.shadowRoot.querySelector('tbody th .prayer-labels');const names=label&&[...label.querySelectorAll('bdi')];return card?.getAttribute('lang')===${JSON.stringify(language)}&&card.getAttribute('dir')===${JSON.stringify(language === "ar" ? "rtl" : "ltr")}&&window.salahEditor.getAttribute('dir')===card.getAttribute('dir')&&names?.length===${bilingual ? 2 : 1}&&names[0].getAttribute('lang')===${JSON.stringify(language)}${bilingual ? `&&names[1].getAttribute('lang')===${JSON.stringify(language === "ar" ? "en" : "ar")}` : ""}`), `Actual language/bilingual controls did not update preview: ${language}/${bilingual}`);
+      await until(expression(`const root=${previewCard}?.shadowRoot;return root?.querySelector('header').children[1]===root?.querySelector('.hijri')&&root?.querySelector('header').children[2]===root?.querySelector('.gregorian')`), `Hijri-first header missing: ${language}/${bilingual}`);
+      await setEditorOption("show_gregorian_date", false);
+      await until(expression(`const root=${previewCard}?.shadowRoot;return !!root?.querySelector('.hijri')&&!root?.querySelector('.gregorian')`), `Gregorian visibility affected Hijri date: ${language}/${bilingual}`);
+      await setEditorOption("show_gregorian_date", true);
+    }
+    await setEditorOption("language", "auto");
+    await until(expression(`const card=${previewCard};return card?._config.language==='auto'&&card.getAttribute('lang')==='en'`), "Actual automatic-language control did not follow the English HA locale");
+    const selected = {language: "ar", bilingual_prayer_labels: true, layout: "compact", time_format: "12h", hijri_adjustment: 2, show_hijri_date: true, show_gregorian_date: false, show_salah_countdown: false, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: false, show_iftar_countdown: false, show_timezone_note: false};
     for (const [key, target] of Object.entries(selected)) for (const value of typeof target === "boolean" ? [!target, target] : [target]) {
-      await evaluate(`(()=>{const control=window.salahEditor.shadowRoot.querySelector('[data-option="${key}"]');if(!control)throw new Error('Missing editor control');${typeof value === "boolean" ? `control.checked=${value};` : `control.value=${JSON.stringify(String(value))};`}control.dispatchEvent(new Event('change',{bubbles:true}));return true})()`);
-      await until(`window.salahEditor._config[${JSON.stringify(key)}]===${JSON.stringify(value)}`, `Editor option did not update: ${key}`);
-      if (typeof value === "boolean") await until(expression(`
+      await setEditorOption(key, value);
+      if (typeof value === "boolean" && key !== "bilingual_prayer_labels") await until(expression(`
         const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');
         const card=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='salah-timetable-card');
         if(!card?.shadowRoot||card._config[${JSON.stringify(key)}]!==${value})return false;
-        const root=card.shadowRoot;const panels=[...root.querySelectorAll('.panels > .panel')];
+        const root=card.shadowRoot;
         const nodes={
           show_hijri_date:root.querySelector('.hijri'),
-          show_salah_countdown:panels.find(panel=>panel.querySelector('.label').textContent==='Next Salah Begins'),
-          show_jamaat_countdown:panels.find(panel=>/^(Next|Previous) Jamaat$/.test(panel.querySelector('.label').textContent)),
+          show_gregorian_date:root.querySelector('.gregorian'),
+          show_salah_countdown:root.querySelector('[data-panel="salah"]'),
+          show_jamaat_countdown:root.querySelector('[data-panel="jamaat"]'),
           show_ramadan_details:root.querySelector('.ramadan'),
-          show_sehri_countdown:root.querySelector('.ramadan-grid > :nth-child(1) .count'),
-          show_iftar_countdown:root.querySelector('.ramadan-grid > :nth-child(2) .count'),
-          show_timezone_note:root.querySelector('.content > .note:not(.scroll-help)')
+          show_sehri_countdown:root.querySelector('[data-ramadan="sehri"] .count'),
+          show_iftar_countdown:root.querySelector('[data-ramadan="iftar"] .count'),
+          show_timezone_note:root.querySelector('[data-role="timezone-note"]')
         };
         return Boolean(nodes[${JSON.stringify(key)}]?.getClientRects().length)===${value};
       `), `Editor option did not change preview visibility: ${key}=${value}`);
@@ -117,15 +135,37 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await until(expression("return deep().filter(element=>element.localName==='salah-timetable-card').some(card=>card.shadowRoot.textContent.includes('Keyboard smoke title'))"), "Saved edited card did not appear on dashboard");
     await call("Page.reload", {ignoreCache: true});
     await until(expression("return deep().filter(element=>element.localName==='salah-timetable-card').some(card=>card.shadowRoot?.textContent.includes('Keyboard smoke title'))"), "Saved card missing after page reload");
-    const restored = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.title==='Keyboard smoke title');return card?{config:card._config,panels:card.shadowRoot.querySelectorAll('.panel').length,compact:!!card.shadowRoot.querySelector('.content.compact'),hijri:card.shadowRoot.querySelector('.hijri')?.textContent,data:{prayers:card._hass.states[card._config.entity].attributes.prayers,active:card._hass.states[card._config.entity].attributes.ramadan.active},times:[...card.shadowRoot.querySelectorAll('tbody td')].map(cell=>cell.textContent)}:null"));
+    const restored = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.title==='Keyboard smoke title');return card?{config:card._config,panels:card.shadowRoot.querySelectorAll('.panel').length,compact:!!card.shadowRoot.querySelector('.content.compact'),hijri:card.shadowRoot.querySelector('.hijri')?.textContent,gregorian:!!card.shadowRoot.querySelector('.gregorian'),data:{prayers:card._hass.states[card._config.entity].attributes.prayers,active:card._hass.states[card._config.entity].attributes.ramadan.active},times:[...card.shadowRoot.querySelectorAll('tbody td')].map(cell=>cell.textContent)}:null"));
     for (const [key, value] of Object.entries(selected)) assert.equal(restored.config[key], value, `Saved option did not survive reload: ${key}`);
     assert.deepEqual(restored.data, originalData, "Display controls changed prayer data or Ramadan activation");
-    assert.equal(restored.panels, 1); assert.equal(restored.compact, true);
-    assert.match(restored.hijri, /Hijri \(calculated\)/);
-    assert.ok(restored.times.some(value => /[ap]m/i.test(value)), "Reloaded card does not use 12-hour times");
-    console.log("Real card picker, mode radio, keyboard title, focus, themes and 200% text scale passed");
-    return {viewports: [320, 360, 400, 900], configuration_reload: true, picker: true, editor: true, keyboard: true, themes: ["light", "dark"], root_text_scale: "200%"};
+    assert.equal(restored.panels, 1); assert.equal(restored.compact, true); assert.equal(restored.gregorian, false);
+    assert.match(restored.hijri, /هجري \(محسوب\)/);
+    assert.ok(restored.times.some(value => /(?:am|pm|ص|م)\s*$/i.test(value)), "Reloaded card does not use 12-hour times");
+    await evaluate(expression("window.salahAutoCard=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.entity&&element._config.title!=='Keyboard smoke title');if(!window.salahAutoCard)throw new Error('Original smoke card missing');window.salahAutoCard.setConfig({...window.salahAutoCard._config,language:'auto'});return true"));
+    // The live smoke owns an ephemeral HA instance and temporary browser profile.
+    // HA2026.10 uses a language string as event detail and saves user preferences.
+    // Exercise that normal UI event in this disposable instance, then restore it.
+    for (const language of ["en", "ar", "en"]) {
+      await evaluate(`document.querySelector('home-assistant').dispatchEvent(new CustomEvent('hass-language-select',{detail:${JSON.stringify(language)},bubbles:true,composed:true}))`);
+      await until(`document.querySelector('home-assistant').hass.locale.language.startsWith(${JSON.stringify(language)})&&window.salahAutoCard.getAttribute('lang')===${JSON.stringify(language)}`, `Automatic language did not follow real HA locale: ${language}`);
+      for (const bilingual of [false, true]) {
+        await evaluate(`window.salahAutoCard.setConfig({...window.salahAutoCard._config,bilingual_prayer_labels:${bilingual}})`);
+        assert.equal(await evaluate(`(()=>{const root=window.salahAutoCard.shadowRoot;const labels=[...root.querySelectorAll('tbody th .prayer-labels')];return labels.length>0&&labels.every(label=>label.querySelectorAll('bdi').length===${bilingual ? 2 : 1})&&root.querySelector('thead th').textContent===${JSON.stringify(language === "ar" ? "الصلاة" : "Prayer")}&&window.salahAutoCard.getAttribute('dir')===${JSON.stringify(language === "ar" ? "rtl" : "ltr")}})()`), true, `Automatic-language labels did not update: ${language}/${bilingual}`);
+        for (const width of [320, 360, 400, 900]) {
+          await call("Emulation.setDeviceMetricsOverride", {width, height: 1100, deviceScaleFactor: 1, mobile: width === 360});
+          await evaluate("document.documentElement.style.fontSize='200%'"); await pause(100);
+          assert.equal(await evaluate(`(()=>{const card=window.salahAutoCard;const root=card.shadowRoot;const content=root.querySelector('.content');const region=root.querySelector('.table-scroll');const overflow=region.scrollWidth>region.clientWidth+1;region.scrollLeft=${language === "ar" ? -50 : 50};return content.scrollWidth<=content.clientWidth+1&&card.getBoundingClientRect().left>=-1&&card.getBoundingClientRect().right<=innerWidth+1&&(!overflow||${language === "ar" ? "region.scrollLeft<0" : "region.scrollLeft>0"})&&[...root.querySelectorAll('tbody td,.count,.absolute')].every(element=>element.querySelector('bdi[dir="ltr"]'))})()`), true, `Real HA ${language}/${bilingual} card overflows or loses LTR time isolation at ${width}px/200%`);
+          await evaluate("document.documentElement.style.fontSize=''");
+          if (output) { await mkdir(output, {recursive: true}); const image = await call("Page.captureScreenshot", {format: "png"}); await writeFile(join(output, `ha-${language}${bilingual ? "-bilingual" : ""}-${width}.png`), Buffer.from(image.data, "base64")); }
+        }
+      }
+    }
+    console.log("Real card picker, all graphical options, language/bilingual reload, Arabic/English HA locale, keyboard focus, themes and 200% text passed");
+    return {viewports: [320, 360, 400, 900], languages: ["en", "ar"], bilingual_modes: [false, true], automatic_locale: ["en", "ar", "en"], configuration_reload: true, picker: true, editor: true, keyboard: true, themes: ["light", "dark"], root_text_scale: "200%"};
   } finally {
+    if (originalLocale && socket?.readyState === WebSocket.OPEN) {
+      await evaluate(`document.documentElement.style.fontSize='';document.querySelector('home-assistant')?.dispatchEvent(new CustomEvent('hass-language-select',{detail:${JSON.stringify(originalLocale.language)},bubbles:true,composed:true}))`).catch(() => {});
+    }
     clearTimeout(deadline); signal.removeEventListener("abort", stop); socket?.close(); stop();
     await pause(100); await rm(profile, {recursive: true, force: true});
   }

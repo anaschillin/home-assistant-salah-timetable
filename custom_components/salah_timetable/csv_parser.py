@@ -190,6 +190,14 @@ class CsvParser:
                 "Select a valid timetable identity and kind"
             ) from err
         coverage = build_coverage(timetable, year)
+        if re.fullmatch(r"annual-[0-9]{4}-monthly-[0-9]{4}-[0-9]{4}", timetable_id):
+            first, last = coverage.start_date, coverage.end_date
+            expected = f"annual-{year}-monthly-{first:%m%d}-{last:%m%d}"
+            if timetable_id != expected:
+                raise ImportValidationError(
+                    "This monthly URL source now covers different dates. Import the "
+                    "new period as a separate source so older dates are preserved."
+                )
         return ImportCandidate(
             timetable,
             source_text,

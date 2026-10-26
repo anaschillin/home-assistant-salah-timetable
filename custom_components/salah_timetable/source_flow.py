@@ -14,15 +14,6 @@ from .import_model import MAX_PDF_BYTES, ImportValidationError
 from .pdf_parser import PdfParser
 from .publication_profiles import PROFILES, publication_profile
 
-PDF_LAYOUTS = [
-    "auto",
-    "nms_annual_v1",
-    "nms_monthly_v1",
-    "zak_annual_v1",
-    "zak_ramadan_v1",
-    "pdf_table_v1",
-]
-
 
 def _year(value) -> int:
     if (
@@ -36,7 +27,7 @@ def _year(value) -> int:
     return int(value)
 
 
-def read_uploaded_pdf(hass, file_id, _layout_id):
+def read_uploaded_pdf(hass, file_id):
     """Consume the one-use upload; the caller validates/detects its PDF type."""
     from homeassistant.components.file_upload import process_uploaded_file
 
@@ -63,11 +54,6 @@ def source_fields(year, *, url=False):
         vol.Required("year", default=year): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=1900, max=2199, step=1, mode=selector.NumberSelectorMode.BOX
-            )
-        ),
-        vol.Required("pdf_layout", default="auto"): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=PDF_LAYOUTS, translation_key="pdf_layout"
             )
         ),
     }
@@ -198,7 +184,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
         if user_input is not None:
             try:
                 content = await self.hass.async_add_executor_job(
-                    read_uploaded_pdf, self.hass, user_input["file"], profile.layout_id
+                    read_uploaded_pdf, self.hass, user_input["file"]
                 )
                 parser = ProfiledPdfParser(profile)
                 headers = await self.hass.async_add_executor_job(
@@ -294,13 +280,14 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
         if user_input is not None:
             try:
                 year = _year(user_input["year"])
+                kind = canonical_kind(user_input["kind"])
                 url = validate_url(user_input["url"])
                 result = await async_download(url, media_type=user_input["media_type"])
                 if result.content is None:
                     raise ImportValidationError("The source returned no timetable")
                 parser = (
                     PdfParser(
-                        layout_id=user_input.get("pdf_layout", "auto"),
+                        layout_id="auto",
                         import_type=user_input["kind"],
                     )
                     if user_input["media_type"] == "pdf"
@@ -328,7 +315,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 self._content = result.content
                 self._headers = headers
                 self._year = year
-                self._kind = canonical_kind(user_input["kind"])
+                self._kind = kind
                 self._monthly = user_input["kind"] == "monthly"
                 self._parser = parser
                 self._remote_url = url
@@ -360,14 +347,14 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
         if user_input is not None:
             try:
                 year = _year(user_input["year"])
+                kind = canonical_kind(user_input["kind"])
                 content = await self.hass.async_add_executor_job(
                     read_uploaded_pdf,
                     self.hass,
                     user_input["file"],
-                    user_input.get("pdf_layout", "auto"),
                 )
                 parser = PdfParser(
-                    layout_id=user_input.get("pdf_layout", "auto"),
+                    layout_id="auto",
                     import_type=user_input["kind"],
                 )
                 headers = await self.hass.async_add_executor_job(
@@ -382,7 +369,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 )
             else:
                 self._content, self._headers = content, headers
-                self._year, self._kind = year, canonical_kind(user_input["kind"])
+                self._year, self._kind = year, kind
                 self._monthly = user_input["kind"] == "monthly"
                 self._parser, self._source_format, self._parser_id = (
                     parser,

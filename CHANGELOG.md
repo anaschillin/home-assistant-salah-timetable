@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.0 — unreleased
+
+- Add automatic or explicit English/Arabic dashboard and graphical-editor labels,
+  optional bilingual prayer names, and right-to-left layouts for Arabic.
+- Localize countdown/status text and regional digits while keeping Gregorian and
+  calculated Umm al-Qura headers distinct and preserving published source values.
+- Keep keyboard focus, text selection and countdown nodes stable across ordinary
+  ticks and locale changes; retain Fajr end, Friday khutbah and mosque Hijri options.
+- Remove the remaining PDF layout picker and select tested adapters automatically
+  from Annual, Monthly or Ramadan. Protect both CSV and PDF monthly URL sources
+  against changed date spans so earlier published months remain intact.
+- Dashboard localization is the first part of Milestone 10. Integration-flow
+  translations, reviewed Arabic wording and physical-device acceptance remain separate.
+
 ## 0.8.1 — unreleased
 
 - Show the full calculated Umm al-Qura **Hijri date first**, including the
@@ -14,9 +28,9 @@
   has its own date-span identity so subsequent nonoverlapping months do not
   delete earlier published rows. Monthly URL checks reject a silently
   changed date span.
-- Fail closed for ambiguous, unsupported or mismatched publications; retain
-  an advanced explicit-layout override and show recognized source/dates
-  before approval. Persist the concrete detected parser for future URL checks,
+- Fail closed for ambiguous, unsupported or mismatched publications; show
+  recognized source/dates before approval. Persist the concrete detected parser
+  for future URL checks,
   without changing original PDF bytes, prayer data or approval semantics.
 - Add regression coverage for named Islamic month/date presentation,
   independent Gregorian visibility, multi-edition PDF recognition, single

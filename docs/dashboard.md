@@ -27,8 +27,9 @@ The older [0.5.1 phone](images/card-mobile.png) and
 3. In the graphical editor, choose that mosque's **Prayer timetable** sensor. Its
    entity ID typically ends in `_prayer_timetable`; HA permits users to rename it.
    Individual beginning/Jamaat sensors do not contain the full card data.
-4. Optionally set a title and choose compact/expanded layout, countdown visibility,
-   time format, Hijri adjustment and additional details, then save.
+4. Optionally set a title, language and bilingual prayer labels, then choose
+   compact/expanded layout, countdown visibility, time format, date visibility,
+   Hijri adjustment and additional details, then save.
    **Upcoming Jamaat** is the default; **Context aware** and **Previous Jamaat** remain available.
 
 Create a separate card for each mosque. The integration creates one device/config
@@ -105,6 +106,28 @@ and is hidden when a valid preceding event is unavailable. Each bar explicitly
 labels its interval: **Since previous Salah beginning** or **Since previous Jamaat**.
 The Jamaat bar measures congregation-to-congregation, not beginning-to-Jamaat.
 
+## Language and direction
+
+The card editor offers **Automatic (Home Assistant)**, **English** and
+**العربية**. Automatic uses Arabic labels and right-to-left layout for an Arabic
+Home Assistant interface, with English label fallback for other interface
+languages. Supported Home Assistant regional locales are retained for date and
+number formatting; choosing an explicit card language uses a matching regional
+locale when available.
+
+Enable **Bilingual prayer labels** to show both English and Arabic names, with
+the selected language first. Each name carries its own language and direction;
+clock values remain isolated in left-to-right order in both layouts. This applies
+to known prayer names in the timetable and event panels. Custom mosque titles
+remain user-supplied text. Language changes affect presentation only: prayer
+keys, entity IDs, stored values and event identities stay unchanged.
+
+This is Milestone **10A**, covering the bundled card and editor. Arabic wording
+is a draft awaiting fluent-language review. Integration settings/forms, entity
+translations and translated setup guidance remain Milestone **10B** work.
+Automated browser checks and physical-device acceptance are recorded separately;
+older device confirmations do not establish Arabic/RTL acceptance.
+
 ## Dates and customization
 
 The **primary Hijri header** uses the browser's **Umm al-Qura** calendar to
@@ -128,6 +151,8 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 
 | YAML option | Values and default |
 | --- | --- |
+| `language` | `auto` (default), `en`, `ar`; automatic follows the HA interface language with English label fallback |
+| `bilingual_prayer_labels` | `false` (default); show English and Arabic known prayer names |
 | `layout` | `expanded` (default), `compact` |
 | `mode` | `upcoming` (default), `context`, `previous` |
 | `time_format` | `24h` (default), `12h`; applies to every absolute time |
@@ -184,7 +209,7 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.8.1
+/salah_timetable/salah-timetable-card.js?v=0.9.0
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an
@@ -203,6 +228,8 @@ For reference, the card's optional YAML representation is:
 type: custom:salah-timetable-card
 entity: sensor.example_mosque_prayer_timetable
 mode: upcoming
+language: auto
+bilingual_prayer_labels: false
 layout: expanded
 time_format: 24h
 show_hijri_date: true
@@ -227,8 +254,10 @@ passed 20 checks, including fresh dependency installation without a package prel
 per-toggle visible previews and saved settings after reload. Physical-device checks
 were user-confirmed on 24 October 2026, before 0.7.0; device/version details were
 not recorded. That confirmation does not establish physical acceptance of the newer
-Fajr-end, Friday-khutbah or Hijri setup/options controls. HACS installation, restart
-and updates are also user-confirmed; HACS UI uninstall/reinstallation remains
+Fajr-end, Friday-khutbah, Hijri setup/options controls or Arabic/RTL presentation.
+HACS installation, restart and updates are also user-confirmed. Removal/reinstall
+was user-confirmed on 25 October, with environment and individual cleanup checks
+unrecorded; the full [HACS UI acceptance gate](hacs-removal-acceptance.md) remains
 release work. The pushed 0.6.2 commit passed its hosted
 checks; later release commits require their own checks. See the [validation record](validation.md) and
 [Milestone 6](milestones.md#milestone-6--release-hardening-partially-implemented).

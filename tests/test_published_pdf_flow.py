@@ -50,7 +50,7 @@ async def test_real_pdf_upload_staging_approval_and_persistence(
     file_id = (await response.json())["file_id"]
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        {"file": file_id, "pdf_layout": layout, "kind": "ramadan", "year": year},
+        {"file": file_id, "kind": "ramadan", "year": year},
     )
     assert result["step_id"] == "map_columns"
     result = await hass.config_entries.options.async_configure(

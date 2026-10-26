@@ -82,7 +82,6 @@ async def stage_url(hass, entry, *, content=CSV, media_type="csv"):
             {
                 "url": PUBLIC_URL,
                 "media_type": media_type,
-                "pdf_layout": "pdf_table_v1",
                 "kind": "annual",
                 "year": 2026,
             },
@@ -107,6 +106,17 @@ async def approve(hass, result):
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
+
+
+@pytest.mark.parametrize("step", ["import_pdf", "import_url"])
+async def test_ordinary_import_offers_timetable_type_without_layout_choice(
+    hass, entry, step
+):
+    await setup_mosque(hass, entry)
+    result = await open_step(hass, entry, step)
+    fields = {key.schema: value for key, value in result["data_schema"].schema.items()}
+    assert "pdf_layout" not in fields
+    assert fields["kind"].config["options"] == ["annual", "monthly", "ramadan"]
 
 
 @pytest.mark.parametrize("media_type", ["csv", "pdf"])
@@ -174,7 +184,6 @@ async def test_url_failure_preserves_active_and_redacts_details(hass, populated)
             {
                 "url": secret_url,
                 "media_type": "pdf",
-                "pdf_layout": "pdf_table_v1",
                 "kind": "annual",
                 "year": 2026,
             },
@@ -207,7 +216,6 @@ async def test_unsafe_url_rejected_before_network(hass, entry, url):
             {
                 "url": url,
                 "media_type": "pdf",
-                "pdf_layout": "pdf_table_v1",
                 "kind": "annual",
                 "year": 2026,
             },
@@ -228,7 +236,6 @@ async def test_fractional_url_year_rejected_before_network(hass, entry):
             {
                 "url": PUBLIC_URL,
                 "media_type": "pdf",
-                "pdf_layout": "pdf_table_v1",
                 "kind": "annual",
                 "year": 2026.5,
             },
@@ -260,7 +267,7 @@ async def test_manual_pdf_upload_approval_uses_same_persistence(
     file_id, path = await upload_pdf(hass, source_upload_client, content)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        {"file": file_id, "pdf_layout": "pdf_table_v1", "kind": "annual", "year": 2026},
+        {"file": file_id, "kind": "annual", "year": 2026},
     )
     assert result["step_id"] == "map_columns"
     assert not await hass.async_add_executor_job(path.exists)
@@ -297,7 +304,7 @@ async def test_invalid_pdf_upload_is_cleaned_up(
     file_id, path = await upload_pdf(hass, source_upload_client, content)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        {"file": file_id, "pdf_layout": "pdf_table_v1", "kind": "annual", "year": 2026},
+        {"file": file_id, "kind": "annual", "year": 2026},
     )
     assert result["step_id"] == "import_pdf"
     assert result["errors"] == {"base": "invalid_pdf"}
@@ -424,6 +431,36 @@ async def test_url_auto_detection_persists_concrete_parser_for_future_checks(
     source = entry.runtime_data.storage.remote_sources["annual-2026-monthly-0101-0103"]
     assert source.kind == "annual"
     assert source.parser_id == "pdf_table_v1"
+
+
+async def test_monthly_csv_url_uses_distinct_published_date_span(hass, entry):
+    await setup_mosque(hass, entry)
+    result = await open_step(hass, entry, "import_url")
+    with patch(
+        "custom_components.salah_timetable.source_flow.async_download",
+        AsyncMock(return_value=downloaded(CSV)),
+    ):
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "url": PUBLIC_URL,
+                "media_type": "csv",
+                "kind": "monthly",
+                "year": 2026,
+            },
+        )
+    assert result["step_id"] == "map_columns"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"date_column": "Date", "time_format": "24h", "fajr_begin": "Fajr Start"},
+    )
+    assert result["step_id"] == "review"
+    await approve(hass, result)
+    source_id = "annual-2026-monthly-0101-0102"
+    storage = entry.runtime_data.storage
+    assert storage.remote_sources[source_id].media_type == "csv"
+    assert storage.approved_sources[source_id].parser_id == "csv_v1"
+    assert storage.for_date(date(2026, 1, 1)) is not None
 
 
 async def test_remove_remote_source_retains_approved_timetable(hass, entry):

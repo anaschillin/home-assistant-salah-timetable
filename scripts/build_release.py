@@ -21,6 +21,7 @@ REQUIRED_FILES = {
     "frontend.py",
     "frontend/salah-timetable-card.js",
     "frontend/card-utils.js",
+    "frontend/card-i18n.js",
 }
 ASSET_SUFFIXES = {
     "frontend": {".js", ".css", ".svg", ".woff2"},
@@ -30,7 +31,7 @@ ASSET_SUFFIXES = {
 
 
 def check_versions(root: Path) -> str:
-    """Keep integration metadata and both browser cache versions in sync."""
+    """Keep integration metadata and every bundled module cache version in sync."""
     source = root / INTEGRATION
     manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
     version = manifest.get("version")
@@ -64,6 +65,18 @@ def check_versions(root: Path) -> str:
         raise ValueError(
             "The card-utils.js import cache version must match the manifest"
         )
+    for name in ("salah-timetable-card.js", "card-utils.js"):
+        consumer = source / "frontend" / name
+        if not consumer.is_file():
+            continue  # release_files reports missing runtime assets separately.
+        versions = re.findall(
+            r"from\s*[\"']\./card-i18n\.js\?v=([^\"']+)[\"']",
+            consumer.read_text(encoding="utf-8"),
+        )
+        if versions != [version]:
+            raise ValueError(
+                f"The card-i18n.js import cache version in {name} must match the manifest"
+            )
     return version
 
 

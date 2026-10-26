@@ -55,6 +55,7 @@ def test_archive_is_complete_and_excludes_nonruntime_data(release_source, tmp_pa
             "translations/en.json",
             "frontend/salah-timetable-card.js",
             "frontend/card-utils.js",
+            "frontend/card-i18n.js",
             "brand/icon.png",
         ):
             assert (INTEGRATION / relative).as_posix() in names
@@ -102,6 +103,18 @@ def test_archive_does_not_depend_on_source_mtime_or_permissions(
             "card-utils.js?v=999.0.0",
             "cache version",
         ),
+        (
+            "custom_components/salah_timetable/frontend/salah-timetable-card.js",
+            "card-i18n.js?v={version}",
+            "card-i18n.js?v=999.0.0",
+            "cache version",
+        ),
+        (
+            "custom_components/salah_timetable/frontend/card-utils.js",
+            "card-i18n.js?v={version}",
+            "card-i18n.js?v=999.0.0",
+            "cache version",
+        ),
     ],
 )
 def test_mismatched_versions_are_rejected(release_source, name, old, new, error):
@@ -114,8 +127,11 @@ def test_mismatched_versions_are_rejected(release_source, name, old, new, error)
         check_versions(release_source)
 
 
-def test_missing_frontend_asset_is_rejected_before_output(release_source, tmp_path):
-    (release_source / INTEGRATION / "frontend/card-utils.js").unlink()
+@pytest.mark.parametrize("name", ["card-utils.js", "card-i18n.js"])
+def test_missing_frontend_asset_is_rejected_before_output(
+    release_source, tmp_path, name
+):
+    (release_source / INTEGRATION / "frontend" / name).unlink()
     output = tmp_path / "dist"
     with pytest.raises(ValueError, match="Missing release files"):
         build_release(release_source, output)

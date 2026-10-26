@@ -43,7 +43,7 @@ async def open_step(hass, entry, step):
     )
 
 
-async def upload(hass, entry, client, *, layout="zak_annual_v1", kind="annual"):
+async def upload(hass, entry, client, *, kind="annual"):
     result = await open_step(hass, entry, "import_pdf")
     body = FormData()
     body.add_field(
@@ -55,7 +55,7 @@ async def upload(hass, entry, client, *, layout="zak_annual_v1", kind="annual"):
     path = hass.data[UPLOAD_DATA].file_path(file_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        {"file": file_id, "pdf_layout": layout, "kind": kind, "year": 2026},
+        {"file": file_id, "kind": kind, "year": 2026},
     )
     assert result["step_id"] == "map_columns"
     assert not await hass.async_add_executor_job(path.exists)
@@ -163,7 +163,6 @@ async def test_annual_url_profile_and_separate_ramadan_confirmation(
             {
                 "url": SOURCE_URL,
                 "media_type": "pdf",
-                "pdf_layout": "zak_annual_v1",
                 "kind": "annual",
                 "year": 2026,
             },
@@ -177,9 +176,7 @@ async def test_annual_url_profile_and_separate_ramadan_confirmation(
     assert RemoteSource.from_dict(profile.as_dict()) == profile
     result = await map_columns(
         hass,
-        await upload(
-            hass, entry, annual_upload_client, layout="zak_ramadan_v1", kind="ramadan"
-        ),
+        await upload(hass, entry, annual_upload_client, kind="ramadan"),
     )
     await approve(hass, result)
     ramadan = entry.runtime_data.storage.approved_sources["ramadan-2026"]
