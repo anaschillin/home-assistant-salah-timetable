@@ -173,7 +173,6 @@ def _provenance(candidate: ImportCandidate) -> tuple:
         candidate.time_format,
         candidate.date_column,
         tuple(sorted(candidate.columns.items())),
-        candidate.publication_profile_id,
         candidate.source_url,
     )
 
@@ -420,8 +419,7 @@ def _metadata(label: str, candidate: ImportCandidate) -> str:
     )
     return (
         f"{label} source: {_safe(candidate.source_format)}, parser {_safe(candidate.parser_id)}, "
-        f"time format {_safe(candidate.time_format)}, profile "
-        f"{_safe(candidate.publication_profile_id) if candidate.publication_profile_id else 'none'}; "
+        f"time format {_safe(candidate.time_format)}; "
         f"SHA-256: `{candidate.sha256}`. "
         f"Date column: {_safe(candidate.date_column)}. Columns: {columns}."
     )
