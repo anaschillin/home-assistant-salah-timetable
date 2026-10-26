@@ -31,7 +31,7 @@ node scripts/live_smoke.mjs --ha-version 2026.10.0 --require-fresh-dependency --
 Strict dependency proof checks absence in the base image and the manifest-pinned
 metadata/import after setup. Do not combine it with `--preload-pypdf`. If the test
 network uses a private proxy CA, use `--ca-bundle` with a trusted combined bundle;
-keep TLS verification enabled. See [runner details](scripts/LIVE_SMOKE_DRAFT.md).
+keep TLS verification enabled. See [runner details](docs/live-smoke.md).
 The runner uses synthetic data and removes its private configuration/containers.
 It does not establish authenticated HACS installation or full-backup acceptance.
 
