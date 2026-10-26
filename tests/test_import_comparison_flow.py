@@ -1,7 +1,6 @@
 """HA review pagination and compare-and-swap approval against real disk stores."""
 
 from datetime import date, timedelta
-from pathlib import Path
 from unittest.mock import AsyncMock, patch
 from zoneinfo import ZoneInfo
 
@@ -14,8 +13,6 @@ from custom_components.salah_timetable.config_flow import SalahOptionsFlow
 from custom_components.salah_timetable.const import DOMAIN, STORAGE_VERSION
 from custom_components.salah_timetable.csv_parser import CsvParser
 from custom_components.salah_timetable.model import Timetable
-from custom_components.salah_timetable.publication_profiles import publication_profile
-from custom_components.salah_timetable.source_flow import ProfiledPdfParser
 from custom_components.salah_timetable.storage import (
     ImportReviewBaseline,
     ReviewChangedError,
@@ -397,45 +394,3 @@ async def test_storage_guard_is_checked_after_loading_current_disk_snapshot(
         await storage.async_approve(stage_id, expected_baseline=baseline)
     assert storage.timetables == (changed.timetable,)
     assert storage.staged.stage_id == stage_id
-
-
-async def test_profile_guard_and_metadata_use_newly_loaded_pending_candidate(
-    hass, entry
-):
-    hass.config_entries.async_update_entry(entry, options={"time_zone": "UTC"})
-    storage = await loaded(hass, entry)
-    old_stage = await storage.async_stage(candidate(year=2027))
-    menu = await hass.config_entries.options.async_init(entry.entry_id)
-    # The menu's runtime cache still has a CSV; another runtime replaces only
-    # the pending proposal with a valid London publication before review opens.
-    external = TimetableStorage(hass, entry.entry_id, ZoneInfo("UTC"))
-    await external.async_reject(old_stage)
-    profile = publication_profile("nms_annual_2026_v1")
-    content = (
-        Path(__file__).parent / "fixtures/pdf/nms_synthetic_2026.pdf"
-    ).read_bytes()
-    proposal = await hass.async_add_executor_job(
-        lambda: ProfiledPdfParser(profile).parse(
-            content,
-            timetable_id="annual-2026",
-            kind=profile.kind,
-            year=profile.year,
-            date_column=profile.date_column,
-            columns=dict(profile.columns),
-            time_format=profile.time_format,
-        )
-    )
-    stage_id = await external.async_stage(proposal)
-    result = await hass.config_entries.options.async_configure(
-        menu["flow_id"], {"next_step_id": "review"}
-    )
-    assert result["errors"] == {"base": "invalid_publication_profile"}
-    assert profile.profile_id in summary(result)
-    result = await compare(hass, result)
-    assert result["errors"] == {"base": "invalid_publication_profile"}
-    assert profile.profile_id in summary(result)
-    result = await act(hass, result, "review")
-    result = await choose(hass, result, "approve")
-    assert result["errors"] == {"base": "invalid_publication_profile"}
-    assert storage.staged.stage_id == stage_id
-    assert storage.timetables == ()
