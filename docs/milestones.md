@@ -56,6 +56,7 @@ their completion requires implementation and the stated acceptance evidence.
 | 15 | Mosque display mode, branding and announcements | Planned | Existing card; localization conventions from 10 |
 | 16 | Published Eid and other special prayer events | Planned | Explicit dated event storage/approval; calendar from 8 |
 | 17 | Before/after import change review | Implemented; release acceptance pending | Existing durable staging and source replacement scope |
+| 18 | Optional offline Islamic history companion | Proposed; research only | Reviewed catalogue, date precision and attribution; 10A card conventions |
 
 The **8 → 12 → 13 → 9** feature sequence is implemented in candidate 0.7.0.
 Its exact commit `737b636` passed hosted Validate, including both HA live lanes.
@@ -496,3 +497,35 @@ multiple congregations, different years/kinds and large paged comparisons. Rejec
 or cancelling preserves approved data; restart preserves the proposal. Stale review
 identities cannot approve a different proposal. Diagnostics must not expose imported
 values, private URLs or file contents.
+
+
+## Milestone 18 — optional offline history companion (proposed)
+
+The [source audit](islamic-history-source-audit.md) and
+[candidate dataset](islamic-history-candidates.json) are research inputs for an
+optional history panel. Recording this proposal does not approve implementation
+or any candidate for runtime use. The current catalogue stays outside the
+integration bundle; it has no effect on prayer sensors, the Prayer calendar,
+Ramadan confirmation or the published special prayers proposed in Milestone 16.
+
+First establish a versioned catalogue schema with separate occurrence and date
+assessments, explicit editorial approval, pinpoint citations, original summaries
+and an attribution/reuse decision. Complete the source and date-precision review
+before promoting any candidate. Preserve disputed alternatives, pre-Hijrah eras
+and night-boundary notes. A proposed `exact_day` display classification does not
+satisfy these checks. The [research delivery criteria](islamic-history-source-audit.md#suggested-delivery-and-tests)
+track this editorial work; ordinary release acceptance remains in the
+[release guide](releasing.md).
+
+If approved for implementation, use a bundled offline catalogue and the same
+mosque-local calculated Hijri date and display adjustment as the card header.
+Offer category filters, qualified disputed/traditional anniversaries and original
+short summaries with source links. Month-only records may appear as clearly
+labelled monthly highlights; year-only or undated biographies never acquire an
+invented anniversary. Normal operation must not scrape or contact source sites.
+
+Acceptance for any later implementation includes schema and approval checks,
+date-selection boundaries, multiple matches, empty dates, 29/30-day months,
+new-year rollover, display adjustments, filters, disputed dates and Unicode.
+Verify optional controls, safe source links, translations and narrow RTL layouts
+without changing published prayer data or creating prayer automation events.

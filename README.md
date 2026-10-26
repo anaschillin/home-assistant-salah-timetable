@@ -24,6 +24,12 @@ and real frontend have passed the [recorded checks](docs/validation.md). HACS
 installation and updates are user-confirmed; further release acceptance remains. See [milestones](docs/milestones.md),
 the [remaining work](docs/remaining-work.md), and the [release checklist](docs/releasing.md).
 
+A separate [Islamic history source audit](docs/islamic-history-source-audit.md)
+and [candidate dataset](docs/islamic-history-candidates.json) inform proposed
+[Milestone 18](docs/milestones.md#milestone-18--optional-offline-history-companion-proposed).
+This optional offline history companion remains research only; no historical
+panel, event feed or candidate catalogue is included in the running integration.
+
 ## Requirements and installation
 
 Home Assistant **2026.10.0 or newer**. Development uses Python **3.14.2+** and is

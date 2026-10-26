@@ -118,3 +118,9 @@ adapters and independent expected-value comparisons. See [Ramadan validation](ra
    display and published special events) are subsequent additions.
 4. Consider the HACS default catalogue after the full user workflow and release
    process are established. Custom-repository support is the current route.
+
+5. Review proposed [Milestone 18's optional offline history companion](milestones.md#milestone-18--optional-offline-history-companion-proposed)
+   using the [source audit](islamic-history-source-audit.md). The candidate dataset
+   remains research only. Complete its editorial, date-precision and attribution
+   criteria before considering runtime promotion; the proposal does not authorize
+   a historical event feed or alter approved prayer events.

@@ -15,7 +15,7 @@ This is **Sunni-source-led**, not a filter excluding the Prophet's family. The d
 ## Sources and reuse safeguards
 
 - Discovery index: [IslamicDates — On This Day](https://islamicdates.org/en/on-this-day) (lists **88 records** on 25 October 2026; includes an explicit warning on many uncertain dates). Its month-neighbour fallback can show a historically real event on a day when nothing is documented *for that day*; **never promote the fallback day to an attested anniversary**.
-- Independent verification and expansion: [Dorar al-Saniyyah historical encyclopedia](https://dorar.net/history). Dorar frequently indexes to **year or month only**, which should not be inflated into exact days. See its [history methodology](https://dorar.net/history).
+- Independent verification and expansion: [Dorar al-Saniyyah historical encyclopedia](https://dorar.net/history). Dorar frequently indexes to **year or month only**, which should not be inflated into exact days. See its [history methodology](https://dorar.net/article/1986).
 - Classical Sunni material: Ibn Kathir, *al-Bidaya wa'l-Nihaya*; al-Dhahabi, *Siyar A'lam al-Nubala'*; Ibn Hisham, *al-Sirah al-Nabawiyyah*; authoritative biographical/rijal books. Prefer a **specific passage, volume/page or hadith number** over an unlocated book title.
 - Narrator discovery and identity validation: Sunni biographical libraries such as IslamWeb's editions of the classical texts; inspect possible variant names and dates.
 - **Copyright and terms are not established:** do not scrape/repackage all IslamicDates or Dorar prose or expose either site's content through automatic harvesting without permission. Create **original short descriptions**; store link-backed factual references with source provenance. This document and the candidate JSON contain original abbreviated descriptions, **not copied source articles**.
@@ -39,6 +39,14 @@ Source documents may disagree. Such disagreement is a reason for additional revi
 | Last surviving Sahabi: Abu al-Tufayl Amir ibn Wathilah | **100 or 110 AH** | [Al-Dhahabi](https://g1.islamweb.net/ar/library/content/60/627/) reports 110 AH and identifies him as last to die among those who saw the Prophet ﷺ; [Ibn Abd al-Barr](https://www.islamweb.net/amp/ar/library/content/1080/3094/) records 100 AH. **Death year disputed, day/month unknown**; biography-only until stronger evidence. |
 
 The [candidate research dataset](islamic-history-candidates.json) keeps these events **out of runtime**. It must not be treated as a validated release dataset.
+Its `date_assessment.display` values describe **proposed display eligibility**
+after future review; `exact_day` and `month_highlight` are not editorial approval
+or instructions to show a candidate now. The global
+`RESEARCH_ONLY_NOT_BUNDLED` lifecycle applies to every entry, including those
+whose date assessment says supported. Before any runtime promotion, define
+machine-readable occurrence and date assessments, explicit per-entry editorial
+approval and pinpoint citations; the current free-text `review` notes do not
+provide those approvals.
 
 ## Proposed editorial classification
 
