@@ -78,3 +78,9 @@ jobs:
     uses: ./.github/workflows/live-smoke.yml
     permissions:
       contents: read
+
+  homeassistant-unit-compatibility:
+    name: Home Assistant unit compatibility
+    uses: ./.github/workflows/unit-compatibility.yml
+    permissions:
+      contents: read
