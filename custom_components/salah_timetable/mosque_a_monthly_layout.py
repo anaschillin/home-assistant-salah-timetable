@@ -32,6 +32,8 @@ _HEADER = (
     "Sunset Esha Start x Fajr Dhuhr / Jumu'ah Asr Maghrib (Iftaar) Esha"
 )
 _MOONSIGHTING = "*Hijri Date is subject to Moonsighting"
+
+
 class MosqueAMonthlyLayout:
     """One to twelve complete consecutive monthly pages in one printed year."""
 
