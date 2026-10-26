@@ -60,3 +60,15 @@ test("readiness never retries invalid JSON, assertions or cancellation", async (
   const abort = new AbortController(); abort.abort(new Error("cancelled"));
   await assert.rejects(pollUntil(async () => assert.fail("must not request"), Boolean, "timeout", {signal: abort.signal, pause: async () => {}}), /cancelled/);
 });
+
+test("readiness retries transient request timeouts without masking permanent failures", async () => {
+  const timeout = Object.assign(new Error("The operation timed out"), {name: "TimeoutError"});
+  let attempts = 0;
+  const result = await pollUntil(async () => {
+    attempts++;
+    if (attempts === 1) throw timeout;
+    return ["onboarding"];
+  }, Array.isArray, "HA did not start", {attempts: 3, pause: async () => {}});
+  assert.deepEqual(result, ["onboarding"]);
+  assert.equal(attempts, 2);
+});
