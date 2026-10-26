@@ -9,9 +9,9 @@ from scripts.select_compatibility_tests import CORE_GROUPS, partition_test_files
 
 def write_test_modules(directory: Path, count: int = 19) -> list[Path]:
     directory.mkdir()
-    paths = [
-        directory / f"test_module_{index:02}.py" for index in range(count)
-    ] + [directory / "test_source_flow.py"]
+    paths = [directory / f"test_module_{index:02}.py" for index in range(count)] + [
+        directory / "test_source_flow.py"
+    ]
     for path in paths:
         path.write_text("# fixture module\n", encoding="utf-8")
     return sorted(paths)
