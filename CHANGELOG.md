@@ -11,6 +11,9 @@
 - Remove the remaining PDF layout picker and select tested adapters automatically
   from Annual, Monthly or Ramadan. Protect both CSV and PDF monthly URL sources
   against changed date spans so earlier published months remain intact.
+- Add separately locked minimum/current HA unit-suite environments, strict
+  version checks and scheduled compatibility validation without changing the
+  reproducible development/release lock.
 - Dashboard localization is the first part of Milestone 10. Integration-flow
   translations, reviewed Arabic wording and physical-device acceptance remain separate.
 

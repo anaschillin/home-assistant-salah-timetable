@@ -25,7 +25,7 @@ bilingual prayer labels and RTL while retaining those date and import controls.
 Local unit/native-browser checks and 29 live HA checks passed; exact-commit CI
 and applicable release acceptance remain required. Milestone 10B
 integration translations, fluent-language review of draft Arabic and broader
-compatibility tests follow separately. Applicable release acceptance
+compatibility maintenance follow separately. Applicable release acceptance
 is tracked in [the release guide](releasing.md), not in this feature backlog.
 
 ## Release readiness
@@ -111,10 +111,11 @@ adapters and independent expected-value comparisons. See [Ramadan validation](ra
    9, 12, 13 and 17** are implemented through candidate 0.8.0 (release acceptance
    pending). Milestone **10A** card/editor localization and RTL is implemented
    in 0.9.0, with local/live validation passed and release acceptance pending; continue **10B** integration
-   forms/entities and fluent review of the draft Arabic wording. Continue **11**
-   (expanded compatibility and the
-   [calendar-trigger CI follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13))
-   in parallel. Milestones **14–16** (night periods, wall-tablet
+   forms/entities and fluent review of the draft Arabic wording. Milestone **11**
+   now has separately locked minimum/current unit suites, both passing locally;
+   its merged-workflow hosted validation and the
+   [calendar-trigger CI follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
+   remain to track. Milestones **14–16** (night periods, wall-tablet
    display and published special events) are subsequent additions.
 4. Consider the HACS default catalogue after the full user workflow and release
    process are established. Custom-repository support is the current route.

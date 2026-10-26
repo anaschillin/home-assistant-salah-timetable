@@ -37,6 +37,34 @@ Arabic wording remains a draft awaiting fluent-language review; physical-device
 acceptance and the external release gates remain open. No tag or release was
 published.
 
+### Hosted 0.9.0 and compatibility expansion
+
+[Validate 40293428430](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40293428430)
+passed all six jobs on main commit `27ede6e5a0bc7a0c1249076bb5c38833d6d92413`:
+locked Python tests, frontend/Chromium, hassfest, HACS and live HA 2026.10.0 /
+2026.10.3. This establishes hosted acceptance for the 0.9.0 feature checkpoint.
+
+Milestone **11** now adds separately locked unit-test projects for minimum
+HA **2026.10.0** / test plugin **0.13.371** and supported-current HA
+**2026.10.3** / plugin **0.13.374**, leaving the development/release lock on
+HA 2026.10.2. Both complete suites passed **978 tests** at **95%** coverage
+with Python **3.14.8**, including the eight new environment-guard tests.
+Distribution metadata, imported HA code, plugin, interpreter prefix and package
+compatibility were checked before execution. Local logs are
+`/tmp/salah-m11-minimum-final.log` and `/tmp/salah-m11-current-final.log`;
+version evidence is in `/tmp/salah-m11-minimum-environment.json` and
+`/tmp/salah-m11-current-environment.json`. Initial parallel runs collided in
+HA's shared temporary upload directory; per-lane temporary directories removed
+that interference, and the workflow/local guide now isolate these directories.
+
+The new reusable unit workflow runs on Validate, weekly and manually, with version,
+JUnit and coverage artifacts. Its exact merged-commit hosted result remains
+pending. HA 2026.10.3 is the reviewed support target; these checks do not claim
+compatibility with every newer HA release. See [the compatibility guide](compatibility.md).
+The historical-events branch was also reviewed and merged as **research-only**
+documentation: twelve candidates, explicit date precision and future editorial
+criteria. It adds no runtime feed, calendar events or dashboard panel.
+
 ## Recorded status — 25 October 2026
 
 The current integration candidate is **0.8.1**, developed in

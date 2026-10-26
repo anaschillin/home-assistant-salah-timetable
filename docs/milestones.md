@@ -49,7 +49,7 @@ their completion requires implementation and the stated acceptance evidence.
 | 9 | Supported-publication setup profiles | Implemented; release acceptance pending | Secure downloads, inspected layouts and approval flows |
 | 10A | Card/editor English, Arabic, bilingual labels and RTL layout | Implemented; release acceptance pending | Stable prayer keys and current card |
 | 10B | Integration forms/entities and reviewed translations | Planned | 10A catalogue conventions; fluent-language review |
-| 11 | Minimum/current compatibility tests and weekly validation | In progress | Existing CI and reproducible dependency lock |
+| 11 | Minimum/current compatibility tests and weekly validation | Implemented; merged-workflow hosted validation pending | Existing CI and reproducible dependency lock |
 | 12 | Richer Adhan playback controls | Implemented; release acceptance pending | 7A; calendar triggers from 8 when available |
 | 13 | Pause/resume media around prayer events | Implemented; release acceptance pending | Published event timestamps; 7A/8 automation patterns |
 | 14 | Calculated night midpoint and last third | Planned | Actual Maghrib and next-day Fajr timestamps |
@@ -357,14 +357,16 @@ speaker before claiming reviewed translation quality. Add translated setup
 guidance and further languages as reviewed contributions become available.
 Keep machine identifiers, approved source data and event identities unchanged.
 
-## Milestone 11 — compatibility and scheduled validation (in progress)
+## Milestone 11 — compatibility and scheduled validation (implemented; hosted validation pending)
 
-Implemented: Validate now calls the real HA 2026.10.0/2026.10.3 live matrix; the
-reusable workflow also supports manual runs and weekly validation. Each runtime
-version is asserted, and strict dependency proof compares base-image absence to
-the manifest-pinned import after setup. The reproducible Python suite remains
-locked to HA 2026.10.2. Separate compatibility unit-test environments covering
-migrations and the typing/lint follow-ups below remain to be implemented.
+Implemented: Validate calls the real HA 2026.10.0/2026.10.3 live matrix and
+separate complete unit-suite lanes for the same versions. Each unit project has
+its own lock and matching HA test-plugin version, isolated interpreter and
+temporary directory, and checked distribution/import/runtime identity. Both
+complete suites passed 978 tests locally. The development/release lock stays on
+HA 2026.10.2. Reusable workflows support manual and weekly runs; hosted validation
+of the new unit workflow remains pending. See [compatibility guidance](compatibility.md).
+Typing and broader lint rules remain separate focused follow-ups.
 The [calendar end-trigger timing test follow-up](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
 tracks the earlier hosted failure that passed on rerun. The later
 [diagnosis and synchronization fix](validation.md#combined-080-review-and-calendar-synchronization)

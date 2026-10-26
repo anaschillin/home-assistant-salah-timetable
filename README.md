@@ -393,7 +393,9 @@ production HA instance. Worker execution is black-box tested; its isolated proce
 intentionally does not inherit coverage/environment instrumentation. Event tests cover
 exact boundaries, Friday congregations, DST and year/leap-day transitions. Frontend
 tests use Node and an isolated headless Chromium harness with HA element stand-ins.
-The required live HA matrix checks the minimum/current supported runtime versions;
+The required live HA matrix checks the minimum/current supported runtime versions.
+[Separate locked unit environments](docs/compatibility.md) also run the complete
+Python suite on both support targets while preserving the development lock;
 local 0.6.2 acceptance also verified fresh dependency installation and real editor
 controls. The [physical-device confirmation from 24 October 2026](docs/validation.md#user-confirmed-physical-device-acceptance--24-october-2026)
 predates 0.7.0; the installed version was not recorded. It does not establish

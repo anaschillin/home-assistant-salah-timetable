@@ -18,10 +18,12 @@ SHAs; a final release commit still needs its own successful required jobs.
 **This document is the single active checklist for release acceptance.** The
 [archived 25 October review plan](archive/review-action-plan-2026-10-25.md)
 records REV-01–06 implementation history; use this section for the outstanding
-sign-offs. REV-07 compatibility expansion remains ongoing; REV-08's
+sign-offs. REV-07 now has isolated minimum/current unit suites and live lanes;
+hosted validation of the new unit workflow remains pending; REV-08's
 import-change comparison is implemented in Milestone 17. Milestone 10A's
 card/editor localization and RTL is implemented in candidate 0.9.0 with local
-and live checks passed; release acceptance remains pending, while integration translations and reviewed wording remain 10B. These follow-ups belong in
+and live checks passed; release acceptance remains pending. Integration
+translations and reviewed wording remain 10B. These follow-ups belong in
 [remaining work](remaining-work.md), not in the current release gate unless
 they uncover a blocking regression.
 
@@ -104,6 +106,7 @@ complete.
 Require the validation workflow to pass on the exact commit being released:
 
 - Locked Python tests, Ruff lint and formatting.
+- Separately locked minimum/current HA unit suites with verified runtime versions.
 - Node frontend tests and the required Chromium smoke harness.
 - Official hassfest and HACS integration validation.
 - The release consistency check and archive build.
