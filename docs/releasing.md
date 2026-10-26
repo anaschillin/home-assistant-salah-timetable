@@ -21,7 +21,7 @@ preserves the original REV-01–06 implementation history. REV-07's isolated
 minimum/current unit and live-HA testing is implemented and has passed
 hosted validation; REV-08's import change comparison is implemented in
 Milestone 17. Milestone 10A's card/editor language and RTL features are
-implemented in candidate **0.9.0**, with applicable manual release acceptance
+implemented in candidate **0.9.1**, with applicable manual release acceptance
 still outstanding. Milestone 10B's integration translations and reviewed
 Arabic wording belong in the [development backlog](remaining-work.md) unless
 they uncover a blocker. The automated checks do not replace the manual or
@@ -31,8 +31,8 @@ asset-rights gates below.
 | --- | --- | --- |
 | REV-01–03 code fixes | Squash-merged [#7](https://github.com/anaschillin/home-assistant-salah-timetable/pull/7), [#6](https://github.com/anaschillin/home-assistant-salah-timetable/pull/6) and [#8](https://github.com/anaschillin/home-assistant-salah-timetable/pull/8) | **Complete** — calendar interval, timer teardown and remote-source approval statuses |
 | REV-04 asset redistribution | [PR #9](https://github.com/anaschillin/home-assistant-salah-timetable/pull/9) merged; [asset inventory](asset-provenance.json) and [rights review](asset-provenance.md) available | **Blocking:** obtain documented rights for contributed PDFs/derived oracles, icon and screenshots, or replace with rights-cleared originals and assess public Git history; `python scripts/check_asset_provenance.py --require-cleared` must pass |
-| REV-05 full HAOS restore | [PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11) merged; real **Home Assistant Container** backup archive creation and isolated restore passed on Core 2026.10.0 and 2026.10.3 | **Blocking:** restore an actual *full HAOS/Supervisor* backup into a **second disposable HAOS instance**, verify entry/entity IDs, approved versus pending source data, Ramadan options, dashboard resources, Repairs and a second restart; record redacted evidence using the [restore procedure](backup-restore-acceptance.md) |
 | REV-06 HACS removal/re-addition | [PR #10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10) merged; real HA Container two-mosque isolation and config-entry removal/re-addition passed. **On 25 October the user also confirmed removal and reinstallation worked** in their installation; [evidence and limits](hacs-removal-acceptance.md#reported-hacs-removereinstall-outcome--25-october-2026). | **Partially user-confirmed, full gate pending:** capture whether the UI route was HACS and the environment/version, then verify two-mosque isolation, deleted-entry cleanup, single frontend resource/device identity and restart in the documented disposable acceptance sequence. Do not equate a successful reinstall alone with full REV-06 sign-off. |
+| REV-05 full HAOS restore | [PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11) merged; real **Home Assistant Container** backup archive creation and isolated restore passed on Core 2026.10.0 and 2026.10.3 | **Deferred / lower priority for the next work cycle; not yet verified:** restore an actual *full HAOS/Supervisor* backup into a **second disposable HAOS instance**, verify entry/entity IDs, approved versus pending source data, Ramadan options, dashboard resources, Repairs and a second restart; record redacted evidence using the [restore procedure](backup-restore-acceptance.md) |
 | Required hosted validation | [26 October 2026 main Validate 40337238065](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238065) passed **12/12** jobs on `b6dbe14bb75b791fbb1171e981494d2a21dbe07e`: locked Python tests, five exhaustive minimum-HA 2026.10.0 groups, full current-HA 2026.10.3 unit suite, frontend/Chromium, hassfest, HACS and both live Container lanes. [CodeQL 40337238192](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238192) also passed. Calendar timing [#13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13) and minimum-HA cancellation [#24](https://github.com/anaschillin/home-assistant-salah-timetable/issues/24) are **closed**; consult [compatibility notes](compatibility.md) for the unsharded-hang limitation. | **Automated code validation complete at this SHA, not a tagged release:** the *eventual release-tagged commit* must independently pass its exact `main` validation, and the outstanding REV-04–06 and manual acceptance gates below must still be signed off. |
 | Manual release acceptance | See [the UI/runtime checks below](#manual-home-assistant-and-hacs-acceptance) and [validation log](validation.md) | **Still requires recorded results** for every applicable real-world/UI scenario; a passing automated workflow is not a substitute |
 | Version, packaging and publication | Build/release scripts and draft workflow exist | **Pending:** match manifest/project/card/cache versions, changelog and notes; review existing tag, successful CI and prepared draft before publishing |
@@ -45,16 +45,27 @@ No GitHub release has been published for candidate 0.9.0 or its 0.8.1/0.8.0/0.7.
 PR and main CI runs are implementation evidence, not publication or manual
 release acceptance.
 
-### Final sign-off for each candidate
+### Next priorities and final sign-off
+
+**Order of work, as agreed 26 October 2026:** focus first on clearing asset
+redistribution rights, recording HACS/two-mosque acceptance and performing the
+remaining focused manual UI/runtime checks. Full HAOS/Supervisor backup-and-restore
+validation is **lower priority**, given the integration's straightforward
+configuration and successful separate Home Assistant Container restore coverage.
+It has **not** been completed or implicitly waived: it remains a separate
+formal release acceptance item unless the maintainer records an explicit
+scope decision. Do not test it against the live household HAOS installation.
 
 - [ ] All published-repository assets have reviewable redistribution evidence;
       the strict provenance audit passes for the release tag.
-- [ ] Full HAOS/Supervisor archive restore, restart and Repairs/resource checks
-      pass on a second disposable instance (not just a Container or storage-only restore).
 - [ ] Authenticated HACS UI remove/re-add and two-mosque coexistence pass on a
       disposable instance; expected per-entry storage deletion is documented.
 - [ ] Remaining applicable manual runtime/editor/mobile/import/upgrade checks
       below have recorded outcomes or explicit maintainer-reviewed release decisions.
+- [ ] Lower priority: full HAOS/Supervisor archive restore, restart and
+      Repairs/resource checks pass on a second disposable instance (not just
+      a Container or storage-only restore), or the maintainer explicitly
+      documents a release-scope decision acknowledging the missing evidence.
 - [ ] **Exact** release commit passes all required CI, including minimum/current
       Home Assistant live acceptance, and its metadata, assets and changelog agree.
 - [ ] Maintainer reviews the tag, checksum, release notes and draft before
