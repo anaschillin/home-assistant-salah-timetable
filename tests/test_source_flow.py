@@ -297,7 +297,9 @@ async def test_manual_pdf_upload_approval_uses_same_persistence(
 
 
 @pytest.mark.parametrize(
-    "content", [b"not a pdf", b"%PDF-invalid", b"%PDF-" + b"x" * MAX_PDF_BYTES]
+    "content",
+    [b"not a pdf", b"%PDF-invalid", b"%PDF-" + b"x" * MAX_PDF_BYTES],
+    ids=["non_pdf", "malformed_pdf", "oversized_pdf"],
 )
 async def test_invalid_pdf_upload_is_cleaned_up(
     hass, entry, source_upload_client, content
