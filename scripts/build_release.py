@@ -20,6 +20,7 @@ REQUIRED_FILES = {
     "translations/en.json",
     "frontend.py",
     "frontend/salah-timetable-card.js",
+    "frontend/card-styles.js",
     "frontend/card-utils.js",
     "frontend/card-i18n.js",
 }
@@ -64,6 +65,13 @@ def check_versions(root: Path) -> str:
     if imports != [version]:
         raise ValueError(
             "The card-utils.js import cache version must match the manifest"
+        )
+    style_imports = re.findall(
+        r'from\s*["\']\./card-styles\.js\?v=([^"\']+)["\']', card
+    )
+    if style_imports != [version]:
+        raise ValueError(
+            "The card-styles.js import cache version must match the manifest"
         )
     for name in ("salah-timetable-card.js", "card-utils.js"):
         consumer = source / "frontend" / name
