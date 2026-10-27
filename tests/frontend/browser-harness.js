@@ -111,7 +111,7 @@ try {
   check("previous Jamaat remains fixed", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.previous_jamaat"));
   check("Next Salah countdown and Previous Jamaat elapsed clock are both visible", card.shadowRoot.querySelectorAll(".prayer-panel .count").length === 2 && Boolean(card.shadowRoot.querySelector('[data-panel="jamaat"] .count')));
   render({detail_level: "standard", time_format: "12h", show_salah_countdown: false});
-  check("single visible panel fills width", card.shadowRoot.querySelectorAll(".panel").length === 1);
+  check("single visible panel fills width", card.shadowRoot.querySelectorAll(".prayer-panel").length === 1 && Boolean(card.shadowRoot.querySelector(".hijri-month-info")));
   check("12-hour absolute times", /(?:am|pm|ص|م)\s*$/i.test(card.shadowRoot.querySelector("tbody td > bdi").textContent));
   render({}, time(4, 41));
   const scrollRegion = card.shadowRoot.querySelector(".table-scroll"); scrollRegion.focus();
