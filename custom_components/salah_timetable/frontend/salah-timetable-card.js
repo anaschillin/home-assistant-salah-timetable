@@ -26,6 +26,14 @@ progress{display:block;width:100%;height:4px;margin-top:12px;border:0;accent-col
 table{table-layout:fixed;min-width:22rem}th:first-child{width:30%}.panels:has(>:only-child){grid-template-columns:1fr}
 @container(max-width:26rem){.scroll-help{display:block}.panels{grid-template-columns:1fr}.count{font-size:1.7rem}.ramadan-grid{grid-template-columns:1fr 1fr}.ramadan-grid>:last-child{grid-column:1/-1}}
 
+/* HaCasa-inspired translucent surfaces, without external assets or dependencies. */
+ha-card{position:relative;isolation:isolate;background:var(--ha-card-background,var(--card-background-color));}
+ha-card::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 95% 0%,color-mix(in srgb,var(--primary-color) 12%,transparent),transparent 55%)}
+.panel{background:color-mix(in srgb,var(--secondary-background-color) 82%,transparent);box-shadow:0 5px 18px rgba(0,0,0,.055);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.panel[data-panel="salah"]{background:color-mix(in srgb,var(--primary-color) 13%,var(--ha-card-background,var(--card-background-color)))}
+.table-scroll{background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 92%,transparent)}
+@media(prefers-contrast:more){.panel,.panel[data-panel="salah"],.table-scroll{background:var(--card-background-color);border:2px solid var(--primary-text-color);box-shadow:none}}
+@media(prefers-reduced-transparency:reduce){.panel,.table-scroll{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--secondary-background-color)}}
 /* Modern dashboard presentation: retain HA theme variables and accessible table semantics. */
 ha-card{border:1px solid var(--divider-color);box-shadow:0 8px 28px rgba(0,0,0,.07)}
 .content{padding:clamp(14px,3cqi,24px)}
