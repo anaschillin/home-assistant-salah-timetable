@@ -178,7 +178,7 @@ try {
     check(`editor ${key}=${value} changes the expected visible content`, Object.entries(visibility(card)).every(([option, visible]) => visible === expected[option]));
   }
   const restored = new SalahTimetableCardEditor(); restored.setConfig(JSON.parse(JSON.stringify(lastConfig))); restored.hass = hass;
-  check("restored graphical configuration", restored.shadowRoot.querySelector("input#mosque-title").value === "My Mosque" && restored.shadowRoot.querySelectorAll("ha-selector")[1].value === "upcoming");
+  check("restored graphical configuration", restored.shadowRoot.querySelector("input#mosque-title").value === "My Mosque" && restored.shadowRoot.querySelector('[data-option="detail_level"]').value === lastConfig.detail_level);
   check("all graphical options survive configuration reload", [...restored.shadowRoot.querySelectorAll("[data-option]")].every(control => {
     const key = control.getAttribute("data-option"); return control.type === "checkbox" ? control.checked === lastConfig[key] : control.value === String(lastConfig[key]);
   }));
