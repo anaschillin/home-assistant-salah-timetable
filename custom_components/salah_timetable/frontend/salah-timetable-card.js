@@ -25,6 +25,31 @@ progress{display:block;width:100%;height:4px;margin-top:12px;border:0;accent-col
 .congregation-time{white-space:nowrap}.hijri{flex-basis:100%}.compact{padding:12px}.compact th,.compact td{padding-top:6px;padding-bottom:6px}.compact .panel{padding:10px}.compact .count{font-size:1.6rem}
 table{table-layout:fixed;min-width:22rem}th:first-child{width:30%}.panels:has(>:only-child){grid-template-columns:1fr}
 @container(max-width:26rem){.scroll-help{display:block}.panels{grid-template-columns:1fr}.count{font-size:1.7rem}.ramadan-grid{grid-template-columns:1fr 1fr}.ramadan-grid>:last-child{grid-column:1/-1}}
+
+/* Modern dashboard presentation: retain HA theme variables and accessible table semantics. */
+ha-card{border:1px solid var(--divider-color);box-shadow:0 8px 28px rgba(0,0,0,.07)}
+.content{padding:clamp(14px,3cqi,24px)}
+.header{align-items:flex-start;gap:6px 16px;margin-bottom:18px}
+.header h2{font-size:clamp(1.25rem,3cqi,1.65rem);font-weight:700;letter-spacing:-.025em;flex-basis:100%}
+.date{font-size:.82rem}.hijri{flex-basis:auto;font-weight:600;color:var(--primary-text-color)}
+.panels{gap:12px;margin:0 0 22px}
+.panel{padding:clamp(14px,2.6cqi,20px);border:1px solid var(--divider-color);border-radius:16px;background:var(--secondary-background-color);display:flex;flex-direction:column;gap:4px}
+.panel[data-panel="salah"]{background:color-mix(in srgb,var(--primary-color) 9%,var(--ha-card-background,var(--card-background-color)));border-color:color-mix(in srgb,var(--primary-color) 22%,var(--divider-color))}
+.panel .label{font-size:.73rem;letter-spacing:.075em;text-transform:uppercase;font-weight:700}
+.panel .event{font-size:1.2rem}.panel .count{font-size:clamp(1.65rem,5.5cqi,2.65rem);font-weight:750;letter-spacing:-.045em;margin:4px 0}
+.panel .absolute{font-size:.88rem}.panel progress{height:6px;border-radius:99px;overflow:hidden;margin-top:10px}
+.progress-help{font-size:.72rem}
+.table-scroll{border:1px solid var(--divider-color);border-radius:14px;overflow-x:auto}
+table{min-width:0;table-layout:auto}thead{background:var(--secondary-background-color)}
+th,td{padding:12px 10px}thead th{font-size:.73rem;letter-spacing:.04em;text-transform:uppercase}
+tbody tr:not(:last-child){border-bottom:1px solid var(--divider-color)}
+tbody tr th,tbody tr td{border-bottom:0}
+.next-prayer{background:color-mix(in srgb,var(--primary-color) 13%,transparent);box-shadow:inset 3px 0 var(--primary-color)}
+.next-prayer th,.next-prayer td{font-weight:700}.past-prayer{opacity:.66}
+.ramadan{margin-top:20px}.ramadan-grid>div{background:var(--secondary-background-color);border:1px solid var(--divider-color);padding:14px;border-radius:12px}
+.compact{padding:12px}.compact .panel{padding:12px}.compact .panel .count{font-size:1.65rem}
+@container(max-width:28rem){.panels{grid-template-columns:1fr}.table-scroll{border:0;border-radius:0}table{width:100%;min-width:0;font-size:.86rem}th,td{padding:9px 4px}th:first-child{width:auto}.panel .count{font-size:2rem}.ramadan-grid{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:no-preference){.panel,.next-prayer{transition:background-color .2s ease,border-color .2s ease}}
 `;
 
 function node(tag, text, className) {
@@ -106,6 +131,7 @@ function panel(kind, labelKey, event, clock, zone, ui, config, progress, elapsed
   else name.textContent = tr(ui, "status.unavailable");
   result.append(node("div", label, "label"), name, result.clock);
   result.append(event ? formattedNode("div", formatTime(event.timestamp, zone, ui, config.time_format), "absolute") : node("div", tr(ui, "panel.no_event"), "absolute"));
+  if (kind === "salah" && eventPrayerKey(event) === "fajr" && config.fajr_sunrise) result.append(node("div", `${tr(ui, "table.fajr_end", {time: formatTime(config.fajr_sunrise, zone, ui, config.time_format)})}`, "absolute fajr-sunrise"));
   if (progress !== null && progress !== undefined) {
     const bar = node("progress"); bar.max = 100; bar.value = progress;
     bar.setAttribute("aria-label", tr(ui, "panel.progress_aria", {label}));
@@ -211,7 +237,7 @@ export class SalahTimetableCard extends HTMLElement {
     const congregation = jamaatPanel(data, this._config.mode, now);
     const panels = node("div", undefined, "panels");
     if (this._config.show_salah_countdown) {
-      const box = panel("salah", "panel.next_salah", next, countdown(next?.timestamp, now, ui), zone, ui, this._config, eventProgress(data, false, next, now));
+      const box = panel("salah", "panel.next_salah", next, countdown(next?.timestamp, now, ui), zone, ui, {...this._config, fajr_sunrise: data.prayers?.find(row => row?.key === "fajr")?.end}, eventProgress(data, false, next, now));
       updates.push(instant => {
         box.clock.run.textContent = countdown(next?.timestamp, instant, ui);
         if (box.progressBar) box.progressBar.value = eventProgress(data, false, next, instant);
