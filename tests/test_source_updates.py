@@ -775,3 +775,17 @@ async def test_clock_correction_rebases_future_check_time(manager, freezer):
         await manager.async_start()
         assert track.call_args.args[2] == dt_util.utcnow()
         await manager.async_stop()
+
+
+async def test_removing_last_source_cancels_pending_check(manager):
+    """A removed profile must not leave its scheduled network check behind."""
+    await manager.async_start()
+    assert manager._unsubscribe is not None
+    assert manager._scheduled_for is not None
+    await manager.storage.async_remove_remote_source(source().source_id)
+    manager.source_profiles_changed()
+    assert manager._unsubscribe is None
+    assert manager._scheduled_for is None
+    assert manager.status["configured_sources"] == 0
+    manager.coordinator.async_update_listeners.assert_called()
+    await manager.async_stop()
