@@ -422,17 +422,51 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         """Let source adapters validate the exact refreshed staged candidate."""
         return "", None
 
+    async def _async_load_review_storage(self, coordinator, errors: dict) -> bool:
+        """Reject decisions against unreadable disk state, without losing the preview."""
+        try:
+            await coordinator.storage.async_load()
+        except OSError, HomeAssistantError, ValueError, TypeError, KeyError:
+            errors["base"] = "save_failed"
+            return False
+        return True
+
+    async def _async_apply_review_decision(self, coordinator, decision: str) -> bool:
+        """Only explicit approval or rejection mutates the staged import."""
+        if decision == "approve":
+            if self._review_baseline is None:
+                raise ReviewChangedError("A comparison must be shown first")
+            await coordinator.storage.async_approve(
+                self._review_stage_id,
+                expected_baseline=self._review_baseline,
+            )
+            current = self._coordinator()
+            if current is not None:
+                await current.storage.async_load()
+                await current.async_refresh()
+                current.async_update_listeners()
+            return True
+        if decision == "reject":
+            await coordinator.storage.async_reject(self._review_stage_id)
+            coordinator.async_update_listeners()
+            return True
+        return False
+
+    @staticmethod
+    def _render_review_details(candidate, tables, settings, baseline, source_summary):
+        """Build bounded user-visible comparison text outside the event loop."""
+        comparison = compare_import(candidate, baseline.timetable, baseline.source)
+        summary = import_summary(candidate, tables, settings)
+        if source_summary:
+            summary = source_summary + "\n\n" + summary
+        return summary + "\n\n" + comparison_overview(comparison)
+
     async def async_step_review(self, user_input=None):
         coordinator = self._coordinator()
         if coordinator is None:
             return self.async_abort(reason="integration_not_loaded")
         errors = {}
-        try:
-            await coordinator.storage.async_load()
-        except OSError, HomeAssistantError, ValueError, TypeError, KeyError:
-            # Keep the pending proposal and last known comparison visible, but
-            # never make a decision against an unreadable current store.
-            errors["base"] = "save_failed"
+        if not await self._async_load_review_storage(coordinator, errors):
             user_input = None
         if self._coordinator() is not coordinator:
             return self.async_abort(reason="integration_reloaded")
@@ -460,22 +494,8 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 self._review_page = 0
                 return await self.async_step_compare()
             try:
-                if decision == "approve":
-                    if self._review_baseline is None:
-                        raise ReviewChangedError("A comparison must be shown first")
-                    await coordinator.storage.async_approve(
-                        self._review_stage_id,
-                        expected_baseline=self._review_baseline,
-                    )
-                    current = self._coordinator()
-                    if current is not None:
-                        await current.storage.async_load()
-                        await current.async_refresh()
-                        current.async_update_listeners()
-                elif decision == "reject":
-                    await coordinator.storage.async_reject(self._review_stage_id)
-                    coordinator.async_update_listeners()
-                else:
+                applied = await self._async_apply_review_decision(coordinator, decision)
+                if not applied:
                     errors["base"] = "invalid_import_decision"
             except ReviewChangedError:
                 self._review_page = 0
@@ -490,7 +510,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             ):
                 errors["base"] = "save_failed"
             else:
-                if decision in {"approve", "reject"}:
+                if applied:
                     return self.async_create_entry(
                         title="", data=dict(self.config_entry.options)
                     )
@@ -500,16 +520,14 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         )
         settings = RamadanSettings.from_options(self.config_entry.options)
 
-        def render_review():
-            comparison = compare_import(
-                staged.candidate, baseline.timetable, baseline.source
-            )
-            summary = import_summary(staged.candidate, tables, settings)
-            if source_summary:
-                summary = source_summary + "\n\n" + summary
-            return summary + "\n\n" + comparison_overview(comparison)
-
-        summary = await self.hass.async_add_executor_job(render_review)
+        summary = await self.hass.async_add_executor_job(
+            self._render_review_details,
+            staged.candidate,
+            tables,
+            settings,
+            baseline,
+            source_summary,
+        )
         if self._coordinator() is not coordinator:
             return self.async_abort(reason="integration_reloaded")
         self._review_baseline = baseline
@@ -539,10 +557,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         if self._review_runtime is not coordinator:
             return self.async_abort(reason="integration_reloaded")
         errors = {}
-        try:
-            await coordinator.storage.async_load()
-        except OSError, HomeAssistantError, ValueError, TypeError, KeyError:
-            errors["base"] = "save_failed"
+        if not await self._async_load_review_storage(coordinator, errors):
             user_input = None
         if self._coordinator() is not coordinator:
             return self.async_abort(reason="integration_reloaded")
