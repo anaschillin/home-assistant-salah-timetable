@@ -1,4 +1,4 @@
-import {eventProgress, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.1";
+import {eventProgress, hijriMonthInfo, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.1";
 import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9.1";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
@@ -260,6 +260,14 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
     if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(data.date || state.state, ui), "date gregorian"));
     content.append(header);
+    if (this._config.show_hijri_month_info) {
+      const month = hijriMonthInfo(data.date || state.state, this._config.hijri_adjustment);
+      if (month) {
+        const panel = node("section", undefined, "panel hijri-month-info");
+        panel.append(node("div", `${month.name_en} · ${month.name_ar}`, "event"), node("div", month.summary_en, "note"));
+        content.append(panel);
+      }
+    }
     const mosques = this._mosques();
     if (mosques.length > 1) {
       const tabs = node("nav", undefined, "mosque-tabs");
@@ -405,7 +413,8 @@ export class SalahTimetableCardEditor extends HTMLElement {
     const ui = resolveUi(this._config, this._hass);
     direction(this, ui); direction(this._form, ui);
     for (const [key, {control, checkbox, label, options}] of Object.entries(this._extraControls || {})) {
-      const text = tr(ui, `editor.${key}`);
+      const historyLabels = {show_hijri_month_info: "Show Hijri month information", show_historical_day_events: "Show historical day events (coming soon)", show_historical_month_highlights: "Show monthly history highlights (coming soon)", show_historical_sources: "Show history sources (coming soon)", show_disputed_historical_dates: "Include disputed dates (coming soon)"};
+      const text = historyLabels[key] || tr(ui, `editor.${key}`);
       label.textContent = text; control.setAttribute("aria-label", text);
       for (const {option, value} of options || []) option.textContent = key === "hijri_adjustment" ? localizedNumber(value, ui, {signDisplay: "exceptZero"}) : tr(ui, `editor.${key}.${value}`);
       if (checkbox) control.checked = this._config[key];
@@ -453,6 +462,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       ["detail_level", ["compact", "standard", "detailed"]], ["time_format", ["24h", "12h"]],
       ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]],
       ["show_hijri_date"], ["show_gregorian_date"], ["show_salah_countdown"], ["show_jamaat_countdown"],
+      ["show_hijri_month_info"], ["show_historical_day_events"], ["show_historical_month_highlights"], ["show_historical_sources"], ["show_disputed_historical_dates"],
       ["show_ramadan_details"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_timezone_note"]
     ];
     const extras = [];

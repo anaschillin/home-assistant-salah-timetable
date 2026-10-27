@@ -76,7 +76,7 @@ export function normalizeConfig(config) {
   // Legacy mode is ignored: the card always displays the previous Jamaat.
   if (config.entity && (typeof config.entity !== "string" || !/^sensor\.[a-z0-9_]+$/.test(config.entity))) throw configError("entity");
   if (config.title !== undefined && (typeof config.title !== "string" || config.title.length > 100)) throw configError("title");
-  const defaults = {detail_level: config.detail_level || (config.layout === "compact" ? "compact" : "standard"), layout: "expanded", time_format: "24h", hijri_adjustment: 0, language: "auto", bilingual_prayer_labels: false, show_hijri_date: true, show_gregorian_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true};
+  const defaults = {detail_level: config.detail_level || (config.layout === "compact" ? "compact" : "standard"), layout: "expanded", time_format: "24h", hijri_adjustment: 0, language: "auto", bilingual_prayer_labels: false, show_hijri_date: true, show_gregorian_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true, show_hijri_month_info: true, show_historical_day_events: false, show_historical_month_highlights: false, show_historical_sources: false, show_disputed_historical_dates: false};
   const result = {...defaults, ...config};
   if (!["compact", "standard", "detailed"].includes(result.detail_level)) throw configError("detail_level");
   if (!["12h", "24h"].includes(result.time_format)) throw configError("time_format");
@@ -205,4 +205,16 @@ export function highlightedPrayer(attributes, now = Date.now()) {
 export function prayerIsPast(row, now = Date.now()) {
   const times = [row.begin, ...(Array.isArray(row.jamaat) ? row.jamaat : [])].map(timestamp).filter(value => value !== null);
   return times.length > 0 && Math.max(...times) <= now;
+}
+
+export const HIJRI_MONTH_INFO = Object.freeze([["Muharram","المحرّم","The first Hijri month and one of four sacred months."],["Safar","صفر","The second month. Islam does not regard Safar as inherently unlucky."],["Rabi al-Awwal","ربيع الأول","The third month. The precise date of the Prophet's ﷺ birth is disputed."],["Rabi al-Thani","ربيع الآخر","The fourth month of the lunar Hijri calendar."],["Jumada al-Ula","جمادى الأولى","The fifth month. The expedition of Mu'tah is recorded in this month."],["Jumada al-Akhirah","جمادى الآخرة","The sixth month of the lunar Hijri calendar."],["Rajab","رجب","One of the four sacred months. The date of Isra and Mi'raj is not established."],["Sha'ban","شعبان","The month before Ramadan; the Prophet ﷺ frequently observed voluntary fasts in it."],["Ramadan","رمضان","The month of obligatory fasting and the revelation of the Qur'an."],["Shawwal","شوّال","Eid al-Fitr marks the beginning of Shawwal."],["Dhu al-Qa'dah","ذو القعدة","One of the four sacred months."],["Dhu al-Hijjah","ذو الحجة","A sacred month containing Hajj, the Day of Arafah and Eid al-Adha."]]);
+export function hijriMonthInfo(value, adjustment = 0) {
+  const instant = dateInstant(value);
+  if (instant === null || !Number.isInteger(adjustment) || Math.abs(adjustment) > 3) return null;
+  try {
+    const formatter = new Intl.DateTimeFormat("en", {calendar: "islamic-umalqura", month: "numeric", timeZone: "UTC"});
+    if (formatter.resolvedOptions().calendar !== "islamic-umalqura") return null;
+    const month = Number(formatter.format(instant + adjustment * 86400000));
+    return month >= 1 && month <= 12 ? {month, name_en: HIJRI_MONTH_INFO[month - 1][0], name_ar: HIJRI_MONTH_INFO[month - 1][1], summary_en: HIJRI_MONTH_INFO[month - 1][2]} : null;
+  } catch { return null; }
 }
