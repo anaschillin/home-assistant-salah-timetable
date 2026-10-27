@@ -702,9 +702,7 @@ async def test_media_blueprint_reload_does_not_replay_past_prayer(
     assert not action
 
 
-async def test_active_adhan_volume_restore_cancelled_on_changed_reload(
-    hass, freezer
-):
+async def test_active_adhan_volume_restore_cancelled_on_changed_reload(hass, freezer):
     """A changed automation reload cancels pending Adhan volume restoration."""
     freezer.move_to("2026-10-23T04:59:00Z")
     volume = async_mock_service(hass, "media_player", "volume_set")
