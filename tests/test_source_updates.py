@@ -60,9 +60,7 @@ def test_unchanged_metadata_preserves_rejection_and_http_validators(
     }
     result = response(etag=download_etag)
     now = "2026-10-27T09:00:00+00:00"
-    patch = SourceUpdateManager._unchanged_check_patch(
-        previous, "a" * 64, result, now
-    )
+    patch = SourceUpdateManager._unchanged_check_patch(previous, "a" * 64, result, now)
     assert patch == {
         "status": "unchanged",
         "last_checked": now,
