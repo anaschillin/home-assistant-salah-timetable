@@ -350,7 +350,7 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._selectedDay === 0 && this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
       content.append(translatedRun("p", ui, "card.second_khutbah", "time", formatTime(data.second_khutbah, zone, ui, timeFormat), "note khutbah"));
     }
-    if (this._selectedDay === 0 && this._config.detail_level === "detailed" && data.ramadan?.active && this._config.show_ramadan_details) {
+    if (this._selectedDay === 0 && data.ramadan?.active && this._config.show_ramadan_details) {
       const ramadan = node("section", undefined, "ramadan"); ramadan.append(node("h3", tr(ui, "ramadan.title")));
       const grid = node("div", undefined, "ramadan-grid");
       for (const kind of ["sehri", "iftar"]) {
