@@ -118,6 +118,35 @@ def _check_order(values: list[int]) -> None:
         )
 
 
+
+def _resolved_clocks(
+    raw: list[str], prior: dict[int, int], *, monthly: bool = False
+) -> list[str]:
+    """Resolve the publisher's physical-column ditto before splitting Friday fields."""
+    values = []
+    for column, value in enumerate(raw):
+        if value in DITTO_MARKERS:
+            if column < 8 or column not in prior:
+                suffix = " in this month" if monthly else ""
+                raise ImportValidationError(
+                    "MOSQUE_A Jamaat quotation mark has no preceding explicit value"
+                    + suffix
+                )
+            minute = prior[column]
+        else:
+            minute = _clock(value, column)
+            prior[column] = minute
+        values.append(minute)
+    _check_order(values)
+    return [_format(value) for value in values]
+
+
+def _canonical_clocks(clocks: list[str], *, friday: bool) -> list[str]:
+    """The shared Dhuhr/Jumuah physical column means Jumuah only on Friday."""
+    midday = ["", clocks[9]] if friday else [clocks[9], ""]
+    return [*clocks[:9], *midday, *clocks[10:], clocks[11]]
+
+
 class MosqueALayout:
     """A complete, explicitly dated MOSQUE_A annual calendar with two front pages."""
 
@@ -209,24 +238,8 @@ class MosqueALayout:
                     raise ImportValidationError(
                         "MOSQUE_A row does not contain thirteen published time cells"
                     )
-                values = []
-                for column, value in enumerate(raw):
-                    if value in DITTO_MARKERS:
-                        if column < 8 or column not in prior:
-                            raise ImportValidationError(
-                                "MOSQUE_A Jamaat quotation mark has no preceding explicit value"
-                            )
-                        minute = prior[column]
-                    else:
-                        minute = _clock(value, column)
-                        prior[column] = minute
-                    values.append(minute)
-                _check_order(values)
-                clocks = [_format(value) for value in values]
-                # The printed physical midday column changes its meaning on Friday.
-                # Preserve physical-column ditto before splitting its canonical fields.
-                midday = ["", clocks[9]] if day.weekday() == 4 else [clocks[9], ""]
-                normalized = [*clocks[:9], *midday, *clocks[10:], clocks[11]]
+                clocks = _resolved_clocks(raw, prior)
+                normalized = _canonical_clocks(clocks, friday=day.weekday() == 4)
                 writer.writerow(
                     [
                         day.isoformat(),
