@@ -26,6 +26,10 @@ def mosque_a_clock(freezer):
     freezer.move_to("2026-01-02 10:00:00+00:00")
 
 
+@pytest.fixture
+async def mosque_a_upload_client(authenticated_upload_client):
+    return authenticated_upload_client
+
 
 async def setup(hass, entry):
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -91,12 +95,12 @@ def as_state(row, field, zone):
 
 
 async def test_mosque_a_upload_default_mapping_approval_and_weekday_sensors(
-    hass, entry, authenticated_upload_client, freezer
+    hass, entry, mosque_a_upload_client, freezer
 ):
     await setup(hass, entry)
     result = await menu_step(hass, entry, "import_pdf")
     content = FIXTURE.read_bytes()
-    file_id, path = await upload_pdf(hass, authenticated_upload_client, content)
+    file_id, path = await upload_pdf(hass, mosque_a_upload_client, content)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
@@ -283,7 +287,7 @@ async def test_mosque_a_url_profile_and_changed_pdf_require_new_approval(
 
 
 async def test_mosque_a_monthly_pdf_ramadan_upload_approval_and_activation(
-    hass, entry, authenticated_upload_client, freezer
+    hass, entry, mosque_a_upload_client, freezer
 ):
     """MOSQUE_A monthly PDF can be approved and activated as a Ramadan source."""
     from datetime import time
@@ -295,7 +299,7 @@ async def test_mosque_a_monthly_pdf_ramadan_upload_approval_and_activation(
     # Upload the fictional Mosque A monthly PDF as a Ramadan source.
     result = await menu_step(hass, entry, "import_pdf")
     content = monthly_fixture.read_bytes()
-    file_id, path = await upload_pdf(hass, authenticated_upload_client, content)
+    file_id, path = await upload_pdf(hass, mosque_a_upload_client, content)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
