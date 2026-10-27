@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "lifecycle": "RESEARCH_ONLY_NOT_BUNDLED",
+  "note": "Original draft month explanations. Editorial and citation review required before shipping.",
+  "months": [
+    {
+      "month": 1,
+      "name_en": "Muharram",
+      "name_ar": "المحرّم",
+      "summary_en": "The first Hijri month and one of the four sacred months. Voluntary fasting in Muharram is encouraged; Ashura falls on its tenth day.",
+      "sources": [
+        "https://quran.com/9/36"
+      ],
+      "editorial_status": "research_draft"
+    },
+    {
+      "month": 2,
+      "name_en": "Safar",
+      "name_ar": "صفر",
+      "summary_en": "The second Hijri month. Islam rejects the belief that Safar is inherently unlucky.",
+      "sources": [
+        "https://sunnah.com/bukhari:5757"
+      ],
+      "editorial_status": "research_draft"
+    },
+    {
+      "month": 3,
+      "name_en": "Rabi al-Awwal",
+      "name_ar": "ربيع الأول",
+      "summary_en": "The third Hijri month. Accounts of the Prophet's birth and passing are discussed in this month, but the precise birth date is disputed.",
+      "sources": [
+        "https://dorar.net/history?era=1"
+      ],
+      "editorial_status": "research_draft"
+    },
+    {
+      "month": 4,
+      "name_en": "Rabi al-Thani",
+      "name_ar": "ربيع الآخر",
+      "summary_en": "The fourth Hijri month. Its name reflects an older seasonal naming convention; the lunar calendar moves through the seasons.",
+      "sources": [
+        "https://quran.com/9/36"
+      ],
+      "editorial_status": "research_draft"
+    },
+    {
+      "month": 5,
+      "name_en": "Jumada al-Ula",
+      "name_ar": "جمادى الأولى",
+      "summary_en": "The fifth Hijri month. The expedition of Mu'tah is commonly placed in this month in 8 AH, without an established exact day.",
+      "sources": [
+        "https://dorar.net/history/event/122"
+      ],
+      "editorial_status": "research_draft"
+    },
+    {
+      "month": 6,
+      "name_en": "Jumada al-Akhirah",
+      "name_ar": "جمادى الآخرة",
+      "summary_en": "The sixth Hijri month. Like the other lunar months, its beginning depends on the calendar convention or moon sighting used.",
+      "sources": [
+        "https://quran.com/9/36"
+      ],
+      "editorial_status": "research_draft"
+    },
+    {
+      "month": 7,
+      "name_en": "Rajab",
+      "name_ar": "رجب",
+      "summary_en": "The seventh Hijri month and one of the four sacred months. The exact date of the Isra and Mi'raj is not reliably established.",
+      "sources": [
+        "https://quran.com/9/36"
+      ],
+      "editorial_status": "research_draft"
+    },
+    {
+      "month": 8,
+      "name_en": "Shaban",
+      "name_ar": "شعبان",
+      "summary_en": "The eighth Hijri month, immediately before Ramadan. Reports describe the Prophet ﷺ fasting frequently during Sha'ban.",
+      "sources": [
+        "https://sunnah.com/bukhari:1969"
+      ],
+      "editorial_status": "research_draft"
+    },
+    {
+      "month": 9,
+      "name_en": "Ramadan",
+      "name_ar": "رمضان",
+      "summary_en": "The ninth Hijri month, when Muslims fast from dawn to sunset. The Qur'an describes Ramadan as the month in which the Qur'an was sent down.",
+      "sources": [
+        "https://quran.com/2/185"
+      ],
+      "editorial_status": "research_draft"
+    },
+    {
+      "month": 10,
+      "name_en": "Shawwal",
+      "name_ar": "شوّال",
+      "summary_en": "The tenth Hijri month. Eid al-Fitr marks its beginning, and six voluntary fasts in Shawwal are mentioned in authentic hadith.",
+      "sources": [
+        "https://sunnah.com/muslim:1164a"
+      ],
+      "editorial_status": "research_draft"
+    },
+    {
+      "month": 11,
+      "name_en": "Dhu al-Qadah",
+      "name_ar": "ذو القعدة",
+      "summary_en": "The eleventh Hijri month and one of the four sacred months. The Treaty of Hudaybiyyah is traditionally placed in this month.",
+      "sources": [
+        "https://dorar.net/history?era=1"
+      ],
+      "editorial_status": "research_draft"
+    },
+    {
+      "month": 12,
+      "name_en": "Dhu al-Hijjah",
+      "name_ar": "ذو الحجة",
+      "summary_en": "The twelfth Hijri month and one of the four sacred months. It contains the rites of Hajj, the Day of Arafah and Eid al-Adha.",
+      "sources": [
+        "https://quran.com/89/2"
+      ],
+      "editorial_status": "research_draft"
+    }
+  ]
+}
