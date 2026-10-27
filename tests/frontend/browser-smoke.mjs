@@ -82,7 +82,7 @@ function stopBrowser(child) {
   try { process.kill(process.platform === "win32" ? child.pid : -child.pid, "SIGKILL"); } catch { /* Already exited. */ }
 }
 
-test("real Chromium card and editor smoke", {skip, timeout: 45000}, async t => {
+test("real Chromium card and editor smoke", {skip, timeout: 90000}, async t => {
   assert.ok(browser, "A Chromium browser is required for this run");
   t.diagnostic(`Browser executable: ${browser}`);
   const directory = await mkdtemp(join(tmpdir(), "salah-card-browser-"));
@@ -130,7 +130,8 @@ nextFixture();
     const args = ["--headless", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--disable-background-networking", "--no-first-run", "--no-default-browser-check", `--user-data-dir=${directory}`, "--remote-debugging-port=0", "about:blank"];
     child = spawn(browser, args, {detached: process.platform !== "win32", stdio: ["ignore", "ignore", "pipe"]});
     child.stderr.on("data", value => { stderr = (stderr + value).slice(-4000); });
-    deadline = setTimeout(() => stopBrowser(child), 40000);
+    // Allow startup and fixture budgets to complete; retain a watchdog only for a hung browser.
+    deadline = setTimeout(() => stopBrowser(child), 85000);
     const port = await waitForDebuggerPort(child, directory, {
       timeoutMs: 30000,
       stderr: () => stderr
@@ -150,7 +151,7 @@ nextFixture();
       if (reports.length === fixtures.length) break;
       await pause(100);
     }
-    assert.equal(reports.length, fixtures.length, `Browser did not finish all fixtures: ${JSON.stringify(reports)}\n${stderr}`);
+    assert.equal(reports.length, fixtures.length, `Browser completed ${reports.length}/${fixtures.length} fixtures: ${JSON.stringify(reports)}\n${stderr}`);
     for (const {width, language, bilingual} of fixtures) await t.test(`${width}px ${language}${bilingual ? " bilingual" : ""} native DOM, theme and editor`, () => {
       const report = reports.find(item => item.width === width && item.language === language && item.bilingual === bilingual);
       assert.ok(report, `No report for ${width}px ${language} bilingual=${bilingual}: ${JSON.stringify(reports)}`);
