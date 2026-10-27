@@ -1,0 +1,3271 @@
+{
+  "schema_version": 1,
+  "lifecycle": "RESEARCH_ONLY_NOT_BUNDLED",
+  "description": "360 nominal Hijri month/day slots (12 x 30). The 30th of any month is conditional; do not use 365 Gregorian days as Hijri anniversary keys. Individual Hijri years have 354 or 355 days.",
+  "source_home": "https://dorar.net/history",
+  "data_reuse_status": "No permission to bulk extract or redistribute Dorar data; original brief notes and deep links only.",
+  "days": [
+    {
+      "month": 1,
+      "day": 1,
+      "slot": "01-01",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 2,
+      "slot": "01-02",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 3,
+      "slot": "01-03",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 4,
+      "slot": "01-04",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 5,
+      "slot": "01-05",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 6,
+      "slot": "01-06",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 7,
+      "slot": "01-07",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 8,
+      "slot": "01-08",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 9,
+      "slot": "01-09",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 10,
+      "slot": "01-10",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [
+        "husayn-karbala"
+      ],
+      "status": "candidate_present"
+    },
+    {
+      "month": 1,
+      "day": 11,
+      "slot": "01-11",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 12,
+      "slot": "01-12",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 13,
+      "slot": "01-13",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 14,
+      "slot": "01-14",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 15,
+      "slot": "01-15",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 16,
+      "slot": "01-16",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 17,
+      "slot": "01-17",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 18,
+      "slot": "01-18",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 19,
+      "slot": "01-19",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 20,
+      "slot": "01-20",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 21,
+      "slot": "01-21",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 22,
+      "slot": "01-22",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 23,
+      "slot": "01-23",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 24,
+      "slot": "01-24",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 25,
+      "slot": "01-25",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 26,
+      "slot": "01-26",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 27,
+      "slot": "01-27",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 28,
+      "slot": "01-28",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 29,
+      "slot": "01-29",
+      "month_name": "Muharram",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 1,
+      "day": 30,
+      "slot": "01-30",
+      "month_name": "Muharram",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 1,
+      "slot": "02-01",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 2,
+      "slot": "02-02",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 3,
+      "slot": "02-03",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 4,
+      "slot": "02-04",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 5,
+      "slot": "02-05",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 6,
+      "slot": "02-06",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 7,
+      "slot": "02-07",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 8,
+      "slot": "02-08",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 9,
+      "slot": "02-09",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 10,
+      "slot": "02-10",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 11,
+      "slot": "02-11",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 12,
+      "slot": "02-12",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 13,
+      "slot": "02-13",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 14,
+      "slot": "02-14",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 15,
+      "slot": "02-15",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 16,
+      "slot": "02-16",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 17,
+      "slot": "02-17",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 18,
+      "slot": "02-18",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 19,
+      "slot": "02-19",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 20,
+      "slot": "02-20",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 21,
+      "slot": "02-21",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 22,
+      "slot": "02-22",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 23,
+      "slot": "02-23",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 24,
+      "slot": "02-24",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 25,
+      "slot": "02-25",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 26,
+      "slot": "02-26",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 27,
+      "slot": "02-27",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 28,
+      "slot": "02-28",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 29,
+      "slot": "02-29",
+      "month_name": "Safar",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 2,
+      "day": 30,
+      "slot": "02-30",
+      "month_name": "Safar",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 1,
+      "slot": "03-01",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 2,
+      "slot": "03-02",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 3,
+      "slot": "03-03",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 4,
+      "slot": "03-04",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 5,
+      "slot": "03-05",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 6,
+      "slot": "03-06",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 7,
+      "slot": "03-07",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 8,
+      "slot": "03-08",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 9,
+      "slot": "03-09",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 10,
+      "slot": "03-10",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 11,
+      "slot": "03-11",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 12,
+      "slot": "03-12",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 13,
+      "slot": "03-13",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 14,
+      "slot": "03-14",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 15,
+      "slot": "03-15",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 16,
+      "slot": "03-16",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 17,
+      "slot": "03-17",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 18,
+      "slot": "03-18",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 19,
+      "slot": "03-19",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 20,
+      "slot": "03-20",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 21,
+      "slot": "03-21",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 22,
+      "slot": "03-22",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 23,
+      "slot": "03-23",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 24,
+      "slot": "03-24",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 25,
+      "slot": "03-25",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 26,
+      "slot": "03-26",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 27,
+      "slot": "03-27",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 28,
+      "slot": "03-28",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 29,
+      "slot": "03-29",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 3,
+      "day": 30,
+      "slot": "03-30",
+      "month_name": "Rabi al-Awwal",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 1,
+      "slot": "04-01",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 2,
+      "slot": "04-02",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 3,
+      "slot": "04-03",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 4,
+      "slot": "04-04",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 5,
+      "slot": "04-05",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 6,
+      "slot": "04-06",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 7,
+      "slot": "04-07",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 8,
+      "slot": "04-08",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 9,
+      "slot": "04-09",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 10,
+      "slot": "04-10",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 11,
+      "slot": "04-11",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 12,
+      "slot": "04-12",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 13,
+      "slot": "04-13",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 14,
+      "slot": "04-14",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 15,
+      "slot": "04-15",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 16,
+      "slot": "04-16",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 17,
+      "slot": "04-17",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 18,
+      "slot": "04-18",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 19,
+      "slot": "04-19",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 20,
+      "slot": "04-20",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 21,
+      "slot": "04-21",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 22,
+      "slot": "04-22",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 23,
+      "slot": "04-23",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 24,
+      "slot": "04-24",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 25,
+      "slot": "04-25",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 26,
+      "slot": "04-26",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 27,
+      "slot": "04-27",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 28,
+      "slot": "04-28",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 29,
+      "slot": "04-29",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 4,
+      "day": 30,
+      "slot": "04-30",
+      "month_name": "Rabi al-Thani",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 1,
+      "slot": "05-01",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 2,
+      "slot": "05-02",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 3,
+      "slot": "05-03",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 4,
+      "slot": "05-04",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 5,
+      "slot": "05-05",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 6,
+      "slot": "05-06",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 7,
+      "slot": "05-07",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 8,
+      "slot": "05-08",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 9,
+      "slot": "05-09",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 10,
+      "slot": "05-10",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 11,
+      "slot": "05-11",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 12,
+      "slot": "05-12",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 13,
+      "slot": "05-13",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 14,
+      "slot": "05-14",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 15,
+      "slot": "05-15",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 16,
+      "slot": "05-16",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 17,
+      "slot": "05-17",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 18,
+      "slot": "05-18",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 19,
+      "slot": "05-19",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 20,
+      "slot": "05-20",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 21,
+      "slot": "05-21",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 22,
+      "slot": "05-22",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 23,
+      "slot": "05-23",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 24,
+      "slot": "05-24",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 25,
+      "slot": "05-25",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 26,
+      "slot": "05-26",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 27,
+      "slot": "05-27",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 28,
+      "slot": "05-28",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 29,
+      "slot": "05-29",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 5,
+      "day": 30,
+      "slot": "05-30",
+      "month_name": "Jumada al-Ula",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 1,
+      "slot": "06-01",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 2,
+      "slot": "06-02",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 3,
+      "slot": "06-03",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 4,
+      "slot": "06-04",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 5,
+      "slot": "06-05",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 6,
+      "slot": "06-06",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 7,
+      "slot": "06-07",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 8,
+      "slot": "06-08",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 9,
+      "slot": "06-09",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 10,
+      "slot": "06-10",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 11,
+      "slot": "06-11",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 12,
+      "slot": "06-12",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 13,
+      "slot": "06-13",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 14,
+      "slot": "06-14",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 15,
+      "slot": "06-15",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 16,
+      "slot": "06-16",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 17,
+      "slot": "06-17",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 18,
+      "slot": "06-18",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 19,
+      "slot": "06-19",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 20,
+      "slot": "06-20",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 21,
+      "slot": "06-21",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 22,
+      "slot": "06-22",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 23,
+      "slot": "06-23",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 24,
+      "slot": "06-24",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 25,
+      "slot": "06-25",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 26,
+      "slot": "06-26",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 27,
+      "slot": "06-27",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 28,
+      "slot": "06-28",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 29,
+      "slot": "06-29",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 6,
+      "day": 30,
+      "slot": "06-30",
+      "month_name": "Jumada al-Akhirah",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 1,
+      "slot": "07-01",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 2,
+      "slot": "07-02",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 3,
+      "slot": "07-03",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 4,
+      "slot": "07-04",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 5,
+      "slot": "07-05",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 6,
+      "slot": "07-06",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 7,
+      "slot": "07-07",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 8,
+      "slot": "07-08",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 9,
+      "slot": "07-09",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 10,
+      "slot": "07-10",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 11,
+      "slot": "07-11",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 12,
+      "slot": "07-12",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 13,
+      "slot": "07-13",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 14,
+      "slot": "07-14",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 15,
+      "slot": "07-15",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 16,
+      "slot": "07-16",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 17,
+      "slot": "07-17",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 18,
+      "slot": "07-18",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 19,
+      "slot": "07-19",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 20,
+      "slot": "07-20",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 21,
+      "slot": "07-21",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 22,
+      "slot": "07-22",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 23,
+      "slot": "07-23",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 24,
+      "slot": "07-24",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 25,
+      "slot": "07-25",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 26,
+      "slot": "07-26",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 27,
+      "slot": "07-27",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 28,
+      "slot": "07-28",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 29,
+      "slot": "07-29",
+      "month_name": "Rajab",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 7,
+      "day": 30,
+      "slot": "07-30",
+      "month_name": "Rajab",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 1,
+      "slot": "08-01",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 2,
+      "slot": "08-02",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 3,
+      "slot": "08-03",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 4,
+      "slot": "08-04",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 5,
+      "slot": "08-05",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 6,
+      "slot": "08-06",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 7,
+      "slot": "08-07",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 8,
+      "slot": "08-08",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 9,
+      "slot": "08-09",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 10,
+      "slot": "08-10",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 11,
+      "slot": "08-11",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 12,
+      "slot": "08-12",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 13,
+      "slot": "08-13",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 14,
+      "slot": "08-14",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 15,
+      "slot": "08-15",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 16,
+      "slot": "08-16",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 17,
+      "slot": "08-17",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 18,
+      "slot": "08-18",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 19,
+      "slot": "08-19",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 20,
+      "slot": "08-20",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 21,
+      "slot": "08-21",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 22,
+      "slot": "08-22",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 23,
+      "slot": "08-23",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 24,
+      "slot": "08-24",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 25,
+      "slot": "08-25",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 26,
+      "slot": "08-26",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 27,
+      "slot": "08-27",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 28,
+      "slot": "08-28",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 29,
+      "slot": "08-29",
+      "month_name": "Shaban",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 8,
+      "day": 30,
+      "slot": "08-30",
+      "month_name": "Shaban",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 1,
+      "slot": "09-01",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 2,
+      "slot": "09-02",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 3,
+      "slot": "09-03",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 4,
+      "slot": "09-04",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 5,
+      "slot": "09-05",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 6,
+      "slot": "09-06",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 7,
+      "slot": "09-07",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 8,
+      "slot": "09-08",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 9,
+      "slot": "09-09",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 10,
+      "slot": "09-10",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 11,
+      "slot": "09-11",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 12,
+      "slot": "09-12",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 13,
+      "slot": "09-13",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 14,
+      "slot": "09-14",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 15,
+      "slot": "09-15",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 16,
+      "slot": "09-16",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 17,
+      "slot": "09-17",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 18,
+      "slot": "09-18",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 19,
+      "slot": "09-19",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 20,
+      "slot": "09-20",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 21,
+      "slot": "09-21",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 22,
+      "slot": "09-22",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 23,
+      "slot": "09-23",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 24,
+      "slot": "09-24",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 25,
+      "slot": "09-25",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 26,
+      "slot": "09-26",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 27,
+      "slot": "09-27",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 28,
+      "slot": "09-28",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 29,
+      "slot": "09-29",
+      "month_name": "Ramadan",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 9,
+      "day": 30,
+      "slot": "09-30",
+      "month_name": "Ramadan",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 1,
+      "slot": "10-01",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 2,
+      "slot": "10-02",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 3,
+      "slot": "10-03",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 4,
+      "slot": "10-04",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 5,
+      "slot": "10-05",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 6,
+      "slot": "10-06",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 7,
+      "slot": "10-07",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 8,
+      "slot": "10-08",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 9,
+      "slot": "10-09",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 10,
+      "slot": "10-10",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 11,
+      "slot": "10-11",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 12,
+      "slot": "10-12",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 13,
+      "slot": "10-13",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 14,
+      "slot": "10-14",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 15,
+      "slot": "10-15",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 16,
+      "slot": "10-16",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 17,
+      "slot": "10-17",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 18,
+      "slot": "10-18",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 19,
+      "slot": "10-19",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 20,
+      "slot": "10-20",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 21,
+      "slot": "10-21",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 22,
+      "slot": "10-22",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 23,
+      "slot": "10-23",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 24,
+      "slot": "10-24",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 25,
+      "slot": "10-25",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 26,
+      "slot": "10-26",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 27,
+      "slot": "10-27",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 28,
+      "slot": "10-28",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 29,
+      "slot": "10-29",
+      "month_name": "Shawwal",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 10,
+      "day": 30,
+      "slot": "10-30",
+      "month_name": "Shawwal",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 1,
+      "slot": "11-01",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 2,
+      "slot": "11-02",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 3,
+      "slot": "11-03",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 4,
+      "slot": "11-04",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 5,
+      "slot": "11-05",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 6,
+      "slot": "11-06",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 7,
+      "slot": "11-07",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 8,
+      "slot": "11-08",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 9,
+      "slot": "11-09",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 10,
+      "slot": "11-10",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 11,
+      "slot": "11-11",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 12,
+      "slot": "11-12",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 13,
+      "slot": "11-13",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 14,
+      "slot": "11-14",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 15,
+      "slot": "11-15",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 16,
+      "slot": "11-16",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 17,
+      "slot": "11-17",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 18,
+      "slot": "11-18",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 19,
+      "slot": "11-19",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 20,
+      "slot": "11-20",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 21,
+      "slot": "11-21",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 22,
+      "slot": "11-22",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 23,
+      "slot": "11-23",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 24,
+      "slot": "11-24",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 25,
+      "slot": "11-25",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 26,
+      "slot": "11-26",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 27,
+      "slot": "11-27",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 28,
+      "slot": "11-28",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 29,
+      "slot": "11-29",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 11,
+      "day": 30,
+      "slot": "11-30",
+      "month_name": "Dhu al-Qadah",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 1,
+      "slot": "12-01",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 2,
+      "slot": "12-02",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 3,
+      "slot": "12-03",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 4,
+      "slot": "12-04",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 5,
+      "slot": "12-05",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 6,
+      "slot": "12-06",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 7,
+      "slot": "12-07",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 8,
+      "slot": "12-08",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 9,
+      "slot": "12-09",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 10,
+      "slot": "12-10",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 11,
+      "slot": "12-11",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 12,
+      "slot": "12-12",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 13,
+      "slot": "12-13",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 14,
+      "slot": "12-14",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 15,
+      "slot": "12-15",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 16,
+      "slot": "12-16",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 17,
+      "slot": "12-17",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 18,
+      "slot": "12-18",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 19,
+      "slot": "12-19",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 20,
+      "slot": "12-20",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 21,
+      "slot": "12-21",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 22,
+      "slot": "12-22",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 23,
+      "slot": "12-23",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 24,
+      "slot": "12-24",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 25,
+      "slot": "12-25",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 26,
+      "slot": "12-26",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 27,
+      "slot": "12-27",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 28,
+      "slot": "12-28",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 29,
+      "slot": "12-29",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "valid",
+      "event_ids": [],
+      "status": "unresearched"
+    },
+    {
+      "month": 12,
+      "day": 30,
+      "slot": "12-30",
+      "month_name": "Dhu al-Hijjah",
+      "calendar_validity": "conditional_month_length",
+      "event_ids": [],
+      "status": "unresearched"
+    }
+  ],
+  "source_candidate_records": [
+    {
+      "id": "husayn-karbala",
+      "month": 1,
+      "day": 10,
+      "precision": "day",
+      "source": "https://dorar.net/history/event/289",
+      "classification": "research_candidate",
+      "note": "Dorar narrative explicitly gives tenth Muharram; editorial review needed."
+    },
+    {
+      "id": "mutah",
+      "month": 5,
+      "day": null,
+      "precision": "month",
+      "source": "https://dorar.net/history/event/122",
+      "classification": "research_candidate",
+      "note": "Month supported, not an exact day; never use as anniversary."
+    }
+  ]
+}
