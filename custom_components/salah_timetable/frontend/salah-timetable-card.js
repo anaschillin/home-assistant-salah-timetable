@@ -3,14 +3,14 @@ import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
 const RENDER_ATTRIBUTES = [
-  "mosque_name", "date", "time_zone", "prayers", "beginning_events", "jamaat_events",
+  "mosque_name", "date", "time_zone", "prayers", "day_prayers", "beginning_events", "jamaat_events",
   "next_salah", "next_jamaat", "previous_jamaat", "context_jamaat", "context_mode",
   "ramadan", "sehri_events", "iftar_events", "next_sehri", "next_iftar",
   "show_hijri_date", "second_khutbah",
 ];
 const PRAYERS = new Set(["fajr", "sunrise", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
-const CSS = `\n.mosque-tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 16px;padding:4px;border-radius:12px;background:var(--secondary-background-color)}.mosque-tab{flex:1 0 auto;border:0;border-radius:9px;padding:10px 14px;font:inherit;font-weight:600;background:transparent;color:var(--secondary-text-color);cursor:pointer}.mosque-tab[aria-pressed="true"]{background:var(--primary-color);color:var(--text-primary-color,#fff)}.mosque-tab:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}\n\n.prayer-panel{gap:8px}.prayer-panel .event{min-height:1.7em}.prayer-panel .count{margin:4px 0 8px}.prayer-times{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:auto;padding-top:12px;border-top:1px solid var(--divider-color)}.prayer-time{min-width:0}.prayer-time .label{margin:0 0 5px}.prayer-time .absolute{font-size:1.1rem;font-weight:700;color:var(--primary-text-color);margin:0}.prayer-panel[data-panel="jamaat"]{justify-content:space-between}.fajr-sunrise{margin-top:5px}\n
+const CSS = `\n.date-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:4px;background:var(--secondary-background-color);border-radius:12px;margin:0 0 16px}.date-tab{border:0;border-radius:9px;padding:10px 5px;font:inherit;font-weight:600;background:transparent;color:var(--secondary-text-color);cursor:pointer}.date-tab[aria-pressed="true"]{background:var(--primary-color);color:var(--text-primary-color,#fff)}.date-tab:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}.selected-date{font-size:.9rem;font-weight:600;color:var(--secondary-text-color);margin-bottom:12px}\n\n.mosque-tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 16px;padding:4px;border-radius:12px;background:var(--secondary-background-color)}.mosque-tab{flex:1 0 auto;border:0;border-radius:9px;padding:10px 14px;font:inherit;font-weight:600;background:transparent;color:var(--secondary-text-color);cursor:pointer}.mosque-tab[aria-pressed="true"]{background:var(--primary-color);color:var(--text-primary-color,#fff)}.mosque-tab:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}\n\n.prayer-panel{gap:8px}.prayer-panel .event{min-height:1.7em}.prayer-panel .count{margin:4px 0 8px}.prayer-times{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:auto;padding-top:12px;border-top:1px solid var(--divider-color)}.prayer-time{min-width:0}.prayer-time .label{margin:0 0 5px}.prayer-time .absolute{font-size:1.1rem;font-weight:700;color:var(--primary-text-color);margin:0}.prayer-panel[data-panel="jamaat"]{justify-content:space-between}.fajr-sunrise{margin-top:5px}\n
 :host{display:block;container-type:inline-size;color:var(--primary-text-color);font-family:var(--paper-font-body1_-_font-family,inherit)}
 ha-card{display:block;overflow:hidden;background:var(--ha-card-background,var(--card-background-color));border-radius:var(--ha-card-border-radius,12px)}
 .content{padding:20px}.header{display:flex;gap:12px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}h2{font-size:1.35rem;margin:0;overflow-wrap:anywhere}.date{color:var(--secondary-text-color);font-size:.9rem}
@@ -169,6 +169,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._config = normalizeConfig({});
     this._timer = null;
     this._selectedMosque = null;
+    this._selectedDay = 0;
   }
 
   static getConfigElement() { return document.createElement("salah-timetable-card-editor"); }
@@ -275,27 +276,48 @@ export class SalahTimetableCard extends HTMLElement {
       }
       content.append(tabs);
     }
+    const dateTabs = node("nav", undefined, "date-tabs");
+    dateTabs.setAttribute("aria-label", tr(ui, "card.day_navigation"));
+    for (const [offset, key] of [[-1, "yesterday"], [0, "today"], [1, "tomorrow"]]) {
+      const button = node("button", tr(ui, `card.${key}`), "date-tab");
+      button.type = "button";
+      button.setAttribute("aria-pressed", String(this._selectedDay === offset));
+      button.addEventListener("click", () => { if (this._selectedDay !== offset) { this._selectedDay = offset; this._render(); } });
+      dateTabs.append(button);
+    }
+    content.append(dateTabs);
+    const baseDate = new Date(`${data.date || state.state}T12:00:00Z`);
+    const selectedDate = new Date(baseDate.getTime() + this._selectedDay * 86400000).toISOString().slice(0, 10);
+    const selectedPrayers = this._selectedDay === 0 ? data.prayers : data.day_prayers?.[selectedDate];
+    if (this._selectedDay !== 0) {
+      content.append(node("div", formatDate(selectedDate, ui), "selected-date"));
+      if (!selectedPrayers) {
+        content.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
+        card.append(content); this.shadowRoot.replaceChildren(style, card);
+        return;
+      }
+    }
     if (this._hass?.connection?.connected === false) content.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
     const next = nextSalah(data, now);
     const previous = jamaatPanel(data, "previous", now).event;
     const panels = node("div", undefined, "panels");
-    if (this._config.show_salah_countdown) {
+    if (this._selectedDay === 0 && this._config.show_salah_countdown) {
       const box = prayerPanel("salah", next, data, zone, ui, this._config, countdown(next?.timestamp, now, ui));
       updates.push(instant => { box.clock.run.textContent = countdown(next?.timestamp, instant, ui); });
       panels.append(box);
     }
-    if (this._config.show_jamaat_countdown) panels.append(prayerPanel("jamaat", previous, data, zone, ui, this._config));
+    if (this._selectedDay === 0 && this._config.show_jamaat_countdown) panels.append(prayerPanel("jamaat", previous, data, zone, ui, this._config));
     if (panels.children.length) content.append(panels);
     const highlighted = highlightedPrayer(data, now);
     let tableRegion;
-    if (this._config.detail_level !== "compact") {
+    if (this._selectedDay !== 0 || this._config.detail_level !== "compact") {
     const table = node("table");
     table.append(node("caption", tr(ui, "table.caption"), "sr-only"));
     const head = node("thead"); const headRow = node("tr");
     for (const key of ["table.prayer", "table.beginning", "table.jamaat"]) { const th = node("th", tr(ui, key)); th.scope = "col"; headRow.append(th); }
     head.append(headRow); table.append(head);
     const body = node("tbody");
-    for (const prayer of data.prayers) {
+    for (const prayer of selectedPrayers) {
       if (!prayer || typeof prayer !== "object") continue;
       const row = node("tr", undefined, prayer.key === highlighted ? "next-prayer" : prayerIsPast(prayer, now) ? "past-prayer" : "");
       if (prayer.key === highlighted) row.setAttribute("aria-current", "true");
@@ -324,10 +346,10 @@ export class SalahTimetableCard extends HTMLElement {
     const scrollHelp = node("p", tr(ui, "table.scroll_help"), "note scroll-help");
     tableRegion.append(table); content.append(tableRegion, scrollHelp);
     }
-    if (this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
+    if (this._selectedDay === 0 && this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
       content.append(translatedRun("p", ui, "card.second_khutbah", "time", formatTime(data.second_khutbah, zone, ui, timeFormat), "note khutbah"));
     }
-    if (this._config.detail_level === "detailed" && data.ramadan?.active && this._config.show_ramadan_details) {
+    if (this._selectedDay === 0 && this._config.detail_level === "detailed" && data.ramadan?.active && this._config.show_ramadan_details) {
       const ramadan = node("section", undefined, "ramadan"); ramadan.append(node("h3", tr(ui, "ramadan.title")));
       const grid = node("div", undefined, "ramadan-grid");
       for (const kind of ["sehri", "iftar"]) {
@@ -351,7 +373,7 @@ export class SalahTimetableCard extends HTMLElement {
       note.setAttribute("data-role", "timezone-note"); content.append(note);
     }
     card.append(content); this.shadowRoot.replaceChildren(style, card);
-    if (this._config.detail_level !== "compact") {
+    if (tableRegion) {
       tableRegion.scrollLeft = scrollLeft;
       if (regionFocused) tableRegion.focus({preventScroll: true});
     }
