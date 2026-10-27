@@ -406,7 +406,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 except ValueError as err:
                     errors["base"] = "invalid_csv"
                     detail = _safe_text(str(err))
-                except (OSError, HomeAssistantError):
+                except OSError, HomeAssistantError:
                     errors["base"] = "save_failed"
                 else:
                     self._content = None
