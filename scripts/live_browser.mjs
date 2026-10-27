@@ -50,7 +50,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
   const findCard = "deep().find(element=>element.localName==='salah-timetable-card')";
   const previewCard = "(()=>{const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');return dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='salah-timetable-card')})()";
   async function setEditorOption(key, value) {
-    await evaluate(`(()=>{const control=window.salahEditor.shadowRoot.querySelector('[data-option='+${safeJsLiteral(String(key))}+']');if(!control)throw new Error('Missing editor control: '+${safeJsLiteral(String(key))});${typeof value === "boolean" ? `control.checked=${value};` : `control.value=${safeJsLiteral(String(value))};`}control.dispatchEvent(new Event('change',{bubbles:true}));return true})()`);
+    await evaluate(`(()=>{const control=window.salahEditor.shadowRoot.querySelector('[data-option="'+${safeJsLiteral(String(key))}+'"]');if(!control)throw new Error('Missing editor control: '+${safeJsLiteral(String(key))});${typeof value === "boolean" ? `control.checked=${value};` : `control.value=${safeJsLiteral(String(value))};`}control.dispatchEvent(new Event('change',{bubbles:true}));return true})()`);
     await until(`window.salahEditor._config[${safeJsLiteral(key)}]===${safeJsLiteral(value)}`, `Editor option did not update: ${key}`);
   }
   try {
