@@ -3,7 +3,7 @@
 from asyncio import Lock
 from dataclasses import dataclass, replace
 from dataclasses import field as dataclass_field
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from types import MappingProxyType
 from typing import Any, Mapping
 from uuid import uuid4
