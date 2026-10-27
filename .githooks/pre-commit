@@ -1,0 +1,37 @@
+
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Running pre-commit Ruff checks..."
+
+# Run from the repository root.
+cd "$(git rev-parse --show-toplevel)"
+
+# Only check staged Python files.
+mapfile -d '' files < <(
+    git diff --cached --name-only --diff-filter=ACMR -z -- '*.py'
+)
+
+if (( ${#files[@]} == 0 )); then
+    echo "No staged Python files to check."
+    exit 0
+fi
+
+# Apply automatic fixes and formatting.
+uv run --frozen ruff check --fix -- "${files[@]}"
+uv run --frozen ruff format -- "${files[@]}"
+
+# Stop the commit if Ruff modified staged files.
+if ! git diff --quiet -- "${files[@]}"; then
+    echo "Ruff modified files. Review and stage the changes:"
+    echo "  git add <files>"
+    echo "Then retry your commit."
+    exit 1
+fi
+
+# Verify the staged content too.
+uv run --frozen ruff check -- "${files[@]}"
+uv run --frozen ruff format --check -- "${files[@]}"
+
+echo "Ruff checks passed."
