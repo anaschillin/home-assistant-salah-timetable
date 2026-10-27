@@ -373,7 +373,7 @@ actions:
                 - condition: template
                   value_template: >-
                     {% set player = states[repeat.item.entity] %}
-                    {{ player is not none and player.state not in ['unknown', 'unavailable']
+                    {{ player is not none and player.state == 'playing'
                        and player.attributes.get('volume_level') is number
                        and (player.attributes.volume_level - effective_volume) | abs < 0.0001
                        and player.context.id == run_context
