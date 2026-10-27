@@ -232,12 +232,23 @@ test("dashboard controls hide panels and details without hiding published prayer
   const card = new SalahTimetableCard();
   card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "standard", show_salah_countdown: false, show_jamaat_countdown: false, show_hijri_date: false, show_timezone_note: false, show_ramadan_details: false, time_format: "12h"});
   card.hass = hass({...attributes, ramadan: {active: true}}); card._render(Date.parse("2026-10-21T04:40:00Z"));
-  assert.equal(find(card.shadowRoot, "section").length, 0);
+  assert.equal(find(card.shadowRoot, "section").filter(element => element.className !== "panel hijri-month-info").length, 0);
+  assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 1);
   assert.equal(find(card.shadowRoot, "table").length, 1);
   assert.match(find(card.shadowRoot, "table")[0].textContent, /05:45\s*am/i);
   assert.equal(find(card.shadowRoot, "header")[0].textContent.includes("Hijri"), false);
   assert.equal(find(card.shadowRoot, "p").filter(element => element.className !== "note scroll-help").length, 0);
   assert.equal(find(card.shadowRoot, "tr")[1].attributes["aria-current"], "true");
+});
+
+test("Hijri month information defaults on and can be disabled per card", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass();
+  assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 1);
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_hijri_month_info: false});
+  assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 0);
+  assert.equal(find(card.shadowRoot, "table").length, 1);
 });
 
 test("Ramadan countdown switches retain published times and Taraweeh", () => {
@@ -269,7 +280,8 @@ test("all main countdown visibility combinations keep the timetable and both dat
     const card = new SalahTimetableCard();
     card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level, show_salah_countdown: salah, show_jamaat_countdown: jamaat});
     card.hass = hass(); card._render(Date.parse("2026-10-21T04:40:00Z"));
-    assert.equal(find(card.shadowRoot, "section").length, Number(salah) + Number(jamaat));
+    assert.equal(find(card.shadowRoot, "section").filter(element => element.className !== "panel hijri-month-info").length, Number(salah) + Number(jamaat));
+    assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 1);
     assert.equal(find(card.shadowRoot, "table").length, 1);
     assert.match(find(card.shadowRoot, "header")[0].textContent, /Hijri \(calculated\)/);
   }
