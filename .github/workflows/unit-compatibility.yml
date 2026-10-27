@@ -77,28 +77,15 @@ jobs:
           test "${#TEST_FILES[@]}" -gt 0
           printf '%s\n' "${TEST_FILES[@]}" | tee "$COMPAT_EVIDENCE/test-files.txt"
           touch "$COMPAT_EVIDENCE/pytest.log"
-          # Home Assistant async fixtures can leave a shard-level Python
-          # process wedged. Isolate each test module, preserve the exhaustive
-          # file partition, and stream progress so a stuck module is identifiable.
-          # The regular 'tests' job still executes the full suite in one process.
-          trap 'status=$?; if (( status != 0 )); then echo "::error::Test shard $TEST_GROUP exited with $status"; tail -n 100 "$COMPAT_EVIDENCE/pytest.log" || true; fi' EXIT
-          for module in "${TEST_FILES[@]}"; do
-            module_name="${module##*/}"
-            echo "::group::$TEST_GROUP - $module_name"
-            # --cov-append preserves cumulative coverage across subprocesses.
-            # Each test module has its own JUnit report to avoid overwriting.
-            timeout --signal=TERM --kill-after=15s 3m \
-              env PYTHONUNBUFFERED=1 PYTHONFAULTHANDLER=1 \
-              "$UV_PROJECT_ENVIRONMENT/bin/python" -m pytest -c pyproject.toml \
-                --timeout=30 -vv -o faulthandler_timeout=60 \
-                --cov-append --cov-report= \
-                --junitxml="$COMPAT_EVIDENCE/junit-$module_name.xml" \
-                "$module" \
-              2>&1 | tee -a "$COMPAT_EVIDENCE/pytest.log"
-            echo "::endgroup::"
-          done
-          "$UV_PROJECT_ENVIRONMENT/bin/python" -m coverage xml \
-            -o "$COMPAT_EVIDENCE/coverage.xml"
+          trap 'tail -n 100 "$COMPAT_EVIDENCE/pytest.log" || true' EXIT
+          timeout --signal=TERM --kill-after=30s 12m \
+            env PYTHONUNBUFFERED=1 PYTHONFAULTHANDLER=1 \
+            "$UV_PROJECT_ENVIRONMENT/bin/python" -m pytest -c pyproject.toml \
+              --timeout=30 -vv -o faulthandler_timeout=120 \
+              --junitxml="$COMPAT_EVIDENCE/junit.xml" \
+              --cov-report="xml:$COMPAT_EVIDENCE/coverage.xml" \
+              "${TEST_FILES[@]}" \
+            > "$COMPAT_EVIDENCE/pytest.log" 2>&1
       - name: Verify dependency locks remain unchanged
         if: always()
         run: git diff --exit-code -- pyproject.toml uv.lock compatibility/
