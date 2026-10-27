@@ -11,11 +11,9 @@ from aiohttp import FormData
 from homeassistant.components.file_upload import DOMAIN as UPLOAD_DATA
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
-from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.const import DOMAIN
 from custom_components.salah_timetable.download import DownloadResult
-from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.model import PrayerField
 
 FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_a_synthetic_2026.pdf"
@@ -27,13 +25,6 @@ def mosque_a_clock(freezer):
     """Friday before HA creates credentials for its real upload endpoint."""
     freezer.move_to("2026-01-02 10:00:00+00:00")
 
-
-@pytest.fixture
-async def mosque_a_upload_client(hass, hass_client):
-    # The mocked HTTP client freezes aiohttp routes: install static assets first.
-    assert await async_setup_component(hass, "file_upload", {})
-    await async_setup_frontend(hass)
-    return await hass_client()
 
 
 async def setup(hass, entry):
@@ -100,12 +91,12 @@ def as_state(row, field, zone):
 
 
 async def test_mosque_a_upload_default_mapping_approval_and_weekday_sensors(
-    hass, entry, mosque_a_upload_client, freezer
+    hass, entry, authenticated_upload_client, freezer
 ):
     await setup(hass, entry)
     result = await menu_step(hass, entry, "import_pdf")
     content = FIXTURE.read_bytes()
-    file_id, path = await upload_pdf(hass, mosque_a_upload_client, content)
+    file_id, path = await upload_pdf(hass, authenticated_upload_client, content)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
@@ -292,7 +283,7 @@ async def test_mosque_a_url_profile_and_changed_pdf_require_new_approval(
 
 
 async def test_mosque_a_monthly_pdf_ramadan_upload_approval_and_activation(
-    hass, entry, mosque_a_upload_client, freezer
+    hass, entry, authenticated_upload_client, freezer
 ):
     """MOSQUE_A monthly PDF can be approved and activated as a Ramadan source."""
     from datetime import time
@@ -304,7 +295,7 @@ async def test_mosque_a_monthly_pdf_ramadan_upload_approval_and_activation(
     # Upload the fictional Mosque A monthly PDF as a Ramadan source.
     result = await menu_step(hass, entry, "import_pdf")
     content = monthly_fixture.read_bytes()
-    file_id, path = await upload_pdf(hass, mosque_a_upload_client, content)
+    file_id, path = await upload_pdf(hass, authenticated_upload_client, content)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
