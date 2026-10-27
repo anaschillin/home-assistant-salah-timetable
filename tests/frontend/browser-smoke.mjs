@@ -54,6 +54,28 @@ async function connectDebugger(url) {
   };
 }
 
+async function waitForPageTarget(port, timeoutMs = 20000, intervalMs = 250) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/json/list`, {
+        signal: AbortSignal.timeout(Math.min(5000, Math.max(1, deadline - Date.now()))),
+      });
+      if (!response.ok) throw new Error(`Chrome target discovery returned HTTP ${response.status}`);
+      const targets = await response.json();
+      if (Array.isArray(targets) && targets.some(target => target.type === "page" && target.webSocketDebuggerUrl)) return targets;
+    } catch {
+      // Chrome may not have exposed a page target yet.
+    }
+
+    const remaining = deadline - Date.now();
+    if (remaining > 0) await pause(Math.min(intervalMs, remaining));
+  }
+
+  throw new Error(`Chrome never exposed a page target on port ${port}`);
+}
+
 function stopBrowser(child) {
   if (!child?.pid) return;
   // Kill the temporary browser's own process group, including its renderers.
@@ -113,7 +135,7 @@ nextFixture();
       timeoutMs: 30000,
       stderr: () => stderr
     });
-    const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`, {signal: AbortSignal.timeout(3000)})).json();
+    const targets = await waitForPageTarget(port);
     const page = targets.find(target => target.type === "page");
     assert.ok(page?.webSocketDebuggerUrl, "Browser did not expose a page debugger");
     debuggerSession = await connectDebugger(page.webSocketDebuggerUrl);
