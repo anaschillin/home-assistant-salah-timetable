@@ -8,7 +8,9 @@ from pathlib import Path
 import pytest
 from aiohttp import FormData
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.setup import async_setup_component
 
+from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.import_model import ImportCandidate
 from custom_components.salah_timetable.model import PrayerField
 from custom_components.salah_timetable.pdf_parser import PdfParser
@@ -45,8 +47,12 @@ def published_clock(freezer):
     ],
 )
 async def test_synthetic_pdf_upload_staging_approval_and_persistence(
-    hass, entry, authenticated_upload_client, filename, layout, year, count, start, end
+    hass, entry, hass_client, filename, layout, year, count, start, end
 ):
+    # Install the bundled assets before the test HTTP client freezes routes.
+    assert await async_setup_component(hass, "file_upload", {})
+    await async_setup_frontend(hass)
+    client = await hass_client()
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     result = await hass.config_entries.options.async_init(entry.entry_id)
@@ -56,7 +62,7 @@ async def test_synthetic_pdf_upload_staging_approval_and_persistence(
     content = (FIXTURES / filename).read_bytes()
     body = FormData()
     body.add_field("file", content, filename=filename, content_type="application/pdf")
-    response = await authenticated_upload_client.post("/api/file_upload", data=body)
+    response = await client.post("/api/file_upload", data=body)
     assert response.status == 200
     file_id = (await response.json())["file_id"]
     result = await hass.config_entries.options.async_configure(
