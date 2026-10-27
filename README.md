@@ -147,10 +147,10 @@ corresponding beginning time. Both panels use the same responsive design.
 
 Choose **Card detail** in the editor:
 
-- **Compact:** Next Salah and Previous Jamaat cards only.
-- **Standard (default):** Both cards, the full daily timetable and calculated Hijri date.
+- **Compact:** Next Salah and Previous Jamaat cards, plus Ramadan details when Ramadan is active and enabled.
+- **Standard (default):** Both cards, the full daily timetable, calculated Hijri date and active Ramadan details.
 - **Detailed:** Standard plus published Fajr sunrise/end, Friday second khutbah
-  (when provided), and active Ramadan details.
+  (when provided).
 
 A **Yesterday / Today / Tomorrow** date selector is available at every detail level.
 Yesterday and Tomorrow show only their own approved published timetable rows,
