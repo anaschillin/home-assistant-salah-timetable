@@ -287,6 +287,7 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._config.show_jamaat_countdown) panels.append(prayerPanel("jamaat", previous, data, zone, ui, this._config));
     if (panels.children.length) content.append(panels);
     const highlighted = highlightedPrayer(data, now);
+    let tableRegion;
     if (this._config.detail_level !== "compact") {
     const table = node("table");
     table.append(node("caption", tr(ui, "table.caption"), "sr-only"));
@@ -316,7 +317,7 @@ export class SalahTimetableCard extends HTMLElement {
       body.append(row);
     }
     table.append(body);
-    const tableRegion = node("div", undefined, "table-scroll");
+    tableRegion = node("div", undefined, "table-scroll");
     tableRegion.tabIndex = 0;
     tableRegion.setAttribute("role", "region");
     tableRegion.setAttribute("aria-label", tr(ui, "table.region"));
