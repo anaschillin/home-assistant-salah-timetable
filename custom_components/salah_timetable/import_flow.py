@@ -458,8 +458,8 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         comparison = compare_import(candidate, baseline.timetable, baseline.source)
         summary = import_summary(candidate, tables, settings)
         if source_summary:
-            summary = source_summary + "\\n\\n" + summary
-        return summary + "\\n\\n" + comparison_overview(comparison)
+            summary = source_summary + "\n\n" + summary
+        return summary + "\n\n" + comparison_overview(comparison)
 
     async def async_step_review(self, user_input=None):
         coordinator = self._coordinator()
