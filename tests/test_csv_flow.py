@@ -9,10 +9,8 @@ from aiohttp import FormData
 from homeassistant.components.file_upload import DOMAIN as UPLOAD_DATA
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
-from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.import_model import MAX_SOURCE_BYTES
 
 CSV = b"Date,Fajr Start,Fajr Jamaat\n2026-10-21,05:45,06:15\n2026-10-22,05:47,06:15\n"
@@ -26,11 +24,8 @@ def import_clock(freezer):
 
 
 @pytest.fixture
-async def upload_client(hass, hass_client):
-    """Register bundled routes before the mock HTTP client freezes its router."""
-    assert await async_setup_component(hass, "file_upload", {})
-    await async_setup_frontend(hass)
-    return await hass_client()
+async def upload_client(authenticated_upload_client):
+    return authenticated_upload_client
 
 
 async def upload(hass, client, content=CSV):

@@ -11,11 +11,9 @@ from aiohttp import FormData
 from homeassistant.components.file_upload import DOMAIN as UPLOAD_DATA
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
-from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.const import DOMAIN
 from custom_components.salah_timetable.download import DownloadResult
-from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.model import PrayerField
 
 FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_a_synthetic_2026.pdf"
@@ -29,11 +27,8 @@ def mosque_a_clock(freezer):
 
 
 @pytest.fixture
-async def mosque_a_upload_client(hass, hass_client):
-    # The mocked HTTP client freezes aiohttp routes: install static assets first.
-    assert await async_setup_component(hass, "file_upload", {})
-    await async_setup_frontend(hass)
-    return await hass_client()
+async def mosque_a_upload_client(authenticated_upload_client):
+    return authenticated_upload_client
 
 
 async def setup(hass, entry):
