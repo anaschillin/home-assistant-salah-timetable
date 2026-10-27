@@ -249,7 +249,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                     HomeAssistantError,
                 ):
                     return self.async_abort(reason="source_save_failed")
-                coordinator.async_update_listeners()
+                coordinator.source_updates.source_profiles_changed()
             else:
                 await coordinator.source_updates.async_check(source_id)
             return self.async_create_entry(
