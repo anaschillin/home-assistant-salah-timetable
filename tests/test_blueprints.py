@@ -1,5 +1,6 @@
 """Exercise shipped blueprint expansion and HA's real automation scheduler."""
 
+import asyncio
 from pathlib import Path
 from unittest.mock import patch
 
@@ -782,3 +783,68 @@ async def test_delayed_media_action_rejects_ownership_after_reload(
     # A subsequent state update also invalidates the original run's claim.
     hass.states.async_set("media_player.hall", "unavailable", context=replacement_run)
     assert permitted(original_run) is False
+
+
+async def test_changed_reload_cancels_active_adhan_volume_restore(hass, freezer):
+    """Reload must cancel a pending volume restoration without replaying Adhan."""
+    freezer.move_to("2026-10-23T04:59:00Z")
+    volume = async_mock_service(hass, "media_player", "volume_set")
+    playback = async_mock_service(hass, "media_player", "play_media")
+    hass.states.async_set("sensor.prayer_begin", "2026-10-23T05:00:00+00:00", ATTRS)
+    hass.states.async_set(
+        "media_player.hall",
+        "idle",
+        {"volume_level": 0.3, "media_content_id": "previous.mp3"},
+    )
+    inputs = {
+        "prayer_sensors": ["sensor.prayer_begin"],
+        "media_players": ["media_player.hall"],
+        "adhan_media": {
+            "media_content_id": "adhan.mp3",
+            "media_content_type": "audio/mpeg",
+        },
+        "set_volume": True,
+        "volume": 0.6,
+        "restore_volume": True,
+        "restore_delay": 120,
+    }
+    config = expanded("adhan", inputs)
+    await start(hass, [config])
+
+    # Do not block on HA's task queue while the automation is in a long delay.
+    freezer.move_to("2026-10-23T05:00:00Z")
+    async_fire_time_changed(hass, dt_util.parse_datetime("2026-10-23T05:00:00Z"))
+    for _ in range(30):
+        if playback and volume:
+            break
+        await asyncio.sleep(0)
+    assert len(playback) == 1
+    assert len(volume) == 1
+
+    # Simulate a player acknowledging Adhan playback and the volume change.
+    hass.states.async_set(
+        "media_player.hall",
+        "playing",
+        {"volume_level": 0.6, "media_content_id": "adhan.mp3"},
+        context=playback[0].context,
+    )
+    for _ in range(30):
+        await asyncio.sleep(0)
+
+    changed = expanded("adhan", {**inputs, "volume": 0.5})
+    with patch(
+        "homeassistant.config.async_hass_config_yaml",
+        return_value={"automation": [changed]},
+    ):
+        await asyncio.wait_for(
+            hass.services.async_call("automation", "reload", {}, blocking=True),
+            timeout=10,
+        )
+
+    # Drive HA time beyond the restore delay without waiting on pending tasks.
+    freezer.move_to("2026-10-23T05:03:00Z")
+    async_fire_time_changed(hass, dt_util.parse_datetime("2026-10-23T05:03:00Z"))
+    for _ in range(30):
+        await asyncio.sleep(0)
+    assert len(volume) == 1
+    assert len(playback) == 1
