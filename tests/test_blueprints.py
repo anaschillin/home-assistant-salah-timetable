@@ -1,5 +1,6 @@
 """Exercise shipped blueprint expansion and HA's real automation scheduler."""
 
+import asyncio
 from pathlib import Path
 from unittest.mock import patch
 
@@ -416,7 +417,11 @@ async def test_adhan_restoration_does_not_override_manual_volume_change(hass, fr
     await start(hass, [config])
     freezer.move_to("2026-10-23T05:00:00Z")
     async_fire_time_changed(hass, dt_util.parse_datetime("2026-10-23T05:00:00Z"))
-    await hass.async_block_till_done(wait_background_tasks=False)
+    # A running restoration script is a foreground HA task: do not drain it.
+    for _ in range(100):
+        if playback and volume:
+            break
+        await asyncio.sleep(0.01)
     assert len(playback) == 1
     assert len(volume) == 1
     assert volume[0].data["volume_level"] == 0.6
@@ -430,10 +435,9 @@ async def test_adhan_restoration_does_not_override_manual_volume_change(hass, fr
             "media_content_id": "media-source://media_source/local/adhan.mp3",
         },
     )
-    await hass.async_block_till_done()
     freezer.move_to("2026-10-23T05:00:20Z")
     async_fire_time_changed(hass, dt_util.parse_datetime("2026-10-23T05:00:20Z"))
-    await hass.async_block_till_done(wait_background_tasks=False)
+    await asyncio.sleep(0.05)
     assert len(volume) == 1
 
 
