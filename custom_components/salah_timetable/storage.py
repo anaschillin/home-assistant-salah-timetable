@@ -3,7 +3,7 @@
 from asyncio import Lock
 from dataclasses import dataclass, replace
 from dataclasses import field as dataclass_field
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from types import MappingProxyType
 from typing import Any, Mapping
 from uuid import uuid4
@@ -15,7 +15,7 @@ from homeassistant.util.json import load_json
 
 from .const import DOMAIN, STORAGE_VERSION
 from .import_model import ImportCandidate
-from .model import DailyPrayers, PrayerField, Timetable
+from .model import PrayerField, Timetable
 from .ramadan import RamadanSettings
 from .ramadan_validation import validate_ramadan_selection
 from .source_model import RemoteSource, validate_check
@@ -539,22 +539,6 @@ class TimetableStorage:
                     remote_checks=self._decision_checks(staged.candidate, "rejected"),
                 )
             )
-
-    def for_date(self, day: date) -> DailyPrayers | None:
-        """Return the first matching annual row (legacy lookup, not Ramadan-aware).
-
-        Runtime consumers needing the effective day must use ramadan.resolve_day.
-        """
-        return next(
-            (
-                row
-                for table in self.timetables
-                if table.kind == "annual"
-                for row in table.days
-                if row.day == day
-            ),
-            None,
-        )
 
     async def async_remove(self) -> None:
         async with self._lock:
