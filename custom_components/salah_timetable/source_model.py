@@ -158,7 +158,10 @@ def validate_check(data: Mapping[str, Any]) -> Mapping[str, Any]:
     if not isinstance(data, Mapping) or set(data) - CHECK_FIELDS:
         raise ImportValidationError("Invalid source check metadata")
     result = dict(data)
-    if "status" in result and result["status"] not in CHECK_STATUSES:
+    if "status" in result and (
+        not isinstance(result["status"], str)
+        or result["status"] not in CHECK_STATUSES
+    ):
         raise ImportValidationError("Invalid source check status")
     for key in ("last_checked", "last_success"):
         value = result.get(key)
