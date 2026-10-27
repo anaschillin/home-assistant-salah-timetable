@@ -11,11 +11,9 @@ from aiohttp import FormData
 from homeassistant.components.file_upload import DOMAIN as UPLOAD_DATA
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
-from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.const import DOMAIN
 from custom_components.salah_timetable.download import DownloadResult
-from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.import_flow import IGNORE_COLUMN
 from custom_components.salah_timetable.model import PrayerField
 from custom_components.salah_timetable.source_model import RemoteSource
@@ -29,13 +27,6 @@ def annual_clock(freezer):
     """Freeze before HA issues credentials for the real authenticated upload."""
     freezer.move_to("2026-01-02T10:00:00+00:00")
 
-
-@pytest.fixture
-async def annual_upload_client(hass, hass_client):
-    # Register bundled static assets before the mocked HTTP router freezes.
-    assert await async_setup_component(hass, "file_upload", {})
-    await async_setup_frontend(hass)
-    return await hass_client()
 
 
 async def open_step(hass, entry, step):
@@ -103,12 +94,12 @@ def entity_state(hass, key):
 
 
 async def test_annual_upload_review_approval_reload_and_dst_events(
-    hass, entry, annual_upload_client, freezer
+    hass, entry, authenticated_upload_client, freezer
 ):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entity_state(hass, "fajr_begin") == "unavailable"
-    result = await map_columns(hass, await upload(hass, entry, annual_upload_client))
+    result = await map_columns(hass, await upload(hass, entry, authenticated_upload_client))
     summary = result["description_placeholders"]["summary"]
     assert "May" in summary and "2026-05-01" in summary
     storage = entry.runtime_data.storage
@@ -155,7 +146,7 @@ async def test_annual_upload_review_approval_reload_and_dst_events(
 
 
 async def test_annual_url_profile_and_separate_ramadan_confirmation(
-    hass, entry, annual_upload_client, freezer
+    hass, entry, authenticated_upload_client, freezer
 ):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -186,7 +177,7 @@ async def test_annual_url_profile_and_separate_ramadan_confirmation(
     assert RemoteSource.from_dict(profile.as_dict()) == profile
     result = await map_columns(
         hass,
-        await upload(hass, entry, annual_upload_client, kind="ramadan"),
+        await upload(hass, entry, authenticated_upload_client, kind="ramadan"),
     )
     await approve(hass, result)
     ramadan = entry.runtime_data.storage.approved_sources["ramadan-2026"]
@@ -226,11 +217,11 @@ async def test_annual_url_profile_and_separate_ramadan_confirmation(
 
 
 async def test_reassigning_annual_columns_is_rejected_without_staging(
-    hass, entry, annual_upload_client
+    hass, entry, authenticated_upload_client
 ):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    result = await upload(hass, entry, annual_upload_client)
+    result = await upload(hass, entry, authenticated_upload_client)
     defaults = result["data_schema"]({})
     for original, reassigned, header in (
         ("dhuhr_jamaat", "jumuah", "Dhuhr Jamaat"),
