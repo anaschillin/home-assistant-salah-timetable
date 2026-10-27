@@ -339,3 +339,51 @@ async def test_adhan_fajr_media_and_volume_override(hass, freezer):
     )
     assert len(volume) == 1
     assert volume[0].data["volume_level"] == 0.2
+
+
+async def test_pause_resume_skips_players_not_playing_at_beginning(hass, freezer):
+    """A prayer beginning must not pause or later resume an already-paused player."""
+    freezer.move_to("2026-10-23T04:59:00Z")
+    paused = async_mock_service(hass, "media_player", "media_pause")
+    resumed = async_mock_service(hass, "media_player", "media_play")
+    hass.states.async_set("sensor.prayer_begin", "2026-10-23T05:00:00+00:00", ATTRS)
+    hass.states.async_set("sensor.prayer_jamaat", "2026-10-23T05:05:00+00:00", ATTRS)
+    hass.states.async_set("media_player.hall", "paused", {"media_content_id": "song-a"})
+    config = expanded(
+        "pause_resume_media",
+        {
+            "prayer_beginning": "sensor.prayer_begin",
+            "resume_anchor": "sensor.prayer_jamaat",
+            "resume_delay": 0,
+            "media_players": ["media_player.hall"],
+        },
+    )
+    await start(hass, [config])
+    await advance(hass, freezer, "2026-10-23T05:00:00Z")
+    assert not paused
+    await advance(hass, freezer, "2026-10-23T05:06:00Z")
+    assert not resumed
+
+
+@pytest.mark.parametrize("anchor", ["unknown", "unavailable", "2026-10-23T04:55:00+00:00"])
+async def test_pause_resume_rejects_invalid_or_early_anchor(
+    hass, freezer, anchor
+):
+    """Invalid anchors must be rejected before any media player is paused."""
+    freezer.move_to("2026-10-23T04:59:00Z")
+    paused = async_mock_service(hass, "media_player", "media_pause")
+    hass.states.async_set("sensor.prayer_begin", "2026-10-23T05:00:00+00:00", ATTRS)
+    hass.states.async_set("sensor.prayer_jamaat", anchor, ATTRS)
+    hass.states.async_set("media_player.hall", "playing", {"media_content_id": "song-a"})
+    config = expanded(
+        "pause_resume_media",
+        {
+            "prayer_beginning": "sensor.prayer_begin",
+            "resume_anchor": "sensor.prayer_jamaat",
+            "resume_delay": 0,
+            "media_players": ["media_player.hall"],
+        },
+    )
+    await start(hass, [config])
+    await advance(hass, freezer, "2026-10-23T05:00:00Z")
+    assert not paused
