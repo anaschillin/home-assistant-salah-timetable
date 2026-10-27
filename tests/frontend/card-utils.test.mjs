@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {countdown, duration, elapsed, formatDate, formatHijriDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, prayerName, timestamp, discoverEntity, discoverTimetableEntities, nextRamadanEvent} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+import {countdown, duration, elapsed, formatDate, formatHijriDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, prayerName, timestamp, discoverEntity, discoverTimetableEntities, nextRamadanEvent, publishedTimes} from "../../custom_components/salah_timetable/frontend/card-utils.js";
 import {resolveUi} from "../../custom_components/salah_timetable/frontend/card-i18n.js";
 
 const instant = value => Date.parse(`2026-10-21T${value}:00Z`);
@@ -187,4 +187,44 @@ test("Hijri date uses an Islamic month and AH era rather than Gregorian BC", () 
   assert.match(value, /1448/);
   assert.doesNotMatch(value, /\b(?:BC|BCE|October|May)\b/i);
   assert.match(value, /\b(?:AH|Muharram|Safar|Rabi|Jumada|Rajab|Shaban|Sha.ban|Ramadan|Shawwal|Dhu)\b/i);
+});
+
+
+test("next-day Fajr panel uses its dated beginning, Jamaat and sunrise, never today's row", () => {
+  const today = {key: "fajr", begin: "2026-10-27T04:58:00Z", jamaat: ["2026-10-27T06:15:00Z"], end: "2026-10-27T06:53:00Z"};
+  const tomorrow = {key: "fajr", begin: "2026-10-28T04:59:00Z", jamaat: ["2026-10-28T06:16:00Z"], end: "2026-10-28T06:55:00Z"};
+  const attrs = {
+    prayers: [today],
+    day_prayers: {"2026-10-27": [today], "2026-10-28": [tomorrow]},
+    next_salah: {prayer: "fajr", field: "fajr_begin", timestamp: tomorrow.begin},
+  };
+  const next = nextSalah(attrs, Date.parse("2026-10-27T20:00:00Z"));
+  assert.equal(next.timestamp, tomorrow.begin);
+  assert.deepEqual(publishedTimes(attrs, next), {begin: tomorrow.begin, jamaat: tomorrow.jamaat[0], end: tomorrow.end});
+  assert.deepEqual(publishedTimes({...attrs, day_prayers: {}}, next), {begin: tomorrow.begin, jamaat: null, end: null});
+  assert.deepEqual(publishedTimes(attrs, null), {begin: null, jamaat: null, end: null});
+});
+
+test("Jamaat card switches at the exact published Isha boundary", () => {
+  const attrs = {time_zone: "Europe/London", prayers: [
+    {key: "maghrib", begin: "2026-10-27T16:46:00Z", jamaat: ["2026-10-27T16:49:00Z"]},
+    {key: "isha", begin: "2026-10-27T18:41:00Z", jamaat: ["2026-10-27T20:00:00Z"]},
+  ]};
+  const before = jamaatPanel(attrs, "context", Date.parse("2026-10-27T19:59:59Z"));
+  assert.equal(before.mode, "upcoming");
+  assert.equal(before.event.prayer, "isha");
+  assert.equal(countdown(before.event.timestamp, Date.parse("2026-10-27T19:59:59Z")), "00:00:01");
+  assert.deepEqual(publishedTimes(attrs, before.event, true), {begin: attrs.prayers[1].begin, jamaat: attrs.prayers[1].jamaat[0], end: null});
+  const after = jamaatPanel(attrs, "context", Date.parse("2026-10-27T20:00:00Z"));
+  assert.equal(after.mode, "previous");
+  assert.equal(after.event.prayer, "isha");
+  assert.equal(elapsed(after.event.timestamp, Date.parse("2026-10-27T20:00:00Z")), "00:00:00");
+});
+
+test("Friday Jamaat displays the specifically selected congregation", () => {
+  const row = {key: "dhuhr", begin: "2026-10-23T11:50:00Z", jamaat: ["2026-10-23T12:15:00Z", "2026-10-23T13:15:00Z"]};
+  const attrs = {prayers: [row]};
+  const event = {prayer: "jumuah", field: "jumuah_jamaat", timestamp: row.jamaat[1]};
+  assert.deepEqual(publishedTimes(attrs, event, true), {begin: row.begin, jamaat: row.jamaat[1], end: null});
+  assert.deepEqual(publishedTimes({prayers: []}, event, true), {begin: null, jamaat: event.timestamp, end: null});
 });

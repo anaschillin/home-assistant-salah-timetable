@@ -1,5 +1,5 @@
 /** Pure timestamp and display logic shared by the bundled card and its tests. */
-import {localizedNumber, prayerLabels, tr} from "./card-i18n.js?v=0.9.2";
+import {localizedNumber, prayerLabels, tr} from "./card-i18n.js?v=0.9.3";
 
 export const MODES = Object.freeze(["context", "previous", "upcoming"]);
 const PRAYERS = Object.freeze(["fajr", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
@@ -135,6 +135,27 @@ function events(attributes, congregation) {
   return [...unique.values()].sort((a, b) => timestamp(a.timestamp) - timestamp(b.timestamp));
 }
 
+/** Resolve the displayed clock times from the event's actual dated row. */
+export function publishedTimes(attributes, event, congregation = false) {
+  const instant = timestamp(event?.timestamp);
+  if (instant === null) return {begin: null, jamaat: null, end: null};
+  const key = PRAYERS.includes(event.prayer) ? event.prayer : String(event.field || "").replace(/_(?:begin|jamaat)$/, "");
+  const rows = [
+    ...Object.values(attributes?.day_prayers || {}).flat(),
+    ...(Array.isArray(attributes?.prayers) ? attributes.prayers : []),
+  ];
+  const row = rows.find(item => item && item.key === pair(key) && (timestamp(item.begin) === instant ||
+    (Array.isArray(item.jamaat) && item.jamaat.some(value => timestamp(value) === instant))));
+  const jamaats = Array.isArray(row?.jamaat) ? row.jamaat : [];
+  // A published event is sufficient to display its own time, but other times
+  // must come from the matching dated row (never today's row as a fallback).
+  return {
+    begin: row?.begin || (congregation ? null : event.timestamp),
+    jamaat: congregation ? event.timestamp : (jamaats[0] || null),
+    end: row && key === "fajr" ? row.end || null : null,
+  };
+}
+
 export function nextSalah(attributes, now = Date.now()) {
   return events(attributes, false).find(event => timestamp(event.timestamp) > now) || null;
 }
@@ -165,15 +186,33 @@ export function nextRamadanEvent(attributes, kind, now = Date.now()) {
   return future?.timestamp || attributes?.[`next_${kind}`]?.timestamp || attributes?.ramadan?.[kind] || null;
 }
 
+/** Read numeric Umm al-Qura fields; some WebViews mislabel named months and eras. */
+function hijriParts(value, adjustment = 0) {
+  const instant = dateInstant(value);
+  if (instant === null || !Number.isInteger(adjustment) || Math.abs(adjustment) > 3) return null;
+  try {
+    const formatter = new Intl.DateTimeFormat("en-u-nu-latn", {calendar: "islamic-umalqura", day: "numeric", month: "numeric", year: "numeric", timeZone: "UTC"});
+    if (formatter.resolvedOptions().calendar !== "islamic-umalqura") return null;
+    const parts = formatter.formatToParts(instant + adjustment * 86400000);
+    const number = field => Number(parts.find(part => part.type === field)?.value);
+    const day = number("day"), month = number("month"), year = number("year");
+    return day >= 1 && day <= 30 && month >= 1 && month <= 12 && Number.isInteger(year) && year > 0 ? {day, month, year} : null;
+  } catch { return null; }
+}
+
 /** Calculated display date only; never used for Ramadan activation. */
 export function formatHijriDate(value, adjustment = 0, locale) {
-  const instant = dateInstant(value);
-  if (instant === null) return tr(locale, "status.hijri_unavailable");
+  const unavailable = tr(locale, "status.hijri_unavailable");
   try {
-    const formatter = new Intl.DateTimeFormat(displayLocale(locale), {calendar: "islamic-umalqura", day: "numeric", month: "long", year: "numeric", timeZone: "UTC"});
-    if (formatter.resolvedOptions().calendar !== "islamic-umalqura") return tr(locale, "status.hijri_unavailable");
-    return formatter.format(instant + adjustment * 86400000);
-  } catch { return tr(locale, "status.hijri_unavailable"); }
+    const requestedLocale = displayLocale(locale);
+    if (requestedLocale) new Intl.DateTimeFormat(requestedLocale);
+  } catch { return unavailable; }
+  const parts = hijriParts(value, adjustment);
+  if (!parts) return unavailable;
+  const language = typeof locale === "string" ? locale : locale?.language || locale?.locale || "en";
+  const arabic = /^ar(?:-|$)/i.test(language);
+  const name = HIJRI_MONTH_INFO[parts.month - 1][arabic ? 1 : 0];
+  return `${localizedNumber(parts.day, locale)} ${name} ${localizedNumber(parts.year, locale)} ${arabic ? "هـ" : "AH"}`;
 }
 
 export function eventProgress(attributes, congregation, event, now = Date.now()) {
@@ -209,12 +248,8 @@ export function prayerIsPast(row, now = Date.now()) {
 
 export const HIJRI_MONTH_INFO = Object.freeze([["Muharram","المحرّم","The first Hijri month and one of four sacred months."],["Safar","صفر","The second month. Islam does not regard Safar as inherently unlucky."],["Rabi al-Awwal","ربيع الأول","The third month. The precise date of the Prophet's ﷺ birth is disputed."],["Rabi al-Thani","ربيع الآخر","The fourth month of the lunar Hijri calendar."],["Jumada al-Ula","جمادى الأولى","The fifth month. The expedition of Mu'tah is recorded in this month."],["Jumada al-Akhirah","جمادى الآخرة","The sixth month of the lunar Hijri calendar."],["Rajab","رجب","One of the four sacred months. The date of Isra and Mi'raj is not established."],["Sha'ban","شعبان","The month before Ramadan; the Prophet ﷺ frequently observed voluntary fasts in it."],["Ramadan","رمضان","The month of obligatory fasting and the revelation of the Qur'an."],["Shawwal","شوّال","Eid al-Fitr marks the beginning of Shawwal."],["Dhu al-Qa'dah","ذو القعدة","One of the four sacred months."],["Dhu al-Hijjah","ذو الحجة","A sacred month containing Hajj, the Day of Arafah and Eid al-Adha."]]);
 export function hijriMonthInfo(value, adjustment = 0) {
-  const instant = dateInstant(value);
-  if (instant === null || !Number.isInteger(adjustment) || Math.abs(adjustment) > 3) return null;
-  try {
-    const formatter = new Intl.DateTimeFormat("en", {calendar: "islamic-umalqura", month: "numeric", timeZone: "UTC"});
-    if (formatter.resolvedOptions().calendar !== "islamic-umalqura") return null;
-    const month = Number(formatter.format(instant + adjustment * 86400000));
-    return month >= 1 && month <= 12 ? {month, name_en: HIJRI_MONTH_INFO[month - 1][0], name_ar: HIJRI_MONTH_INFO[month - 1][1], summary_en: HIJRI_MONTH_INFO[month - 1][2]} : null;
-  } catch { return null; }
+  const parts = hijriParts(value, adjustment);
+  if (!parts) return null;
+  const {month} = parts;
+  return {month, name_en: HIJRI_MONTH_INFO[month - 1][0], name_ar: HIJRI_MONTH_INFO[month - 1][1], summary_en: HIJRI_MONTH_INFO[month - 1][2]};
 }

@@ -1,6 +1,6 @@
 /** Real-browser fixture: native shadow DOM/CSS with small HA control stand-ins. */
-import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.1";
-import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.1";
+import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.3";
+import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.3";
 
 class Selector extends HTMLElement {
   constructor() {
@@ -84,7 +84,8 @@ try {
   const numericNodes = [...card.shadowRoot.querySelectorAll("tbody td, .count, .absolute, [data-ramadan] .event")];
   check("numeric times use LTR isolation", numericNodes.length > 0 && numericNodes.every(element => element.querySelector('bdi[dir="ltr"]')) && [...card.shadowRoot.querySelectorAll('bdi[dir="ltr"]')].every(element => getComputedStyle(element).direction === "ltr"));
   card._render(Date.parse(time(4, 50)));
-  check("previous Jamaat remains fixed", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.previous_jamaat"));
+  check("pending Fajr Jamaat replaces the previous congregation", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.next_jamaat"));
+  check("upcoming Jamaat shows its countdown", card.shadowRoot.querySelector('[data-panel="jamaat"] .count')?.textContent === `${digits(0)}:${digits(25)}:${digits(0)}`);
   card._render(Date.parse(time(5, 15)));
   check("exact Jamaat becomes previous event", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.previous_jamaat"));
   check("previous Jamaat displays published times", Boolean(card.shadowRoot.querySelector('[data-panel="jamaat"] .prayer-times bdi')));
@@ -108,7 +109,7 @@ try {
   card.hass = hass; card._render(Date.parse(time(4, 40)));
   check("upcoming row has accessible emphasis", card.shadowRoot.querySelector("tbody tr").getAttribute("aria-current") === "true");
   render({}, time(8));
-  check("previous Jamaat remains fixed", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.previous_jamaat"));
+  check("previous Jamaat follows completed Fajr", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.previous_jamaat"));
   check("Next Salah countdown and Previous Jamaat elapsed clock are both visible", card.shadowRoot.querySelectorAll(".prayer-panel .count").length === 2 && Boolean(card.shadowRoot.querySelector('[data-panel="jamaat"] .count')));
   render({detail_level: "standard", time_format: "12h", show_salah_countdown: false});
   check("single visible panel fills width", card.shadowRoot.querySelectorAll(".prayer-panel").length === 1 && Boolean(card.shadowRoot.querySelector(".hijri-month-info")));

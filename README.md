@@ -141,13 +141,14 @@ month’s dates. See [Ramadan validation](docs/ramadan_validation.md).
 The bundled **Salah Timetable** Lovelace card includes a graphical editor. Select
 the mosque's **Prayer timetable** sensor; no separate card download or Card Mod
 is required. The old Jamaat panel mode selector is removed: **Next Salah** always
-counts down to the next published beginning and displays its beginning and Jamaat
-times, while **Previous Jamaat** displays the most recent congregation and its
-corresponding beginning time. Both panels use the same responsive design.
+counts down to the next published beginning and displays times from that event's
+actual date, while the contextual Jamaat panel counts down to the current prayer's
+upcoming congregation and switches to elapsed time when it becomes the previous
+Jamaat. Both panels use the same responsive design.
 
 Choose **Card detail** in the editor:
 
-- **Compact:** Next Salah and Previous Jamaat cards, plus Ramadan details when Ramadan is active and enabled.
+- **Compact:** Next Salah and Next/Previous Jamaat cards, plus Ramadan details when Ramadan is active and enabled.
 - **Standard (default):** Both cards, the full daily timetable, calculated Hijri date and active Ramadan details.
 - **Detailed:** Standard plus published Fajr sunrise/end, Friday second khutbah
   (when provided).
