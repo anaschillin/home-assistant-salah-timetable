@@ -25,17 +25,30 @@ def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
 
     def prayer_rows(effective):
         source = effective.row if effective else None
+
         def values(field):
             return source.timestamps(field, zone) if source else ()
+
         sunrise_values = values(PrayerField.SUNRISE)
         result = []
         for key, name, beginning, congregations in PRAYERS:
             begins = values(beginning)
-            jamaats = sorted(value for field in congregations for value in values(field))
-            result.append({"key": key, "name": name,
-                           "begin": begins[0].isoformat() if begins else None,
-                           "end": sunrise_values[0].isoformat() if key == "fajr" and sunrise_values else None,
-                           "jamaat": [value.isoformat() for value in jamaats]})
+            jamaats = sorted(
+                value for field in congregations for value in values(field)
+            )
+            result.append(
+                {
+                    "key": key,
+                    "name": name,
+                    "begin": begins[0].isoformat() if begins else None,
+                    "end": (
+                        sunrise_values[0].isoformat()
+                        if key == "fajr" and sunrise_values
+                        else None
+                    ),
+                    "jamaat": [value.isoformat() for value in jamaats],
+                }
+            )
         return result
 
     def stamps(field):
