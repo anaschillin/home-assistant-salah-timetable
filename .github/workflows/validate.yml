@@ -28,9 +28,16 @@ jobs:
           version: '0.12.23'
       - run: uv sync --frozen --group dev
       - run: python scripts/check_asset_provenance.py
+      - name: Run Ruff formatter on modified Python files
+        run: uv run --frozen ruff format scripts/check_coverage.py tests/test_pdf_worker_unit.py
+      - name: Verify Ruff formatting did not modify checked-in files
+        run: git diff --exit-code -- scripts/check_coverage.py tests/test_pdf_worker_unit.py
       - run: uv run --frozen ruff check .
       - run: uv run --frozen ruff format --check .
-      - run: uv run --frozen pytest
+      - name: Run tests with branch coverage measurement
+        run: uv run --frozen pytest --cov-branch --cov-fail-under=0 --cov-report=json:coverage-branch.json
+      - name: Enforce existing line coverage threshold and report branch coverage
+        run: uv run --frozen python scripts/check_coverage.py coverage-branch.json
       - run: uv run --frozen python scripts/build_release.py
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
