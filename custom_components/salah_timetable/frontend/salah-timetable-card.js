@@ -180,7 +180,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._hass = value;
     if (this._hassRenderKey() !== this._renderedHassKey) this._render();
   }
-  getCardSize() { return (this._config.detail_level === "compact" ? 3 : 5) + (this._config.detail_level === "detailed" && this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
+  getCardSize() { return (this._config.detail_level === "compact" ? 3 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
   getGridOptions() { return {columns: 12, rows: this.getCardSize(), min_columns: 6, min_rows: 4}; }
 
   connectedCallback() {
