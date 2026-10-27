@@ -10,7 +10,7 @@ const RENDER_ATTRIBUTES = [
 ];
 const PRAYERS = new Set(["fajr", "sunrise", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
-const CSS = `
+const CSS = `\n.prayer-panel{gap:8px}.prayer-panel .event{min-height:1.7em}.prayer-panel .count{margin:4px 0 8px}.prayer-times{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:auto;padding-top:12px;border-top:1px solid var(--divider-color)}.prayer-time{min-width:0}.prayer-time .label{margin:0 0 5px}.prayer-time .absolute{font-size:1.1rem;font-weight:700;color:var(--primary-text-color);margin:0}.prayer-panel[data-panel="jamaat"]{justify-content:space-between}.fajr-sunrise{margin-top:5px}\n
 :host{display:block;container-type:inline-size;color:var(--primary-text-color);font-family:var(--paper-font-body1_-_font-family,inherit)}
 ha-card{display:block;overflow:hidden;background:var(--ha-card-background,var(--card-background-color));border-radius:var(--ha-card-border-radius,12px)}
 .content{padding:20px}.header{display:flex;gap:12px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}h2{font-size:1.35rem;margin:0;overflow-wrap:anywhere}.date{color:var(--secondary-text-color);font-size:.9rem}
@@ -129,25 +129,36 @@ function clockNode(text, ui, elapsedClock = false) {
   return result;
 }
 
-function panel(kind, labelKey, event, clock, zone, ui, config, progress, elapsedClock = false) {
-  const result = node("section", undefined, "panel");
+function publishedTimes(data, event) {
+  const key = eventPrayerKey(event);
+  const row = (data?.prayers || []).find(item => item?.key === (key === "jumuah" ? "dhuhr" : key));
+  const jamaats = Array.isArray(row?.jamaat) ? row.jamaat : [];
+  const matching = jamaats.find(value => timestamp(value) === timestamp(event?.timestamp));
+  return {begin: row?.begin || null, jamaat: key === "jumuah" ? (matching || event?.timestamp || null) : (matching || jamaats[0] || null), end: key === "fajr" ? row?.end : null};
+}
+
+// Shared structure and styles for the upcoming Salah and previous Jamaat.
+function prayerPanel(kind, event, data, zone, ui, config, clock) {
+  const result = node("section", undefined, "panel prayer-panel");
   result.setAttribute("data-panel", kind);
-  result.clock = clockNode(clock, ui, elapsedClock);
-  const label = tr(ui, labelKey);
+  const label = node("div", tr(ui, kind === "salah" ? "panel.next_salah" : "panel.previous_jamaat"), "label");
   const name = node("div", undefined, "event");
   if (event) name.append(prayerNode(eventPrayerKey(event), ui, config.bilingual_prayer_labels, event.name));
   else name.textContent = tr(ui, "status.unavailable");
-  result.append(node("div", label, "label"), name, result.clock);
-  result.append(event ? formattedNode("div", formatTime(event.timestamp, zone, ui, config.time_format), "absolute") : node("div", tr(ui, "panel.no_event"), "absolute"));
-  if (kind === "salah" && eventPrayerKey(event) === "fajr" && config.fajr_sunrise) result.append(node("div", [node("span", tr(ui, "table.fajr_end") + " "), isolated(formatTime(config.fajr_sunrise, zone, ui, config.time_format))], "fajr-sunrise"));
-  if (progress !== null && progress !== undefined) {
-    const bar = node("progress"); bar.max = 100; bar.value = progress;
-    bar.setAttribute("aria-label", tr(ui, "panel.progress_aria", {label}));
-    result.progressBar = bar;
-    const description = tr(ui, kind === "salah" ? "panel.salah_progress" : "panel.jamaat_progress");
-    bar.title = description;
-    result.append(bar, node("div", description, "progress-help"));
+  result.append(label, name);
+  if (kind === "salah") {
+    result.clock = clockNode(clock, ui);
+    result.append(result.clock);
   }
+  const times = publishedTimes(data, event);
+  const grid = node("div", undefined, "prayer-times");
+  for (const [key, value] of [["table.beginning", times.begin], ["table.jamaat", times.jamaat]]) {
+    const cell = node("div", undefined, "prayer-time");
+    cell.append(node("div", tr(ui, key), "label"), formattedNode("div", formatTime(value, zone, ui, config.time_format), "absolute"));
+    grid.append(cell);
+  }
+  result.append(grid);
+  if (kind === "salah" && times.end) result.append(translatedRun("div", ui, "table.fajr_end", "time", formatTime(times.end, zone, ui, config.time_format), "note fajr-sunrise"));
   return result;
 }
 
@@ -194,7 +205,7 @@ export class SalahTimetableCard extends HTMLElement {
 
   _selection(data, now) {
     const next = nextSalah(data, now);
-    const congregation = jamaatPanel(data, this._config.mode, now);
+    const congregation = jamaatPanel(data, "previous", now);
     return JSON.stringify([next, congregation, highlightedPrayer(data, now),
       data.prayers.map(row => row && prayerIsPast(row, now)),
       ...["sehri", "iftar"].map(kind => {
@@ -242,27 +253,14 @@ export class SalahTimetableCard extends HTMLElement {
     content.append(header);
     if (this._hass?.connection?.connected === false) content.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
     const next = nextSalah(data, now);
-    const congregation = jamaatPanel(data, this._config.mode, now);
+    const previous = jamaatPanel(data, "previous", now).event;
     const panels = node("div", undefined, "panels");
     if (this._config.show_salah_countdown) {
-      const box = panel("salah", "panel.next_salah", next, countdown(next?.timestamp, now, ui), zone, ui, {...this._config, fajr_sunrise: data.prayers?.find(row => row?.key === "fajr")?.end}, eventProgress(data, false, next, now));
-      updates.push(instant => {
-        box.clock.run.textContent = countdown(next?.timestamp, instant, ui);
-        if (box.progressBar) box.progressBar.value = eventProgress(data, false, next, instant);
-      });
+      const box = prayerPanel("salah", next, data, zone, ui, this._config, countdown(next?.timestamp, now, ui));
+      updates.push(instant => { box.clock.run.textContent = countdown(next?.timestamp, instant, ui); });
       panels.append(box);
     }
-    if (this._config.show_jamaat_countdown) {
-      const upcoming = congregation.mode === "upcoming";
-      const previousClock = !upcoming && Boolean(congregation.event);
-      const clock = instant => upcoming ? countdown(congregation.event?.timestamp, instant, ui) : congregation.event ? elapsed(congregation.event.timestamp, instant, ui) : tr(ui, "status.unavailable");
-      const box = panel("jamaat", upcoming ? "panel.next_jamaat" : "panel.previous_jamaat", congregation.event, clock(now), zone, ui, this._config, upcoming ? eventProgress(data, true, congregation.event, now) : null, previousClock);
-      updates.push(instant => {
-        box.clock.run.textContent = clock(instant);
-        if (box.progressBar) box.progressBar.value = eventProgress(data, true, congregation.event, instant);
-      });
-      panels.append(box);
-    }
+    if (this._config.show_jamaat_countdown) panels.append(prayerPanel("jamaat", previous, data, zone, ui, this._config));
     if (panels.children.length) content.append(panels);
     const highlighted = highlightedPrayer(data, now);
     const table = node("table");
