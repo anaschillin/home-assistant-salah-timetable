@@ -1,7 +1,7 @@
 # Remaining development work
 
 This is the **feature and engineering backlog**, not a second release checklist.
-The current integration candidate is **0.9.1**. For release blockers,
+The current integration candidate is **0.9.3**. For release blockers,
 sign-offs and version-specific manual acceptance, use the
 [release readiness checklist](releasing.md#current-release-readiness).
 For completed milestones and future scope, see the
@@ -10,26 +10,25 @@ For completed milestones and future scope, see the
 
 ## Current engineering status
 
-The minimum/current Home Assistant unit lanes, complete
-`test_source_flow.py` compatibility suite, live Container acceptance,
-HACS, hassfest, frontend/Chromium and CodeQL all passed on the
-[26 October 2026 main commit `b6dbe14`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b6dbe14bb75b791fbb1171e981494d2a21dbe07e).
-[Validate run 40337238065](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238065)
-finished **12/12 jobs successfully**; [CodeQL 40337238192](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238192)
-also passed. CI simplification and diagnostics were squash-merged in
-[PR #26](https://github.com/anaschillin/home-assistant-salah-timetable/pull/26)
-and [PR #27](https://github.com/anaschillin/home-assistant-salah-timetable/pull/27).
-Calendar test timing [#13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-and minimum-HA hosted cancellation [#24](https://github.com/anaschillin/home-assistant-salah-timetable/issues/24)
-are **closed**. The original unsharded minimum-HA hang was not conclusively
-diagnosed; the maintained five-group approach remains documented in
-[compatibility](compatibility.md).
+On 27 October 2026, [main commit `78c1a9f`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/78c1a9f018f9676a56b1657865bcdef40a5f8175)
+passed [Validate 40578293746](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40578293746)
+(**7/7 jobs**) and [CodeQL 40578293664](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40578293664).
+The root and both pinned Home Assistant 2026.10.0 / 2026.10.3 unit suites
+each passed **904 Python tests**, with **95% rounded line coverage** (3,142
+statements, 163 missed). Frontend/Chromium, hassfest, HACS and the single
+supported-current live Container acceptance job also passed.
 
-Green CI is **not** a published release or proof of full HAOS restore,
-rights clearance, authenticated HACS UI acceptance or manual/device checks.
-Those decisions are owned by [releasing.md](releasing.md).
+The seven-job workflow replaces the former 12-job matrix. Both compatibility
+lanes now execute the full suite without sharding; the original October 26
+single-process hang remains an historical incident, not an active five-shard
+configuration. See [compatibility](compatibility.md) and the dated
+[validation log](validation.md) for evidence and limitations.
 
-## 27 October code-review follow-up (active)
+Green CI does **not** establish a published release, full HAOS restore,
+redistribution rights, or complete manual HACS/physical-device acceptance.
+Those decisions remain in [releasing.md](releasing.md).
+
+## 27 October code-review follow-up (completed)
 
 Baseline: [main at 7913789](https://github.com/anaschillin/home-assistant-salah-timetable/commit/791378940435d2f97117d06b158ce100adcaf0eb). Findings are hypotheses until reproduced; preserve approved data, multi-instance isolation and existing security boundaries. Work in small PRs with regression tests.
 
