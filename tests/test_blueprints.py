@@ -264,3 +264,78 @@ async def test_health_alert_deduplicates_refreshes_and_allows_recovery_reentry(h
     hass.states.async_set(coverage, "missing_today")
     await hass.async_block_till_done()
     assert events[-1].data["kind"] == "missing_today"
+
+
+@pytest.mark.parametrize(
+    ("quiet_enabled", "disabled", "expected_playback"),
+    [
+        (False, False, True),
+        (True, False, False),
+        (False, True, False),
+    ],
+)
+async def test_adhan_quiet_hours_and_disabled_sensor_gate_playback(
+    hass, freezer, quiet_enabled, disabled, expected_playback
+):
+    """Exercise the expanded blueprint against HA's time trigger and conditions."""
+    freezer.move_to("2026-10-23T04:59:00Z")
+    playback = async_mock_service(hass, "media_player", "play_media")
+    hass.states.async_set("sensor.mosque_fajr", "2026-10-23T05:00:00+00:00", ATTRS)
+    hass.states.async_set("media_player.hall", "idle")
+    config = expanded(
+        "adhan",
+        {
+            "prayer_sensors": ["sensor.mosque_fajr"],
+            "disabled_prayer_sensors": ["sensor.mosque_fajr"] if disabled else [],
+            "media_players": ["media_player.hall"],
+            "adhan_media": {
+                "media_content_id": "media-source://media_source/local/normal.mp3",
+                "media_content_type": "audio/mpeg",
+            },
+            "quiet_enabled": quiet_enabled,
+            "quiet_start": "04:00:00",
+            "quiet_end": "06:00:00",
+            "quiet_timezone": "utc",
+        },
+    )
+    await start(hass, [config])
+    await advance(hass, freezer, "2026-10-23T05:00:00Z")
+    assert bool(playback) is expected_playback
+
+
+async def test_adhan_fajr_media_and_volume_override(hass, freezer):
+    """A configured Fajr override changes media and volume without extra triggers."""
+    freezer.move_to("2026-10-23T04:59:00Z")
+    playback = async_mock_service(hass, "media_player", "play_media")
+    volume = async_mock_service(hass, "media_player", "volume_set")
+    hass.states.async_set("sensor.mosque_fajr", "2026-10-23T05:00:00+00:00", ATTRS)
+    hass.states.async_set("media_player.hall", "idle")
+    config = expanded(
+        "adhan",
+        {
+            "prayer_sensors": ["sensor.mosque_fajr"],
+            "media_players": ["media_player.hall"],
+            "adhan_media": {
+                "media_content_id": "media-source://media_source/local/normal.mp3",
+                "media_content_type": "audio/mpeg",
+            },
+            "set_volume": True,
+            "volume": 0.5,
+            "use_fajr_media": True,
+            "fajr_sensor": "sensor.mosque_fajr",
+            "fajr_media": {
+                "media_content_id": "media-source://media_source/local/fajr.mp3",
+                "media_content_type": "audio/mpeg",
+            },
+            "use_per_prayer_volume": True,
+            "fajr_volume": 0.2,
+        },
+    )
+    await start(hass, [config])
+    await advance(hass, freezer, "2026-10-23T05:00:00Z")
+    assert len(playback) == 1
+    assert playback[0].data["media_content_id"] == (
+        "media-source://media_source/local/fajr.mp3"
+    )
+    assert len(volume) == 1
+    assert volume[0].data["volume_level"] == 0.2
