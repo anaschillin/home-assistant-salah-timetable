@@ -1,7 +1,7 @@
-"""The published Zakariyya annual calendar survives native HA import and use."""
+"""The published Mosque B annual calendar survives native HA import and use."""
 
 import base64
-from datetime import date, time
+from datetime import date, datetime, time
 from hashlib import sha256
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
@@ -20,8 +20,8 @@ from custom_components.salah_timetable.import_flow import IGNORE_COLUMN
 from custom_components.salah_timetable.model import PrayerField
 from custom_components.salah_timetable.source_model import RemoteSource
 
-FIXTURE = Path(__file__).parent / "fixtures/pdf/zak.pdf"
-SOURCE_URL = "https://mosque.example.org/zakariyya-2026.pdf"
+FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_b_2026.pdf"
+SOURCE_URL = "https://mosque.example.org/mosque-b-2026.pdf"
 
 
 @pytest.fixture(autouse=True)
@@ -50,7 +50,10 @@ async def upload(hass, entry, client, *, kind="annual"):
     result = await open_step(hass, entry, "import_pdf")
     body = FormData()
     body.add_field(
-        "file", FIXTURE.read_bytes(), filename="zak.pdf", content_type="application/pdf"
+        "file",
+        FIXTURE.read_bytes(),
+        filename="mosque_b_2026.pdf",
+        content_type="application/pdf",
     )
     response = await client.post("/api/file_upload", data=body)
     assert response.status == 200
@@ -112,7 +115,7 @@ async def test_annual_upload_review_approval_reload_and_dst_events(
     assert storage.timetables == ()
     assert entity_state(hass, "fajr_begin") == "unavailable"
     candidate = storage.staged.candidate
-    assert candidate.parser_id == "zak_annual_v1"
+    assert candidate.parser_id == "mosque_b_annual_v1"
     assert candidate.coverage.row_count == 365
     assert candidate.coverage.missing_dates == ()
     assert sum(len(row.times) for row in candidate.timetable.days) == 3770
@@ -120,11 +123,11 @@ async def test_annual_upload_review_approval_reload_and_dst_events(
     assert candidate.sha256 == sha256(content).hexdigest()
     assert base64.b64decode(candidate.source_base64) == content
     may = next(row for row in candidate.timetable.days if row.day == date(2026, 5, 1))
-    assert may.original["Published Date"] == "May …"
+    assert may.original["Published Date"] == "May ..."
     assert may.original["Published Date Interpretation"]
     await approve(hass, result)
-    assert entity_state(hass, "fajr_begin") == "2026-01-02T06:46:00+00:00"
-    assert entity_state(hass, "dhuhr_jamaat") == "2026-01-02T12:40:00+00:00"
+    assert entity_state(hass, "fajr_begin") == "2026-01-02T05:07:00+00:00"
+    assert entity_state(hass, "dhuhr_jamaat") == "2026-01-02T12:45:00+00:00"
     assert entity_state(hass, "jumuah") == "unavailable"
     assert entity_state(hass, "maghrib_jamaat") == "unavailable"
     assert entity_state(hass, "sehri_ends") == "unavailable"
@@ -134,17 +137,21 @@ async def test_annual_upload_review_approval_reload_and_dst_events(
     await hass.async_block_till_done()
     assert entry.runtime_data.storage.approved_sources["annual-2026"] == candidate
     for instant, expected in (
-        ("2026-03-29T12:00:00+00:00", "2026-03-29T04:14:00+00:00"),
-        ("2026-10-25T12:00:00+00:00", "2026-10-25T05:18:00+00:00"),
+        ("2026-03-29T12:00:00+00:00", "2026-03-29T05:07:00+01:00"),
+        ("2026-10-25T12:00:00+00:00", "2026-10-25T05:07:00+00:00"),
     ):
         freezer.move_to(instant)
         await entry.runtime_data.async_refresh()
-        assert entity_state(hass, "fajr_begin") == expected
-    # Tomorrow's printed Fajr changes by three minutes across the clock change.
+        assert datetime.fromisoformat(
+            entity_state(hass, "fajr_begin")
+        ) == datetime.fromisoformat(expected)
+    # The same local Fajr remains correctly timezone-aware across the DST change.
     freezer.move_to("2026-03-28T23:00:00+00:00")
     await entry.runtime_data.async_refresh()
-    assert entity_state(hass, "fajr_begin") == "2026-03-28T04:17:00+00:00"
-    assert entity_state(hass, "next_salah") == "2026-03-29T04:14:00+00:00"
+    assert entity_state(hass, "fajr_begin") == "2026-03-28T05:07:00+00:00"
+    assert datetime.fromisoformat(
+        entity_state(hass, "next_salah")
+    ) == datetime.fromisoformat("2026-03-29T05:07:00+01:00")
 
 
 async def test_annual_url_profile_and_separate_ramadan_confirmation(
@@ -155,7 +162,7 @@ async def test_annual_url_profile_and_separate_ramadan_confirmation(
     result = await open_step(hass, entry, "import_url")
     content = FIXTURE.read_bytes()
     downloaded = DownloadResult(
-        content, "pdf", '"zak-2026"', None, sha256(content).hexdigest()
+        content, "pdf", '"mosque_b-2026"', None, sha256(content).hexdigest()
     )
     with patch(
         "custom_components.salah_timetable.source_flow.async_download",
@@ -174,7 +181,7 @@ async def test_annual_url_profile_and_separate_ramadan_confirmation(
     await approve(hass, result)
     annual = entry.runtime_data.storage.approved_sources["annual-2026"]
     profile = entry.runtime_data.storage.remote_sources["annual-2026"]
-    assert profile.parser_id == "zak_annual_v1"
+    assert profile.parser_id == "mosque_b_annual_v1"
     assert profile.url == SOURCE_URL
     assert RemoteSource.from_dict(profile.as_dict()) == profile
     result = await map_columns(
@@ -202,7 +209,7 @@ async def test_annual_url_profile_and_separate_ramadan_confirmation(
     await entry.runtime_data.async_refresh()
     effective = entry.runtime_data.data.effective
     assert effective.ramadan_active
-    assert effective.row.times[PrayerField.IFTAR] == (time(17, 31),)
+    assert effective.row.times[PrayerField.IFTAR] == (time(18, 17),)
     assert effective.taraweeh_text == "After Isha Jamaat"
     assert PrayerField.MAGHRIB_JAMAAT not in effective.row.times
     assert PrayerField.JUMUAH not in effective.row.times

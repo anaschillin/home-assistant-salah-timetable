@@ -19,13 +19,14 @@ Set `REQUIRE_BROWSER_TESTS=1` to fail when no browser is available, as CI does; 
 that setting the browser test is skipped when no executable is found. The harness
 uses HA element stand-ins and does not replace a live HA/frontend installation check.
 
-Validate also requires a separate Docker-based HA 2026.10.0/2026.10.3 live matrix.
-It needs network access for official images and HA-managed dependencies, and real
-Chromium/Chrome for the frontend. The reusable workflow supports manual runs and
-weekly compatibility checks. To run one lane locally:
+Validate also runs full pinned Python compatibility suites on HA 2026.10.0
+and 2026.10.3, plus one real Docker-based live acceptance on HA 2026.10.3.
+The live job needs network access for official images and HA-managed dependencies,
+and real Chromium/Chrome for the frontend. The reusable workflow supports manual
+runs and weekly checks. To run the live acceptance locally:
 
 ```sh
-node scripts/live_smoke.mjs --ha-version 2026.10.0 --require-fresh-dependency --output-dir /tmp/salah-live-results
+node scripts/live_smoke.mjs --ha-version 2026.10.3 --require-fresh-dependency --output-dir /tmp/salah-live-results
 ```
 
 Strict dependency proof checks absence in the base image and the manifest-pinned

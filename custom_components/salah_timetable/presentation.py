@@ -70,7 +70,7 @@ def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
     today_iftar = stamps(PrayerField.IFTAR) if active else ()
     taraweeh = stamps(PrayerField.TARAWEEH) if active else ()
     # Khutbah is a separate published Friday announcement, never a Jamaat.
-    # Read preserved NMS publisher metadata, not an inferred prayer time.
+    # Read preserved MOSQUE_A publisher metadata, not an inferred prayer time.
     annual = data.effective.annual_row
     published = annual or row
     khutbah = (

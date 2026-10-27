@@ -53,10 +53,10 @@ def _safe_text(value: str) -> str:
 
 PDF_LAYOUT_LABELS = {
     "pdf_table_v1": "Supported sample text-table PDF",
-    "nms_annual_v1": "Nuneaton Muslim Society annual calendar",
-    "nms_monthly_v1": "Nuneaton Muslim Society monthly calendar",
-    "zak_annual_v1": "Zakariyya Masjid annual calendar",
-    "zak_ramadan_v1": "Zakariyya Masjid separate Ramadan page",
+    "mosque_a_annual_v1": "Mosque A annual calendar",
+    "mosque_a_monthly_v1": "Mosque A monthly calendar",
+    "mosque_b_annual_v1": "Mosque B Masjid annual calendar",
+    "mosque_b_ramadan_v1": "Mosque B Masjid separate Ramadan page",
 }
 
 
@@ -105,29 +105,29 @@ def import_summary(candidate, existing, settings=None) -> str:
         lines.append(
             "**Ramadan overrides apply only on confirmed dates or with explicit manual activation in Ramadan settings.**"
         )
-    if candidate.parser_id in {"nms_annual_v1", "nms_monthly_v1"}:
+    if candidate.parser_id in {"mosque_a_annual_v1", "mosque_a_monthly_v1"}:
         lines.append(
-            "NMS layout: morning/noon/evening columns are normalized to 24-hour time. "
+            "MOSQUE_A layout: morning/noon/evening columns are normalized to 24-hour time. "
             "The published Maghrib (Iftaar) value supplies both Jamaat and Iftar; Sunset remains Maghrib beginning. "
             "Friday's shared slot supplies Jumu'ah only. Second-Khutbah notes are not additional Jamaat events. "
             "Hijri dates do not confirm Ramadan activation."
         )
-    if candidate.parser_id == "nms_monthly_v1":
+    if candidate.parser_id == "mosque_a_monthly_v1":
         lines.append(
-            "NMS monthly calendars may include dates outside Ramadan. "
+            "MOSQUE_A monthly calendars may include dates outside Ramadan. "
             "The source date range does not confirm the Ramadan date window."
         )
-    if candidate.parser_id == "zak_ramadan_v1":
+    if candidate.parser_id == "mosque_b_ramadan_v1":
         lines.append(
-            "Only the separate Zakariyya Ramadan page is imported; annual pages are not imported. "
+            "Only the separate Mosque B Ramadan page is imported; annual pages are not imported. "
             "The printed table includes 20 March 2026 (Hijri 1 after Ramadan). "
             "Its 31 rows do not confirm 31 Ramadan dates. "
             "Maghrib beginning supplies default Iftar only when Ramadan is active. "
             "No Maghrib Jamaat, Jumu'ah or Taraweeh timestamp is supplied by this layout."
         )
-    if candidate.parser_id == "zak_annual_v1":
+    if candidate.parser_id == "mosque_b_annual_v1":
         lines.append(
-            "Only Zakariyya's twelve annual tables are imported; the separate Ramadan page is not imported. "
+            "Only Mosque B's twelve annual tables are imported; the separate Ramadan page is not imported. "
             "The clipped “May …” date cell is interpreted as **2026-05-01** only after checking "
             "the printed May 2026 heading, Friday weekday and complete sequence of dates 2–31. "
             "The original clipped date is retained. Check this interpretation before approval. "

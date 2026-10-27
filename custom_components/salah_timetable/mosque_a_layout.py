@@ -1,4 +1,4 @@
-"""Nuneaton Muslim Society's inspected annual-calendar text layout.
+"""Mosque A's inspected annual-calendar text layout.
 
 This adapter encodes the identified column convention of that layout. It does not
 recognize arbitrary mosque tables, derive lunar dates, calculate prayer times, or
@@ -14,7 +14,7 @@ from datetime import date
 from .csv_parser import DITTO_MARKERS
 from .import_model import ImportValidationError
 
-NMS_COLUMNS = {
+MOSQUE_A_COLUMNS = {
     "Sehri Ends": "sehri_ends",
     "Fajr Begin": "fajr_begin",
     "Sunrise": "sunrise",
@@ -82,14 +82,14 @@ def _compact_header(value: str) -> str:
 def _clock(value: str, column: int) -> int:
     """Use this published layout's morning/noon/afternoon column convention."""
     if not re.fullmatch(r"(?:[1-9]|1[0-2]):[0-5][0-9]", value):
-        raise ImportValidationError("NMS table contains an invalid published time")
+        raise ImportValidationError("MOSQUE_A table contains an invalid published time")
     hour, minute = map(int, value.split(":"))
     if column in {0, 1, 2, 8}:
         hour %= 12  # Sehri, dawn, sunrise and Fajr Jamaat are morning columns.
     elif column in {3, 4}:
         # Istewa/Dhuhr can be before noon in late autumn; never turn 11:xx into 23:xx.
         if hour not in {11, 12, 1}:
-            raise ImportValidationError("NMS noon column has an unsupported hour")
+            raise ImportValidationError("MOSQUE_A noon column has an unsupported hour")
         hour = 13 if hour == 1 else hour
     else:
         hour = hour % 12 + 12
@@ -103,7 +103,9 @@ def _format(value: int) -> str:
 def _check_order(values: list[int]) -> None:
     # These checks validate the fixed AM/PM interpretation; they never repair times.
     if not all(a < b for a, b in zip(values[:8], values[1:8], strict=False)):
-        raise ImportValidationError("NMS beginning/end times are not in daily order")
+        raise ImportValidationError(
+            "MOSQUE_A beginning/end times are not in daily order"
+        )
     if not (
         values[1] <= values[8] <= values[2]
         and values[4] <= values[9] < values[6]
@@ -112,39 +114,35 @@ def _check_order(values: list[int]) -> None:
         and values[7] <= values[12]
     ):
         raise ImportValidationError(
-            "NMS Jamaat times do not match the known daily convention"
+            "MOSQUE_A Jamaat times do not match the known daily convention"
         )
 
 
-class NmsLayout:
-    """A complete, explicitly dated NMS annual calendar with two front pages."""
+class MosqueALayout:
+    """A complete, explicitly dated MOSQUE_A annual calendar with two front pages."""
 
     def to_csv(self, pages: tuple[str, ...]) -> str:
         if len(pages) != 14:
             raise ImportValidationError(
-                "NMS annual layout needs its cover, contact page and twelve months"
+                "MOSQUE_A annual layout needs its cover, contact page and twelve months"
             )
         cover = pages[0]
         cover_years = re.findall(r"^([0-9]{4})$", cover, re.MULTILINE)
-        if (
-            "SALAH TIMETABLE" not in cover
-            or "MUSLIM SOCIETY" not in cover
-            or len(cover_years) != 1
-        ):
-            raise ImportValidationError("NMS annual cover is not recognized")
+        if "SALAH TIMETABLE" not in cover or len(cover_years) != 1:
+            raise ImportValidationError("MOSQUE_A annual cover is not recognized")
         year = int(cover_years[0])
         if not 1900 <= year <= 2199:
             raise ImportValidationError(
-                "NMS annual cover year is outside the supported range"
+                "MOSQUE_A annual cover year is outside the supported range"
             )
-        if "Nuneaton Muslim Society" not in pages[1] or "www.nmsuk.org" not in pages[1]:
-            raise ImportValidationError("NMS contact page is not recognized")
+        if not pages[1].strip() or _ROW_PATTERN.search(pages[1]):
+            raise ImportValidationError("MOSQUE_A contact page is not recognized")
         output = io.StringIO(newline="")
         writer = csv.writer(output, lineterminator="\n")
         writer.writerow(
             [
                 "Date",
-                *NMS_COLUMNS,
+                *MOSQUE_A_COLUMNS,
                 *(f"Published {name}" for name in _RAW_NAMES),
                 "Published Day",
                 "Published Hijri",
@@ -155,14 +153,14 @@ class NmsLayout:
             titles = _MONTH_PATTERN.findall(page)
             if titles != [(calendar.month_name[month], str(year))]:
                 raise ImportValidationError(
-                    "NMS monthly pages must be ordered and agree with the cover year"
+                    "MOSQUE_A monthly pages must be ordered and agree with the cover year"
                 )
             lines = page.splitlines()
             markers = [
                 i for i, line in enumerate(lines) if line.strip() == _TABLE_MARKER
             ]
             if len(markers) != 1:
-                raise ImportValidationError("NMS table header is not recognized")
+                raise ImportValidationError("MOSQUE_A table header is not recognized")
             row_indices = [
                 i
                 for i, line in enumerate(lines)
@@ -173,11 +171,11 @@ class NmsLayout:
                 range(row_indices[0], row_indices[0] + count)
             ):
                 raise ImportValidationError(
-                    "NMS month must contain every dated row exactly once"
+                    "MOSQUE_A month must contain every dated row exactly once"
                 )
             if row_indices[0] <= markers[0]:
                 raise ImportValidationError(
-                    "NMS dated rows appear before the table header"
+                    "MOSQUE_A dated rows appear before the table header"
                 )
             header = _compact_header("\n".join(lines[markers[0] + 1 : row_indices[0]]))
             expected = _compact_header(_HEADER)
@@ -185,7 +183,7 @@ class NmsLayout:
             # the same date/day/Hijri cells and all thirteen physical time columns.
             if header not in {expected, expected.removeprefix("Date")}:
                 raise ImportValidationError(
-                    "NMS table columns differ from the supported layout"
+                    "MOSQUE_A table columns differ from the supported layout"
                 )
             # The text worker can wrap or join PDF footer lines; recognize the
             # explicit labelled time in footer text, never in dated Jamaat cells.
@@ -204,19 +202,19 @@ class NmsLayout:
                     or not 1 <= int(hijri) <= 30
                 ):
                     raise ImportValidationError(
-                        "NMS row date, weekday or Hijri day is invalid"
+                        "MOSQUE_A row date, weekday or Hijri day is invalid"
                     )
                 raw = body.split()
                 if len(raw) != 13:
                     raise ImportValidationError(
-                        "NMS row does not contain thirteen published time cells"
+                        "MOSQUE_A row does not contain thirteen published time cells"
                     )
                 values = []
                 for column, value in enumerate(raw):
                     if value in DITTO_MARKERS:
                         if column < 8 or column not in prior:
                             raise ImportValidationError(
-                                "NMS Jamaat quotation mark has no preceding explicit value"
+                                "MOSQUE_A Jamaat quotation mark has no preceding explicit value"
                             )
                         minute = prior[column]
                     else:

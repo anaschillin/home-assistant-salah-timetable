@@ -10,6 +10,7 @@ import {fileURLToPath} from "node:url";
 import {waitForRunning, waitForEntry, pollUntil} from "./live_readiness.mjs";
 import {dependencyEvidence, dependencyProbe} from "./live_dependency.mjs";
 import {runBrowserSmoke} from "./live_browser.mjs";
+import {publicSmokeReport} from "./live_report.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const options = {version: "2026.10.0", output: null, preload: false, requireFresh: false, caBundle: null, verifyBackupRestore: false};
@@ -337,7 +338,7 @@ try {
   report.checks.push("real_frontend_card_picker_editor", "light_dark_theme", "keyboard_title_and_focus", "phone_tablet_viewports", "text_scale");
   report.status = "passed";
   console.log(`Live HA ${options.version} passed ${report.checks.length} acceptance checks`);
-  if (options.output) { await mkdir(options.output, {recursive: true}); await writeFile(join(options.output, "results.json"), JSON.stringify(report, null, 2) + "\n"); }
+  if (options.output) { await mkdir(options.output, {recursive: true}); await writeFile(join(options.output, "results.json"), JSON.stringify(publicSmokeReport(report), null, 2) + "\n", {mode: 0o600}); }
 } catch (error) {
   report.status = "failed";
   report.failure = error.message;
@@ -370,7 +371,7 @@ try {
     console.error(`Pre-onboarding HA startup diagnostics: ${JSON.stringify(diagnostics)}`);
     console.error(await command("docker", ["logs", "--tail", "40", container], {cleanup: true}).catch(() => "Startup logs unavailable"));
   }
-  if (options.output) { await mkdir(options.output, {recursive: true}); await writeFile(join(options.output, "results.json"), JSON.stringify(report, null, 2) + "\n"); }
+  if (options.output) { await mkdir(options.output, {recursive: true}); await writeFile(join(options.output, "results.json"), JSON.stringify(publicSmokeReport(report), null, 2) + "\n", {mode: 0o600}); }
   throw error;
 } finally {
   clearTimeout(limit); activeSocket?.close();

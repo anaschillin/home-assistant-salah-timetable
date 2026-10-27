@@ -109,6 +109,7 @@ def test_invalid_selected_year_does_not_guess():
 @pytest.mark.parametrize(
     "content",
     [b"", b"not a pdf", b"%PDF-1.4\ninvalid", b"%PDF-" + b"x" * MAX_PDF_BYTES],
+    ids=["empty", "not-pdf", "malformed-pdf", "oversized-pdf"],
 )
 def test_invalid_or_oversized_pdf(content):
     with pytest.raises(ImportValidationError):
@@ -223,6 +224,16 @@ def test_worker_launch_failure_is_safe():
         b'{"pages": [""]}',
         json.dumps({"pages": ["x"] * (MAX_PDF_PAGES + 1)}).encode(),
         json.dumps({"pages": ["x" * (MAX_TEXT_BYTES + 1)]}).encode(),
+    ],
+    ids=[
+        "invalid-json",
+        "null-result",
+        "object-result",
+        "empty-pages",
+        "null-page",
+        "empty-page",
+        "too-many-pages",
+        "oversized-page",
     ],
 )
 def test_worker_result_validation(payload):

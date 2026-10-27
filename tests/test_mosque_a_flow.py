@@ -1,4 +1,4 @@
-"""NMS annual PDF support uses the same HA upload, review and update workflow."""
+"""MOSQUE_A annual PDF support uses the same HA upload, review and update workflow."""
 
 import base64
 from datetime import date, timezone
@@ -18,18 +18,18 @@ from custom_components.salah_timetable.download import DownloadResult
 from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.model import PrayerField
 
-FIXTURE = Path(__file__).parent / "fixtures/pdf/nms_synthetic_2026.pdf"
-SOURCE_URL = "https://nmsuk.org/timetables/time-table.pdf"
+FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_a_synthetic_2026.pdf"
+SOURCE_URL = "https://mosque-a.example.org/timetables/time-table.pdf"
 
 
 @pytest.fixture(autouse=True)
-def nms_clock(freezer):
+def mosque_a_clock(freezer):
     """Friday before HA creates credentials for its real upload endpoint."""
     freezer.move_to("2026-01-02 10:00:00+00:00")
 
 
 @pytest.fixture
-async def nms_upload_client(hass, hass_client):
+async def mosque_a_upload_client(hass, hass_client):
     # The mocked HTTP client freezes aiohttp routes: install static assets first.
     assert await async_setup_component(hass, "file_upload", {})
     await async_setup_frontend(hass)
@@ -52,7 +52,7 @@ async def menu_step(hass, entry, step):
 async def upload_pdf(hass, client, content):
     form = FormData()
     form.add_field(
-        "file", content, filename="nms_annual.pdf", content_type="application/pdf"
+        "file", content, filename="mosque_a_annual.pdf", content_type="application/pdf"
     )
     response = await client.post("/api/file_upload", data=form)
     assert response.status == 200
@@ -99,13 +99,13 @@ def as_state(row, field, zone):
     return row.timestamps(field, zone)[0].astimezone(timezone.utc).isoformat()
 
 
-async def test_nms_upload_default_mapping_approval_and_weekday_sensors(
-    hass, entry, nms_upload_client, freezer
+async def test_mosque_a_upload_default_mapping_approval_and_weekday_sensors(
+    hass, entry, mosque_a_upload_client, freezer
 ):
     await setup(hass, entry)
     result = await menu_step(hass, entry, "import_pdf")
     content = FIXTURE.read_bytes()
-    file_id, path = await upload_pdf(hass, nms_upload_client, content)
+    file_id, path = await upload_pdf(hass, mosque_a_upload_client, content)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
@@ -120,7 +120,7 @@ async def test_nms_upload_default_mapping_approval_and_weekday_sensors(
     storage = entry.runtime_data.storage
     assert storage.timetables == ()
     candidate = storage.staged.candidate
-    assert candidate.parser_id == "nms_annual_v1"
+    assert candidate.parser_id == "mosque_a_annual_v1"
     assert candidate.source_format == "pdf"
     assert candidate.sha256 == sha256(content).hexdigest()
     assert base64.b64decode(candidate.source_base64) == content
@@ -172,14 +172,14 @@ async def test_nms_upload_default_mapping_approval_and_weekday_sensors(
     )
 
 
-async def test_nms_url_profile_and_changed_pdf_require_new_approval(
+async def test_mosque_a_url_profile_and_changed_pdf_require_new_approval(
     hass, entry, freezer
 ):
     await setup(hass, entry)
     content = FIXTURE.read_bytes()
     result = await menu_step(hass, entry, "import_url")
     first = DownloadResult(
-        content, "pdf", '"nms-v1"', None, sha256(content).hexdigest()
+        content, "pdf", '"mosque_a-v1"', None, sha256(content).hexdigest()
     )
     with patch(
         "custom_components.salah_timetable.source_flow.async_download",
@@ -199,7 +199,7 @@ async def test_nms_url_profile_and_changed_pdf_require_new_approval(
     storage = entry.runtime_data.storage
     previous = storage.timetables
     profile = storage.remote_sources["annual-2026"]
-    assert profile.parser_id == "nms_annual_v1"
+    assert profile.parser_id == "mosque_a_annual_v1"
     assert profile.media_type == "pdf"
     assert profile.url == SOURCE_URL
     assert profile.time_format == "24h"
@@ -217,7 +217,7 @@ async def test_nms_url_profile_and_changed_pdf_require_new_approval(
     changed = content.replace(b"5:07", b"5:08", 1)
     assert changed != content
     second = DownloadResult(
-        changed, "pdf", '"nms-v2"', None, sha256(changed).hexdigest()
+        changed, "pdf", '"mosque_a-v2"', None, sha256(changed).hexdigest()
     )
     with patch(
         "custom_components.salah_timetable.source_updates.download.async_download",
@@ -225,12 +225,12 @@ async def test_nms_url_profile_and_changed_pdf_require_new_approval(
     ) as fetch:
         await entry.runtime_data.source_updates.async_check_all()
     fetch.assert_awaited_once_with(
-        SOURCE_URL, media_type="pdf", etag='"nms-v1"', last_modified=None
+        SOURCE_URL, media_type="pdf", etag='"mosque_a-v1"', last_modified=None
     )
     assert storage.timetables == previous
     assert storage.approved_sources["annual-2026"].sha256 == sha256(content).hexdigest()
     assert storage.staged.candidate.sha256 == sha256(changed).hexdigest()
-    assert storage.staged.candidate.parser_id == "nms_annual_v1"
+    assert storage.staged.candidate.parser_id == "mosque_a_annual_v1"
     assert (
         storage.staged.candidate.timetable.days[0]
         .times[PrayerField.FAJR_BEGIN][0]
@@ -291,20 +291,20 @@ async def test_nms_url_profile_and_changed_pdf_require_new_approval(
     )
 
 
-async def test_nms_monthly_pdf_ramadan_upload_approval_and_activation(
-    hass, entry, nms_upload_client, freezer
+async def test_mosque_a_monthly_pdf_ramadan_upload_approval_and_activation(
+    hass, entry, mosque_a_upload_client, freezer
 ):
-    """NMS monthly PDF can be approved and activated as a Ramadan source."""
+    """MOSQUE_A monthly PDF can be approved and activated as a Ramadan source."""
     from datetime import time
 
-    monthly_fixture = Path(__file__).parent / "fixtures/pdf/nms ramadhan.pdf"
+    monthly_fixture = Path(__file__).parent / "fixtures/pdf/mosque_a_monthly_2022.pdf"
 
     await setup(hass, entry)
 
-    # Upload the real NMS monthly PDF as a Ramadan source.
+    # Upload the fictional Mosque A monthly PDF as a Ramadan source.
     result = await menu_step(hass, entry, "import_pdf")
     content = monthly_fixture.read_bytes()
-    file_id, path = await upload_pdf(hass, nms_upload_client, content)
+    file_id, path = await upload_pdf(hass, mosque_a_upload_client, content)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -322,7 +322,7 @@ async def test_nms_monthly_pdf_ramadan_upload_approval_and_activation(
     storage = entry.runtime_data.storage
     candidate = storage.staged.candidate
 
-    assert candidate.parser_id == "nms_monthly_v1"
+    assert candidate.parser_id == "mosque_a_monthly_v1"
     assert candidate.coverage.row_count == 61
     assert candidate.coverage.missing_dates == ()
 
@@ -364,8 +364,8 @@ async def test_nms_monthly_pdf_ramadan_upload_approval_and_activation(
 
     assert effective.ramadan_active
     assert effective.row is not None
-    assert effective.row.times[PrayerField.IFTAR] == (time(20, 35),)
-    assert effective.row.times[PrayerField.MAGHRIB_BEGIN] == (time(20, 32),)
+    assert effective.row.times[PrayerField.IFTAR] == (time(18, 22),)
+    assert effective.row.times[PrayerField.MAGHRIB_BEGIN] == (time(18, 17),)
     assert PrayerField.TARAWEEH not in effective.row.times
 
     # Outside the confirmed window, Ramadan is inactive.

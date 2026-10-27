@@ -1,4 +1,4 @@
-"""Real publications remain staged until approval and confirmed-date activation."""
+"""Fictional publication fixtures remain staged until approval and confirmed-date activation."""
 
 import base64
 from datetime import date, time
@@ -28,11 +28,25 @@ def published_clock(freezer):
 @pytest.mark.parametrize(
     "filename,layout,year,count,start,end",
     [
-        ("nms ramadhan.pdf", "nms_monthly_v1", 2022, 61, "2022-05-01", "2022-06-30"),
-        ("zak.pdf", "zak_ramadan_v1", 2026, 31, "2026-02-18", "2026-03-20"),
+        (
+            "mosque_a_monthly_2022.pdf",
+            "mosque_a_monthly_v1",
+            2022,
+            61,
+            "2022-05-01",
+            "2022-06-30",
+        ),
+        (
+            "mosque_b_2026.pdf",
+            "mosque_b_ramadan_v1",
+            2026,
+            31,
+            "2026-02-18",
+            "2026-03-20",
+        ),
     ],
 )
-async def test_real_pdf_upload_staging_approval_and_persistence(
+async def test_synthetic_pdf_upload_staging_approval_and_persistence(
     hass, entry, hass_client, filename, layout, year, count, start, end
 ):
     # Install the bundled assets before the test HTTP client freezes routes.
@@ -93,7 +107,7 @@ async def test_real_pdf_upload_staging_approval_and_persistence(
     await hass.async_block_till_done()
     assert entry.runtime_data.storage.approved_sources[f"ramadan-{year}"] == candidate
     assert entry.runtime_data.storage.staged is None
-    if layout != "zak_ramadan_v1":
+    if layout != "mosque_b_ramadan_v1":
         return
     # A printed Hijri/Eid row does not confirm an extra day of Ramadan.
     result = await hass.config_entries.options.async_init(entry.entry_id)
@@ -114,7 +128,7 @@ async def test_real_pdf_upload_staging_approval_and_persistence(
     await hass.async_block_till_done()
     effective = entry.runtime_data.data.effective
     assert effective.ramadan_active
-    assert effective.row.times[PrayerField.IFTAR] == (time(17, 31),)
+    assert effective.row.times[PrayerField.IFTAR] == (time(18, 17),)
     assert effective.taraweeh_text == "After Isha Jamaat"
     assert PrayerField.MAGHRIB_JAMAAT not in effective.row.times
     assert PrayerField.TARAWEEH not in effective.row.times
@@ -130,21 +144,25 @@ async def test_real_pdf_upload_staging_approval_and_persistence(
 @pytest.mark.parametrize(
     "layout,filename,overrides",
     [
-        ("nms_monthly_v1", "nms ramadhan.pdf", {"year": 2026}),
+        ("mosque_a_monthly_v1", "mosque_a_monthly_2022.pdf", {"year": 2026}),
         (
-            "nms_monthly_v1",
-            "nms ramadhan.pdf",
+            "mosque_a_monthly_v1",
+            "mosque_a_monthly_2022.pdf",
             {"columns": {"Fajr Begin": "isha_begin"}},
         ),
-        ("zak_ramadan_v1", "zak.pdf", {"kind": "annual"}),
-        ("zak_ramadan_v1", "zak.pdf", {"columns": {"Dhuhr Jamaat": "jumuah"}}),
+        ("mosque_b_ramadan_v1", "mosque_b_2026.pdf", {"kind": "annual"}),
+        (
+            "mosque_b_ramadan_v1",
+            "mosque_b_2026.pdf",
+            {"columns": {"Dhuhr Jamaat": "jumuah"}},
+        ),
     ],
 )
-def test_published_layout_semantics_cannot_be_reassigned(layout, filename, overrides):
+def test_synthetic_layout_semantics_cannot_be_reassigned(layout, filename, overrides):
     arguments = {
         "timetable_id": "ramadan-2026",
         "kind": "ramadan",
-        "year": 2022 if layout == "nms_monthly_v1" else 2026,
+        "year": 2022 if layout == "mosque_a_monthly_v1" else 2026,
         "date_column": "Date",
         "columns": {"Fajr Begin": "fajr_begin"},
     }

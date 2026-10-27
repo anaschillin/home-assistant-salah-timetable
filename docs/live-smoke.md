@@ -1,7 +1,8 @@
 # Disposable Home Assistant live acceptance runner
 
-The runner is used by the required minimum/current HA matrix in Validate and can
-also run manually. The reusable live workflow runs weekly as a compatibility check. It creates a
+The runner is used by the required **supported-current HA 2026.10.3** live job
+in Validate and can also run manually. The reusable live workflow runs weekly as a
+compatibility check. It creates a
 disposable official HA container and synthetic timetable, runs authenticated APIs
 and the real frontend, and removes its container and private configuration afterward.
 No user configuration or credentials are checked into the repository.
@@ -9,7 +10,7 @@ No user configuration or credentials are checked into the repository.
 Requirements: Docker, Node.js 24 and Chromium/Chrome. Example:
 
 ```sh
-node scripts/live_smoke.mjs --ha-version 2026.10.0 --output-dir /tmp/salah-live-results
+node scripts/live_smoke.mjs --ha-version 2026.10.3 --output-dir /tmp/salah-live-results
 ```
 
 The optional `--preload-pypdf` supplies the exact manifest-pinned pure-Python
@@ -20,8 +21,9 @@ The default omits this preload and lets HA resolve the manifest requirement.
 `--require-fresh-dependency` verifies that both pypdf metadata and import are absent
 in the base image and match the manifest pin after the mosque has loaded. It fails
 rather than treating a pre-existing/preloaded package as fresh-install evidence.
-CI uses this flag. Reports record before/after versions and
-`dependency.fresh_install_verified`.
+CI uses this flag. The runner verifies before/after dependency versions, but
+public `results.json` records only boolean outcomes, including
+`dependency.fresh_install_verified`, to avoid copying raw API or process data.
 
 When a test environment uses a private outbound proxy CA, pass
 `--ca-bundle /path/to/combined-ca-bundle.pem`. The bundle is mounted read-only and
@@ -57,10 +59,13 @@ transport timeouts and HTTP 502/503/504; authentication failures, incompatible A
 invalid JSON and assertions fail immediately. A fixed loopback host port preserves
 the origin across restart. Browser startup uses bounded debugger discovery.
 
-Reports contain acceptance flags, source/version/image identity and failure
-messages. Restart Fajr diagnostics expose only presence, availability and match
-flags. Screenshots and failed assertions can contain synthetic fixture values;
-private configuration files and authenticated-session logs are not exported. The
+`results.json` contains fixed acceptance check names, boolean dependency,
+restart and browser outcomes, the validated local source commit, and a generic
+failure marker directing reviewers to the job log. It deliberately does not
+persist raw HTTP responses, process output, image IDs, startup diagnostics,
+or untrusted exception messages. Runtime diagnostics remain visible in the runner
+logs, while screenshots can contain synthetic fixture values. Private
+configuration files and authenticated-session logs are not exported. The
 ten-minute run deadline and scoped cleanup remain mandatory. Docker creates/copies
 can take several minutes in this environment.
 

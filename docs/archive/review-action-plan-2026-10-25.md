@@ -77,7 +77,7 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 
 ## REV-04 — Asset provenance and redistribution
 
-**Evidence:** [`tests/fixtures/pdf/`](../../tests/fixtures/pdf) includes real NMS/Zakariyya PDFs; [`brand/icon.png`](../../custom_components/salah_timetable/brand/icon.png) and other contributed assets need provenance checks. The runtime release archive excludes published PDFs, but they remain public in repository history.
+**Evidence:** [`tests/fixtures/pdf/`](../../tests/fixtures/pdf) includes real MOSQUE_A/Mosque B PDFs; [`brand/icon.png`](../../custom_components/salah_timetable/brand/icon.png) and other contributed assets need provenance checks. The runtime release archive excludes published PDFs, but they remain public in repository history.
 
 **Tasks**
 - [ ] Record source, owner, licence/permission and intended distribution for each real fixture and logo.

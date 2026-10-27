@@ -19,7 +19,7 @@ are rejected, rather than silently deleting earlier rows. A previously
 configured monthly **URL update**, whether PDF or CSV, cannot silently move into
 a different date span; import the new period separately. **Ramadan** creates a separate
 override source; its effective dates must still be confirmed explicitly.
-A PDF containing annual tables **and** a separate Ramadan page (Zakariyya)
+A PDF containing annual tables **and** a separate Ramadan page (Mosque B)
 is handled according to the chosen import type and never activates both.
 The detected concrete parser identifier is stored with approved and
 URL-update sources, so later checks do not silently change adapters.
@@ -27,10 +27,10 @@ The mapping and approval screens report recognized layout and date range.
 
 | Layout ID | Tested against | Supported structure |
 | --- | --- | --- |
-| `nms_annual_v1` | Supplied Nuneaton Muslim Society 2026 annual calendar | Cover + contact page + twelve complete monthly tables |
-| `nms_monthly_v1` | Maintainer-supplied NMS May–June **2022** pages | Complete consecutive monthly tables with explicit Gregorian headings |
-| `zak_annual_v1` | Maintainer-supplied Zakariyya 2026 calendar | Extracts twelve complete annual tables; separate Ramadan page excluded |
-| `zak_ramadan_v1` | Same publication, separate Ramadan page | Extracts only the final Ramadan table; annual tables use their own layout |
+| `mosque_a_annual_v1` | Supplied Mosque A 2026 annual calendar | Cover + contact page + twelve complete monthly tables |
+| `mosque_a_monthly_v1` | Maintainer-supplied MOSQUE_A May–June **2022** pages | Complete consecutive monthly tables with explicit Gregorian headings |
+| `mosque_b_annual_v1` | Maintainer-supplied Mosque B 2026 calendar | Extracts twelve complete annual tables; separate Ramadan page excluded |
+| `mosque_b_ramadan_v1` | Same publication, separate Ramadan page | Extracts only the final Ramadan table; annual tables use their own layout |
 | `pdf_table_v1` | Synthetic sample only | Text-based, pipe-delimited table described below |
 
 ## Supported editions and automatic recognition
@@ -44,10 +44,10 @@ All strict PDF parsers, independent fixture comparisons, limits and automatic
 layout detection remain in place. Unsupported editions fail closed rather
 than guessing times.
 
-## NMS monthly pages (`nms_monthly_v1`)
+## MOSQUE_A monthly pages (`mosque_a_monthly_v1`)
 
 Choose **Monthly**, year **2022**, and upload the matching PDF. The contributed file
-named `nms ramadhan.pdf` actually contains **May and June 2022**, with 61 dates and
+named `mosque_a_monthly_2022.pdf` actually contains **May and June 2022**, with 61 dates and
 854 event values. Every date/value matches an independent Poppler extraction.
 It is not a complete Ramadan-only publication: May 1 is printed Hijri 30, May 2
 resets to Hijri 1, and June is outside Ramadan. Its moonsighting note is preserved
@@ -56,7 +56,7 @@ as document context and does not confirm any activation dates.
 The adapter checks complete consecutive months in one year, exact weekdays,
 recognized headings/footer, thirteen physical time cells, the known extracted
 separator and month-local Jamaat ditto. Column meanings and morning/noon/evening
-normalization match the annual NMS contract below. It preserves published values,
+normalization match the annual MOSQUE_A contract below. It preserves published values,
 weekday and Hijri day separately. The Monthly choice stores ordinary calendar
 data under its own exact date-span source. Ramadan may be selected when importing
 an explicitly confirmed exact-date override source.
@@ -68,10 +68,10 @@ time is preserved separately as Friday-only metadata. It is not a Jumu’ah
 congregation and does not change the Dhuhr beginning or Jamaat column. An
 unrecognized footer still fails validation, rather than fabricating a time.
 
-## Zakariyya annual calendar (`zak_annual_v1`)
+## Mosque B annual calendar (`mosque_b_annual_v1`)
 
 Choose **Annual**, year **2026**, and upload the supplied fourteen-page
-`zak.pdf`. The adapter imports its twelve
+`mosque_b_2026.pdf`. The adapter imports its twelve
 annual tables only. The separate Ramadan page remains an independently approved
 Ramadan source; importing the annual tables never activates Ramadan.
 
@@ -101,7 +101,7 @@ preserves the publication; it does not correct that caption, change Gregorian
 physical time values, weekday, Hijri day and date interpretation survive approval
 and reload. Unknown clipping or missing time cells are rejected.
 
-## Zakariyya Ramadan page (`zak_ramadan_v1`)
+## Mosque B Ramadan page (`mosque_b_ramadan_v1`)
 
 Choose **Ramadan**, year **2026**, and upload the matching PDF. The supplied 3,213,250-byte, fourteen-page publication fits the bounded
 4 MiB input limit. The cover and twelve ordered monthly titles establish the known
@@ -139,7 +139,7 @@ cells are retained. It never derives Gregorian dates from Hijri values or change
 the user-confirmed window. Fixture hashes and attribution are recorded in the
 [fixture README](../tests/fixtures/pdf/README.md).
 
-## Nuneaton Muslim Society annual calendar (`nms_annual_v1`)
+## Mosque A annual calendar (`mosque_a_annual_v1`)
 
 Choose **Upload a supported PDF**, **Annual** and the printed year (2026 for
 the supplied file). Use mosque timezone
@@ -198,14 +198,14 @@ they do not activate Ramadan. There is no published Taraweeh timestamp.
 On Fridays Dhuhr Jamaat is absent while Jumu’ah is present; on other days
 Jumu’ah is absent. These intentional missing fields remain unavailable.
 
-Original synthetic fixtures (`nms_synthetic_2026.pdf`, its golden CSV, and
-`nms_generate.py`) reflect the identified structure with fictional values. They are
+Original synthetic fixtures (`mosque_a_synthetic_2026.pdf`, its golden CSV, and
+`mosque_a_generate.py`) reflect the identified structure with fictional values. They are
 MIT-licensed; the user-uploaded original and its extracted text are not redistributed.
 Fixture tests include leap-year coverage and rejection of changed/malformed structures.
-This validates the identified layout, not every NMS publication or arbitrary mosque PDF.
+This validates the identified layout, not every MOSQUE_A publication or arbitrary mosque PDF.
 
 Manual import of the attachment works without external access. The user also provided
-`http://nmsuk.org/timetables/time-table.pdf`; HTTP is not accepted by the secure URL
+`http://mosque-a.example.org/timetables/time-table.pdf`; HTTP is not accepted by the secure URL
 path. The website's live HTTPS availability and current file have not been verified.
 This is separate from the verified attachment/parser support. Configuring automatic
 checks requires a public working HTTPS source with the same supported layout.

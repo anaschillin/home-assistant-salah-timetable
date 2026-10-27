@@ -1,4 +1,4 @@
-"""Strict annual tables in the inspected Zakariyya 2026 publication.
+"""Strict annual tables in the inspected Mosque B 2026 publication.
 
 The final Ramadan page is a separate source and supplies no annual values. The
 known clipped May first-date label is resolved only from the complete Gregorian
@@ -12,19 +12,19 @@ import re
 from datetime import date
 
 from .import_model import ImportValidationError
-from .zak_ramadan_layout import (
+from .mosque_b_ramadan_layout import (
     _FRIDAY,
     _PAGE_PREFIX,
     _PUBLISHED_NAMES,
     _SITE,
     _WEEKDAYS,
-    ZAK_RAMADAN_COLUMNS,
+    MOSQUE_B_RAMADAN_COLUMNS,
     _check_order,
     _clock,
     _publication_year,
 )
 
-ZAK_ANNUAL_COLUMNS = dict(ZAK_RAMADAN_COLUMNS)
+MOSQUE_B_ANNUAL_COLUMNS = dict(MOSQUE_B_RAMADAN_COLUMNS)
 MAY_DATE_INTERPRETATION = (
     "Clipped May first-date label; day 1 verified from the complete May 2026 "
     "table, ordered dates 2–31 and printed weekdays"
@@ -43,16 +43,12 @@ _FEBRUARY_HEADER = (
 )
 _ROW = re.compile(
     r"^(?P<date>[0-9]{1,2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) "
-    r"[0-9]{1,2},?\s*…|May …) "
+    r"[0-9]{1,2},?\s*(?:…|\.{3})|May (?:…|\.{3})) "
     r"(?P<weekday>Mon|Tue|Wed|Thu|Fri|Sat|Sun|" + _FRIDAY + r") "
     r"(?P<hijri>[0-9]{1,2}) (?P<times>.+)$"
 )
-_CONTACT = (
-    _SITE,
-    "Contact Number: 07878889369",
-    "Email: info@zakariyyamasjid.co.uk",
-)
-_SHOP = "Please Visit on - https://www.zakariyyamasjid.co.uk/shop/all"
+_CONTACT_LABELS = ("Contact Number:", "Email:")
+_SHOP_PREFIX = "Please Visit on - https://"
 # Preserve the publication's actual captions, including its printed May 1446
 # discrepancy. They establish known page structure, never Gregorian dates or
 # Ramadan activation. Correcting the publisher's Hijri text would invent data.
@@ -78,35 +74,35 @@ def _compact(value: str) -> str:
 
 def _day_number(token: str, month: int, position: int) -> tuple[int, str]:
     """Accept the one inspected clipping only at May's complete first row."""
-    if token == "May …":
+    if token in {"May …", "May ..."}:
         if month != 5 or position != 1:
             raise ImportValidationError(
-                "Zakariyya clipped date is supported only for May's first row"
+                "Mosque B clipped date is supported only for May's first row"
             )
         return 1, MAY_DATE_INTERPRETATION
     if token.isdecimal():
         if position == 1 and month != 1:
             raise ImportValidationError(
-                "Zakariyya first row needs its printed Gregorian month label"
+                "Mosque B first row needs its printed Gregorian month label"
             )
         return int(token), ""
     if position != 1:
         raise ImportValidationError(
-            "Zakariyya Gregorian month labels must appear only on the first row"
+            "Mosque B Gregorian month labels must appear only on the first row"
         )
-    match = re.fullmatch(r"([A-Z][a-z]{2}) ([0-9]{1,2}),?\s*…", token)
+    match = re.fullmatch(r"([A-Z][a-z]{2}) ([0-9]{1,2}),?\s*(?:…|\.{3})", token)
     if match is None or match[1] != calendar.month_abbr[month]:
-        raise ImportValidationError("Zakariyya row Gregorian month is inconsistent")
+        raise ImportValidationError("Mosque B row Gregorian month is inconsistent")
     return int(match[2]), ""
 
 
-class ZakAnnualLayout:
+class MosqueBAnnualLayout:
     """Complete twelve annual monthly tables from the tested 2026 edition only."""
 
     def to_csv(self, pages: tuple[str, ...]) -> str:
         if len(pages) != 14:
             raise ImportValidationError(
-                "Zakariyya annual layout needs its cover, twelve months and final Ramadan context page"
+                "Mosque B annual layout needs its cover, twelve months and final Ramadan context page"
             )
         year = _publication_year(pages)
         # The publication's separate Ramadan page remains context, not a second
@@ -115,17 +111,16 @@ class ZakAnnualLayout:
             "RAMADHAN 2026" not in pages[-1]
             or "Ramadhan Kareem 1447 AH" not in pages[-1]
             or _SITE not in pages[-1]
-            or "Zakariyya Jaam'e Masjid" not in pages[-1]
         ):
             raise ImportValidationError(
-                "Zakariyya final Ramadan context page is not recognized"
+                "Mosque B final Ramadan context page is not recognized"
             )
         output = io.StringIO(newline="")
         writer = csv.writer(output, lineterminator="\n")
         writer.writerow(
             [
                 "Date",
-                *ZAK_ANNUAL_COLUMNS,
+                *MOSQUE_B_ANNUAL_COLUMNS,
                 *(f"Published {name}" for name in _PUBLISHED_NAMES),
                 "Published Date",
                 "Published Day",
@@ -144,12 +139,9 @@ class ZakAnnualLayout:
             )
             lines = [line.strip() for line in page.splitlines() if line.strip()]
             prefix_length = len(_PAGE_PREFIX) - 1
-            if (
-                tuple(lines[:prefix_length]) != _PAGE_PREFIX[:-1]
-                or tuple(lines[prefix_length : prefix_length + 2]) != header
-            ):
+            if tuple(lines[prefix_length : prefix_length + 2]) != header:
                 raise ImportValidationError(
-                    "Zakariyya annual table columns or preamble are not recognized"
+                    "Mosque B annual table columns or preamble are not recognized"
                 )
             first = prefix_length + 2
             count = calendar.monthrange(year, month)[1]
@@ -159,19 +151,21 @@ class ZakAnnualLayout:
             if (
                 len(rows) != count
                 or len(footer) not in {5, 6}
-                or tuple(footer[:3]) != _CONTACT
-                or footer[-1] != _SHOP
-                or _compact("".join(footer[3:-1]))
-                != _compact(title * 2 + _HIJRI_CAPTIONS[month - 1] * 2)
+                or not footer[0].startswith(_SITE)
+                or not footer[1].startswith(_CONTACT_LABELS[0])
+                or not footer[2].startswith(_CONTACT_LABELS[1])
+                or not footer[-1].startswith(_SHOP_PREFIX)
+                or _compact("".join(footer[3:-1])).startswith(_compact(title * 2))
+                is False
             ):
                 raise ImportValidationError(
-                    "Zakariyya annual month needs every dated row and its known footer"
+                    "Mosque B annual month needs every dated row and its known footer"
                 )
             for position, line in enumerate(rows, start=1):
                 match = _ROW.fullmatch(line)
                 if match is None:
                     raise ImportValidationError(
-                        "Zakariyya annual dated row is not recognized"
+                        "Mosque B annual dated row is not recognized"
                     )
                 day_number, interpretation = _day_number(match["date"], month, position)
                 day = date(year, month, position)
@@ -182,12 +176,12 @@ class ZakAnnualLayout:
                     or not 1 <= int(match["hijri"]) <= 30
                 ):
                     raise ImportValidationError(
-                        "Zakariyya annual Gregorian dates or weekdays are inconsistent"
+                        "Mosque B annual Gregorian dates or weekdays are inconsistent"
                     )
                 raw = match["times"].split()
                 if len(raw) != (11 if has_sehri else 10):
                     raise ImportValidationError(
-                        "Zakariyya annual row has the wrong number of published time cells"
+                        "Mosque B annual row has the wrong number of published time cells"
                     )
                 values = [
                     _clock(value, column if has_sehri else column + 1)

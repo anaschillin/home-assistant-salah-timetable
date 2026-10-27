@@ -55,7 +55,7 @@ Milestone **17** is also implemented; candidate 0.8.0 combines its canonical
 comparison with original-cell/provenance review and fresh-baseline approval checks.
 Exact-commit CI and applicable real-world release acceptance remain required.
 The merged dashboard enhancement adds published Fajr end
-(Sunrise), NMS Friday second-khutbah notes and a mosque-wide full-Hijri-date
+(Sunrise), MOSQUE_A Friday second-khutbah notes and a mosque-wide full-Hijri-date
 display preference (see [dashboard](dashboard.md)). This addition is
 **implemented, with real-device/source and restart release acceptance pending**.
 REV-08's import-difference portion is fulfilled by Milestone 17. Candidate
@@ -118,14 +118,14 @@ Implemented and tested: HTTPS downloader, strict sample PDF adapter, isolated PD
 worker, URL-first source options/manual upload, daily/manual change checks, durable
 staging/approval, status sensor, diagnostics and storage v3 migration.
 
-The user-provided Nuneaton Muslim Society 2026 annual PDF is now inspected and supported
-by `nms_annual_v1`. Its 365 dates/5,110 events match an independent extraction, including
+The user-provided Mosque A 2026 annual PDF is now inspected and supported
+by `mosque_a_annual_v1`. Its 365 dates/5,110 events match an independent extraction, including
 clock changes, Friday slots and quotation marks. Original synthetic fixtures reproduce
 the recognized layout for CI; the uploaded original is not redistributed. Manual UI
 upload/approval/reload and changed-source staging are tested. Live access to the
 website's HTTPS equivalent is unverified; HTTP downloads remain unsupported.
 
-Subsequent inspected layouts add NMS May–June 2022 monthly pages and Zakariyya's
+Subsequent inspected layouts add MOSQUE_A May–June 2022 monthly pages and Mosque B's
 2026 annual tables and separate Ramadan page. Their independent expected-value
 comparisons and publication-specific limits are documented in
 [PDF layouts](pdf_layouts.md).
@@ -200,7 +200,7 @@ before 0.7.0 and the later dashboard additions; see the
 Candidate 0.6.0 added prayer emphasis, independent countdown progress,
 calculated Umm al-Qura dates and graphical layout/visibility/time-format controls.
 The latest dashboard changes show Fajr's **published sunrise end** within its row,
-show explicitly published NMS second-Jumu’ah khutbah times as **Friday-only notes**
+show explicitly published MOSQUE_A second-Jumu’ah khutbah times as **Friday-only notes**
 without modifying existing Dhuhr/Jamaat events, and add the mosque-level full-Hijri
 visibility preference during setup and under Configure → Mosque settings. The
 per-card Hijri toggle and ±3-day display adjustment remain available. Candidate
@@ -305,7 +305,7 @@ Add calendar-based automation examples after those semantics pass.
 
 The previously implemented manual edition/profile picker was removed following
 maintainer acceptance testing: ordinary users upload a PDF or configure a URL.
-The strict NMS and Zakariyya PDF adapters, automatic layout detection, ordinary
+The strict MOSQUE_A and Mosque B PDF adapters, automatic layout detection, ordinary
 source/URL profiles, stage/compare/approve flow and independent fixture oracles
 are **retained**. Older approved records containing legacy
 `publication_profile_id` remain loadable; that field is not persisted for new

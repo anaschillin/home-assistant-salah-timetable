@@ -1,4 +1,4 @@
-"""Asset inventory must be complete and cannot self-certify unknown rights."""
+"""Synthetic fixtures are original; unknown media rights still block release."""
 
 import json
 from pathlib import Path
@@ -10,8 +10,8 @@ from scripts import check_asset_provenance as provenance
 
 def test_repository_asset_inventory_is_complete():
     unresolved = provenance.audit(provenance.ROOT)
-    assert "tests/fixtures/pdf/nms ramadhan.pdf" in unresolved
-    assert "tests/fixtures/pdf/zak.pdf" in unresolved
+    assert "tests/fixtures/pdf/mosque_a_monthly_2022.pdf" not in unresolved
+    assert "tests/fixtures/pdf/mosque_b_2026.pdf" not in unresolved
     assert "custom_components/salah_timetable/brand/icon.png" in unresolved
     with pytest.raises(ValueError, match="Redistribution unresolved"):
         provenance.audit(provenance.ROOT, require_cleared=True)

@@ -5,6 +5,20 @@ acceptance checklist. See [remaining work](remaining-work.md) for engineering
 priorities and [release readiness](releasing.md#current-release-readiness) for
 blocking manual sign-offs.
 
+## Validation workflow simplification — 27 October 2026
+
+PR #35 reduces the prospective Validate workflow from 12 jobs to **seven**:
+locked Python tests, frontend/Chromium, HACS, hassfest, full-suite pinned HA
+2026.10.0 compatibility, full-suite pinned HA 2026.10.3 compatibility,
+and one real Container/live-frontend acceptance run on HA 2026.10.3.
+The former shard selector and its dedicated tests have been removed.
+All test modules still run in each pinned compatibility lane; the usual
+per-test and process timeouts are unchanged.
+
+This is a CI configuration change, not evidence of a release. The previous
+12-job results below are retained as historical, exact-commit records.
+The simplified workflow requires its own successful PR run.
+
 ## 0.9.1 acceptance report — 26 October 2026
 
 The maintainer reports successfully **removing and reinstalling Salah
@@ -242,7 +256,7 @@ later branch attempt, and its failed job passed on rerun. The final
 
 **Dashboard enhancement evidence (not release sign-off):** [PR
 #16](https://github.com/anaschillin/home-assistant-salah-timetable/pull/16)
-adds a Fajr end display using the explicitly published Sunrise, NMS annual
+adds a Fajr end display using the explicitly published Sunrise, MOSQUE_A annual
 and monthly **second khutbah** footer extraction as Friday-only metadata,
 and a full calculated Hijri date visibility option at initial mosque setup
 and in later Options settings. The published Fajr, Dhuhr, Jumu’ah and
@@ -253,7 +267,7 @@ The [PR validation run **40212080948**](https://github.com/anaschillin/home-assi
 succeeded for source commit `ed6733cc03a9c354dba6f233e37431140c8eda30`:
 **884 Python tests passed**, frontend Chromium, HACS, hassfest and disposable
 live HA 2026.10.0/2026.10.3 all passed. Early branch iterations caught
-Python formatting, browser DOM selection and the new NMS fixture's CSV
+Python formatting, browser DOM selection and the new MOSQUE_A fixture's CSV
 header/column-count mismatches. These were corrected and not silently
 dismissed. Manual real-publication display, physical-device/card-editor
 and restart acceptance remain **unverified** and must be recorded against
@@ -331,7 +345,7 @@ Observed through real authenticated Home Assistant APIs:
   mosque's entity IDs and states.
 - Upgrading from the initial 0.5.0 runtime to 0.5.1 preserved approved/pending data
   and changed the existing card resource to the new version without duplicates.
-- The supplied Nuneaton Muslim Society 2026 PDF passed authenticated upload,
+- The supplied Mosque A 2026 PDF passed authenticated upload,
   isolated extraction, layout mapping and review of all 365 dates. Rejection kept
   approved data intact. The original PDF was not copied into the repository.
 
@@ -359,7 +373,7 @@ installation through the affected proxy.
 
 The [release checklist](releasing.md) still requires the HACS custom-repository
 installation route, upgrades from a previous release, minimum-version checks and
-real mobile/tablet devices. The NMS website's live HTTPS availability is unverified;
+real mobile/tablet devices. The MOSQUE_A website's live HTTPS availability is unverified;
 manual PDF compatibility is established by the inspected layout, fixture tests
 and this live import check.
 Hosted GitHub Actions results were not readable from this environment and must be
@@ -411,9 +425,9 @@ preparation and official hassfest all passed. No GitHub release/tag was publishe
 Pulled maintainer fixtures through `daa6a1a`. The original binary files are unchanged;
 attribution and SHA-256 hashes are recorded in the [fixture README](../tests/fixtures/pdf/README.md).
 
-- NMS `nms ramadhan.pdf` is May–June **2022**, not a complete Ramadan-only file.
+- MOSQUE_A `mosque_a_monthly_2022.pdf` is May–June **2022**, not a complete Ramadan-only file.
   The strict monthly adapter produces 61 exact dates and 854 event values.
-- Zakariyya `zak.pdf` is the 2026 annual calendar plus a final Ramadan page. The new
+- Mosque B `mosque_b_2026.pdf` is the 2026 annual calendar plus a final Ramadan page. The new
   adapter imports only that page: February 18–March 20, 31 dates and 341 published
   values. Its final post-Ramadan Hijri-1 row does not activate Ramadan.
 - Every date and event value matched separately constructed Poppler spatial-text
@@ -422,7 +436,7 @@ attribution and SHA-256 hashes are recorded in the [fixture README](../tests/fix
   flows passed for both real PDFs. Source binary/checksum and parsed provenance
   round-trip through persistence and config-entry reload without activation.
 - Explicit confirmation in the example February 18–March 19 window enables
-  Zakariyya's permitted default Iftar and text-only Taraweeh; March 20 stays inactive.
+  Mosque B's permitted default Iftar and text-only Taraweeh; March 20 stays inactive.
   This test window is not a declaration of observed Ramadan dates.
 - Confirmed-window edge gaps, annual field retention, unavailable fields, default
   Iftar, manual/off modes, date adjustment, source exclusion, advisory source/effective
@@ -440,15 +454,15 @@ update, **23** frontend/packaging/release-preparation cases passed. Ruff lint/fo
 The reproducible 0.5.3 integration ZIP builds successfully and excludes PDF fixtures.
 No hosted Actions result, HACS installation, release or tag is claimed by these checks.
 
-The complete NMS Ramadan publication, full Zakariyya annual parsing and native
+The complete MOSQUE_A Ramadan publication, full Mosque B annual parsing and native
 cross-Gregorian-year PDF imports remain outside this change. See
 [Ramadan validation](ramadan_validation.md) and [remaining work](remaining-work.md).
 
 
-## Zakariyya annual tables and README badges — candidate 0.5.4
+## Mosque B annual tables and README badges — candidate 0.5.4
 
-The same maintainer-supplied `zak.pdf` now has a separate annual adapter:
-`zak_annual_v1`. It imports twelve complete monthly tables and excludes the
+The same maintainer-supplied `mosque_b_2026.pdf` now has a separate annual adapter:
+`mosque_b_annual_v1`. It imports twelve complete monthly tables and excludes the
 separate Ramadan appendix. All **365 Gregorian dates and 3,770 published event
 values** match a separately constructed Poppler spatial-text CSV oracle; no
 production pypdf extraction or adapter helpers generated that oracle.
@@ -489,7 +503,7 @@ A release badge is deferred until an actual tagged release is published.
 
 ## Maintainer updates and browser-startup hardening — candidate 0.5.5
 
-Pulled the maintainer's Chrome diagnostic step, NMS monthly confirmation test and
+Pulled the maintainer's Chrome diagnostic step, MOSQUE_A monthly confirmation test and
 Jumu'ah/Dhuhr display fix through `a1773eb`; those changes are retained. The reported
 hosted failure timed out waiting six seconds for `DevToolsActivePort`. Its D-Bus
 stderr alone does not establish why Chrome failed to expose that file.
@@ -506,7 +520,7 @@ Seven launcher regressions cover delayed/partial writes, private-profile discove
 invalid ports/non-loopback endpoints, exits, signals, spawn errors and timeout
 stderr. **40 Node tests** and real Chromium smoke at 360/900 pixels passed. The
 selected local binary was `/usr/bin/chromium`. **26 focused Python tests** covering
-the maintainer's NMS flow and frontend/packaging/release preparation also passed,
+the maintainer's MOSQUE_A flow and frontend/packaging/release preparation also passed,
 as did Ruff lint/format. The new hosted Actions run remains to be checked after push;
 these local results do not establish its outcome.
 

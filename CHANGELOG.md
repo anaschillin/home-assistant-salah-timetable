@@ -5,7 +5,7 @@
 - Remove the optional inspected-publication-profile picker, edition catalogue,
   profile-specific parser wrapper, metadata validation, translations and its
   dedicated tests. Keep ordinary PDF/HTTPS imports, automatically detected
-  strict NMS/Zakariyya layouts and all approval and safety checks.
+  strict MOSQUE_A/Mosque B layouts and all approval and safety checks.
 - Continue loading older approved/staged imports containing legacy
   `publication_profile_id` metadata; omit the retired field on future saves
   without changing imported prayer data.
@@ -76,7 +76,7 @@
 
 - Display the end of Fajr at the explicitly published Sunrise time in the
   bundled dashboard, without changing published Fajr beginning or Jamaat.
-- Retain the second-Jumu’ah khutbah footer on inspected NMS annual/monthly
+- Retain the second-Jumu’ah khutbah footer on inspected MOSQUE_A annual/monthly
   publications and display it as a Friday-only note, **never** as an
   additional Jumu’ah congregation or revised Dhuhr beginning.
 - Display the **full calculated Umm al-Qura Hijri date** (day, month, year)
@@ -167,7 +167,7 @@
 
 - Label published Jumu'ah congregation times in the daily Dhuhr row while retaining
   ordinary Dhuhr labels; preserve the maintainer's display fix and regression tests.
-- Exercise real NMS monthly Ramadan approval and explicit date confirmation.
+- Exercise real MOSQUE_A monthly Ramadan approval and explicit date confirmation.
 - Retain CI browser diagnostics, prefer native Chrome and allow a bounded 15-second
   debugger startup. Handle private Chromium profile paths, partially written port
   files, process exits and signal failures with regression tests.
@@ -175,7 +175,7 @@
 ## 0.5.4
 
 - Add live validation, HACS custom-repository and MIT license README badges.
-- Support the inspected Zakariyya 2026 annual PDF tables as a separate layout from
+- Support the inspected Mosque B 2026 annual PDF tables as a separate layout from
   its Ramadan page. Validate all 365 dates and 3,770 published values against an
   independent extraction; preserve missing Sehri fields and pre-noon Dhuhr values.
 - Document and show the clipped May first-date interpretation before approval,
@@ -186,8 +186,8 @@
 
 ## 0.5.3
 
-- Validate the contributed NMS May–June 2022 monthly PDF and the separate Ramadan
-  page in Zakariyya Masjid's 2026 calendar with strict layout adapters and independent
+- Validate the contributed MOSQUE_A May–June 2022 monthly PDF and the separate Ramadan
+  page in Mosque B Masjid's 2026 calendar with strict layout adapters and independent
   expected values. Preserve printed years and post-Ramadan rows without activation.
 - Increase the bounded PDF input limit to 4 MiB; keep all extraction resource,
   decompression, page and text limits, and HTTPS protections.
@@ -234,7 +234,7 @@
 
 ## 0.3.1
 
-- Support the inspected Nuneaton Muslim Society annual PDF layout, alongside the
+- Support the inspected Mosque A annual PDF layout, alongside the
   strict synthetic sample layout, with explicit field meanings and fixture tests.
 - Support UI URL/manual import, bounded HTTPS downloads, staged updates and
   approval while preserving the last validated source.

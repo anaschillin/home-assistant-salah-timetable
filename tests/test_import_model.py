@@ -114,7 +114,7 @@ def test_previous_publication_profile_metadata_loads_without_catalogue():
     """Removing the profile picker must not invalidate existing approved data."""
     original = candidate()
     saved = original.as_dict()
-    saved["publication_profile_id"] = "nms_annual_2026_v1"
+    saved["publication_profile_id"] = "mosque_a_annual_2026_v1"
     restored = ImportCandidate.from_dict(saved)
     assert restored == original
     assert "publication_profile_id" not in restored.as_dict()

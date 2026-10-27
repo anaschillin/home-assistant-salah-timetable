@@ -15,11 +15,11 @@ FIXTURES = Path(__file__).parent / "fixtures" / "pdf"
 @pytest.mark.parametrize(
     ("file", "import_type", "layout"),
     [
-        ("nms_synthetic_2026.pdf", "annual", "nms_annual_v1"),
-        ("nms ramadhan.pdf", "monthly", "nms_monthly_v1"),
-        ("nms ramadhan.pdf", "ramadan", "nms_monthly_v1"),
-        ("zak.pdf", "annual", "zak_annual_v1"),
-        ("zak.pdf", "ramadan", "zak_ramadan_v1"),
+        ("mosque_a_synthetic_2026.pdf", "annual", "mosque_a_annual_v1"),
+        ("mosque_a_monthly_2022.pdf", "monthly", "mosque_a_monthly_v1"),
+        ("mosque_a_monthly_2022.pdf", "ramadan", "mosque_a_monthly_v1"),
+        ("mosque_b_2026.pdf", "annual", "mosque_b_annual_v1"),
+        ("mosque_b_2026.pdf", "ramadan", "mosque_b_ramadan_v1"),
         ("sample_table.pdf", "annual", "pdf_table_v1"),
         ("sample_table.pdf", "monthly", "pdf_table_v1"),
         ("sample_table.pdf", "ramadan", "pdf_table_v1"),
@@ -39,9 +39,9 @@ def test_detects_supported_pdf_and_retains_concrete_layout(file, import_type, la
 @pytest.mark.parametrize(
     ("file", "import_type"),
     [
-        ("nms ramadhan.pdf", "annual"),
-        ("nms_synthetic_2026.pdf", "monthly"),
-        ("zak.pdf", "monthly"),
+        ("mosque_a_monthly_2022.pdf", "annual"),
+        ("mosque_a_synthetic_2026.pdf", "monthly"),
+        ("mosque_b_2026.pdf", "monthly"),
     ],
 )
 def test_recognized_pdf_rejects_mismatched_type(file, import_type):
@@ -68,7 +68,7 @@ def test_ambiguous_pdf_is_rejected_without_selecting_an_adapter(monkeypatch):
     monkeypatch.setattr(
         pdf_parser,
         "_LAYOUTS",
-        {"nms_annual_v1": FakeLayout(), "zak_annual_v1": FakeLayout()},
+        {"mosque_a_annual_v1": FakeLayout(), "mosque_b_annual_v1": FakeLayout()},
     )
     monkeypatch.setattr(pdf_parser, "extract_pdf_pages", lambda _content: ("page",))
     parser = PdfParser("auto", import_type="annual")
@@ -102,10 +102,10 @@ def test_rejects_unrecognized_source_type_before_parsing():
 @pytest.mark.parametrize(
     ("layout", "import_type"),
     [
-        ("nms_annual_v1", "monthly"),
-        ("nms_monthly_v1", "annual"),
-        ("zak_annual_v1", "ramadan"),
-        ("zak_ramadan_v1", "annual"),
+        ("mosque_a_annual_v1", "monthly"),
+        ("mosque_a_monthly_v1", "annual"),
+        ("mosque_b_annual_v1", "ramadan"),
+        ("mosque_b_ramadan_v1", "annual"),
     ],
 )
 def test_explicit_layout_cannot_bypass_new_timetable_type(layout, import_type):
@@ -114,8 +114,8 @@ def test_explicit_layout_cannot_bypass_new_timetable_type(layout, import_type):
 
 
 def test_legacy_stored_monthly_adapter_keeps_annual_canonical_kind():
-    candidate = PdfParser("nms_monthly_v1").parse(
-        (FIXTURES / "nms ramadhan.pdf").read_bytes(),
+    candidate = PdfParser("mosque_a_monthly_v1").parse(
+        (FIXTURES / "mosque_a_monthly_2022.pdf").read_bytes(),
         timetable_id="annual-2022",
         kind="annual",
         year=2022,
@@ -123,7 +123,7 @@ def test_legacy_stored_monthly_adapter_keeps_annual_canonical_kind():
         columns={"Fajr Begin": "fajr_begin"},
     )
     assert candidate.timetable.kind == "annual"
-    assert candidate.parser_id == "nms_monthly_v1"
+    assert candidate.parser_id == "mosque_a_monthly_v1"
     assert candidate.coverage.row_count == 61
 
 

@@ -16,10 +16,10 @@ from typing import Protocol
 
 from .csv_parser import CsvParser
 from .import_model import MAX_PDF_BYTES, ImportCandidate, ImportValidationError
-from .nms_layout import NMS_COLUMNS, NmsLayout
-from .nms_monthly_layout import NMS_MONTHLY_COLUMNS, NmsMonthlyLayout
-from .zak_annual_layout import ZAK_ANNUAL_COLUMNS, ZakAnnualLayout
-from .zak_ramadan_layout import ZAK_RAMADAN_COLUMNS, ZakRamadanLayout
+from .mosque_a_layout import MOSQUE_A_COLUMNS, MosqueALayout
+from .mosque_a_monthly_layout import MOSQUE_A_MONTHLY_COLUMNS, MosqueAMonthlyLayout
+from .mosque_b_annual_layout import MOSQUE_B_ANNUAL_COLUMNS, MosqueBAnnualLayout
+from .mosque_b_ramadan_layout import MOSQUE_B_RAMADAN_COLUMNS, MosqueBRamadanLayout
 
 MAX_PDF_PAGES = 16
 MAX_TEXT_BYTES = 256 * 1024
@@ -104,18 +104,20 @@ class PipeTableLayout:
 
 _LAYOUTS: dict[str, PdfLayout] = {
     "pdf_table_v1": PipeTableLayout(),
-    "nms_annual_v1": NmsLayout(),
-    "nms_monthly_v1": NmsMonthlyLayout(),
-    "zak_ramadan_v1": ZakRamadanLayout(),
-    "zak_annual_v1": ZakAnnualLayout(),
+    "mosque_a_annual_v1": MosqueALayout(),
+    "mosque_a_monthly_v1": MosqueAMonthlyLayout(),
+    "mosque_b_ramadan_v1": MosqueBRamadanLayout(),
+    "mosque_b_annual_v1": MosqueBAnnualLayout(),
 }
 
 # A monthly source remains an ordinary, partially covered annual timetable.
 # A Ramadan selection changes override semantics, not the published dates.
 _AUTO_LAYOUTS = {
-    "annual": frozenset({"nms_annual_v1", "zak_annual_v1", "pdf_table_v1"}),
-    "monthly": frozenset({"nms_monthly_v1", "pdf_table_v1"}),
-    "ramadan": frozenset({"nms_monthly_v1", "zak_ramadan_v1", "pdf_table_v1"}),
+    "annual": frozenset({"mosque_a_annual_v1", "mosque_b_annual_v1", "pdf_table_v1"}),
+    "monthly": frozenset({"mosque_a_monthly_v1", "pdf_table_v1"}),
+    "ramadan": frozenset(
+        {"mosque_a_monthly_v1", "mosque_b_ramadan_v1", "pdf_table_v1"}
+    ),
 }
 
 
@@ -239,20 +241,22 @@ class PdfParser:
         # Resolve automatic layout selection before validating its fixed columns.
         canonical_csv = self._csv(content)
         fixed_columns = {
-            "nms_annual_v1": NMS_COLUMNS,
-            "nms_monthly_v1": NMS_MONTHLY_COLUMNS,
-            "zak_ramadan_v1": ZAK_RAMADAN_COLUMNS,
-            "zak_annual_v1": ZAK_ANNUAL_COLUMNS,
+            "mosque_a_annual_v1": MOSQUE_A_COLUMNS,
+            "mosque_a_monthly_v1": MOSQUE_A_MONTHLY_COLUMNS,
+            "mosque_b_ramadan_v1": MOSQUE_B_RAMADAN_COLUMNS,
+            "mosque_b_annual_v1": MOSQUE_B_ANNUAL_COLUMNS,
         }.get(self.layout_id)
-        if self.layout_id == "nms_annual_v1" and kind != "annual":
-            raise ImportValidationError("Use Annual kind for the NMS annual layout")
-        if self.layout_id == "zak_ramadan_v1" and kind != "ramadan":
+        if self.layout_id == "mosque_a_annual_v1" and kind != "annual":
             raise ImportValidationError(
-                "Use Ramadan kind for the Zakariyya Ramadan page layout"
+                "Use Annual kind for the MOSQUE_A annual layout"
             )
-        if self.layout_id == "zak_annual_v1" and kind != "annual":
+        if self.layout_id == "mosque_b_ramadan_v1" and kind != "ramadan":
             raise ImportValidationError(
-                "Use Annual kind for the Zakariyya annual calendar layout"
+                "Use Ramadan kind for the Mosque B Ramadan page layout"
+            )
+        if self.layout_id == "mosque_b_annual_v1" and kind != "annual":
+            raise ImportValidationError(
+                "Use Annual kind for the Mosque B annual calendar layout"
             )
         if fixed_columns is not None and (
             date_column != "Date"
