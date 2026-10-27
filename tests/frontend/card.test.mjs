@@ -461,7 +461,8 @@ test("Arabic empty, unavailable, disconnected and Ramadan states use the catalog
   assert.equal(find(card.shadowRoot, "ha-card")[0].textContent, tr("ar", "card.unavailable"));
   const current = withLanguage("ar", {...attributes, prayers: [], next_salah: null, next_jamaat: null, previous_jamaat: null, ramadan: {active: true}}); current.connection.connected = false;
   card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", detail_level: "detailed"}); card.hass = current; card._render(Date.parse("2026-10-21T04:40:00Z"));
-  for (const key of ["card.disconnected", "panel.no_event", "status.unavailable", "ramadan.title", "ramadan.sehri_ends", "ramadan.iftar", "ramadan.taraweeh", "ramadan.no_time"]) assert.ok(card.shadowRoot.textContent.includes(tr("ar", key)), key);
+  for (const key of ["card.disconnected", "status.unavailable", "ramadan.title", "ramadan.sehri_ends", "ramadan.iftar", "ramadan.taraweeh", "ramadan.no_time"]) assert.ok(card.shadowRoot.textContent.includes(tr("ar", key)), key);
+  assert.equal(card.shadowRoot.textContent.includes(tr("ar", "panel.no_event")), false, "empty prayer panels use the unavailable state rather than the removed no-event label");
 });
 
 test("Arabic ticks retain table and numeric runs while crossing a passed boundary refreshes selection", () => {
