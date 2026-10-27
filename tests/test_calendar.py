@@ -622,13 +622,17 @@ async def test_calendar_cache_recomputes_after_approved_replacement_and_rollover
     """Cached events follow approved tables and disappear after coverage ends."""
     freezer.move_to("2026-12-31T20:00:00Z")
     await approve_tables(
-        hass, entry, (table(row("2027-01-01", fajr_begin=["06:00"]), source="annual-2027"),)
+        hass,
+        entry,
+        (table(row("2027-01-01", fajr_begin=["06:00"]), source="annual-2027"),),
     )
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     entity = calendar_entity(hass)
     assert entity.event.start == instant("2027-01-01T06:00Z")
-    replacement = (table(row("2027-01-01", fajr_begin=["07:00"]), source="annual-2027"),)
+    replacement = (
+        table(row("2027-01-01", fajr_begin=["07:00"]), source="annual-2027"),
+    )
     await entry.runtime_data.storage.async_replace(replacement)
     await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
