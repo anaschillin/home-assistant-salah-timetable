@@ -598,3 +598,60 @@ async def test_media_ownership_is_per_player_and_rejects_replaced_run(
     assert allowed("media_player.kitchen", original_run.id) is False
     # A reloaded automation has a new run context; it must not inherit ownership.
     assert allowed("media_player.hall", Context().id) is False
+
+
+@pytest.mark.parametrize("blueprint", ["adhan", "pause_resume_media"])
+async def test_media_ownership_guard_rejects_removed_player(hass, freezer, blueprint):
+    """A removed media player must not be reclaimed by a delayed action."""
+    freezer.move_to("2026-10-23T05:00:00Z")
+    if blueprint == "adhan":
+        config = expanded(
+            "adhan",
+            {
+                "prayer_sensors": ["sensor.mosque_fajr"],
+                "media_players": ["media_player.hall"],
+                "adhan_media": {
+                    "media_content_id": "adhan.mp3",
+                    "media_content_type": "audio/mpeg",
+                },
+            },
+        )
+        guard = config["actions"][-1]["then"][-1]["repeat"]["sequence"][0]["if"][0][
+            "value_template"
+        ]
+        variables = {
+            "repeat": {
+                "item": {
+                    "entity": "media_player.hall",
+                    "content": "adhan.mp3",
+                    "app": None,
+                    "updated": "2026-10-23T05:00:00+00:00",
+                }
+            },
+            "effective_volume": 0.6,
+            "run_context": Context().id,
+        }
+    else:
+        config = expanded(
+            "pause_resume_media",
+            {
+                "prayer_beginning": "sensor.prayer_begin",
+                "resume_anchor": "sensor.prayer_jamaat",
+                "media_players": ["media_player.hall"],
+            },
+        )
+        guard = config["actions"][-1]["repeat"]["sequence"][0]["value_template"]
+        variables = {
+            "repeat": {
+                "item": {
+                    "entity_id": "media_player.hall",
+                    "content": "song-a",
+                    "app": "music",
+                    "context": Context().id,
+                    "updated": "2026-10-23T05:00:00+00:00",
+                }
+            }
+        }
+
+    assert hass.states.get("media_player.hall") is None
+    assert Template(guard, hass).async_render(variables, parse_result=True) is False
