@@ -701,6 +701,7 @@ async def test_media_blueprint_reload_does_not_replay_past_prayer(
     await advance(hass, freezer, "2026-10-23T05:02:00Z")
     assert not action
 
+
 @pytest.mark.parametrize("blueprint", ["adhan", "pause_resume_media"])
 async def test_delayed_media_action_rejects_ownership_after_reload(
     hass, freezer, blueprint
