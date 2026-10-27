@@ -112,7 +112,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     }
     await setEditorOption("language", "auto");
     await until(expression(`const card=${previewCard};return card?._config.language==='auto'&&card.getAttribute('lang')==='en'`), "Actual automatic-language control did not follow the English HA locale");
-    const selected = {language: "ar", bilingual_prayer_labels: true, layout: "compact", time_format: "12h", hijri_adjustment: 2, show_hijri_date: true, show_gregorian_date: false, show_salah_countdown: false, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: false, show_iftar_countdown: false, show_timezone_note: false};
+    const selected = {language: "ar", bilingual_prayer_labels: true, detail_level: "standard", time_format: "12h", hijri_adjustment: 2, show_hijri_date: true, show_gregorian_date: false, show_salah_countdown: false, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: false, show_iftar_countdown: false, show_timezone_note: false};
     for (const [key, target] of Object.entries(selected)) for (const value of typeof target === "boolean" ? [!target, target] : [target]) {
       await setEditorOption(key, value);
       if (typeof value === "boolean" && key !== "bilingual_prayer_labels") await until(expression(`
@@ -140,7 +140,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     const restored = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.title==='Keyboard smoke title');return card?{config:card._config,panels:card.shadowRoot.querySelectorAll('.panel').length,compact:!!card.shadowRoot.querySelector('.content.compact'),hijri:card.shadowRoot.querySelector('.hijri')?.textContent,gregorian:!!card.shadowRoot.querySelector('.gregorian'),data:{prayers:card._hass.states[card._config.entity].attributes.prayers,active:card._hass.states[card._config.entity].attributes.ramadan.active},times:[...card.shadowRoot.querySelectorAll('tbody td')].map(cell=>cell.textContent)}:null"));
     for (const [key, value] of Object.entries(selected)) assert.equal(restored.config[key], value, `Saved option did not survive reload: ${key}`);
     assert.deepEqual(restored.data, originalData, "Display controls changed prayer data or Ramadan activation");
-    assert.equal(restored.panels, 1); assert.equal(restored.compact, true); assert.equal(restored.gregorian, false);
+    assert.equal(restored.panels, 1); assert.equal(restored.compact, false); assert.equal(restored.gregorian, false);
     assert.match(restored.hijri, /هجري \(محسوب\)/);
     assert.ok(restored.times.some(value => /(?:am|pm|ص|م)\s*$/i.test(value)), "Reloaded card does not use 12-hour times");
     await evaluate(expression("window.salahAutoCard=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.entity&&element._config.title!=='Keyboard smoke title');if(!window.salahAutoCard)throw new Error('Original smoke card missing');window.salahAutoCard.setConfig({...window.salahAutoCard._config,language:'auto'});return true"));
