@@ -63,7 +63,7 @@ const data = {
 };
 let serviceCalls = 0;
 const hass = {states: {"sensor.example_prayer_timetable": {state: data.date, attributes: data}}, locale: {language: "en-GB"}, config: {time_zone: data.time_zone}, connection: {connected: true}, callService() { serviceCalls++; }};
-const config = {entity: "sensor.example_prayer_timetable", mode: "context", language, bilingual_prayer_labels: bilingual};
+const config = {entity: "sensor.example_prayer_timetable", detail_level: "detailed", language, bilingual_prayer_labels: bilingual};
 const ui = resolveUi(config, hass);
 const digits = value => new Intl.NumberFormat(ui.locale, {useGrouping: false, minimumIntegerDigits: 2}).format(value);
 const zero = `${digits(0)}:${digits(0)}:${digits(0)}`;
@@ -84,10 +84,10 @@ try {
   const numericNodes = [...card.shadowRoot.querySelectorAll("tbody td, .count, .absolute, [data-ramadan] .event")];
   check("numeric times use LTR isolation", numericNodes.length > 0 && numericNodes.every(element => element.querySelector('bdi[dir="ltr"]')) && [...card.shadowRoot.querySelectorAll('bdi[dir="ltr"]')].every(element => getComputedStyle(element).direction === "ltr"));
   card._render(Date.parse(time(4, 50)));
-  check("context changes at prayer beginning", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.next_jamaat"));
+  check("previous Jamaat remains fixed", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.previous_jamaat"));
   card._render(Date.parse(time(5, 15)));
   check("exact Jamaat becomes previous event", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.previous_jamaat"));
-  check("exact Jamaat elapsed zero", card.shadowRoot.querySelector('[data-panel="jamaat"] .count bdi').textContent === zero);
+  check("previous Jamaat displays published times", Boolean(card.shadowRoot.querySelector('[data-panel="jamaat"] .prayer-times bdi')));
   render({title: '<img src="x" onerror="window.injected=true">'});
   check("title uses literal text rather than executable markup", card.shadowRoot.querySelector("h2").textContent.startsWith("<img") && !card.shadowRoot.querySelector("img") && !window.injected);
   render({title: "مسجد الرحمة · Long mixed mosque title ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 · المسجد الكبير"});
@@ -106,12 +106,10 @@ try {
   check("Friday published second Khutbah remains isolated", Boolean(card.shadowRoot.querySelector('.khutbah bdi[dir="ltr"]')));
   card.hass = hass; card._render(Date.parse(time(4, 40)));
   check("upcoming row has accessible emphasis", card.shadowRoot.querySelector("tbody tr").getAttribute("aria-current") === "true");
-  // Context mode correctly shows the completed Fajr congregation at 08:00.
-  // Select upcoming mode explicitly before checking both future-event bars.
-  render({mode: "upcoming"}, time(8));
-  check("progress fixture selects the upcoming congregation", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.next_jamaat"));
-  check("future countdowns show bounded progress", [...card.shadowRoot.querySelectorAll("progress")].every(bar => bar.value >= 0 && bar.value <= 100) && card.shadowRoot.querySelectorAll("progress").length === 2);
-  render({layout: "compact", time_format: "12h", show_salah_countdown: false});
+  render({}, time(8));
+  check("previous Jamaat remains fixed", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.previous_jamaat"));
+  check("only Next Salah has a countdown", card.shadowRoot.querySelectorAll(".prayer-panel .count").length === 1);
+  render({detail_level: "standard", time_format: "12h", show_salah_countdown: false});
   check("single visible panel fills width", card.shadowRoot.querySelectorAll(".panel").length === 1);
   check("12-hour absolute times", /(?:am|pm|ص|م)\s*$/i.test(card.shadowRoot.querySelector("tbody td > bdi").textContent));
   render({}, time(4, 41));
@@ -155,8 +153,7 @@ try {
   check("configuration echo preserves focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
   editor.hass = {...hass, states: {...hass.states}};
   check("hass state updates preserve focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
-  const mode = editor.shadowRoot.querySelectorAll("ha-selector")[1]; mode.value = "upcoming"; mode.select.dispatchEvent(new Event("change"));
-  check("graphical mode editor round trip", lastConfig.mode === "upcoming" && mode.value === "upcoming");
+  check("obsolete Jamaat mode editor removed", !editor.shadowRoot.textContent.includes("Jamaat panel"));
   const update = (key, value) => {
     const control = editor.shadowRoot.querySelector(`[data-option="${key}"]`);
     if (typeof value === "boolean") control.checked = value; else control.value = String(value);
@@ -171,7 +168,7 @@ try {
   }
   for (const value of [false, true, bilingual]) update("bilingual_prayer_labels", value);
   check("graphical language and bilingual controls round trip", lastConfig.language === language && lastConfig.bilingual_prayer_labels === bilingual);
-  for (const [key, values] of Object.entries({layout: ["compact", "expanded"], time_format: ["12h", "24h"], hijri_adjustment: [-3, 3, 0]})) for (const value of values) update(key, value);
+  for (const [key, values] of Object.entries({detail_level: ["compact", "standard", "detailed"], time_format: ["12h", "24h"], hijri_adjustment: [-3, 3, 0]})) for (const value of values) update(key, value);
   const visibilityOptions = Object.keys(visibility(card));
   for (const key of visibilityOptions) for (const value of [false, true]) {
     update(key, value);
