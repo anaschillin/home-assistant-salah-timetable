@@ -108,34 +108,10 @@ class SalahOptionsFlow(SourceOptionsFlow):
             errors=errors,
         )
 
-    async def async_step_ramadan(self, user_input=None):
-        errors = {}
-        detail = ""
-        coordinator = getattr(self.config_entry, "runtime_data", None)
-        tables = coordinator.storage.timetables if coordinator else ()
-        sources = [table.timetable_id for table in tables if table.kind == "ramadan"]
-        if user_input is not None:
-            try:
-                values = dict(user_input)
-                if values.get("ramadan_source_id") == "__auto__":
-                    values["ramadan_source_id"] = None
-                settings = RamadanSettings.from_options(values)
-                if settings.source_id is not None and settings.source_id not in sources:
-                    raise ValueError("Select an imported Ramadan source")
-                validate_ramadan_selection(tables, settings)
-            except ValueError as err:
-                errors["base"] = "invalid_ramadan"
-                detail = str(err)
-            else:
-                return self.async_create_entry(
-                    title="",
-                    data={**self.config_entry.options, **settings.as_options()},
-                )
-        try:
-            current = RamadanSettings.from_options(self.config_entry.options)
-        except ValueError:
-            current = RamadanSettings()
-        schema = {
+    @staticmethod
+    def _ramadan_form_schema(current: RamadanSettings, sources: list[str]):
+        """Build controls separately from the validation and save lifecycle."""
+        return {
             vol.Required("ramadan_mode", default=current.mode): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=["auto", "on", "off"], translation_key="ramadan_mode"
@@ -181,9 +157,37 @@ class SalahOptionsFlow(SourceOptionsFlow):
                 )
             ),
         }
+
+    async def async_step_ramadan(self, user_input=None):
+        errors = {}
+        detail = ""
+        coordinator = getattr(self.config_entry, "runtime_data", None)
+        tables = coordinator.storage.timetables if coordinator else ()
+        sources = [table.timetable_id for table in tables if table.kind == "ramadan"]
+        if user_input is not None:
+            try:
+                values = dict(user_input)
+                if values.get("ramadan_source_id") == "__auto__":
+                    values["ramadan_source_id"] = None
+                settings = RamadanSettings.from_options(values)
+                if settings.source_id is not None and settings.source_id not in sources:
+                    raise ValueError("Select an imported Ramadan source")
+                validate_ramadan_selection(tables, settings)
+            except ValueError as err:
+                errors["base"] = "invalid_ramadan"
+                detail = str(err)
+            else:
+                return self.async_create_entry(
+                    title="",
+                    data={**self.config_entry.options, **settings.as_options()},
+                )
+        try:
+            current = RamadanSettings.from_options(self.config_entry.options)
+        except ValueError:
+            current = RamadanSettings()
         return self.async_show_form(
             step_id="ramadan",
-            data_schema=vol.Schema(schema),
+            data_schema=vol.Schema(self._ramadan_form_schema(current, sources)),
             errors=errors,
             description_placeholders={"detail": detail},
         )
