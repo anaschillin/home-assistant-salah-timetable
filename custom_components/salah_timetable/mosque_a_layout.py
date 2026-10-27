@@ -117,6 +117,7 @@ def _check_order(values: list[int]) -> None:
             "MOSQUE_A Jamaat times do not match the known daily convention"
         )
 
+
 def _resolved_clocks(
     raw: list[str], prior: dict[int, int], *, monthly: bool = False
 ) -> list[str]:
