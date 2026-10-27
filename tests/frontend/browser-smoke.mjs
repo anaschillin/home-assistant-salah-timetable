@@ -115,6 +115,7 @@ nextFixture();
     ["/custom_components/salah_timetable/frontend/salah-timetable-card.js", join(root, "custom_components/salah_timetable/frontend/salah-timetable-card.js")],
     ["/custom_components/salah_timetable/frontend/card-utils.js", join(root, "custom_components/salah_timetable/frontend/card-utils.js")],
     ["/custom_components/salah_timetable/frontend/card-i18n.js", join(root, "custom_components/salah_timetable/frontend/card-i18n.js")],
+    ["/custom_components/salah_timetable/frontend/card-styles.js", join(root, "custom_components/salah_timetable/frontend/card-styles.js")],
   ]);
   const server = createServer(async (request, response) => {
     const path = new URL(request.url, "http://127.0.0.1").pathname;
