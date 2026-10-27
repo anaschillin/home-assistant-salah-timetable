@@ -88,6 +88,7 @@ try {
   card._render(Date.parse(time(5, 15)));
   check("exact Jamaat becomes previous event", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.previous_jamaat"));
   check("previous Jamaat displays published times", Boolean(card.shadowRoot.querySelector('[data-panel="jamaat"] .prayer-times bdi')));
+  check("previous Jamaat shows live elapsed time", card.shadowRoot.querySelector('[data-panel="jamaat"] .count')?.textContent.includes(tr(ui, "status.elapsed").split("{time}")[0]) && card.shadowRoot.querySelector('[data-panel="jamaat"] .count')?.textContent.includes(":"));
   render({title: '<img src="x" onerror="window.injected=true">'});
   check("title uses literal text rather than executable markup", card.shadowRoot.querySelector("h2").textContent.startsWith("<img") && !card.shadowRoot.querySelector("img") && !window.injected);
   render({title: "مسجد الرحمة · Long mixed mosque title ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 · المسجد الكبير"});
