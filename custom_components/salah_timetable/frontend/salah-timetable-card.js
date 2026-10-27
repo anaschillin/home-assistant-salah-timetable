@@ -110,6 +110,11 @@ function prayerNode(key, ui, bilingual, fallback) {
   return result;
 }
 
+function eventPrayerKey(event) {
+  const field = String(event?.field || "").replace(/_(?:begin|jamaat)$/, "");
+  return PRAYERS.has(event?.prayer) ? event.prayer : PRAYERS.has(field) ? field : event?.prayer || field;
+}
+
 function normalizeForUi(config, hass) {
   try { return normalizeConfig(config); }
   catch (error) {
