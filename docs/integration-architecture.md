@@ -24,4 +24,4 @@ This document describes runtime ownership and the contracts between modules. It 
 
 ## Refactoring guardrails
 
-Shared import preparation may be extracted only with parity tests for CSV, PDF, URL, staged review, rejection, approval and multiple mosque instances. Avoid merging download security, parsing and storage into a single abstraction. The legacy `TimetableStorage.for_date` returns an annual-only row and must not be used for effective Ramadan selection; use `ramadan.resolve_day` instead.
+PDF upload and URL imports now share parser inspection preparation in `source_flow.py`; CSV upload retains its dedicated path. Any further shared import refactoring requires parity tests for CSV, PDF, URL, staged review, rejection, approval and multiple mosque instances. Avoid merging download security, parsing and storage into a single abstraction. The legacy `TimetableStorage.for_date` returns an annual-only row and must not be used for effective Ramadan selection; use `ramadan.resolve_day` instead.
