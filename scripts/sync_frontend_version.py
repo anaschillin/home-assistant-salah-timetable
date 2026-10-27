@@ -16,12 +16,12 @@ TARGETS = (
     ),
     (
         COMPONENT / "frontend" / "salah-timetable-card.js",
-        re.compile(r'(?<=\?v=)\d+\.\d+\.\d+'),
+        re.compile(r"(?<=\?v=)\d+\.\d+\.\d+"),
         "{version}",
     ),
     (
         COMPONENT / "frontend" / "card-utils.js",
-        re.compile(r'(?<=\?v=)\d+\.\d+\.\d+'),
+        re.compile(r"(?<=\?v=)\d+\.\d+\.\d+"),
         "{version}",
     ),
 )
