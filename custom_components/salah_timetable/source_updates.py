@@ -294,7 +294,9 @@ class SourceUpdateManager:
         return True
 
     @staticmethod
-    def _unchanged_check_patch(previous: dict, baseline: str | None, result, now: str):
+    def _unchanged_check_patch(
+        previous: dict, baseline: str | None, result, now: str
+    ):
         """Keep validators and legacy rejection when HTTP bytes are unchanged."""
         return {
             "status": "unchanged",
