@@ -21,7 +21,15 @@ export const CARD_CSS = `
 .date-tab {
   padding: 10px 5px;
 }
-.date-tab[aria-pressed="true"],.date-tab:focus-visible,.selected-date {
+.date-tab[aria-pressed="true"],.mosque-tab[aria-pressed="true"] {
+  background: var(--primary-color);
+  color: var(--text-primary-color,#fff);
+}
+.date-tab:focus-visible,.mosque-tab:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+.selected-date {
   font-size: .9rem;
   font-weight: 600;
   color: var(--secondary-text-color);
@@ -39,14 +47,6 @@ export const CARD_CSS = `
 .mosque-tab {
   flex: 1 0 auto;
   padding: 10px 14px;
-}
-.mosque-tab[aria-pressed="true"] {
-  background: var(--primary-color);
-  color: var(--text-primary-color,#fff);
-}
-.mosque-tab:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
 }
 .prayer-panel {
   gap: 8px;
