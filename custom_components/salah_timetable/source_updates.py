@@ -211,6 +211,10 @@ class SourceUpdateManager:
         finally:
             self._tasks.discard(task)
 
+    def source_profiles_changed(self) -> None:
+        """Recalculate the next due check after a source profile changes."""
+        self._notify()
+
     async def async_check_all(self) -> None:
         """Attempt every configured source once; no active data is changed."""
         await self._run(None)
