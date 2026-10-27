@@ -460,18 +460,18 @@ test("Arabic empty, unavailable, disconnected and Ramadan states use the catalog
   card.hass = {states: {"sensor.mosque_prayer_timetable": {state: "unavailable", attributes}}};
   assert.equal(find(card.shadowRoot, "ha-card")[0].textContent, tr("ar", "card.unavailable"));
   const current = withLanguage("ar", {...attributes, prayers: [], next_salah: null, next_jamaat: null, previous_jamaat: null, ramadan: {active: true}}); current.connection.connected = false;
-  card.hass = current; card._render(Date.parse("2026-10-21T04:40:00Z"));
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", detail_level: "detailed"}); card.hass = current; card._render(Date.parse("2026-10-21T04:40:00Z"));
   for (const key of ["card.disconnected", "panel.no_event", "status.unavailable", "ramadan.title", "ramadan.sehri_ends", "ramadan.iftar", "ramadan.taraweeh", "ramadan.no_time"]) assert.ok(card.shadowRoot.textContent.includes(tr("ar", key)), key);
 });
 
 test("Arabic ticks retain table and numeric runs while crossing a passed boundary refreshes selection", () => {
-  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", mode: "previous"});
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", detail_level: "detailed"});
   card.hass = withLanguage("ar-SA-u-nu-arab", {...attributes, ramadan: {active: true, sehri: "2026-10-21T04:40:02Z", iftar: "2026-10-21T17:00:00Z"}});
   card._render(Date.parse("2026-10-21T04:40:00Z"));
   const table = find(card.shadowRoot, "table")[0]; const clocks = classNodes(card.shadowRoot, "count"); const run = find(clocks[0], "bdi")[0];
   card._tick(Date.parse("2026-10-21T04:40:01Z"));
   assert.equal(find(card.shadowRoot, "table")[0], table); assert.equal(classNodes(card.shadowRoot, "count")[0], clocks[0]); assert.equal(find(clocks[0], "bdi")[0], run);
-  assert.equal(clocks[0].textContent, "٠٠:٠٤:٥٩"); assert.match(clocks[1].textContent, /مضى/); assert.match(clocks[1].textContent, /٠٩:٤٠:٠١/);
+  assert.equal(clocks[0].textContent, "٠٠:٠٤:٥٩"); assert.equal(clocks[1].textContent, "٠٠:٠٠:٠١");
   card._tick(Date.parse("2026-10-21T04:40:03Z"));
   assert.notEqual(find(card.shadowRoot, "table")[0], table);
   const sehri = classNodes(card.shadowRoot, "ramadan-grid")[0].children.find(element => element.attributes["data-ramadan"] === "sehri");
