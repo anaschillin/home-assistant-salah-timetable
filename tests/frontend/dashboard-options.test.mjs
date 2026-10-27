@@ -46,7 +46,8 @@ test("Umm al-Qura display adjusts dates across months without host timezone effe
   assert.equal(formatHijriDate("2026-02-18", 0, "en-GB"), "1 Ramadan 1447 AH");
   assert.doesNotMatch(formatHijriDate("2026-10-23", 0, "en-GB"), /October/i);
   assert.equal(formatHijriDate("2026-10-27", 0, "en-GB"), "16 Jumada al-Ula 1448 AH");
-  assert.equal(formatHijriDate("2026-10-27", 0, "ar"), "١٦ جمادى الأولى ١٤٤٨ هـ");
+  assert.equal(formatHijriDate("2026-10-27", 0, "ar"), "16 جمادى الأولى 1448 هـ");
+  assert.equal(formatHijriDate("2026-10-27", 0, "ar-EG"), "١٦ جمادى الأولى ١٤٤٨ هـ");
   assert.doesNotMatch(formatHijriDate("2026-10-27", 0, "en-GB"), /\b(?:May|BC|BCE)\b/i);
   assert.match(formatHijriDate("2026-02-18", 0, "ar"), /رمضان/);
   assert.equal(formatHijriDate("2026-02-18", -1, "en-GB"), formatHijriDate("2026-02-17", 0, "en-GB"));
