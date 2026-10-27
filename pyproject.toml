@@ -7,7 +7,7 @@ license = "MIT"
 
 [dependency-groups]
 dev = [
-  "pytest-homeassistant-custom-component==0.13.373",
+  "pytest-homeassistant-custom-component==0.13.374",
   "ruff==0.17.2",
   "pypdf==6.21.2",
 ]
