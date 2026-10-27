@@ -182,7 +182,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._renderedHassKey = this._hassRenderKey();
     this._live = null;
     const updates = [];
-    const style = node("style", CSS);
+    const style = node("style", CARD_CSS);
     const card = direction(node("ha-card"), ui);
     const state = this._state();
     if (!this._activeEntity() || !state || ["unavailable", "unknown"].includes(state.state) || !isTimetableState(state)) {
