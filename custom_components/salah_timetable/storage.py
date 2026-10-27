@@ -15,7 +15,7 @@ from homeassistant.util.json import load_json
 
 from .const import DOMAIN, STORAGE_VERSION
 from .import_model import ImportCandidate
-from .model import PrayerField, Timetable
+from .model import DailyPrayers, PrayerField, Timetable
 from .ramadan import RamadanSettings
 from .ramadan_validation import validate_ramadan_selection
 from .source_model import RemoteSource, validate_check
@@ -539,6 +539,19 @@ class TimetableStorage:
                     remote_checks=self._decision_checks(staged.candidate, "rejected"),
                 )
             )
+
+    def for_date(self, day: date) -> DailyPrayers | None:
+        """Legacy annual-only lookup; effective Ramadan dates use resolve_day."""
+        return next(
+            (
+                row
+                for table in self.timetables
+                if table.kind == "annual"
+                for row in table.days
+                if row.day == day
+            ),
+            None,
+        )
 
     async def async_remove(self) -> None:
         async with self._lock:
