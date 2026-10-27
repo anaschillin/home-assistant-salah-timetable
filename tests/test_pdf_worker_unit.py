@@ -59,7 +59,11 @@ def bounded_worker(monkeypatch):
             pypdf.filters, name, getattr(pypdf.filters, name, None), raising=False
         )
     output = io.StringIO()
-    monkeypatch.setattr(pdf_worker.sys, "stdout", output)
+    monkeypatch.setattr(
+        pdf_worker,
+        "sys",
+        SimpleNamespace(stdout=output, stdin=SimpleNamespace(buffer=io.BytesIO())),
+    )
     return applied_limits, output
 
 
