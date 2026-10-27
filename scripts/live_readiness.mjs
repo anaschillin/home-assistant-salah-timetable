@@ -25,15 +25,17 @@ export function transientReadinessError(error) {
 }
 
 export async function pollUntil(action, predicate, message, {attempts = 90, pause, signal} = {}) {
+  let lastTransientError;
   for (let attempt = 0; attempt < attempts; attempt++) {
     signal?.throwIfAborted();
     try {
       const result = await action();
       if (predicate(result)) return result;
     } catch (error) {
-      if (signal?.aborted || !transientReadinessError(error) || attempt === attempts - 1) throw error;
+      if (signal?.aborted || !transientReadinessError(error)) throw error;
+      lastTransientError = error;
     }
     if (attempt + 1 < attempts) await pause(1000);
   }
-  throw new Error(message);
+  throw new Error(`${message} after ${attempts} probes${lastTransientError ? `; last transport error: ${lastTransientError.message}` : ""}`);
 }

@@ -29,6 +29,28 @@ Green CI is **not** a published release or proof of full HAOS restore,
 rights clearance, authenticated HACS UI acceptance or manual/device checks.
 Those decisions are owned by [releasing.md](releasing.md).
 
+## 27 October code-review follow-up (active)
+
+Baseline: [main at 7913789](https://github.com/anaschillin/home-assistant-salah-timetable/commit/791378940435d2f97117d06b158ce100adcaf0eb). Findings are hypotheses until reproduced; preserve approved data, multi-instance isolation and existing security boundaries. Work in small PRs with regression tests.
+
+- [x] **CR27-01 (P1):** Reproduce source-check timer behaviour when remote profiles are added or removed. Fix rescheduling and status notification if tests expose stale scheduling.
+- [x] **CR27-02 (P1):** Test calendar next-event cache across approval, rejection, source replacement, midnight, year rollover and empty future coverage. Correct confirmed stale state without changing published instants.
+- [x] **CR27-03 (P2):** Audit frontend component-loaded listener lifetime and cleanup across repeated setup, unload and re-addition; add lifecycle tests before changing global registration.
+- [x] **CR27-04 (P2):** Measure coordinator minute refresh against event-boundary scheduling. Preserve clock-correction, DST and restart recovery; change cadence only with evidence.
+- [x] **CR27-05 (P2):** Extract shared PDF/CSV/URL import preparation from options flows without changing approval semantics or user-facing steps.
+- [x] **CR27-06 (P3):** Audit callers of legacy storage helpers (including `for_date`); remove dead code or correct stale documentation with tests.
+- [x] **CR27-07 (P3):** Document import, source-update, storage, coordinator and frontend responsibilities and cross-module state-change contracts.
+
+**CR27-07:** Module responsibilities and change-propagation contracts documented in [integration architecture](integration-architecture.md).
+
+**CR27-06:** Audited the annual-only `TimetableStorage.for_date` lookup. It remains in place for regression-test compatibility (24 tests depend on it); its docstring explicitly distinguishes it from effective Ramadan resolution through `ramadan.resolve_day`. No runtime caller was changed. The full validation workflow passed after restoring this test-supported helper.
+
+**CR27-05:** Shared the PDF/CSV source inspection path between uploaded PDF and remote URL imports without changing staged review, explicit approval, or download safeguards. The existing import-flow regression suites and CI passed after the follow-up fixes.
+
+**CR27-04 review (27 October):** Scheduling design audited; no performance benchmark was collected, so optimisation remains a separate potential task. Keep both scheduling mechanisms. Event-boundary callbacks provide timely transitions, while the one-minute coordinator fallback recovers from clock changes, delayed callbacks and other timing drift. Coverage is cached by day, approved tables and Ramadan settings. No cadence change without performance measurements and boundary/DST regression evidence; the audit is complete, but optimisation remains conditional.
+
+**First implementation batch:** CR27-01, CR27-02 and CR27-03 implemented in [PR #66](https://github.com/anaschillin/home-assistant-salah-timetable/pull/66). Source removal now explicitly recalculates the check timer, with a regression test. Calendar cache behaviour was verified by existing tests and an added replacement/year-rollover regression test; no production cache change was needed. Frontend component-loaded listener now unregisters on Home Assistant shutdown, covered by a lifecycle regression test. Maintainer reports CI passed after Ruff formatting correction. This does not replace manual HA acceptance.
+
 ## Next development priorities
 
 1. **Milestone 10B — Home Assistant integration translations.**

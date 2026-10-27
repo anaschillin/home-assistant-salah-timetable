@@ -541,7 +541,7 @@ class TimetableStorage:
             )
 
     def for_date(self, day: date) -> DailyPrayers | None:
-        """Use exact annual dates only; Ramadan activation is not implemented."""
+        """Legacy annual-only lookup; effective Ramadan dates use resolve_day."""
         return next(
             (
                 row

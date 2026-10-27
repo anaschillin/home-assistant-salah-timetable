@@ -92,6 +92,16 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 menu.extend(["check_updates", "manage_sources"])
         return self.async_show_menu(step_id="init", menu_options=menu)
 
+    async def _inspect_source(self, content, *, media_type, import_type):
+        """Share PDF/CSV preparation without changing the review or approval flow."""
+        parser = (
+            PdfParser(layout_id="auto", import_type=import_type)
+            if media_type == "pdf"
+            else self._csv_parser()
+        )
+        headers = await self.hass.async_add_executor_job(parser.inspect, content)
+        return parser, headers
+
     async def async_step_map_columns(self, user_input=None):
         result = await super().async_step_map_columns(user_input)
         if result.get("step_id") == "map_columns":
@@ -122,16 +132,10 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 result = await async_download(url, media_type=user_input["media_type"])
                 if result.content is None:
                     raise ImportValidationError("The source returned no timetable")
-                parser = (
-                    PdfParser(
-                        layout_id="auto",
-                        import_type=user_input["kind"],
-                    )
-                    if user_input["media_type"] == "pdf"
-                    else self._csv_parser()
-                )
-                headers = await self.hass.async_add_executor_job(
-                    parser.inspect, result.content
+                parser, headers = await self._inspect_source(
+                    result.content,
+                    media_type=user_input["media_type"],
+                    import_type=user_input["kind"],
                 )
             except DownloadError:
                 errors["base"] = "source_failed"
@@ -190,12 +194,8 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                     self.hass,
                     user_input["file"],
                 )
-                parser = PdfParser(
-                    layout_id="auto",
-                    import_type=user_input["kind"],
-                )
-                headers = await self.hass.async_add_executor_job(
-                    parser.inspect, content
+                parser, headers = await self._inspect_source(
+                    content, media_type="pdf", import_type=user_input["kind"]
                 )
             except (ValueError, OSError, HomeAssistantError) as err:
                 errors["base"] = "invalid_pdf"
@@ -249,7 +249,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                     HomeAssistantError,
                 ):
                     return self.async_abort(reason="source_save_failed")
-                coordinator.async_update_listeners()
+                coordinator.source_updates.source_profiles_changed()
             else:
                 await coordinator.source_updates.async_check(source_id)
             return self.async_create_entry(

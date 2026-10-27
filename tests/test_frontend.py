@@ -10,7 +10,7 @@ from homeassistant.components.lovelace.resources import (
     ResourceStorageCollection,
     ResourceYAMLCollection,
 )
-from homeassistant.const import EVENT_COMPONENT_LOADED
+from homeassistant.const import EVENT_COMPONENT_LOADED, EVENT_HOMEASSISTANT_STOP
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.setup import async_setup_component
 
@@ -172,3 +172,15 @@ async def test_resource_storage_failure_keeps_assets_available(
     assert (await client.get(CARD_URL)).status == 200
     await async_setup_frontend(hass)
     assert len(resources.async_items()) == 1
+
+
+async def test_frontend_component_listener_removed_on_homeassistant_stop(hass):
+    assert await async_setup_component(hass, "http", {})
+    await async_setup_frontend(hass)
+    state = hass.data["salah_timetable_frontend"]
+    assert state.listening
+    assert state.unsubscribe_loaded is not None
+    hass.bus.async_fire(EVENT_HOMEASSISTANT_STOP)
+    await hass.async_block_till_done()
+    assert not state.listening
+    assert state.unsubscribe_loaded is None
