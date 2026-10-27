@@ -663,12 +663,8 @@ async def test_media_blueprint_reload_does_not_replay_past_prayer(
 ):
     """A real automation reload must not replay a missed prayer beginning."""
     freezer.move_to("2026-10-23T05:01:00Z")
-    hass.states.async_set(
-        "sensor.prayer_begin", "2026-10-23T05:00:00+00:00", ATTRS
-    )
-    hass.states.async_set(
-        "sensor.prayer_jamaat", "2026-10-23T05:05:00+00:00", ATTRS
-    )
+    hass.states.async_set("sensor.prayer_begin", "2026-10-23T05:00:00+00:00", ATTRS)
+    hass.states.async_set("sensor.prayer_jamaat", "2026-10-23T05:05:00+00:00", ATTRS)
     hass.states.async_set("media_player.hall", "playing")
     if blueprint == "adhan":
         config = expanded(
