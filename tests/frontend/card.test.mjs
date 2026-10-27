@@ -53,7 +53,7 @@ test("dashboard shows published sunrise as Fajr end and second Khutbah separatel
     second_khutbah: "2026-10-23T15:30:00+01:00",
     show_hijri_date: true,
   };
-  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = hass(friday);
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "detailed"}); card.hass = hass(friday);
   card._render(Date.parse("2026-10-23T04:00:00Z"));
   const rows = find(card.shadowRoot, "tr");
   assert.match(rows[1].textContent, /Ends at sunrise: 07:20/);
@@ -175,7 +175,7 @@ test("card lifecycle ticks locally and releases its interval", () => {
 
 test("Ramadan text and imported titles use text nodes, never markup", () => {
   const malicious = '<img src=x onerror="alert(1)">'; const card = new SalahTimetableCard();
-  card.setConfig({entity: "sensor.mosque_prayer_timetable", title: malicious});
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", title: malicious, detail_level: "detailed"});
   card.hass = hass({...attributes, ramadan: {active: true, sehri: "2026-10-21T04:40:00Z", iftar: "2026-10-21T17:00:00Z", taraweeh: null, taraweeh_text: "After Isha Jamaat"}});
   card._render(Date.parse("2026-10-21T04:30:00Z"));
   assert.equal(find(card.shadowRoot, "h2")[0].textContent, malicious); assert.equal(find(card.shadowRoot, "img").length, 0);
@@ -188,17 +188,17 @@ test("disconnected HA keeps visible source data with an explicit status", () => 
   assert.match(card.shadowRoot.textContent, /disconnected/); assert.match(card.shadowRoot.textContent, /Example Mosque/);
 });
 
-test("editor round trips entity, mode and title through config-changed", () => {
+test("editor round trips entity, detail level and title through config-changed", () => {
   const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "", mode: "context"}); editor.hass = hass(); const emitted = [];
   editor.addEventListener("config-changed", event => emitted.push(event.detail.config));
-  const [entity, mode] = find(editor.shadowRoot, "ha-selector");
+  const [entity] = find(editor.shadowRoot, "ha-selector");
   assert.deepEqual(entity.selector.select.options.map(option => option.value), ["sensor.mosque_prayer_timetable"]);
   entity.dispatchEvent(new CustomEvent("value-changed", {detail: {value: "sensor.mosque_prayer_timetable"}}));
-  mode.dispatchEvent(new CustomEvent("value-changed", {detail: {value: "upcoming"}}));
+  editor._extraControls.detail_level.control.value = "detailed"; editor._extraControls.detail_level.control.dispatchEvent(new Event("change"));
   const title = find(editor.shadowRoot, "input")[0]; title.value = "My Mosque"; title.dispatchEvent(new Event("input"));
-  assert.deepEqual(emitted.at(-1), {...new SalahTimetableCardEditor()._config, type: "custom:salah-timetable-card", entity: "sensor.mosque_prayer_timetable", mode: "upcoming", title: "My Mosque"});
+  assert.deepEqual(emitted.at(-1), {...new SalahTimetableCardEditor()._config, type: "custom:salah-timetable-card", entity: "sensor.mosque_prayer_timetable", detail_level: "detailed", title: "My Mosque"});
   const reconstructed = new SalahTimetableCardEditor(); reconstructed.setConfig(emitted.at(-1)); reconstructed.hass = hass();
-  assert.equal(find(reconstructed.shadowRoot, "ha-selector")[1].value, "upcoming"); assert.equal(find(reconstructed.shadowRoot, "input")[0].value, "My Mosque");
+  assert.equal(reconstructed._extraControls.detail_level.control.value, "detailed"); assert.equal(find(reconstructed.shadowRoot, "input")[0].value, "My Mosque");
 });
 
 test("editor rejects an individual prayer entity rather than emitting a broken card", () => {
@@ -230,7 +230,7 @@ test("editor title is a labelled native input without removed HA controls", () =
 
 test("dashboard controls hide panels and details without hiding published prayer values", () => {
   const card = new SalahTimetableCard();
-  card.setConfig({entity: "sensor.mosque_prayer_timetable", layout: "compact", show_salah_countdown: false, show_jamaat_countdown: false, show_hijri_date: false, show_timezone_note: false, show_ramadan_details: false, time_format: "12h"});
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "standard", show_salah_countdown: false, show_jamaat_countdown: false, show_hijri_date: false, show_timezone_note: false, show_ramadan_details: false, time_format: "12h"});
   card.hass = hass({...attributes, ramadan: {active: true}}); card._render(Date.parse("2026-10-21T04:40:00Z"));
   assert.equal(find(card.shadowRoot, "section").length, 0);
   assert.equal(find(card.shadowRoot, "table").length, 1);
@@ -242,7 +242,7 @@ test("dashboard controls hide panels and details without hiding published prayer
 
 test("Ramadan countdown switches retain published times and Taraweeh", () => {
   const card = new SalahTimetableCard();
-  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_sehri_countdown: false, show_iftar_countdown: false});
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "detailed", show_sehri_countdown: false, show_iftar_countdown: false});
   card.hass = hass({...attributes, ramadan: {active: true, sehri: "2026-10-21T04:30:00Z", iftar: "2026-10-21T17:30:00Z", taraweeh_text: "After Isha Jamaat"}});
   card._render(Date.parse("2026-10-21T04:00:00Z"));
   const section = find(card.shadowRoot, "section").at(-1);
@@ -257,7 +257,7 @@ test("new editor controls round trip and retain nodes through HA config echoes",
   for (const [key, entry] of Object.entries(editor._extraControls)) {
     const control = entry.control;
     if (entry.checkbox) control.checked = false;
-    else control.value = key === "language" ? "ar" : key === "layout" ? "compact" : key === "time_format" ? "12h" : "-2";
+    else control.value = key === "language" ? "ar" : key === "detail_level" ? "compact" : key === "time_format" ? "12h" : "-2";
     control.dispatchEvent(new Event("change")); editor.hass = hass();
     assert.equal(editor._extraControls[key].control, control);
     assert.equal(changes.at(-1)[key], entry.checkbox ? false : key === "hijri_adjustment" ? -2 : control.value);
@@ -265,9 +265,9 @@ test("new editor controls round trip and retain nodes through HA config echoes",
 });
 
 test("all main countdown visibility combinations keep the timetable and both dates", () => {
-  for (const layout of ["compact", "expanded"]) for (const salah of [true, false]) for (const jamaat of [true, false]) {
+  for (const detail_level of ["standard", "detailed"]) for (const salah of [true, false]) for (const jamaat of [true, false]) {
     const card = new SalahTimetableCard();
-    card.setConfig({entity: "sensor.mosque_prayer_timetable", layout, show_salah_countdown: salah, show_jamaat_countdown: jamaat});
+    card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level, show_salah_countdown: salah, show_jamaat_countdown: jamaat});
     card.hass = hass(); card._render(Date.parse("2026-10-21T04:40:00Z"));
     assert.equal(find(card.shadowRoot, "section").length, Number(salah) + Number(jamaat));
     assert.equal(find(card.shadowRoot, "table").length, 1);
@@ -309,7 +309,7 @@ test("equivalent timetable and unrelated HA updates retain nodes and ticking clo
 test("timetable edits rebuild visible data even when HA reuses its objects", t => {
   t.mock.method(Date, "now", () => Date.parse("2026-10-21T04:40:00Z"));
   const current = hass(structuredClone(attributes)); const data = current.states["sensor.mosque_prayer_timetable"].attributes;
-  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = current;
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "detailed"}); card.hass = current;
   const edits = [
     [() => { data.mosque_name = "Renamed Mosque"; }, () => assert.equal(find(card.shadowRoot, "h2")[0].textContent, "Renamed Mosque")],
     [() => { data.date = "2026-10-22"; }, () => assert.match(find(card.shadowRoot, "header")[0].textContent, /22 October/)],
@@ -322,19 +322,14 @@ test("timetable edits rebuild visible data even when HA reuses its objects", t =
   }
 });
 
-test("new future prayer and Ramadan publications refresh countdowns without row changes", t => {
+test("new future prayer and Ramadan publications refresh today's countdown", t => {
   t.mock.method(Date, "now", () => Date.parse("2026-10-21T04:40:00Z"));
   const current = hass({...structuredClone(attributes), prayers: [], ramadan: {active: true, sehri: "2026-10-21T04:50:00Z"}});
   const data = current.states["sensor.mosque_prayer_timetable"].attributes;
-  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "context"}); card.hass = current;
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "detailed"}); card.hass = current;
   const clocks = () => find(card.shadowRoot, "div").filter(element => element.className === "count");
   data.next_salah = {timestamp: "2026-10-21T05:00:00Z", prayer: "fajr"}; card.hass = current;
   assert.equal(clocks()[0].textContent, "00:20:00");
-  data.context_mode = "upcoming";
-  data.context_jamaat = {timestamp: "2026-10-21T04:55:00Z", prayer: "fajr"}; card.hass = current;
-  assert.equal(clocks()[1].textContent, "00:15:00");
-  data.context_mode = "previous"; card.hass = current;
-  assert.equal(clocks()[1].textContent, "09:40:00 elapsed");
   data.sehri_events = [{timestamp: "2026-10-21T04:45:00Z"}]; card.hass = current;
   assert.equal(clocks()[2].textContent, "00:05:00");
   data.next_iftar = {timestamp: "2026-10-21T17:00:00Z"}; card.hass = current;
@@ -385,23 +380,18 @@ test("availability recovery and entity configuration changes invalidate the rend
   assert.equal(find(card.shadowRoot, "tbody")[0].children.length, 0);
 });
 
-test("ordinary ticks advance previous elapsed, progress and Ramadan clocks in place", () => {
+test("ordinary ticks advance the next Salah and Ramadan clocks without rebuilding the timetable", () => {
   const card = new SalahTimetableCard();
-  card.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "previous"});
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "detailed"});
   card.hass = hass({...attributes, ramadan: {active: true, sehri: "2026-10-21T04:30:00Z", iftar: "2026-10-21T17:00:00Z"}});
   card._render(Date.parse("2026-10-21T04:20:00Z"));
   const table = find(card.shadowRoot, "table")[0];
   const clocks = find(card.shadowRoot, "div").filter(element => element.className === "count");
+  const before = clocks[0].textContent;
   card._tick(Date.parse("2026-10-21T04:20:01Z"));
   assert.equal(find(card.shadowRoot, "table")[0], table);
-  assert.equal(clocks[1].textContent, "09:20:01 elapsed");
+  assert.notEqual(clocks[0].textContent, before);
   assert.equal(clocks[2].textContent, "00:09:59");
-  card.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "upcoming"});
-  card._render(Date.parse("2026-10-21T04:20:00Z"));
-  const bar = find(card.shadowRoot, "progress")[0]; const before = bar.value;
-  card._tick(Date.parse("2026-10-21T04:20:01Z"));
-  assert.equal(find(card.shadowRoot, "progress")[0], bar);
-  assert.ok(bar.value > before);
 });
 
 function withLanguage(language, data = attributes) {
@@ -470,18 +460,19 @@ test("Arabic empty, unavailable, disconnected and Ramadan states use the catalog
   card.hass = {states: {"sensor.mosque_prayer_timetable": {state: "unavailable", attributes}}};
   assert.equal(find(card.shadowRoot, "ha-card")[0].textContent, tr("ar", "card.unavailable"));
   const current = withLanguage("ar", {...attributes, prayers: [], next_salah: null, next_jamaat: null, previous_jamaat: null, ramadan: {active: true}}); current.connection.connected = false;
-  card.hass = current; card._render(Date.parse("2026-10-21T04:40:00Z"));
-  for (const key of ["card.disconnected", "panel.no_event", "status.unavailable", "ramadan.title", "ramadan.sehri_ends", "ramadan.iftar", "ramadan.taraweeh", "ramadan.no_time"]) assert.ok(card.shadowRoot.textContent.includes(tr("ar", key)), key);
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", detail_level: "detailed"}); card.hass = current; card._render(Date.parse("2026-10-21T04:40:00Z"));
+  for (const key of ["card.disconnected", "status.unavailable", "ramadan.title", "ramadan.sehri_ends", "ramadan.iftar", "ramadan.taraweeh", "ramadan.no_time"]) assert.ok(card.shadowRoot.textContent.includes(tr("ar", key)), key);
+  assert.equal(card.shadowRoot.textContent.includes(tr("ar", "panel.no_event")), false, "empty prayer panels use the unavailable state rather than the removed no-event label");
 });
 
 test("Arabic ticks retain table and numeric runs while crossing a passed boundary refreshes selection", () => {
-  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", mode: "previous"});
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", detail_level: "detailed"});
   card.hass = withLanguage("ar-SA-u-nu-arab", {...attributes, ramadan: {active: true, sehri: "2026-10-21T04:40:02Z", iftar: "2026-10-21T17:00:00Z"}});
   card._render(Date.parse("2026-10-21T04:40:00Z"));
   const table = find(card.shadowRoot, "table")[0]; const clocks = classNodes(card.shadowRoot, "count"); const run = find(clocks[0], "bdi")[0];
   card._tick(Date.parse("2026-10-21T04:40:01Z"));
   assert.equal(find(card.shadowRoot, "table")[0], table); assert.equal(classNodes(card.shadowRoot, "count")[0], clocks[0]); assert.equal(find(clocks[0], "bdi")[0], run);
-  assert.equal(clocks[0].textContent, "٠٠:٠٤:٥٩"); assert.match(clocks[1].textContent, /مضى/); assert.match(clocks[1].textContent, /٠٩:٤٠:٠١/);
+  assert.equal(clocks[0].textContent, "٠٠:٠٤:٥٩"); assert.equal(clocks[2].textContent, "٠٠:٠٠:٠١");
   card._tick(Date.parse("2026-10-21T04:40:03Z"));
   assert.notEqual(find(card.shadowRoot, "table")[0], table);
   const sehri = classNodes(card.shadowRoot, "ramadan-grid")[0].children.find(element => element.attributes["data-ramadan"] === "sehri");
@@ -497,7 +488,7 @@ test("editor language changes localize existing controls without replacing a foc
   assert.equal(editor._controls.title, title); assert.equal(title.value, "My مسجد"); assert.equal(title.selectionStart, 1); assert.equal(title.selectionEnd, 5);
   assert.equal(editor._controls.titleLabel.textContent, tr("ar", "editor.title"));
   assert.equal(editor._controls.entity.label, tr("ar", "editor.entity"));
-  assert.deepEqual(editor._controls.mode.selector.select.options.map(option => option.value), ["context", "previous", "upcoming"]);
+  assert.deepEqual(editor._extraControls.detail_level.control.children.map(option => option.value), ["compact", "standard", "detailed"]);
   assert.equal(language.attributes["aria-label"], tr("ar", "editor.language"));
   assert.deepEqual(language.children.map(option => option.value), ["auto", "en", "ar"]);
   const changes = []; editor.addEventListener("config-changed", event => { changes.push(event.detail.config); editor.setConfig(event.detail.config); });
@@ -519,7 +510,7 @@ test("editor validation errors follow the UI language without changing YAML valu
   assert.equal(editor._controls.error, error); assert.equal(error.textContent, tr("en", "editor.invalid_entity"));
   for (const Type of [SalahTimetableCard, SalahTimetableCardEditor]) {
     const element = new Type(); element.hass = withLanguage("ar");
-    assert.throws(() => element.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "invalid"}), {message: tr("ar", "config.mode")});
+    assert.throws(() => element.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "invalid"}), {message: tr("ar", "config.detail_level")});
     assert.throws(() => element.setConfig({language: "ar", title: "x".repeat(101)}), {message: tr("ar", "config.title")});
   }
 });
@@ -528,7 +519,7 @@ test("localized Fajr end, Friday khutbah and mosque Hijri visibility preserve th
   const friday = {...attributes, date: "2026-10-23", second_khutbah: "2026-10-23T13:00:00Z", show_hijri_date: false,
     prayers: [{key: "fajr", name: "Fajr", begin: "2026-10-23T04:45:00Z", end: "2026-10-23T06:30:00Z", jamaat: []}, {key: "dhuhr", name: "Dhuhr", begin: "2026-10-23T11:55:00Z", jamaat: ["2026-10-23T12:25:00Z"]}],
     jamaat_events: [{timestamp: "2026-10-23T12:25:00Z", prayer: "jumuah", field: "jumuah"}]};
-  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", bilingual_prayer_labels: true}); card.hass = withLanguage("ar-SA-u-nu-arab", friday);
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "ar", bilingual_prayer_labels: true, detail_level: "detailed"}); card.hass = withLanguage("ar-SA-u-nu-arab", friday);
   card._render(Date.parse("2026-10-23T11:00:00Z"));
   assert.doesNotMatch(find(card.shadowRoot, "header")[0].textContent, /هجري/);
   const end = classNodes(card.shadowRoot, "note fajr-end")[0]; assert.match(end.textContent, /الشروق/); assert.match(end.textContent, /٠٧:٣٠/); assert.equal(find(end, "bdi")[0].attributes.dir, "ltr");

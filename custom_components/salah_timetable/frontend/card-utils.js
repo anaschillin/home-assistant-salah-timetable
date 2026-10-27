@@ -73,18 +73,18 @@ function configError(key, params = {}) {
 
 export function normalizeConfig(config) {
   if (!config || typeof config !== "object" || Array.isArray(config)) throw configError("required");
-  const mode = config.mode || "upcoming";
-  if (!MODES.includes(mode)) throw configError("mode");
+  // Legacy mode is ignored: the card always displays the previous Jamaat.
   if (config.entity && (typeof config.entity !== "string" || !/^sensor\.[a-z0-9_]+$/.test(config.entity))) throw configError("entity");
   if (config.title !== undefined && (typeof config.title !== "string" || config.title.length > 100)) throw configError("title");
-  const defaults = {layout: "expanded", time_format: "24h", hijri_adjustment: 0, language: "auto", bilingual_prayer_labels: false, show_hijri_date: true, show_gregorian_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true};
+  const defaults = {detail_level: config.detail_level || (config.layout === "compact" ? "compact" : "standard"), layout: "expanded", time_format: "24h", hijri_adjustment: 0, language: "auto", bilingual_prayer_labels: false, show_hijri_date: true, show_gregorian_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true};
   const result = {...defaults, ...config};
-  if (!["expanded", "compact"].includes(result.layout)) throw configError("layout");
+  if (!["compact", "standard", "detailed"].includes(result.detail_level)) throw configError("detail_level");
   if (!["12h", "24h"].includes(result.time_format)) throw configError("time_format");
   if (!Number.isInteger(result.hijri_adjustment) || Math.abs(result.hijri_adjustment) > 3) throw configError("hijri_adjustment");
   if (!["auto", "en", "ar"].includes(result.language)) throw configError("language");
   for (const key of Object.keys(defaults).filter(key => key.startsWith("show_") || key === "bilingual_prayer_labels")) if (typeof result[key] !== "boolean") throw configError("boolean", {option: key});
-  return {...result, type: "custom:salah-timetable-card", entity: config.entity || "", mode};
+  const {mode: _legacyMode, ...withoutMode} = result;
+  return {...withoutMode, type: "custom:salah-timetable-card", entity: config.entity || ""};
 }
 
 export function isTimetableState(state) {

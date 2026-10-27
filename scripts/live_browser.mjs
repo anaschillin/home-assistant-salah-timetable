@@ -34,7 +34,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
   }
   async function evaluate(expression) {
     const value = await call("Runtime.evaluate", {expression, returnByValue: true, awaitPromise: true});
-    if (value.exceptionDetails) throw new Error("Browser evaluation failed: " + value.exceptionDetails.text);
+    if (value.exceptionDetails) throw new Error("Browser evaluation failed: " + value.exceptionDetails.text + (value.exceptionDetails.exception?.description ? "\n" + value.exceptionDetails.exception.description : ""));
     return value.result?.value;
   }
   async function until(expression, message, attempts = 100) {
@@ -50,7 +50,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
   const findCard = "deep().find(element=>element.localName==='salah-timetable-card')";
   const previewCard = "(()=>{const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');return dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='salah-timetable-card')})()";
   async function setEditorOption(key, value) {
-    await evaluate(`(()=>{const control=window.salahEditor.shadowRoot.querySelector('[data-option='+${safeJsLiteral(String(key))}+']');if(!control)throw new Error('Missing editor control: '+${safeJsLiteral(String(key))});${typeof value === "boolean" ? `control.checked=${value};` : `control.value=${safeJsLiteral(String(value))};`}control.dispatchEvent(new Event('change',{bubbles:true}));return true})()`);
+    await evaluate(`(()=>{const control=window.salahEditor.shadowRoot.querySelector('[data-option="'+${safeJsLiteral(String(key))}+'"]');if(!control)throw new Error('Missing editor control: '+${safeJsLiteral(String(key))});${typeof value === "boolean" ? `control.checked=${value};` : `control.value=${safeJsLiteral(String(value))};`}control.dispatchEvent(new Event('change',{bubbles:true}));return true})()`);
     await until(`window.salahEditor._config[${safeJsLiteral(key)}]===${safeJsLiteral(value)}`, `Editor option did not update: ${key}`);
   }
   try {
@@ -90,9 +90,9 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await until(expression("const button=deep().find(element=>element.localName==='ha-button'&&element.textContent.trim().toLowerCase()==='add card');if(!button)return false;button.click();return true"), "Real dashboard Add card button missing");
     await until(expression("const dialog=deep().find(element=>element.localName==='hui-dialog-create-card');const tab=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='ha-tab-group-tab'&&element.getAttribute('panel')==='card');if(!tab)return false;tab.click();return true"), "Real card picker tab missing");
     await until(expression("const picker=deep().find(element=>element.localName==='hui-card-picker');const option=picker&&deep(picker.shadowRoot).find(element=>element.classList.contains('overlay')&&element.config?.type==='custom:salah-timetable-card');if(!option)return false;option.click();return true"), "Salah Timetable missing from actual custom-card picker");
-    await until(expression("const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');const editor=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='salah-timetable-card-editor');if(!editor?.shadowRoot?.querySelector('#mosque-title'))return false;window.salahEditor=editor;return deep(editor.shadowRoot).some(element=>element.localName==='ha-radio-option'&&element.value==='upcoming')"), "Actual card editor controls did not render");
-    await evaluate(expression("deep(window.salahEditor.shadowRoot).find(element=>element.localName==='ha-radio-option'&&element.value==='upcoming').click();return true"));
-    await until("window.salahEditor._config.mode==='upcoming'", "Actual mode radio did not update configuration");
+    await until(expression("const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');const editor=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='salah-timetable-card-editor');if(!editor?.shadowRoot?.querySelector('#mosque-title'))return false;window.salahEditor=editor;return Boolean(editor.shadowRoot.querySelector('[data-option=detail_level]'))"), "Actual card editor controls did not render");
+    await setEditorOption("detail_level", "detailed");
+    await until("window.salahEditor._config.detail_level==='detailed'", "Actual detail level did not update configuration");
     await evaluate("window.salahEditor.shadowRoot.querySelector('#mosque-title').focus()");
     await call("Input.insertText", {text: "Keyboard smoke title"});
     await until("window.salahEditor._config.title==='Keyboard smoke title'", "Keyboard title input did not update configuration");
@@ -112,7 +112,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     }
     await setEditorOption("language", "auto");
     await until(expression(`const card=${previewCard};return card?._config.language==='auto'&&card.getAttribute('lang')==='en'`), "Actual automatic-language control did not follow the English HA locale");
-    const selected = {language: "ar", bilingual_prayer_labels: true, layout: "compact", time_format: "12h", hijri_adjustment: 2, show_hijri_date: true, show_gregorian_date: false, show_salah_countdown: false, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: false, show_iftar_countdown: false, show_timezone_note: false};
+    const selected = {language: "ar", bilingual_prayer_labels: true, detail_level: "standard", time_format: "12h", hijri_adjustment: 2, show_hijri_date: true, show_gregorian_date: false, show_salah_countdown: false, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: false, show_iftar_countdown: false, show_timezone_note: false};
     for (const [key, target] of Object.entries(selected)) for (const value of typeof target === "boolean" ? [!target, target] : [target]) {
       await setEditorOption(key, value);
       if (typeof value === "boolean" && key !== "bilingual_prayer_labels") await until(expression(`
@@ -140,7 +140,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     const restored = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.title==='Keyboard smoke title');return card?{config:card._config,panels:card.shadowRoot.querySelectorAll('.panel').length,compact:!!card.shadowRoot.querySelector('.content.compact'),hijri:card.shadowRoot.querySelector('.hijri')?.textContent,gregorian:!!card.shadowRoot.querySelector('.gregorian'),data:{prayers:card._hass.states[card._config.entity].attributes.prayers,active:card._hass.states[card._config.entity].attributes.ramadan.active},times:[...card.shadowRoot.querySelectorAll('tbody td')].map(cell=>cell.textContent)}:null"));
     for (const [key, value] of Object.entries(selected)) assert.equal(restored.config[key], value, `Saved option did not survive reload: ${key}`);
     assert.deepEqual(restored.data, originalData, "Display controls changed prayer data or Ramadan activation");
-    assert.equal(restored.panels, 1); assert.equal(restored.compact, true); assert.equal(restored.gregorian, false);
+    assert.equal(restored.panels, 1); assert.equal(restored.compact, false); assert.equal(restored.gregorian, false);
     assert.match(restored.hijri, /هجري \(محسوب\)/);
     assert.ok(restored.times.some(value => /(?:am|pm|ص|م)\s*$/i.test(value)), "Reloaded card does not use 12-hour times");
     await evaluate(expression("window.salahAutoCard=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.entity&&element._config.title!=='Keyboard smoke title');if(!window.salahAutoCard)throw new Error('Original smoke card missing');window.salahAutoCard.setConfig({...window.salahAutoCard._config,language:'auto'});return true"));

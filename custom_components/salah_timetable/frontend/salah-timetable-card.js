@@ -3,14 +3,14 @@ import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
 const RENDER_ATTRIBUTES = [
-  "mosque_name", "date", "time_zone", "prayers", "beginning_events", "jamaat_events",
+  "mosque_name", "date", "time_zone", "prayers", "day_prayers", "beginning_events", "jamaat_events",
   "next_salah", "next_jamaat", "previous_jamaat", "context_jamaat", "context_mode",
   "ramadan", "sehri_events", "iftar_events", "next_sehri", "next_iftar",
   "show_hijri_date", "second_khutbah",
 ];
 const PRAYERS = new Set(["fajr", "sunrise", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
-const CSS = `
+const CSS = `\n.date-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:4px;background:var(--secondary-background-color);border-radius:12px;margin:0 0 16px}.date-tab{border:0;border-radius:9px;padding:10px 5px;font:inherit;font-weight:600;background:transparent;color:var(--secondary-text-color);cursor:pointer}.date-tab[aria-pressed="true"]{background:var(--primary-color);color:var(--text-primary-color,#fff)}.date-tab:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}.selected-date{font-size:.9rem;font-weight:600;color:var(--secondary-text-color);margin-bottom:12px}\n\n.mosque-tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 16px;padding:4px;border-radius:12px;background:var(--secondary-background-color)}.mosque-tab{flex:1 0 auto;border:0;border-radius:9px;padding:10px 14px;font:inherit;font-weight:600;background:transparent;color:var(--secondary-text-color);cursor:pointer}.mosque-tab[aria-pressed="true"]{background:var(--primary-color);color:var(--text-primary-color,#fff)}.mosque-tab:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}\n\n.prayer-panel{gap:8px}.prayer-panel .event{min-height:1.7em}.prayer-panel .count{margin:4px 0 8px}.prayer-times{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:auto;padding-top:12px;border-top:1px solid var(--divider-color)}.prayer-time{min-width:0}.prayer-time .label{margin:0 0 5px}.prayer-time .absolute{font-size:1.1rem;font-weight:700;color:var(--primary-text-color);margin:0}.prayer-panel[data-panel="jamaat"]{justify-content:space-between}.fajr-sunrise{margin-top:5px}\n
 :host{display:block;container-type:inline-size;color:var(--primary-text-color);font-family:var(--paper-font-body1_-_font-family,inherit)}
 ha-card{display:block;overflow:hidden;background:var(--ha-card-background,var(--card-background-color));border-radius:var(--ha-card-border-radius,12px)}
 .content{padding:20px}.header{display:flex;gap:12px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}h2{font-size:1.35rem;margin:0;overflow-wrap:anywhere}.date{color:var(--secondary-text-color);font-size:.9rem}
@@ -25,6 +25,39 @@ progress{display:block;width:100%;height:4px;margin-top:12px;border:0;accent-col
 .congregation-time{white-space:nowrap}.hijri{flex-basis:100%}.compact{padding:12px}.compact th,.compact td{padding-top:6px;padding-bottom:6px}.compact .panel{padding:10px}.compact .count{font-size:1.6rem}
 table{table-layout:fixed;min-width:22rem}th:first-child{width:30%}.panels:has(>:only-child){grid-template-columns:1fr}
 @container(max-width:26rem){.scroll-help{display:block}.panels{grid-template-columns:1fr}.count{font-size:1.7rem}.ramadan-grid{grid-template-columns:1fr 1fr}.ramadan-grid>:last-child{grid-column:1/-1}}
+
+/* HaCasa-inspired translucent surfaces, without external assets or dependencies. */
+ha-card{position:relative;isolation:isolate;background:var(--ha-card-background,var(--card-background-color));}
+ha-card::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 95% 0%,color-mix(in srgb,var(--primary-color) 12%,transparent),transparent 55%)}
+.panel{background:color-mix(in srgb,var(--secondary-background-color) 82%,transparent);box-shadow:0 5px 18px rgba(0,0,0,.055);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.panel[data-panel="salah"]{background:color-mix(in srgb,var(--primary-color) 13%,var(--ha-card-background,var(--card-background-color)))}
+.table-scroll{background:color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 92%,transparent)}
+@media(prefers-contrast:more){.panel,.panel[data-panel="salah"],.table-scroll{background:var(--card-background-color);border:2px solid var(--primary-text-color);box-shadow:none}}
+@media(prefers-reduced-transparency:reduce){.panel,.table-scroll{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--secondary-background-color)}}
+/* Modern dashboard presentation: retain HA theme variables and accessible table semantics. */
+ha-card{border:1px solid var(--divider-color);box-shadow:0 8px 28px rgba(0,0,0,.07)}
+.content{padding:clamp(14px,3cqi,24px)}
+.header{align-items:flex-start;gap:6px 16px;margin-bottom:18px}
+.header h2{font-size:clamp(1.25rem,3cqi,1.65rem);font-weight:700;letter-spacing:-.025em;flex-basis:100%}
+.date{font-size:.82rem}.hijri{flex-basis:auto;font-weight:600;color:var(--primary-text-color)}
+.panels{gap:12px;margin:0 0 22px}
+.panel{padding:clamp(14px,2.6cqi,20px);border:1px solid var(--divider-color);border-radius:16px;background:var(--secondary-background-color);display:flex;flex-direction:column;gap:4px}
+.panel[data-panel="salah"]{background:color-mix(in srgb,var(--primary-color) 9%,var(--ha-card-background,var(--card-background-color)));border-color:color-mix(in srgb,var(--primary-color) 22%,var(--divider-color))}
+.panel .label{font-size:.73rem;letter-spacing:.075em;text-transform:uppercase;font-weight:700}
+.panel .event{font-size:1.2rem}.panel .count{font-size:clamp(1.65rem,5.5cqi,2.65rem);font-weight:750;letter-spacing:-.045em;margin:4px 0}
+.panel .absolute{font-size:.88rem}.panel progress{height:6px;border-radius:99px;overflow:hidden;margin-top:10px}
+.progress-help{font-size:.72rem}
+.table-scroll{border:1px solid var(--divider-color);border-radius:14px;overflow-x:auto}
+table{min-width:0;table-layout:auto}thead{background:var(--secondary-background-color)}
+th,td{padding:12px 10px}thead th{font-size:.73rem;letter-spacing:.04em;text-transform:uppercase}
+tbody tr:not(:last-child){border-bottom:1px solid var(--divider-color)}
+tbody tr th,tbody tr td{border-bottom:0}
+.next-prayer{background:color-mix(in srgb,var(--primary-color) 13%,transparent);box-shadow:inset 3px 0 var(--primary-color)}
+.next-prayer th,.next-prayer td{font-weight:700}.past-prayer{color:var(--secondary-text-color);opacity:1}.past-prayer th,.past-prayer td{color:inherit}
+.ramadan{margin-top:20px}.ramadan-grid>div{background:var(--secondary-background-color);border:1px solid var(--divider-color);padding:14px;border-radius:12px}
+.compact{padding:12px}.compact .panel{padding:12px}.compact .panel .count{font-size:1.65rem}
+@container(max-width:28rem){.panels{grid-template-columns:1fr}.table-scroll{border:0;border-radius:0}table{width:100%;min-width:0;font-size:.86rem}th,td{padding:9px 4px}th:first-child{width:auto}.panel .count{font-size:2rem}.ramadan-grid{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:no-preference){.panel,.next-prayer{transition:background-color .2s ease,border-color .2s ease}}
 `;
 
 function node(tag, text, className) {
@@ -96,24 +129,37 @@ function clockNode(text, ui, elapsedClock = false) {
   return result;
 }
 
-function panel(kind, labelKey, event, clock, zone, ui, config, progress, elapsedClock = false) {
-  const result = node("section", undefined, "panel");
+function publishedTimes(data, event) {
+  const key = eventPrayerKey(event);
+  const rows = Object.values(data?.day_prayers || {}).flat();
+  const row = rows.find(item => item?.key === (key === "jumuah" ? "dhuhr" : key) && (item?.jamaat || []).includes(event?.timestamp)) || (data?.prayers || []).find(item => item?.key === (key === "jumuah" ? "dhuhr" : key));
+  const jamaats = Array.isArray(row?.jamaat) ? row.jamaat : [];
+  const matching = jamaats.find(value => timestamp(value) === timestamp(event?.timestamp));
+  return {begin: row?.begin || null, jamaat: key === "jumuah" ? (matching || event?.timestamp || null) : (matching || jamaats[0] || null), end: key === "fajr" ? row?.end : null};
+}
+
+// Shared structure and styles for the upcoming Salah and previous Jamaat.
+function prayerPanel(kind, event, data, zone, ui, config, clock) {
+  const result = node("section", undefined, "panel prayer-panel");
   result.setAttribute("data-panel", kind);
-  result.clock = clockNode(clock, ui, elapsedClock);
-  const label = tr(ui, labelKey);
+  const label = node("div", tr(ui, kind === "salah" ? "panel.next_salah" : "panel.previous_jamaat"), "label");
   const name = node("div", undefined, "event");
   if (event) name.append(prayerNode(eventPrayerKey(event), ui, config.bilingual_prayer_labels, event.name));
   else name.textContent = tr(ui, "status.unavailable");
-  result.append(node("div", label, "label"), name, result.clock);
-  result.append(event ? formattedNode("div", formatTime(event.timestamp, zone, ui, config.time_format), "absolute") : node("div", tr(ui, "panel.no_event"), "absolute"));
-  if (progress !== null && progress !== undefined) {
-    const bar = node("progress"); bar.max = 100; bar.value = progress;
-    bar.setAttribute("aria-label", tr(ui, "panel.progress_aria", {label}));
-    result.progressBar = bar;
-    const description = tr(ui, kind === "salah" ? "panel.salah_progress" : "panel.jamaat_progress");
-    bar.title = description;
-    result.append(bar, node("div", description, "progress-help"));
+  result.append(label, name);
+  if (kind === "salah" || kind === "jamaat") {
+    result.clock = clockNode(clock, ui, kind === "jamaat");
+    result.append(result.clock);
   }
+  const times = publishedTimes(data, event);
+  const grid = node("div", undefined, "prayer-times");
+  for (const [key, value] of [["table.beginning", times.begin], ["table.jamaat", times.jamaat]]) {
+    const cell = node("div", undefined, "prayer-time");
+    cell.append(node("div", tr(ui, key), "label"), formattedNode("div", formatTime(value, zone, ui, config.time_format), "absolute"));
+    grid.append(cell);
+  }
+  result.append(grid);
+  if (kind === "salah" && config.detail_level === "detailed" && times.end) result.append(translatedRun("div", ui, "table.fajr_end", "time", formatTime(times.end, zone, ui, config.time_format), "note fajr-sunrise"));
   return result;
 }
 
@@ -123,6 +169,8 @@ export class SalahTimetableCard extends HTMLElement {
     this.attachShadow({mode: "open"});
     this._config = normalizeConfig({});
     this._timer = null;
+    this._selectedMosque = null;
+    this._selectedDay = 0;
   }
 
   static getConfigElement() { return document.createElement("salah-timetable-card-editor"); }
@@ -132,7 +180,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._hass = value;
     if (this._hassRenderKey() !== this._renderedHassKey) this._render();
   }
-  getCardSize() { return (this._config.layout === "compact" ? 4 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
+  getCardSize() { return (this._config.detail_level === "compact" ? 3 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
   getGridOptions() { return {columns: 12, rows: this.getCardSize(), min_columns: 6, min_rows: 4}; }
 
   connectedCallback() {
@@ -143,14 +191,20 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._timer !== null) window.clearInterval(this._timer);
     this._timer = null;
   }
-  _state() { return this._hass?.states?.[this._config.entity]; }
+  _mosques() { return discoverTimetableEntities(this._hass); }
+  _activeEntity() {
+    const mosques = this._mosques();
+    if (this._selectedMosque && mosques.some(item => item.entity === this._selectedMosque)) return this._selectedMosque;
+    return this._config.entity || mosques[0]?.entity || "";
+  }
+  _state() { return this._hass?.states?.[this._activeEntity()]; }
 
   _hassRenderKey() {
     const state = this._state();
     const data = state?.attributes;
     const ui = resolveUi(this._config, this._hass);
     return JSON.stringify([
-      Boolean(state), state?.state,
+      this._activeEntity(), this._mosques().map(item => [item.entity, item.name]), Boolean(state), state?.state,
       ...RENDER_ATTRIBUTES.map(key => data?.[key]),
       data?.time_zone || this._hass?.config?.time_zone || "UTC",
       ui.language, ui.locale, ui.dir,
@@ -160,7 +214,7 @@ export class SalahTimetableCard extends HTMLElement {
 
   _selection(data, now) {
     const next = nextSalah(data, now);
-    const congregation = jamaatPanel(data, this._config.mode, now);
+    const congregation = jamaatPanel(data, "previous", now);
     return JSON.stringify([next, congregation, highlightedPrayer(data, now),
       data.prayers.map(row => row && prayerIsPast(row, now)),
       ...["sehri", "iftar"].map(kind => {
@@ -187,8 +241,8 @@ export class SalahTimetableCard extends HTMLElement {
     const style = node("style", CSS);
     const card = direction(node("ha-card"), ui);
     const state = this._state();
-    if (!this._config.entity || !state || ["unavailable", "unknown"].includes(state.state) || !isTimetableState(state)) {
-      const key = !this._config.entity ? "card.choose_entity" : !state ? "card.entity_missing" : "card.unavailable";
+    if (!this._activeEntity() || !state || ["unavailable", "unknown"].includes(state.state) || !isTimetableState(state)) {
+      const key = !this._activeEntity() ? "card.choose_entity" : !state ? "card.entity_missing" : "card.unavailable";
       card.append(node("div", tr(ui, key), "empty"));
       this.shadowRoot.replaceChildren(style, card);
       return;
@@ -198,49 +252,80 @@ export class SalahTimetableCard extends HTMLElement {
     const scrollLeft = previousRegion?.scrollLeft || 0;
     const data = state.attributes;
     const zone = data.time_zone || this._hass?.config?.time_zone || "UTC";
-    const content = node("div", undefined, `content ${this._config.layout}`);
+    const content = node("div", undefined, `content ${this._config.detail_level === "compact" ? "compact" : "expanded"}`);
     const timeFormat = this._config.time_format;
     const header = node("header", undefined, "header");
     const title = node("h2", this._config.title || data.mosque_name); title.setAttribute("dir", "auto");
     header.append(title);
-    if (this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
-    if (this._config.show_gregorian_date) header.append(node("div", formatDate(data.date || state.state, ui), "date gregorian"));
+    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
+    if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(data.date || state.state, ui), "date gregorian"));
     content.append(header);
+    const mosques = this._mosques();
+    if (mosques.length > 1) {
+      const tabs = node("nav", undefined, "mosque-tabs");
+      tabs.setAttribute("aria-label", "Mosques");
+      for (const mosque of mosques) {
+        const button = node("button", mosque.name || mosque.entity, "mosque-tab");
+        button.type = "button";
+        button.setAttribute("aria-pressed", String(mosque.entity === this._activeEntity()));
+        button.addEventListener("click", () => {
+          if (mosque.entity === this._activeEntity()) return;
+          this._selectedMosque = mosque.entity;
+          this._render();
+        });
+        tabs.append(button);
+      }
+      content.append(tabs);
+    }
+    const dateTabs = node("nav", undefined, "date-tabs");
+    dateTabs.setAttribute("aria-label", tr(ui, "card.day_navigation"));
+    for (const [offset, key] of [[-1, "yesterday"], [0, "today"], [1, "tomorrow"]]) {
+      const button = node("button", tr(ui, `card.${key}`), "date-tab");
+      button.type = "button";
+      button.setAttribute("aria-pressed", String(this._selectedDay === offset));
+      button.addEventListener("click", () => { if (this._selectedDay !== offset) { this._selectedDay = offset; this._render(); } });
+      dateTabs.append(button);
+    }
+    content.append(dateTabs);
+    const baseDate = Date.parse(`${data.date || state.state}T12:00:00Z`);
+    const selectedDate = Number.isFinite(baseDate) ? new Date(baseDate + this._selectedDay * 86400000).toISOString().slice(0, 10) : "";
+    const selectedPrayers = this._selectedDay === 0 ? data.prayers : data.day_prayers?.[selectedDate];
+    if (this._selectedDay !== 0) {
+      content.append(node("div", formatDate(selectedDate, ui), "selected-date"));
+      if (!selectedPrayers) {
+        content.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
+        card.append(content); this.shadowRoot.replaceChildren(style, card);
+        return;
+      }
+    }
     if (this._hass?.connection?.connected === false) content.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
     const next = nextSalah(data, now);
-    const congregation = jamaatPanel(data, this._config.mode, now);
+    const previous = jamaatPanel(data, "previous", now).event;
     const panels = node("div", undefined, "panels");
-    if (this._config.show_salah_countdown) {
-      const box = panel("salah", "panel.next_salah", next, countdown(next?.timestamp, now, ui), zone, ui, this._config, eventProgress(data, false, next, now));
-      updates.push(instant => {
-        box.clock.run.textContent = countdown(next?.timestamp, instant, ui);
-        if (box.progressBar) box.progressBar.value = eventProgress(data, false, next, instant);
-      });
+    if (this._selectedDay === 0 && this._config.show_salah_countdown) {
+      const box = prayerPanel("salah", next, data, zone, ui, this._config, countdown(next?.timestamp, now, ui));
+      updates.push(instant => { box.clock.run.textContent = countdown(next?.timestamp, instant, ui); });
       panels.append(box);
     }
-    if (this._config.show_jamaat_countdown) {
-      const upcoming = congregation.mode === "upcoming";
-      const previousClock = !upcoming && Boolean(congregation.event);
-      const clock = instant => upcoming ? countdown(congregation.event?.timestamp, instant, ui) : congregation.event ? elapsed(congregation.event.timestamp, instant, ui) : tr(ui, "status.unavailable");
-      const box = panel("jamaat", upcoming ? "panel.next_jamaat" : "panel.previous_jamaat", congregation.event, clock(now), zone, ui, this._config, upcoming ? eventProgress(data, true, congregation.event, now) : null, previousClock);
-      updates.push(instant => {
-        box.clock.run.textContent = clock(instant);
-        if (box.progressBar) box.progressBar.value = eventProgress(data, true, congregation.event, instant);
-      });
+    if (this._selectedDay === 0 && this._config.show_jamaat_countdown) {
+      const box = prayerPanel("jamaat", previous, data, zone, ui, this._config, elapsed(previous?.timestamp, now, ui));
+      updates.push(instant => { box.clock.run.textContent = elapsed(previous?.timestamp, instant, ui); });
       panels.append(box);
     }
     if (panels.children.length) content.append(panels);
     const highlighted = highlightedPrayer(data, now);
+    let tableRegion;
+    if (this._selectedDay !== 0 || this._config.detail_level !== "compact") {
     const table = node("table");
     table.append(node("caption", tr(ui, "table.caption"), "sr-only"));
     const head = node("thead"); const headRow = node("tr");
     for (const key of ["table.prayer", "table.beginning", "table.jamaat"]) { const th = node("th", tr(ui, key)); th.scope = "col"; headRow.append(th); }
     head.append(headRow); table.append(head);
     const body = node("tbody");
-    for (const prayer of data.prayers) {
+    for (const prayer of selectedPrayers) {
       if (!prayer || typeof prayer !== "object") continue;
-      const row = node("tr", undefined, prayer.key === highlighted ? "next-prayer" : prayerIsPast(prayer, now) ? "past-prayer" : "");
-      if (prayer.key === highlighted) row.setAttribute("aria-current", "true");
+      const row = node("tr", undefined, this._selectedDay === 0 ? (prayer.key === highlighted ? "next-prayer" : prayerIsPast(prayer, now) ? "past-prayer" : "") : "");
+      if (this._selectedDay === 0 && prayer.key === highlighted) row.setAttribute("aria-current", "true");
       const name = node("th"); name.scope = "row";
       name.append(prayerNode(prayer.key, ui, this._config.bilingual_prayer_labels, prayer.name));
       const congregations = Array.isArray(prayer.jamaat) ? prayer.jamaat : [];
@@ -254,21 +339,22 @@ export class SalahTimetableCard extends HTMLElement {
       }
       if (!congregations.length) congregationCell.append(isolated("—"));
       const beginningCell = formattedNode("td", formatTime(prayer.begin, zone, ui, timeFormat));
-      if (prayer.key === "fajr") beginningCell.append(translatedRun("div", ui, "table.fajr_end", "time", formatTime(prayer.end, zone, ui, timeFormat), "note fajr-end"));
+      if (this._config.detail_level === "detailed" && prayer.key === "fajr") beginningCell.append(translatedRun("div", ui, "table.fajr_end", "time", formatTime(prayer.end, zone, ui, timeFormat), "note fajr-end"));
       row.append(name, beginningCell, congregationCell);
       body.append(row);
     }
     table.append(body);
-    const tableRegion = node("div", undefined, "table-scroll");
+    tableRegion = node("div", undefined, "table-scroll");
     tableRegion.tabIndex = 0;
     tableRegion.setAttribute("role", "region");
     tableRegion.setAttribute("aria-label", tr(ui, "table.region"));
     const scrollHelp = node("p", tr(ui, "table.scroll_help"), "note scroll-help");
     tableRegion.append(table); content.append(tableRegion, scrollHelp);
-    if (timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
+    }
+    if (this._selectedDay === 0 && this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
       content.append(translatedRun("p", ui, "card.second_khutbah", "time", formatTime(data.second_khutbah, zone, ui, timeFormat), "note khutbah"));
     }
-    if (data.ramadan?.active && this._config.show_ramadan_details) {
+    if (this._selectedDay === 0 && data.ramadan?.active && this._config.show_ramadan_details) {
       const ramadan = node("section", undefined, "ramadan"); ramadan.append(node("h3", tr(ui, "ramadan.title")));
       const grid = node("div", undefined, "ramadan-grid");
       for (const kind of ["sehri", "iftar"]) {
@@ -287,13 +373,15 @@ export class SalahTimetableCard extends HTMLElement {
       taraweeh.append(node("div", tr(ui, "ramadan.taraweeh"), "label"), taraweehValue); grid.append(taraweeh);
       ramadan.append(grid); content.append(ramadan);
     }
-    if (this._config.show_timezone_note) {
+    if (this._selectedDay === 0 && this._config.show_timezone_note) {
       const note = translatedRun("p", ui, "card.timezone_note", "zone", zone, "note");
       note.setAttribute("data-role", "timezone-note"); content.append(note);
     }
     card.append(content); this.shadowRoot.replaceChildren(style, card);
-    tableRegion.scrollLeft = scrollLeft;
-    if (regionFocused) tableRegion.focus({preventScroll: true});
+    if (tableRegion) {
+      tableRegion.scrollLeft = scrollLeft;
+      if (regionFocused) tableRegion.focus({preventScroll: true});
+    }
     this._live = {data, updates, selection: this._selection(data, now)};
   }
 }
@@ -323,7 +411,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       if (checkbox) control.checked = this._config[key];
       else if (control.value !== String(this._config[key])) control.value = String(this._config[key]);
     }
-    const {entity, mode, title, titleLabel, error, help} = this._controls;
+    const {entity, title, titleLabel, error, help} = this._controls;
     entity.hass = this._hass; entity.label = tr(ui, "editor.entity");
     const mosques = discoverTimetableEntities(this._hass);
     const options = mosques.map(({entity: value, name}) => ({value, label: `${name} (${value})`}));
@@ -333,13 +421,10 @@ export class SalahTimetableCardEditor extends HTMLElement {
       options.push({value: this._config.entity, label: this._config.entity});
     }
     entity.selector = {select: {options}};
-    mode.hass = this._hass; mode.label = tr(ui, "editor.mode");
-    mode.selector = {select: {options: ["context", "previous", "upcoming"].map(value => ({value, label: tr(ui, `editor.mode.${value}`)}))}};
     titleLabel.textContent = tr(ui, "editor.title");
     error.textContent = this._entityError ? tr(ui, "editor.invalid_entity") : "";
     help.textContent = tr(ui, "editor.help");
     if (entity.value !== this._config.entity) entity.value = this._config.entity;
-    if (mode.value !== this._config.mode) mode.value = this._config.mode;
     if (title.value !== (this._config.title || "")) title.value = this._config.title || "";
   }
   _render() {
@@ -355,19 +440,17 @@ export class SalahTimetableCardEditor extends HTMLElement {
       if (this._entityError) { this._updateControls(); return; }
       this._changed({entity: value || ""});
     });
-    const mode = node("ha-selector");
-    mode.addEventListener("value-changed", event => this._changed({mode: event.detail?.value || "upcoming"}));
     const titleField = node("div", undefined, "title-field");
     const titleLabel = node("label"); titleLabel.htmlFor = "mosque-title";
     const title = node("input"); title.id = "mosque-title"; title.type = "text"; title.value = this._config.title || ""; title.maxLength = 100; title.setAttribute("dir", "auto");
     titleField.append(titleLabel, title);
     title.addEventListener("input", event => this._changed({title: event.target.value}));
     const help = node("div", undefined, "help");
-    this._controls = {entity, mode, title, titleLabel, error, help};
+    this._controls = {entity, title, titleLabel, error, help};
     this._extraControls = {};
     const settings = [
       ["language", ["auto", "en", "ar"]], ["bilingual_prayer_labels"],
-      ["layout", ["expanded", "compact"]], ["time_format", ["24h", "12h"]],
+      ["detail_level", ["compact", "standard", "detailed"]], ["time_format", ["24h", "12h"]],
       ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]],
       ["show_hijri_date"], ["show_gregorian_date"], ["show_salah_countdown"], ["show_jamaat_countdown"],
       ["show_ramadan_details"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_timezone_note"]
@@ -382,7 +465,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       control.addEventListener("change", () => this._changed({[key]: choices ? key === "hijri_adjustment" ? Number(control.value) : control.value : control.checked}));
       this._extraControls[key] = {control, checkbox: !choices, label, options}; field.append(control); extras.push(field);
     }
-    form.append(entity, error, mode, titleField, ...extras, help);
+    form.append(entity, error, titleField, ...extras, help);
     this._updateControls();
     this.shadowRoot.replaceChildren(style, form);
   }

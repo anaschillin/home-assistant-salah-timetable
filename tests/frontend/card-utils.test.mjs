@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {countdown, duration, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, prayerName, timestamp, discoverEntity, discoverTimetableEntities, nextRamadanEvent} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+import {countdown, duration, elapsed, formatDate, formatHijriDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, prayerName, timestamp, discoverEntity, discoverTimetableEntities, nextRamadanEvent} from "../../custom_components/salah_timetable/frontend/card-utils.js";
 import {resolveUi} from "../../custom_components/salah_timetable/frontend/card-i18n.js";
 
 const instant = value => Date.parse(`2026-10-21T${value}:00Z`);
@@ -78,8 +78,8 @@ test("missing/malformed values remain unavailable", () => {
 });
 
 test("configuration validates modes/entities while allowing graphical setup", () => {
-  assert.equal(normalizeConfig({}).mode, "upcoming");
-  assert.throws(() => normalizeConfig({mode: "interval"}));
+  assert.equal(normalizeConfig({}).detail_level, "standard");
+  assert.equal(normalizeConfig({mode: "interval"}).detail_level, "standard");
   assert.throws(() => normalizeConfig({entity: "light.example"}));
   assert.throws(() => normalizeConfig({title: "a".repeat(101)}));
   const hass = {states: {"sensor.other": {attributes: {}}, "sensor.mosque": {attributes: data}}};
@@ -148,10 +148,10 @@ test("automatic French locale retains English UI while formatting published date
 test("configuration errors preserve English messages with localization metadata", () => {
   const cases = [
     [null, "required", "A card configuration is required"],
-    [{mode: "interval"}, "mode", "Choose context, previous or upcoming Jamaat mode"],
+    [{detail_level: "invalid"}, "detail_level", "Choose compact, standard or detailed card display"],
     [{entity: "light.example"}, "entity", "Choose a timetable sensor"],
     [{title: "a".repeat(101)}, "title", "Title must be at most 100 characters"],
-    [{layout: "tiny"}, "layout", "Choose compact or expanded layout"],
+    [{detail_level: "tiny"}, "detail_level", "Choose compact, standard or detailed card display"],
     [{time_format: "auto"}, "time_format", "Choose 12h or 24h time format"],
     [{hijri_adjustment: 4}, "hijri_adjustment", "Hijri adjustment must be a whole day from −3 to +3"],
     [{language: "fr"}, "language", "Choose auto, en or ar language"],
@@ -179,4 +179,12 @@ test("discovery lists each mosque dashboard sensor but no individual prayer sens
   ]);
   assert.equal(discoverEntity(hass), "sensor.example_prayer_timetable");
   assert.deepEqual(discoverTimetableEntities({states: {}}), []);
+});
+
+
+test("Hijri date uses an Islamic month and AH era rather than Gregorian BC", () => {
+  const value = formatHijriDate("2026-10-27", 0, resolveUi({language: "en"}, {locale: {language: "en-GB"}}));
+  assert.match(value, /1448/);
+  assert.doesNotMatch(value, /\b(?:BC|BCE|October|May)\b/i);
+  assert.match(value, /\b(?:AH|Muharram|Safar|Rabi|Jumada|Rajab|Shaban|Sha.ban|Ramadan|Shawwal|Dhu)\b/i);
 });

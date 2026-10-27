@@ -1,7 +1,7 @@
 """Safe dashboard payloads made from absolute published/effective timestamps."""
 
 import re
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 from .events import PrayerEvent
 from .model import PrayerField
@@ -23,23 +23,38 @@ PRAYERS = (
 def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
     row = data.effective.row
 
+    def prayer_rows(effective):
+        source = effective.row if effective else None
+
+        def values(field):
+            return source.timestamps(field, zone) if source else ()
+
+        sunrise_values = values(PrayerField.SUNRISE)
+        result = []
+        for key, name, beginning, congregations in PRAYERS:
+            begins = values(beginning)
+            jamaats = sorted(
+                value for field in congregations for value in values(field)
+            )
+            result.append(
+                {
+                    "key": key,
+                    "name": name,
+                    "begin": begins[0].isoformat() if begins else None,
+                    "end": (
+                        sunrise_values[0].isoformat()
+                        if key == "fajr" and sunrise_values
+                        else None
+                    ),
+                    "jamaat": [value.isoformat() for value in jamaats],
+                }
+            )
+        return result
+
     def stamps(field):
         return row.timestamps(field, zone) if row else ()
 
-    sunrise = stamps(PrayerField.SUNRISE)
-    prayers = []
-    for key, name, beginning, congregations in PRAYERS:
-        begin = stamps(beginning)
-        jamaat = sorted(value for field in congregations for value in stamps(field))
-        prayers.append(
-            {
-                "key": key,
-                "name": name,
-                "begin": begin[0].isoformat() if begin else None,
-                "end": sunrise[0].isoformat() if key == "fajr" and sunrise else None,
-                "jamaat": [value.isoformat() for value in jamaat],
-            }
-        )
+    prayers = prayer_rows(data.effective)
     beginnings, jamaats, sehri, iftar = [], [], [], []
     for effective in data.days:
         if effective.row is None:
@@ -94,6 +109,11 @@ def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
         "date": data.day.isoformat(),
         "time_zone": zone.key,
         "prayers": prayers,
+        "day_prayers": {
+            (data.day + timedelta(days=offset)).isoformat(): prayer_rows(effective)
+            for offset, effective in zip((-1, 0, 1), data.days)
+            if effective.row is not None
+        },
         **data.events.as_dict(),
         "beginning_events": beginnings,
         "jamaat_events": jamaats,
