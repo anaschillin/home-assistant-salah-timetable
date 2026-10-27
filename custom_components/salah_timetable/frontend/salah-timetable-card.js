@@ -131,7 +131,8 @@ function clockNode(text, ui, elapsedClock = false) {
 
 function publishedTimes(data, event) {
   const key = eventPrayerKey(event);
-  const row = (data?.prayers || []).find(item => item?.key === (key === "jumuah" ? "dhuhr" : key));
+  const rows = Object.values(data?.day_prayers || {}).flat();
+  const row = rows.find(item => item?.key === (key === "jumuah" ? "dhuhr" : key) && (item?.jamaat || []).includes(event?.timestamp)) || (data?.prayers || []).find(item => item?.key === (key === "jumuah" ? "dhuhr" : key));
   const jamaats = Array.isArray(row?.jamaat) ? row.jamaat : [];
   const matching = jamaats.find(value => timestamp(value) === timestamp(event?.timestamp));
   return {begin: row?.begin || null, jamaat: key === "jumuah" ? (matching || event?.timestamp || null) : (matching || jamaats[0] || null), end: key === "fajr" ? row?.end : null};
