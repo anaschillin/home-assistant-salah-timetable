@@ -109,7 +109,7 @@ try {
   check("upcoming row has accessible emphasis", card.shadowRoot.querySelector("tbody tr").getAttribute("aria-current") === "true");
   render({}, time(8));
   check("previous Jamaat remains fixed", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.previous_jamaat"));
-  check("only Next Salah has a countdown", card.shadowRoot.querySelectorAll(".prayer-panel .count").length === 1);
+  check("Next Salah countdown and Previous Jamaat elapsed clock are both visible", card.shadowRoot.querySelectorAll(".prayer-panel .count").length === 2 && Boolean(card.shadowRoot.querySelector('[data-panel="jamaat"] .count')));
   render({detail_level: "standard", time_format: "12h", show_salah_countdown: false});
   check("single visible panel fills width", card.shadowRoot.querySelectorAll(".panel").length === 1);
   check("12-hour absolute times", /(?:am|pm|ص|م)\s*$/i.test(card.shadowRoot.querySelector("tbody td > bdi").textContent));
