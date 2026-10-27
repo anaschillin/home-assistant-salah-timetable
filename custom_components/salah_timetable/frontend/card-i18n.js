@@ -2,6 +2,11 @@
 export const CATALOGS = Object.freeze({
   en: Object.freeze({
     "card.name": "Salah Timetable",
+    "card.day_navigation": "Timetable date",
+    "card.yesterday": "Yesterday",
+    "card.today": "Today",
+    "card.tomorrow": "Tomorrow",
+    "card.day_unavailable": "No approved timetable is available for this date.",
     "card.description": "Mosque prayer times, contextual Jamaat and Ramadan countdowns",
     "card.choose_entity": "Choose a mosque Prayer timetable sensor in the card editor.",
     "card.entity_missing": "Timetable entity was not found. Check the selected mosque.",
@@ -96,6 +101,11 @@ export const CATALOGS = Object.freeze({
     "card.hijri_calculated": "هجري (محسوب)",
     "card.disconnected": "انقطع اتصال Home Assistant — يُعرض آخر جدول مواقيت تم استلامه.",
     "card.timezone_note": "تُعرض الأوقات حسب المنطقة الزمنية {zone}. لا تُقدَّر الأوقات الناقصة.",
+    "card.day_navigation": "تاريخ جدول الصلاة",
+    "card.yesterday": "أمس",
+    "card.today": "اليوم",
+    "card.tomorrow": "غدًا",
+    "card.day_unavailable": "لا يوجد جدول معتمد لهذا التاريخ.",
     "card.second_khutbah": "خطبة الجمعة الثانية: {time} (وقت منشور؛ وليس وقت الجماعة)",
     "panel.next_salah": "دخول وقت الصلاة التالية",
     "panel.next_jamaat": "الجماعة التالية",
