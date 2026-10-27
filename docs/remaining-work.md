@@ -29,6 +29,20 @@ Green CI is **not** a published release or proof of full HAOS restore,
 rights clearance, authenticated HACS UI acceptance or manual/device checks.
 Those decisions are owned by [releasing.md](releasing.md).
 
+## 27 October code-review follow-up (active)
+
+Baseline: [main at 7913789](https://github.com/anaschillin/home-assistant-salah-timetable/commit/791378940435d2f97117d06b158ce100adcaf0eb). Findings are hypotheses until reproduced; preserve approved data, multi-instance isolation and existing security boundaries. Work in small PRs with regression tests.
+
+- [ ] **CR27-01 (P1):** Reproduce source-check timer behaviour when remote profiles are added or removed. Fix rescheduling and status notification if tests expose stale scheduling.
+- [ ] **CR27-02 (P1):** Test calendar next-event cache across approval, rejection, source replacement, midnight, year rollover and empty future coverage. Correct confirmed stale state without changing published instants.
+- [ ] **CR27-03 (P2):** Audit frontend component-loaded listener lifetime and cleanup across repeated setup, unload and re-addition; add lifecycle tests before changing global registration.
+- [ ] **CR27-04 (P2):** Measure coordinator minute refresh against event-boundary scheduling. Preserve clock-correction, DST and restart recovery; change cadence only with evidence.
+- [ ] **CR27-05 (P2):** Extract shared PDF/CSV/URL import preparation from options flows without changing approval semantics or user-facing steps.
+- [ ] **CR27-06 (P3):** Audit callers of legacy storage helpers (including `for_date`); remove dead code or correct stale documentation with tests.
+- [ ] **CR27-07 (P3):** Document import, source-update, storage, coordinator and frontend responsibilities and cross-module state-change contracts.
+
+**First implementation batch:** CR27-01 and CR27-02, test-first. Track PRs and CI evidence here before checking boxes. Do not treat passing CI alone as manual HA acceptance.
+
 ## Next development priorities
 
 1. **Milestone 10B — Home Assistant integration translations.**
