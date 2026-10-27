@@ -158,7 +158,7 @@ function prayerPanel(kind, event, data, zone, ui, config, clock) {
     grid.append(cell);
   }
   result.append(grid);
-  if (kind === "salah" && times.end) result.append(translatedRun("div", ui, "table.fajr_end", "time", formatTime(times.end, zone, ui, config.time_format), "note fajr-sunrise"));
+  if (kind === "salah" && config.detail_level === "detailed" && times.end) result.append(translatedRun("div", ui, "table.fajr_end", "time", formatTime(times.end, zone, ui, config.time_format), "note fajr-sunrise"));
   return result;
 }
 
@@ -178,7 +178,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._hass = value;
     if (this._hassRenderKey() !== this._renderedHassKey) this._render();
   }
-  getCardSize() { return (this._config.layout === "compact" ? 4 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
+  getCardSize() { return (this._config.detail_level === "compact" ? 3 : 5) + (this._config.detail_level === "detailed" && this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
   getGridOptions() { return {columns: 12, rows: this.getCardSize(), min_columns: 6, min_rows: 4}; }
 
   connectedCallback() {
@@ -250,13 +250,13 @@ export class SalahTimetableCard extends HTMLElement {
     const scrollLeft = previousRegion?.scrollLeft || 0;
     const data = state.attributes;
     const zone = data.time_zone || this._hass?.config?.time_zone || "UTC";
-    const content = node("div", undefined, `content ${this._config.layout}`);
+    const content = node("div", undefined, `content ${this._config.detail_level === "compact" ? "compact" : "expanded"}`);
     const timeFormat = this._config.time_format;
     const header = node("header", undefined, "header");
     const title = node("h2", this._config.title || data.mosque_name); title.setAttribute("dir", "auto");
     header.append(title);
-    if (this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
-    if (this._config.show_gregorian_date) header.append(node("div", formatDate(data.date || state.state, ui), "date gregorian"));
+    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
+    if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(data.date || state.state, ui), "date gregorian"));
     content.append(header);
     const mosques = this._mosques();
     if (mosques.length > 1) {
@@ -287,6 +287,7 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._config.show_jamaat_countdown) panels.append(prayerPanel("jamaat", previous, data, zone, ui, this._config));
     if (panels.children.length) content.append(panels);
     const highlighted = highlightedPrayer(data, now);
+    if (this._config.detail_level !== "compact") {
     const table = node("table");
     table.append(node("caption", tr(ui, "table.caption"), "sr-only"));
     const head = node("thead"); const headRow = node("tr");
@@ -310,7 +311,7 @@ export class SalahTimetableCard extends HTMLElement {
       }
       if (!congregations.length) congregationCell.append(isolated("—"));
       const beginningCell = formattedNode("td", formatTime(prayer.begin, zone, ui, timeFormat));
-      if (prayer.key === "fajr") beginningCell.append(translatedRun("div", ui, "table.fajr_end", "time", formatTime(prayer.end, zone, ui, timeFormat), "note fajr-end"));
+      if (this._config.detail_level === "detailed" && prayer.key === "fajr") beginningCell.append(translatedRun("div", ui, "table.fajr_end", "time", formatTime(prayer.end, zone, ui, timeFormat), "note fajr-end"));
       row.append(name, beginningCell, congregationCell);
       body.append(row);
     }
@@ -321,10 +322,11 @@ export class SalahTimetableCard extends HTMLElement {
     tableRegion.setAttribute("aria-label", tr(ui, "table.region"));
     const scrollHelp = node("p", tr(ui, "table.scroll_help"), "note scroll-help");
     tableRegion.append(table); content.append(tableRegion, scrollHelp);
-    if (timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
+    }
+    if (this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
       content.append(translatedRun("p", ui, "card.second_khutbah", "time", formatTime(data.second_khutbah, zone, ui, timeFormat), "note khutbah"));
     }
-    if (data.ramadan?.active && this._config.show_ramadan_details) {
+    if (this._config.detail_level === "detailed" && data.ramadan?.active && this._config.show_ramadan_details) {
       const ramadan = node("section", undefined, "ramadan"); ramadan.append(node("h3", tr(ui, "ramadan.title")));
       const grid = node("div", undefined, "ramadan-grid");
       for (const kind of ["sehri", "iftar"]) {
@@ -348,8 +350,10 @@ export class SalahTimetableCard extends HTMLElement {
       note.setAttribute("data-role", "timezone-note"); content.append(note);
     }
     card.append(content); this.shadowRoot.replaceChildren(style, card);
-    tableRegion.scrollLeft = scrollLeft;
-    if (regionFocused) tableRegion.focus({preventScroll: true});
+    if (this._config.detail_level !== "compact") {
+      tableRegion.scrollLeft = scrollLeft;
+      if (regionFocused) tableRegion.focus({preventScroll: true});
+    }
     this._live = {data, updates, selection: this._selection(data, now)};
   }
 }
@@ -379,7 +383,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       if (checkbox) control.checked = this._config[key];
       else if (control.value !== String(this._config[key])) control.value = String(this._config[key]);
     }
-    const {entity, mode, title, titleLabel, error, help} = this._controls;
+    const {entity, title, titleLabel, error, help} = this._controls;
     entity.hass = this._hass; entity.label = tr(ui, "editor.entity");
     const mosques = discoverTimetableEntities(this._hass);
     const options = mosques.map(({entity: value, name}) => ({value, label: `${name} (${value})`}));
@@ -389,13 +393,10 @@ export class SalahTimetableCardEditor extends HTMLElement {
       options.push({value: this._config.entity, label: this._config.entity});
     }
     entity.selector = {select: {options}};
-    mode.hass = this._hass; mode.label = tr(ui, "editor.mode");
-    mode.selector = {select: {options: ["context", "previous", "upcoming"].map(value => ({value, label: tr(ui, `editor.mode.${value}`)}))}};
     titleLabel.textContent = tr(ui, "editor.title");
     error.textContent = this._entityError ? tr(ui, "editor.invalid_entity") : "";
     help.textContent = tr(ui, "editor.help");
     if (entity.value !== this._config.entity) entity.value = this._config.entity;
-    if (mode.value !== this._config.mode) mode.value = this._config.mode;
     if (title.value !== (this._config.title || "")) title.value = this._config.title || "";
   }
   _render() {
@@ -411,19 +412,17 @@ export class SalahTimetableCardEditor extends HTMLElement {
       if (this._entityError) { this._updateControls(); return; }
       this._changed({entity: value || ""});
     });
-    const mode = node("ha-selector");
-    mode.addEventListener("value-changed", event => this._changed({mode: event.detail?.value || "upcoming"}));
     const titleField = node("div", undefined, "title-field");
     const titleLabel = node("label"); titleLabel.htmlFor = "mosque-title";
     const title = node("input"); title.id = "mosque-title"; title.type = "text"; title.value = this._config.title || ""; title.maxLength = 100; title.setAttribute("dir", "auto");
     titleField.append(titleLabel, title);
     title.addEventListener("input", event => this._changed({title: event.target.value}));
     const help = node("div", undefined, "help");
-    this._controls = {entity, mode, title, titleLabel, error, help};
+    this._controls = {entity, title, titleLabel, error, help};
     this._extraControls = {};
     const settings = [
       ["language", ["auto", "en", "ar"]], ["bilingual_prayer_labels"],
-      ["layout", ["expanded", "compact"]], ["time_format", ["24h", "12h"]],
+      ["detail_level", ["compact", "standard", "detailed"]], ["time_format", ["24h", "12h"]],
       ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]],
       ["show_hijri_date"], ["show_gregorian_date"], ["show_salah_countdown"], ["show_jamaat_countdown"],
       ["show_ramadan_details"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_timezone_note"]
@@ -438,7 +437,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       control.addEventListener("change", () => this._changed({[key]: choices ? key === "hijri_adjustment" ? Number(control.value) : control.value : control.checked}));
       this._extraControls[key] = {control, checkbox: !choices, label, options}; field.append(control); extras.push(field);
     }
-    form.append(entity, error, mode, titleField, ...extras, help);
+    form.append(entity, error, titleField, ...extras, help);
     this._updateControls();
     this.shadowRoot.replaceChildren(style, form);
   }
