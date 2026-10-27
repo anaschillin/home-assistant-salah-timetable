@@ -78,8 +78,8 @@ test("missing/malformed values remain unavailable", () => {
 });
 
 test("configuration validates modes/entities while allowing graphical setup", () => {
-  assert.equal(normalizeConfig({}).mode, "upcoming");
-  assert.throws(() => normalizeConfig({mode: "interval"}));
+  assert.equal(normalizeConfig({}).detail_level, "standard");
+  assert.equal(normalizeConfig({mode: "interval"}).detail_level, "standard");
   assert.throws(() => normalizeConfig({entity: "light.example"}));
   assert.throws(() => normalizeConfig({title: "a".repeat(101)}));
   const hass = {states: {"sensor.other": {attributes: {}}, "sensor.mosque": {attributes: data}}};
@@ -148,10 +148,10 @@ test("automatic French locale retains English UI while formatting published date
 test("configuration errors preserve English messages with localization metadata", () => {
   const cases = [
     [null, "required", "A card configuration is required"],
-    [{mode: "interval"}, "mode", "Choose context, previous or upcoming Jamaat mode"],
+    [{detail_level: "invalid"}, "detail_level", "Choose compact, standard or detailed card display"],
     [{entity: "light.example"}, "entity", "Choose a timetable sensor"],
     [{title: "a".repeat(101)}, "title", "Title must be at most 100 characters"],
-    [{layout: "tiny"}, "layout", "Choose compact or expanded layout"],
+    [{detail_level: "tiny"}, "detail_level", "Choose compact, standard or detailed card display"],
     [{time_format: "auto"}, "time_format", "Choose 12h or 24h time format"],
     [{hijri_adjustment: 4}, "hijri_adjustment", "Hijri adjustment must be a whole day from −3 to +3"],
     [{language: "fr"}, "language", "Choose auto, en or ar language"],
