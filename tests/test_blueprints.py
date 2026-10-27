@@ -739,9 +739,7 @@ async def test_delayed_media_action_rejects_ownership_after_reload(
 
     original_run = Context()
     replacement_run = Context()
-    hass.states.async_set(
-        "media_player.hall", state, attributes, context=original_run
-    )
+    hass.states.async_set("media_player.hall", state, attributes, context=original_run)
     player = hass.states.get("media_player.hall")
 
     if blueprint == "adhan":
