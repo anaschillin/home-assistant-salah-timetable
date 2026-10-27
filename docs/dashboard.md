@@ -21,98 +21,67 @@ The older [0.5.1 phone](images/card-mobile.png) and
 
 ## Add the card
 
-1. Install/restart the integration, configure a mosque and approve a timetable.
-2. Open a dashboard, choose **Edit dashboard → Add card**, and select
-   **Salah Timetable**. Reload the browser page if a newly installed card is absent.
-3. In the graphical editor, choose the mosque by name from the **Prayer timetable**
-   selector. Every loaded mosque has a separate sensor, normally ending in
-   `_prayer_timetable` (entity IDs can be renamed). The selector lists only
-   dashboard sensors, not individual beginning/Jamaat sensors.
-4. Optionally set a title, language and bilingual prayer labels, then choose
-   compact/expanded layout, countdown visibility, time format, date visibility,
-   Hijri adjustment and additional details, then save.
-   **Upcoming Jamaat** is the default; **Context aware** and **Previous Jamaat** remain available.
+1. Install the integration, configure a mosque and approve a timetable.
+2. Choose **Edit dashboard → Add card → Salah Timetable**.
+3. Choose a **Prayer timetable** sensor in the graphical editor.
+4. Select **Card detail**: **Compact**, **Standard** (default) or **Detailed**.
+   Set optional title, language, time format and visibility preferences, then save.
 
-**To display a second mosque, repeat Edit dashboard → Add card → Salah
-Timetable**, then choose the second mosque in the editor and save. Home Assistant
-shows one *card type* in the picker; it does not automatically create dashboard
-cards for new integration instances. Create a separate card for each mosque.
-The integration creates one device/config entry and dashboard sensor per mosque,
-and each card follows the selected entity's mosque timezone. Existing cards
-are not overwritten. If the second mosque is missing, check
-**Developer Tools → States** for its `sensor.*_prayer_timetable` entity,
-then reload the dashboard browser tab after integration setup.
+When two or more mosque timetable sensors are available, the card automatically
+displays mosque tabs. Selecting a tab switches the entire view to that mosque's
+published schedule. A single configured mosque has no mosque tabs. You may still
+add separate card instances for fixed dashboard layouts.
 
-## What the card shows
+## Day navigation
 
-- Mosque name or optional title, **full calculated Umm al-Qura Hijri date first**
-  (with the Islamic month name, day and year), then optionally a separate
-  Gregorian date. Both have independent card display controls.
-- **Next Salah Begins** and **Next Jamaat**, with prominent independent countdowns,
-  absolute times and progress between consecutive published events of each kind.
-- Optional context/previous Jamaat modes retain elapsed-time behaviour. Progress is
-  hidden for previous events or when the preceding published event is unavailable.
-- Fajr, Dhuhr, Asr, Maghrib and Isha beginning/Jamaat times. Fajr additionally
-  shows **Ends at sunrise**, sourced only from that day's published Sunrise value;
-  an absent Sunrise displays an unavailable end boundary.
-- Published Friday Jumu’ah congregations remain in the Dhuhr row; on supported
-  MOSQUE_A publications, the distinct **second Jumu’ah khutbah** footer appears in a
-  Friday-only note, **not** as a second Jamaat or replacement Dhuhr beginning.
-- When Ramadan is active: Sehri and Iftar countdowns, plus published Taraweeh time
-  or **After Isha Jamaat**.
+The date tabs are **Yesterday / Today / Tomorrow**. Today is selected initially.
+All three views share the same table styling, labels, time formatting and responsive
+layout. Yesterday and Tomorrow hide **both** prayer summary cards, live countdowns,
+current-prayer highlighting, and today's Ramadan/status sections. They show only
+the selected day's actual approved beginning and Jamaat timetable. This also
+applies when Compact is selected: its adjacent-day views show the full table.
 
-The layout adapts to narrow screens and uses Home Assistant's light/dark theme
-variables. Times use the configured mosque timezone, even when the browser is in
-another timezone. Countdown text and progress update in place once per second
-from absolute event timestamps. Changes to the timetable, card configuration,
-locale, effective timezone, availability or connection status can rebuild the card,
-as can an event boundary. Equivalent timetable updates and unrelated HA entity
-updates retain the existing DOM. Ordinary ticks retain table nodes, focus and text
-selection. They do not write Home Assistant sensor states or call services. At large
-text sizes, the prayer table stays inside a labelled, keyboard-focusable
-scroll region so its columns remain readable without widening the card. Narrow
-cards show explicit swipe/scroll and keyboard guidance; scrolling is intentional
-when the columns cannot fit.
+The backend supplies independent published rows for the three local dates using
+its already-resolved effective timetables. Missing approved rows display
+**No approved timetable is available for this date** rather than copying today's
+times. Date selection does not modify Home Assistant sensor state or stored data.
 
-## Jamaat modes and boundaries
+## Card detail levels
 
-| Mode | Jamaat panel |
+| Level | Today's display |
 | --- | --- |
-| Context aware | Previous Jamaat before a prayer begins; next congregation of the current prayer after beginning while one remains; previous Jamaat with elapsed time after its final congregation |
-| Previous Jamaat | Most recent known congregation at or before the current instant |
-| Upcoming Jamaat (default) | Next known congregation strictly after the current instant |
+| Compact | Next Salah countdown with beginning and Jamaat, plus Previous Jamaat beginning and Jamaat |
+| Standard (default) | Both matching prayer cards, full timetable, Hijri date (if enabled) |
+| Detailed | Standard plus published Fajr sunrise/end, second Friday khutbah (if present), and active Ramadan details |
 
-Next Salah beginning is calculated independently in every mode. For example, after
-Fajr beginning but before Fajr Jamaat, the card counts down to Fajr Jamaat while
-showing Dhuhr as the next Salah beginning. At the exact Jamaat instant that event
-becomes previous with zero elapsed time. If the same prayer has another published
-congregation, context mode counts down to it; otherwise it displays the previous
-event. A congregation is a single scheduled event, without an end time.
+**Next Salah** always means the next *beginning* time, even if the current
+prayer's Jamaat is still upcoming. The countdown and both published times
+appear together. **Previous Jamaat** means the most recent congregational
+prayer, showing its beginning and Jamaat timestamps; it has no live countdown.
+The two panels share the same component, dimensions, typography, time grid,
+theme-aware surfaces and responsive behaviour. The old context/upcoming/previous
+Jamaat panel selector has been removed.
 
-After Isha, the next Salah uses tomorrow's actual Fajr record. Missing tomorrow data
-shows an unavailable result; the integration never repeats today's Fajr. Events are
-drawn from yesterday, today and tomorrow, including year/leap-day boundaries. The
-browser uses the supplied timeline for local boundary transitions while HA also
-refreshes at event boundaries and local midnight.
+Fajr end is the *published sunrise*, never a calculated estimate. Published
+Jumu’ah congregations remain in Dhuhr's Jamaat row, and the separately published
+second khutbah (if any) is not treated as a Jamaat. Missing times are displayed
+as unavailable rather than inferred. Ramadan details are shown only when active
+and the Detailed level is selected.
 
-## Prayer emphasis and layout
+## Timing and boundaries
 
-The prayer awaiting Jamaat stays highlighted through its final published congregation.
-Once that congregation occurs, the next prayer is highlighted. Without a published
-Jamaat, the current row remains highlighted until the next known beginning. Completed
-rows use secondary text while staying visible. Tomorrow's Fajr never highlights today's
-completed Fajr row. A missing beginning cannot be inferred from its congregation.
+Next Salah and Previous Jamaat are selected independently from the published
+absolute event timeline. After Isha, the next Salah uses tomorrow's actual Fajr
+record; missing tomorrow data yields an unavailable countdown. At a prayer
+beginning boundary, the next Salah advances to the next published beginning.
+Events are drawn from yesterday, today and tomorrow, including leap-year and
+year-end transitions. The card updates the live countdown in the browser without
+per-second Home Assistant state writes.
 
-Beginning and Jamaat use consistent columns. Multiple congregations stack within the
-Jamaat cell; actual Jumu’ah events are labelled there while the Dhuhr beginning keeps
-its own meaning. Neither labels nor highlighting change source data.
-
-Countdowns sit side by side when the card has enough room and stack on narrow cards
-or at enlarged text sizes. Compact layout reduces spacing and number sizes; it does
-not hide information. Progress uses elapsed absolute time, including clock changes,
-and is hidden when a valid preceding event is unavailable. Each bar explicitly
-labels its interval: **Since previous Salah beginning** or **Since previous Jamaat**.
-The Jamaat bar measures congregation-to-congregation, not beginning-to-Jamaat.
+Today's full timetable highlights the relevant prayer and dims completed rows;
+Yesterday and Tomorrow have no current-prayer highlighting. Tables retain semantic
+headers, LTR-isolated numeric times, a keyboard-focusable scroll region, and
+responsive handling for narrow screens.
 
 ## Language and direction
 
@@ -161,8 +130,8 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | --- | --- |
 | `language` | `auto` (default), `en`, `ar`; automatic follows the HA interface language with English label fallback |
 | `bilingual_prayer_labels` | `false` (default); show English and Arabic known prayer names |
-| `layout` | `expanded` (default), `compact` |
-| `mode` | `upcoming` (default), `context`, `previous` |
+| `detail_level` | `standard` (default), `compact`, `detailed` |\n| `layout` | Legacy `compact` maps to Compact; `expanded` maps to Standard if no `detail_level` is saved |
+| `mode` | Legacy setting ignored; no longer exposed in the editor |
 | `time_format` | `24h` (default), `12h`; applies to every absolute time |
 | `show_salah_countdown` | `true` |
 | `show_jamaat_countdown` | `true` |
@@ -174,7 +143,7 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_iftar_countdown` | `true`; hiding retains the displayed absolute time |
 | `show_timezone_note` | `true`; controls the timezone and missing-time note |
 
-Hiding either main countdown removes its panel; the remaining panel fills the width.
+Hiding either main panel removes it; the remaining panel fills the width.
 Hiding both leaves the header and timetable. Connection warnings and narrow-card
 scrolling guidance remain available when the timezone note is hidden. Taraweeh
 belongs to the Ramadan details section. Countdown durations use hours/minutes/seconds
