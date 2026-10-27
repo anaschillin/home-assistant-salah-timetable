@@ -61,7 +61,9 @@ def bounded_worker(monkeypatch):
     return applied_limits, output
 
 
-def configure_worker(monkeypatch, *, content=b"%PDF-1.7\n", pages=None, encrypted=False):
+def configure_worker(
+    monkeypatch, *, content=b"%PDF-1.7\n", pages=None, encrypted=False
+):
     """Feed fake pages while exercising the real worker bounds."""
     monkeypatch.setattr(
         pdf_worker.sys, "stdin", SimpleNamespace(buffer=io.BytesIO(content))
@@ -75,9 +77,7 @@ def configure_worker(monkeypatch, *, content=b"%PDF-1.7\n", pages=None, encrypte
 
 def test_valid_pages_produce_unicode_json_and_hard_limits(monkeypatch, bounded_worker):
     applied_limits, output = bounded_worker
-    configure_worker(
-        monkeypatch, pages=[FakePage("الفجر"), FakePage("Fajr 05:30")]
-    )
+    configure_worker(monkeypatch, pages=[FakePage("الفجر"), FakePage("Fajr 05:30")])
     assert pdf_worker.main() == 0
     assert json.loads(output.getvalue()) == {"pages": ["الفجر", "Fajr 05:30"]}
     assert len(applied_limits) == 4
@@ -93,9 +93,7 @@ def test_valid_pages_produce_unicode_json_and_hard_limits(monkeypatch, bounded_w
         b"%PDF-" + b"x" * (pdf_worker.MAX_PDF_BYTES - 4),
     ],
 )
-def test_invalid_input_is_rejected_before_parsing(
-    monkeypatch, bounded_worker, content
-):
+def test_invalid_input_is_rejected_before_parsing(monkeypatch, bounded_worker, content):
     _limits, output = bounded_worker
     configure_worker(monkeypatch, content=content)
     assert pdf_worker.main() == 2
