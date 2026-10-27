@@ -523,7 +523,7 @@ tbody tr th,tbody tr td {
   th,td {
     padding: 9px 4px;
   }
-  th: first-child {;
+  th:first-child {
     width: auto;
   }
   .panel .count {
