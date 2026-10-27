@@ -4,6 +4,7 @@ from collections.abc import Mapping
 
 import pytest
 
+from custom_components.salah_timetable.download import DownloadError
 from custom_components.salah_timetable.import_model import ImportValidationError
 from custom_components.salah_timetable.source_model import (
     RemoteSource,
@@ -38,7 +39,6 @@ def test_remote_source_round_trip_preserves_immutable_mapping():
     [
         {"source_id": ""},
         {"source_id": "a/b"},
-        {"url": "http://example.org/prayer-times.csv"},
         {"media_type": "other"},
         {"kind": "weekly"},
         {"year": True},
@@ -58,7 +58,6 @@ def test_remote_source_round_trip_preserves_immutable_mapping():
     ids=[
         "missing-source-id",
         "unsafe-source-id",
-        "insecure-url",
         "invalid-media-type",
         "invalid-kind",
         "boolean-year",
@@ -88,9 +87,16 @@ def test_stored_source_requires_all_reproducibility_fields():
         RemoteSource.from_dict(missing)
 
 
-@pytest.mark.parametrize("bad_url", [42, "x" * 2049, "http://example.org/test.csv"])
-def test_source_url_validation_rejects_invalid_input(bad_url):
-    with pytest.raises(ImportValidationError):
+@pytest.mark.parametrize(
+    ("bad_url", "error_type"),
+    [
+        (42, ImportValidationError),
+        ("x" * 2049, ImportValidationError),
+        ("http://example.org/test.csv", DownloadError),
+    ],
+)
+def test_source_url_validation_rejects_invalid_input(bad_url, error_type):
+    with pytest.raises(error_type):
         validate_source_url(bad_url)
 
 
