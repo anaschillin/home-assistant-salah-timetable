@@ -139,7 +139,7 @@ function panel(kind, labelKey, event, clock, zone, ui, config, progress, elapsed
   else name.textContent = tr(ui, "status.unavailable");
   result.append(node("div", label, "label"), name, result.clock);
   result.append(event ? formattedNode("div", formatTime(event.timestamp, zone, ui, config.time_format), "absolute") : node("div", tr(ui, "panel.no_event"), "absolute"));
-  if (kind === "salah" && eventPrayerKey(event) === "fajr" && config.fajr_sunrise) result.append(node("div", `${tr(ui, "table.fajr_end", {time: formatTime(config.fajr_sunrise, zone, ui, config.time_format)})}`, "absolute fajr-sunrise"));
+  if (kind === "salah" && eventPrayerKey(event) === "fajr" && config.fajr_sunrise) result.append(node("div", [node("span", tr(ui, "table.fajr_end") + " "), isolated(formatTime(config.fajr_sunrise, zone, ui, config.time_format))], "fajr-sunrise"));
   if (progress !== null && progress !== undefined) {
     const bar = node("progress"); bar.max = 100; bar.value = progress;
     bar.setAttribute("aria-label", tr(ui, "panel.progress_aria", {label}));
