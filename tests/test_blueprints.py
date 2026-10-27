@@ -389,3 +389,69 @@ async def test_pause_resume_rejects_invalid_or_early_anchor(hass, freezer, ancho
     await start(hass, [config])
     await advance(hass, freezer, "2026-10-23T05:00:00Z")
     assert not paused
+
+
+async def test_adhan_restoration_does_not_override_manual_volume_change(hass, freezer):
+    """A manual volume update must not be overwritten by delayed restoration."""
+    freezer.move_to("2026-10-23T04:59:00Z")
+    playback = async_mock_service(hass, "media_player", "play_media")
+    volume = async_mock_service(hass, "media_player", "volume_set")
+    hass.states.async_set("sensor.mosque_fajr", "2026-10-23T05:00:00+00:00", ATTRS)
+    hass.states.async_set("media_player.hall", "idle", {"volume_level": 0.2})
+    config = expanded(
+        "adhan",
+        {
+            "prayer_sensors": ["sensor.mosque_fajr"],
+            "media_players": ["media_player.hall"],
+            "adhan_media": {
+                "media_content_id": "media-source://media_source/local/adhan.mp3",
+                "media_content_type": "audio/mpeg",
+            },
+            "set_volume": True,
+            "volume": 0.6,
+            "restore_volume": True,
+            "restore_delay": 10,
+        },
+    )
+    await start(hass, [config])
+    await advance(hass, freezer, "2026-10-23T05:00:00Z")
+    assert len(playback) == 1
+    assert len(volume) == 1
+    assert volume[0].data["volume_level"] == 0.6
+
+    # A later state update from the user is not owned by the automation.
+    hass.states.async_set(
+        "media_player.hall",
+        "playing",
+        {
+            "volume_level": 0.4,
+            "media_content_id": "media-source://media_source/local/adhan.mp3",
+        },
+    )
+    await hass.async_block_till_done()
+    await advance(hass, freezer, "2026-10-23T05:00:20Z")
+    assert len(volume) == 1
+
+
+async def test_pause_resume_does_not_claim_unavailable_player(hass, freezer):
+    """Unavailable players cannot be paused or resumed by the blueprint."""
+    freezer.move_to("2026-10-23T04:59:00Z")
+    paused = async_mock_service(hass, "media_player", "media_pause")
+    resumed = async_mock_service(hass, "media_player", "media_play")
+    hass.states.async_set("sensor.prayer_begin", "2026-10-23T05:00:00+00:00", ATTRS)
+    hass.states.async_set("sensor.prayer_jamaat", "2026-10-23T05:05:00+00:00", ATTRS)
+    hass.states.async_set("media_player.hall", "unavailable")
+    config = expanded(
+        "pause_resume_media",
+        {
+            "prayer_beginning": "sensor.prayer_begin",
+            "resume_anchor": "sensor.prayer_jamaat",
+            "resume_delay": 0,
+            "media_players": ["media_player.hall"],
+        },
+    )
+    await start(hass, [config])
+    await advance(hass, freezer, "2026-10-23T05:00:00Z")
+    assert not paused
+    await advance(hass, freezer, "2026-10-23T05:06:00Z")
+    assert not resumed
