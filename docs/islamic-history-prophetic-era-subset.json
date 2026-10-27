@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "lifecycle": "RESEARCH_ONLY_NOT_BUNDLED",
+  "scope": "Selected opening entries from Dorar Prophetic era; not a full mirror",
+  "entries": [
+    {
+      "id": "prophet-birth",
+      "title_en": "Birth of Prophet Muhammad ﷺ",
+      "event_type": "birth",
+      "summary_en": "The Prophet ﷺ was born in Makkah in the Year of the Elephant. The precise month and day are disputed.",
+      "hijri": {
+        "era": "pre_hijrah",
+        "year_offset": -53,
+        "month": null,
+        "day": null
+      },
+      "date_assessment": {
+        "precision": "year_approximate",
+        "display": "biography_only",
+        "status": "exact_date_not_established"
+      },
+      "sources": [
+        {
+          "role": "dorar_era_index",
+          "url": "https://dorar.net/history?era=1"
+        }
+      ],
+      "editorial_review": "Research candidate; verify individual event URL and primary references before publication."
+    },
+    {
+      "id": "first-chest-opening",
+      "title_en": "First reported opening of the Prophet's chest",
+      "event_type": "prophetic_event",
+      "summary_en": "A report describes Jibril cleansing the Prophet's heart during his childhood; the calendar date is not established.",
+      "hijri": {
+        "era": "pre_hijrah",
+        "year_offset": -49,
+        "month": null,
+        "day": null
+      },
+      "date_assessment": {
+        "precision": "year_approximate",
+        "display": "biography_only",
+        "status": "exact_date_not_established"
+      },
+      "sources": [
+        {
+          "role": "dorar_era_index",
+          "url": "https://dorar.net/history?era=1"
+        }
+      ],
+      "editorial_review": "Research candidate; verify individual event URL and primary references before publication."
+    },
+    {
+      "id": "amina-death",
+      "title_en": "Death of Aminah bint Wahb",
+      "event_type": "death",
+      "summary_en": "The Prophet's mother died at al-Abwa during his childhood; the exact date is not established.",
+      "hijri": {
+        "era": "pre_hijrah",
+        "year_offset": -48,
+        "month": null,
+        "day": null
+      },
+      "date_assessment": {
+        "precision": "year_approximate",
+        "display": "biography_only",
+        "status": "exact_date_not_established"
+      },
+      "sources": [
+        {
+          "role": "dorar_era_index",
+          "url": "https://dorar.net/history?era=1"
+        }
+      ],
+      "editorial_review": "Research candidate; verify individual event URL and primary references before publication."
+    }
+  ]
+}
