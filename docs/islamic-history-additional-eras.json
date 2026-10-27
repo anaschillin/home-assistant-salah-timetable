@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "lifecycle": "RESEARCH_ONLY_NOT_BUNDLED",
+  "description": "Dorar historical era discovery registry; no event articles or prose harvested.",
+  "reuse_note": "Dorar API and website restrictions must be respected. Indexed counts are discovery metadata, not permission to mirror records.",
+  "eras": [
+    {
+      "id": 3,
+      "name": "Umayyad",
+      "indexed_count": 210,
+      "url": "https://dorar.net/history?era=3",
+      "count_observed_on": "2026-10-27",
+      "import_status": "index_registered_only",
+      "review_status": "not_audited"
+    },
+    {
+      "id": 4,
+      "name": "Abbasid",
+      "indexed_count": 2166,
+      "url": "https://dorar.net/history?era=4",
+      "count_observed_on": "2026-10-27",
+      "import_status": "index_registered_only",
+      "review_status": "not_audited"
+    },
+    {
+      "id": 5,
+      "name": "Mamluk",
+      "indexed_count": 969,
+      "url": "https://dorar.net/history?era=5",
+      "count_observed_on": "2026-10-27",
+      "import_status": "index_registered_only",
+      "review_status": "not_audited"
+    },
+    {
+      "id": 6,
+      "name": "Ottoman",
+      "indexed_count": 1396,
+      "url": "https://dorar.net/history?era=6",
+      "count_observed_on": "2026-10-27",
+      "import_status": "index_registered_only",
+      "review_status": "not_audited"
+    },
+    {
+      "id": 7,
+      "name": "Contemporary",
+      "indexed_count": 1221,
+      "url": "https://dorar.net/history?era=7",
+      "count_observed_on": "2026-10-27",
+      "import_status": "index_registered_only",
+      "review_status": "not_audited"
+    }
+  ],
+  "curation_priority": [
+    "prophetic",
+    "rashidun",
+    "umayyad_early",
+    "hadith_scholars",
+    "other"
+  ]
+}
