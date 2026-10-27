@@ -170,7 +170,7 @@ export function formatHijriDate(value, adjustment = 0, locale) {
   const instant = dateInstant(value);
   if (instant === null) return tr(locale, "status.hijri_unavailable");
   try {
-    const formatter = new Intl.DateTimeFormat(`${displayLocale(locale)}-u-ca-islamic-umalqura`, {day: "numeric", month: "long", year: "numeric", timeZone: "UTC"});
+    const formatter = new Intl.DateTimeFormat(displayLocale(locale), {calendar: "islamic-umalqura", day: "numeric", month: "long", year: "numeric", timeZone: "UTC"});
     if (formatter.resolvedOptions().calendar !== "islamic-umalqura") return tr(locale, "status.hijri_unavailable");
     return formatter.format(instant + adjustment * 86400000);
   } catch { return tr(locale, "status.hijri_unavailable"); }
