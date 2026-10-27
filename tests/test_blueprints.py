@@ -389,3 +389,27 @@ async def test_pause_resume_rejects_invalid_or_early_anchor(hass, freezer, ancho
     await start(hass, [config])
     await advance(hass, freezer, "2026-10-23T05:00:00Z")
     assert not paused
+
+
+async def test_pause_resume_does_not_claim_unavailable_player(hass, freezer):
+    """Unavailable players cannot be paused or resumed by the blueprint."""
+    freezer.move_to("2026-10-23T04:59:00Z")
+    paused = async_mock_service(hass, "media_player", "media_pause")
+    resumed = async_mock_service(hass, "media_player", "media_play")
+    hass.states.async_set("sensor.prayer_begin", "2026-10-23T05:00:00+00:00", ATTRS)
+    hass.states.async_set("sensor.prayer_jamaat", "2026-10-23T05:05:00+00:00", ATTRS)
+    hass.states.async_set("media_player.hall", "unavailable")
+    config = expanded(
+        "pause_resume_media",
+        {
+            "prayer_beginning": "sensor.prayer_begin",
+            "resume_anchor": "sensor.prayer_jamaat",
+            "resume_delay": 0,
+            "media_players": ["media_player.hall"],
+        },
+    )
+    await start(hass, [config])
+    await advance(hass, freezer, "2026-10-23T05:00:00Z")
+    assert not paused
+    await advance(hass, freezer, "2026-10-23T05:06:00Z")
+    assert not resumed
