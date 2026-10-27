@@ -138,43 +138,36 @@ month’s dates. See [Ramadan validation](docs/ramadan_validation.md).
 
 ## Dashboard
 
-The integration bundles the **Salah Timetable** Lovelace card and its graphical
-editor. After importing a timetable, edit a dashboard, add the card and choose the
-mosque's **Prayer timetable** sensor. Choose **Upcoming Jamaat** (default), **Context aware** or **Previous Jamaat**. No separate card download or Card Mod is required.
+The bundled **Salah Timetable** Lovelace card includes a graphical editor. Select
+the mosque's **Prayer timetable** sensor; no separate card download or Card Mod
+is required. The old Jamaat panel mode selector is removed: **Next Salah** always
+counts down to the next published beginning and displays its beginning and Jamaat
+times, while **Previous Jamaat** displays the most recent congregation and its
+corresponding beginning time. Both panels use the same responsive design.
 
-The card presents the **full calculated Umm al-Qura Hijri date first**, with
-its actual Islamic month name, day and year; the Gregorian date is secondary and
-can be hidden independently per card. Independent Salah/Jamaat countdowns,
-highlighted prayer rows and Ramadan details follow. The Fajr row shows **Ends at sunrise** using the
-published Sunrise value, or unavailable if Sunrise is absent. Inspected Mosque A
-publications also show a separately printed **Second Jumu’ah khutbah** time on
-Fridays; it is **not** an extra Jamaat and does not change Dhuhr/Jumu’ah times.
-Choose Hijri header visibility when first configuring the mosque; change it later
-under **Configure → Mosque settings**. The card editor can hide Hijri on a
-particular card, independently hide the Gregorian date, and offers
-compact/expanded layouts, 12/24-hour times, countdown visibility and a
-−3 to +3 calculated Hijri display-day adjustment. Neither
-visibility nor adjustment changes source data or activates Ramadan.
+Choose **Card detail** in the editor:
 
-Choose **Automatic (Home Assistant)**, **English** or **العربية** in the card
-editor, and optionally enable bilingual English/Arabic prayer names. Arabic uses
-right-to-left layout with isolated clock values; dates and numbers follow the
-selected locale. Automatic follows Arabic HA interfaces and uses English labels
-for other languages. Arabic wording is a draft awaiting review. Integration
-settings and entity translations remain a separate Milestone 10B follow-up.
+- **Compact:** Next Salah and Previous Jamaat cards only.
+- **Standard (default):** Both cards, the full daily timetable and calculated Hijri date.
+- **Detailed:** Standard plus published Fajr sunrise/end, Friday second khutbah
+  (when provided), and active Ramadan details.
 
-Countdowns run in the browser from absolute timestamps, without per-second Home
-Assistant state writes. The card follows HA's theme
-and uses responsive layouts. Ordinary ticks update clocks and progress in place;
-unrelated Home Assistant updates preserve the rendered card. See
-[dashboard setup and behavior](docs/dashboard.md)
-for resource troubleshooting and the event boundary rules.
+A **Yesterday / Today / Tomorrow** date selector is available at every detail level.
+Yesterday and Tomorrow show only their own approved published timetable rows,
+without live countdown cards or current-prayer highlighting. Missing approved
+dates display an unavailable message; times are never inferred. Today is selected
+initially. The mosque timezone governs all published timestamps.
 
-The integration registers **one reusable card type**, not an automatic
-card per mosque. To display a second configured mosque, edit the dashboard,
-add **another Salah Timetable card**, and select its separate **Prayer timetable**
-sensor in the card editor. Each card keeps its own entity and timezone; adding
-or removing a mosque never silently edits your dashboard.
+If multiple mosque timetable sensors are configured, the card offers mosque tabs
+automatically; one mosque shows no tabs. Each selected mosque retains its own
+published times. Existing cards using the former `mode` and `layout` fields are
+accepted; the old Jamaat mode is ignored and legacy compact layout maps to
+Compact. Per-card language, bilingual labels, time format and date visibility
+remain configurable. The card supports English and draft Arabic translations,
+Home Assistant themes, and narrow screens.
+
+See [dashboard setup and behavior](docs/dashboard.md) for detailed configuration,
+missing-date behaviour, event boundaries and troubleshooting.
 
 ## Automations and coverage alerts
 
