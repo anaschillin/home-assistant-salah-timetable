@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {countdown, duration, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, prayerName, timestamp, discoverEntity, discoverTimetableEntities, nextRamadanEvent} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+import {countdown, duration, elapsed, formatDate, formatHijriDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, prayerName, timestamp, discoverEntity, discoverTimetableEntities, nextRamadanEvent} from "../../custom_components/salah_timetable/frontend/card-utils.js";
 import {resolveUi} from "../../custom_components/salah_timetable/frontend/card-i18n.js";
 
 const instant = value => Date.parse(`2026-10-21T${value}:00Z`);
@@ -179,4 +179,12 @@ test("discovery lists each mosque dashboard sensor but no individual prayer sens
   ]);
   assert.equal(discoverEntity(hass), "sensor.example_prayer_timetable");
   assert.deepEqual(discoverTimetableEntities({states: {}}), []);
+});
+
+
+test("Hijri date uses an Islamic month and AH era rather than Gregorian BC", () => {
+  const value = formatHijriDate("2026-10-27", 0, resolveUi({language: "en"}, {locale: {language: "en-GB"}}));
+  assert.match(value, /1448/);
+  assert.doesNotMatch(value, /\b(?:BC|BCE|October|May)\b/i);
+  assert.match(value, /\b(?:AH|Muharram|Safar|Rabi|Jumada|Rajab|Shaban|Sha.ban|Ramadan|Shawwal|Dhu)\b/i);
 });
