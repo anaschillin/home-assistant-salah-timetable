@@ -1,5 +1,5 @@
-import {eventProgress, hijriMonthInfo, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.2";
-import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9.2";
+import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.3";
+import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9.3";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
 const RENDER_ATTRIBUTES = [
@@ -110,11 +110,6 @@ function prayerNode(key, ui, bilingual, fallback) {
   return result;
 }
 
-function eventPrayerKey(event) {
-  const field = String(event?.field || "").replace(/_(?:begin|jamaat)$/, "");
-  return PRAYERS.has(event?.prayer) ? event.prayer : PRAYERS.has(field) ? field : event?.prayer || field;
-}
-
 function normalizeForUi(config, hass) {
   try { return normalizeConfig(config); }
   catch (error) {
@@ -129,29 +124,20 @@ function clockNode(text, ui, elapsedClock = false) {
   return result;
 }
 
-function publishedTimes(data, event) {
-  const key = eventPrayerKey(event);
-  const rows = Object.values(data?.day_prayers || {}).flat();
-  const row = rows.find(item => item?.key === (key === "jumuah" ? "dhuhr" : key) && (item?.jamaat || []).includes(event?.timestamp)) || (data?.prayers || []).find(item => item?.key === (key === "jumuah" ? "dhuhr" : key));
-  const jamaats = Array.isArray(row?.jamaat) ? row.jamaat : [];
-  const matching = jamaats.find(value => timestamp(value) === timestamp(event?.timestamp));
-  return {begin: row?.begin || null, jamaat: key === "jumuah" ? (matching || event?.timestamp || null) : (matching || jamaats[0] || null), end: key === "fajr" ? row?.end : null};
-}
-
-// Shared structure and styles for the upcoming Salah and previous Jamaat.
-function prayerPanel(kind, event, data, zone, ui, config, clock) {
+// Shared structure and styles for the upcoming Salah and contextual Jamaat.
+function prayerPanel(kind, event, data, zone, ui, config, clock, mode = "previous") {
   const result = node("section", undefined, "panel prayer-panel");
   result.setAttribute("data-panel", kind);
-  const label = node("div", tr(ui, kind === "salah" ? "panel.next_salah" : "panel.previous_jamaat"), "label");
+  const label = node("div", tr(ui, kind === "salah" ? "panel.next_salah" : mode === "upcoming" ? "panel.next_jamaat" : "panel.previous_jamaat"), "label");
   const name = node("div", undefined, "event");
   if (event) name.append(prayerNode(eventPrayerKey(event), ui, config.bilingual_prayer_labels, event.name));
   else name.textContent = tr(ui, "status.unavailable");
   result.append(label, name);
   if (kind === "salah" || kind === "jamaat") {
-    result.clock = clockNode(clock, ui, kind === "jamaat");
+    result.clock = clockNode(clock, ui, kind === "jamaat" && mode === "previous");
     result.append(result.clock);
   }
-  const times = publishedTimes(data, event);
+  const times = publishedTimes(data, event, kind === "jamaat");
   const grid = node("div", undefined, "prayer-times");
   for (const [key, value] of [["table.beginning", times.begin], ["table.jamaat", times.jamaat]]) {
     const cell = node("div", undefined, "prayer-time");
@@ -214,7 +200,7 @@ export class SalahTimetableCard extends HTMLElement {
 
   _selection(data, now) {
     const next = nextSalah(data, now);
-    const congregation = jamaatPanel(data, "previous", now);
+    const congregation = jamaatPanel(data, "context", now);
     return JSON.stringify([next, congregation, highlightedPrayer(data, now),
       data.prayers.map(row => row && prayerIsPast(row, now)),
       ...["sehri", "iftar"].map(kind => {
@@ -308,7 +294,7 @@ export class SalahTimetableCard extends HTMLElement {
     }
     if (this._hass?.connection?.connected === false) content.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
     const next = nextSalah(data, now);
-    const previous = jamaatPanel(data, "previous", now).event;
+    const congregation = jamaatPanel(data, "context", now);
     const panels = node("div", undefined, "panels");
     if (this._selectedDay === 0 && this._config.show_salah_countdown) {
       const box = prayerPanel("salah", next, data, zone, ui, this._config, countdown(next?.timestamp, now, ui));
@@ -316,8 +302,11 @@ export class SalahTimetableCard extends HTMLElement {
       panels.append(box);
     }
     if (this._selectedDay === 0 && this._config.show_jamaat_countdown) {
-      const box = prayerPanel("jamaat", previous, data, zone, ui, this._config, elapsed(previous?.timestamp, now, ui));
-      updates.push(instant => { box.clock.run.textContent = elapsed(previous?.timestamp, instant, ui); });
+      const congregationClock = instant => congregation.mode === "upcoming"
+        ? countdown(congregation.event?.timestamp, instant, ui)
+        : elapsed(congregation.event?.timestamp, instant, ui);
+      const box = prayerPanel("jamaat", congregation.event, data, zone, ui, this._config, congregationClock(now), congregation.mode);
+      updates.push(instant => { box.clock.run.textContent = congregationClock(instant); });
       panels.append(box);
     }
     if (panels.children.length) content.append(panels);

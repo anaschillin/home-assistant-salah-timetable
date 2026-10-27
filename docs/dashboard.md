@@ -50,14 +50,15 @@ times. Date selection does not modify Home Assistant sensor state or stored data
 
 | Level | Today's display |
 | --- | --- |
-| Compact | Next Salah countdown with beginning and Jamaat, plus Previous Jamaat beginning and Jamaat; active Ramadan details when enabled |
+| Compact | Next Salah countdown with beginning and Jamaat, plus context-aware upcoming/previous Jamaat; active Ramadan details when enabled |
 | Standard (default) | Both matching prayer cards, full timetable, Hijri date (if enabled), and active Ramadan details |
 | Detailed | Standard plus published Fajr sunrise/end and second Friday khutbah (if present) |
 
 **Next Salah** always means the next *beginning* time, even if the current
-prayer's Jamaat is still upcoming. The countdown and both published times
-appear together. **Previous Jamaat** means the most recent congregational
-prayer, showing its beginning and Jamaat timestamps; it has no live countdown.
+prayer's Jamaat is still upcoming. The countdown and published times from that
+event's actual date appear together. **Next Jamaat** counts down while the
+current prayer's congregation is still approaching; at its exact instant the
+same panel becomes **Previous Jamaat** and shows elapsed time.
 The two panels share the same component, dimensions, typography, time grid,
 theme-aware surfaces and responsive behaviour. The old context/upcoming/previous
 Jamaat panel selector has been removed.
@@ -69,9 +70,10 @@ as unavailable rather than inferred. Ramadan details are shown in all three disp
 
 ## Timing and boundaries
 
-Next Salah and Previous Jamaat are selected independently from the published
+Next Salah and the contextual Next/Previous Jamaat are selected independently from the published
 absolute event timeline. After Isha, the next Salah uses tomorrow's actual Fajr
-record; missing tomorrow data yields an unavailable countdown. At a prayer
+record; missing tomorrow data yields an unavailable countdown. Its time grid also
+uses tomorrow's actual published Fajr, Jamaat and sunrise, never today's row. At a prayer
 beginning boundary, the next Salah advances to the next published beginning.
 Events are drawn from yesterday, today and tomorrow, including leap-year and
 year-end transitions. The card updates the live countdown in the browser without
@@ -147,8 +149,8 @@ Hiding both leaves the header and timetable. Connection warnings and narrow-card
 scrolling guidance remain available when the timezone note is hidden. Taraweeh
 belongs to the Ramadan details section. Countdown durations use hours/minutes/seconds
 with a day prefix when needed, independent of 12/24-hour time format.
-Existing explicitly configured Jamaat modes remain unchanged. Cards that omit `mode`
-now use the upcoming congregation.
+The legacy `mode` option is ignored for all cards. The Jamaat panel automatically
+switches between the upcoming congregation and the previous one.
 
 ## Ramadan controls
 
@@ -185,7 +187,7 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.9.0
+/salah_timetable/salah-timetable-card.js?v=0.9.3
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an

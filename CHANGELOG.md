@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.9.3 — unreleased
+
+- Match Next Salah beginning, Jamaat and Fajr sunrise to the same approved, dated
+  timetable row; show unavailable rather than silently borrowing today's times.
+- Restore context-aware Next/Previous Jamaat: countdown before the current
+  prayer's congregation and elapsed time from the exact Jamaat boundary.
+- Format calculated Umm al-Qura dates using validated numeric fields and named
+  Islamic months with AH/هـ eras, avoiding incorrect Android WebView Gregorian
+  month and BC-era labels. Add boundary, next-day, Friday and locale regressions.
+
+
 ## 0.9.1 — unreleased
 
 - Remove the optional inspected-publication-profile picker, edition catalogue,
