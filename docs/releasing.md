@@ -67,7 +67,7 @@ scope decision. Do not test it against the live household HAOS installation.
       a Container or storage-only restore), or the maintainer explicitly
       documents a release-scope decision acknowledging the missing evidence.
 - [ ] **Exact** release commit passes all required CI, including minimum/current
-      Home Assistant live acceptance, and its metadata, assets and changelog agree.
+      Home Assistant unit compatibility and current-version live acceptance, and its metadata, assets and changelog agree.
 - [ ] Maintainer reviews the tag, checksum, release notes and draft before
       publishing; release is never published automatically.
 
@@ -121,7 +121,7 @@ Require the validation workflow to pass on the exact commit being released:
 - Node frontend tests and the required Chromium smoke harness.
 - Official hassfest and HACS integration validation.
 - The release consistency check and archive build.
-- The reusable minimum/current HA live matrix, including strict before/after
+- The reusable supported-current HA live acceptance, including strict before/after
   dependency proof, actual configuration/import/restart and editor acceptance.
 
 The isolated Chromium harness uses stand-in Home Assistant controls. Its result

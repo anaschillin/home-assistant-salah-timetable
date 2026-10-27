@@ -5,6 +5,20 @@ acceptance checklist. See [remaining work](remaining-work.md) for engineering
 priorities and [release readiness](releasing.md#current-release-readiness) for
 blocking manual sign-offs.
 
+## Validation workflow simplification — 27 October 2026
+
+PR #35 reduces the prospective Validate workflow from 12 jobs to **seven**:
+locked Python tests, frontend/Chromium, HACS, hassfest, full-suite pinned HA
+2026.10.0 compatibility, full-suite pinned HA 2026.10.3 compatibility,
+and one real Container/live-frontend acceptance run on HA 2026.10.3.
+The former shard selector and its dedicated tests have been removed.
+All test modules still run in each pinned compatibility lane; the usual
+per-test and process timeouts are unchanged.
+
+This is a CI configuration change, not evidence of a release. The previous
+12-job results below are retained as historical, exact-commit records.
+The simplified workflow requires its own successful PR run.
+
 ## 0.9.1 acceptance report — 26 October 2026
 
 The maintainer reports successfully **removing and reinstalling Salah

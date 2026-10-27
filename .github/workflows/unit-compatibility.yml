@@ -15,22 +15,16 @@ concurrency:
 
 jobs:
   compatibility:
-    name: HA ${{ matrix.ha-version }} (${{ matrix.group }})
+    name: HA ${{ matrix.ha-version }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Exhaustive minimum-version coverage in four core groups and one
-          # dedicated source-flow group (where mocked HTTP uploads run).
-          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371', group: core-0}
-          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371', group: core-1}
-          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371', group: core-2}
-          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371', group: core-3}
-          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371', group: source-flow}
-          # Run the complete, unsharded suite on the supported-current version.
-          - {lane: supported-current, ha-version: '2026.10.3', plugin-version: '0.13.374', group: all}
+          # Run the complete suite on both pinned Home Assistant versions.
+          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371'}
+          - {lane: supported-current, ha-version: '2026.10.3', plugin-version: '0.13.374'}
     env:
       COMPAT_PROJECT: compatibility/${{ matrix.lane }}
     steps:
@@ -67,12 +61,10 @@ jobs:
           uv pip freeze --python "$UV_PROJECT_ENVIRONMENT/bin/python" > "$COMPAT_EVIDENCE/installed.txt"
       - name: Run assigned Python tests
         shell: bash
-        env:
-          TEST_GROUP: ${{ matrix.group }}
         run: |
           set -euo pipefail
           mapfile -t TEST_FILES < <(
-            "$UV_PROJECT_ENVIRONMENT/bin/python" scripts/select_compatibility_tests.py "$TEST_GROUP"
+            find tests -maxdepth 1 -type f -name 'test_*.py' | sort
           )
           test "${#TEST_FILES[@]}" -gt 0
           printf '%s\n' "${TEST_FILES[@]}" | tee "$COMPAT_EVIDENCE/test-files.txt"
@@ -93,7 +85,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: ha-unit-compatibility-${{ matrix.ha-version }}-${{ matrix.group }}
+          name: ha-unit-compatibility-${{ matrix.ha-version }}
           path: ${{ env.COMPAT_EVIDENCE }}/
           if-no-files-found: ignore
           retention-days: 7

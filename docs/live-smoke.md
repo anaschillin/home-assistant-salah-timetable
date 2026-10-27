@@ -1,7 +1,8 @@
 # Disposable Home Assistant live acceptance runner
 
-The runner is used by the required minimum/current HA matrix in Validate and can
-also run manually. The reusable live workflow runs weekly as a compatibility check. It creates a
+The runner is used by the required **supported-current HA 2026.10.3** live job
+in Validate and can also run manually. The reusable live workflow runs weekly as a
+compatibility check. It creates a
 disposable official HA container and synthetic timetable, runs authenticated APIs
 and the real frontend, and removes its container and private configuration afterward.
 No user configuration or credentials are checked into the repository.
@@ -9,7 +10,7 @@ No user configuration or credentials are checked into the repository.
 Requirements: Docker, Node.js 24 and Chromium/Chrome. Example:
 
 ```sh
-node scripts/live_smoke.mjs --ha-version 2026.10.0 --output-dir /tmp/salah-live-results
+node scripts/live_smoke.mjs --ha-version 2026.10.3 --output-dir /tmp/salah-live-results
 ```
 
 The optional `--preload-pypdf` supplies the exact manifest-pinned pure-Python

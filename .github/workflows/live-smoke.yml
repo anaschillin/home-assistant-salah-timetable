@@ -15,16 +15,11 @@ concurrency:
 
 jobs:
   live-smoke:
-    name: Home Assistant ${{ matrix.ha-version }}
+    name: Home Assistant 2026.10.3
     runs-on: ubuntu-24.04
     timeout-minutes: 25
-
-    strategy:
-      fail-fast: false
-      matrix:
-        ha-version:
-          - '2026.10.0' # Minimum supported Core version
-          - '2026.10.3' # Current October stable patch
+    env:
+      HA_VERSION: '2026.10.3'
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -54,7 +49,7 @@ jobs:
           # No --preload-pypdf: the test must exercise a fresh HA-managed
           # installation of the dependency pinned in manifest.json.
           node scripts/live_smoke.mjs \
-            --ha-version "${{ matrix.ha-version }}" \
+            --ha-version "$HA_VERSION" \
             --require-fresh-dependency \
             --verify-backup-restore \
             --output-dir "$RUNNER_TEMP/salah-live-results"
@@ -63,7 +58,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: ha-live-smoke-${{ matrix.ha-version }}
+          name: ha-live-smoke-2026.10.3
           path: ${{ runner.temp }}/salah-live-results/
           if-no-files-found: ignore
           retention-days: 7

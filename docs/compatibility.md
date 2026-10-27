@@ -57,75 +57,37 @@ automations, calendar behavior and frontend resource registration.
 
 ## Continuous validation
 
-`Validate` calls the reusable `unit-compatibility.yml` workflow for both lanes.
-The workflow also runs manually and weekly, separately from the existing live
-Home Assistant Container matrix and locked development tests. Both lanes run
-even when one fails. Evidence includes exact installed versions, installed
-packages, JUnit results and coverage; the job fails if installation or testing
-changes a committed lock. Each lane creates its own `TMPDIR` before installation
-and testing. A compatibility failure is not resolved by silently
-switching both jobs to the same HA version or relaxing the plugin's HA pin.
+`Validate` calls the reusable `unit-compatibility.yml` workflow for **two
+jobs**, one per pinned Home Assistant release. Each job runs **all** `test_*.py`
+modules in a single pytest process, including the HTTP upload and source-flow
+tests; there are no four-way core shards or dedicated source-flow shard.
+Both jobs run even if the other fails.
 
-## Minimum-version CI regression and isolation
+The runner discovers tests directly from `tests/` and records the exact module
+list, installed versions, installed packages, JUnit results, coverage XML and
+verbose pytest output. Version assertions, frozen dependency locks, per-test
+`--timeout=30`, the 12-minute process watchdog, the 15-minute job ceiling,
+and failure evidence collection are retained.
 
-On 26 October 2026, the complete single-process Home Assistant **2026.10.0**
-pytest run repeatedly stalled on hosted runners (see
-[issue #24](https://github.com/anaschillin/home-assistant-salah-timetable/issues/24)).
-The archived logs were unavailable, so the precise original blocking operation
-was not established.
+The separately locked root development suite provides another layer of
+validation. The **one** real Home Assistant Container live-acceptance job runs
+on supported-current **2026.10.3**. Unit compatibility uses Home Assistant
+test fixtures; live acceptance checks real installation, dependencies,
+configuration, reload, and frontend behavior. These are complementary checks,
+not duplicates. Both reusable workflows can also run manually and on their
+existing weekly schedules.
 
+## Historical minimum-version CI hangs
+
+On 26 October 2026, some single-process minimum-version runs hung on hosted
+runners (see [issue #24](https://github.com/anaschillin/home-assistant-salah-timetable/issues/24)).
 [PR #23](https://github.com/anaschillin/home-assistant-salah-timetable/pull/23)
-identified and corrected a distinct minimum-version test-fixture bug: the
-mock `hass_client()` freezes aiohttp's router, preventing later static frontend
-registration. Upload tests now set up `file_upload` and register the card routes
-before constructing the test client, without prematurely loading the mosque entry.
-The previously problematic invalid-PDF test also now rejects non-PDF, malformed
-PDF and oversized PDF inputs sequentially within one options-flow lifecycle;
-every temporary upload and staged-candidate cleanup assertion remains.
-[Validate run 40325768277](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40325768277)
-and
-[main run 40327531675](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40327531675)
-completed all existing diagnostic shards successfully.
+fixed a frozen aiohttp-router fixture used by upload tests. Subsequent CI
+diagnostics also revealed multi-megabyte pytest parameter IDs that overwhelmed
+verbose GitHub Actions logging. The tests now use concise IDs without relaxing
+their large-payload assertions.
 
-### Maintained CI layout
-
-The old diagnostic matrix grew to 16 minimum-HA shards, including AST-selected
-functions from `tests/test_source_flow.py`. It is replaced by **five** minimum
-version groups and **one** supported-current group:
-
-- `core-0` through `core-3`: all `test_*.py` modules other than
-  `test_source_flow.py`, assigned exactly once in sorted module order.
-- `source-flow`: the complete `test_source_flow.py` module (no parameter or
-  function exclusions).
-- `all`: the complete, unsharded suite on HA 2026.10.3.
-
-`scripts/select_compatibility_tests.py` constructs these groups and verifies
-that the minimum-version partitions cover the same file set as `all`, with
-no omissions or overlaps. `tests/test_compatibility_test_selection.py` tests
-the selector's completeness and failure behavior. Every job uses its separately
-locked Python/HA/plugin installation, runs from the repository root and saves
-the exact test-file list, verbose pytest transcript, JUnit report, coverage XML,
-installed versions and environment evidence. All test assertions, runtime
-version checks and lock-file checks remain required.
-
-This removes the nested modulo-64/24/6 function-selection logic and reduces
-the minimum-version CI jobs from 16 to 5 without reducing test coverage. The
-shards remain intentionally separate because the original unsharded minimum-HA
-stall has not yet been conclusively reproduced and eliminated. Continue to track
-it in issue #24. Completing the five groups establishes supported-version
-compatibility, but is not proof the previously stalled single-process test
-lifecycle can now run end to end.
-
-For local reproduction, run the commands in [Run a lane locally](#run-a-lane-locally)
-and use the selector to list one group, for example:
-
-```sh
-python scripts/select_compatibility_tests.py source-flow
-python scripts/select_compatibility_tests.py core-0
-python scripts/select_compatibility_tests.py all
-```
-
-The runner retains per-test `--timeout=30`, a 12-minute process watchdog, a
-15-minute job ceiling, faulthandler diagnostics and `if: always()` artifacts.
-Cancelling superseded PR revisions remains enabled; manual, push and scheduled
-runs are not automatically cancelled by a newer invocation of the same workflow.
+The former four core shards plus dedicated source-flow shard were a temporary
+isolation strategy. The October 27 CI simplification returns to two complete
+suites, preserving version pins, runtime checks, coverage and watchdogs.
+Confirm the exact commit's hosted validation before merging or releasing.
