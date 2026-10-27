@@ -36,10 +36,12 @@ Baseline: [main at 7913789](https://github.com/anaschillin/home-assistant-salah-
 - [x] **CR27-01 (P1):** Reproduce source-check timer behaviour when remote profiles are added or removed. Fix rescheduling and status notification if tests expose stale scheduling.
 - [x] **CR27-02 (P1):** Test calendar next-event cache across approval, rejection, source replacement, midnight, year rollover and empty future coverage. Correct confirmed stale state without changing published instants.
 - [x] **CR27-03 (P2):** Audit frontend component-loaded listener lifetime and cleanup across repeated setup, unload and re-addition; add lifecycle tests before changing global registration.
-- [ ] **CR27-04 (P2):** Measure coordinator minute refresh against event-boundary scheduling. Preserve clock-correction, DST and restart recovery; change cadence only with evidence.
+- [x] **CR27-04 (P2):** Measure coordinator minute refresh against event-boundary scheduling. Preserve clock-correction, DST and restart recovery; change cadence only with evidence.
 - [ ] **CR27-05 (P2):** Extract shared PDF/CSV/URL import preparation from options flows without changing approval semantics or user-facing steps.
 - [ ] **CR27-06 (P3):** Audit callers of legacy storage helpers (including `for_date`); remove dead code or correct stale documentation with tests.
 - [ ] **CR27-07 (P3):** Document import, source-update, storage, coordinator and frontend responsibilities and cross-module state-change contracts.
+
+**CR27-04 review (27 October):** Keep both scheduling mechanisms. Event-boundary callbacks provide timely transitions, while the one-minute coordinator fallback recovers from clock changes, delayed callbacks and other timing drift. Coverage is cached by day, approved tables and Ramadan settings. No cadence change without performance measurements and boundary/DST regression evidence; the audit is complete, but optimisation remains conditional.
 
 **First implementation batch:** CR27-01, CR27-02 and CR27-03 implemented in [PR #66](https://github.com/anaschillin/home-assistant-salah-timetable/pull/66). Source removal now explicitly recalculates the check timer, with a regression test. Calendar cache behaviour was verified by existing tests and an added replacement/year-rollover regression test; no production cache change was needed. Frontend component-loaded listener now unregisters on Home Assistant shutdown, covered by a lifecycle regression test. Maintainer reports CI passed after Ruff formatting correction. This does not replace manual HA acceptance.
 
