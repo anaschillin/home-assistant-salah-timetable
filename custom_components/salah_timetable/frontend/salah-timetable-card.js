@@ -147,8 +147,8 @@ function prayerPanel(kind, event, data, zone, ui, config, clock) {
   if (event) name.append(prayerNode(eventPrayerKey(event), ui, config.bilingual_prayer_labels, event.name));
   else name.textContent = tr(ui, "status.unavailable");
   result.append(label, name);
-  if (kind === "salah") {
-    result.clock = clockNode(clock, ui);
+  if (kind === "salah" || kind === "jamaat") {
+    result.clock = clockNode(clock, ui, kind === "jamaat");
     result.append(result.clock);
   }
   const times = publishedTimes(data, event);
@@ -307,7 +307,11 @@ export class SalahTimetableCard extends HTMLElement {
       updates.push(instant => { box.clock.run.textContent = countdown(next?.timestamp, instant, ui); });
       panels.append(box);
     }
-    if (this._selectedDay === 0 && this._config.show_jamaat_countdown) panels.append(prayerPanel("jamaat", previous, data, zone, ui, this._config));
+    if (this._selectedDay === 0 && this._config.show_jamaat_countdown) {
+      const box = prayerPanel("jamaat", previous, data, zone, ui, this._config, elapsed(previous?.timestamp, now, ui));
+      updates.push(instant => { box.clock.run.textContent = elapsed(previous?.timestamp, instant, ui); });
+      panels.append(box);
+    }
     if (panels.children.length) content.append(panels);
     const highlighted = highlightedPrayer(data, now);
     let tableRegion;
