@@ -848,3 +848,62 @@ async def test_changed_reload_cancels_active_adhan_volume_restore(hass, freezer)
         await asyncio.sleep(0)
     assert len(volume) == 1
     assert len(playback) == 1
+
+
+async def test_changed_reload_cancels_active_media_resumption(hass, freezer):
+    """A changed reload must not resume media paused by an earlier run."""
+    freezer.move_to("2026-10-23T04:59:00Z")
+    pause = async_mock_service(hass, "media_player", "media_pause")
+    resume = async_mock_service(hass, "media_player", "media_play")
+    hass.states.async_set("sensor.prayer_begin", "2026-10-23T05:00:00+00:00", ATTRS)
+    hass.states.async_set("sensor.prayer_jamaat", "2026-10-23T05:05:00+00:00", ATTRS)
+    hass.states.async_set(
+        "media_player.hall",
+        "playing",
+        {"media_content_id": "song-a", "app_id": "music"},
+    )
+    inputs = {
+        "prayer_beginning": "sensor.prayer_begin",
+        "resume_anchor": "sensor.prayer_jamaat",
+        "resume_delay": 1,
+        "media_players": ["media_player.hall"],
+    }
+    config = expanded("pause_resume_media", inputs)
+    await start(hass, [config])
+
+    # Do not drain the task queue while the automation is waiting to resume.
+    freezer.move_to("2026-10-23T05:00:00Z")
+    async_fire_time_changed(hass, dt_util.parse_datetime("2026-10-23T05:00:00Z"))
+    for _ in range(30):
+        if pause:
+            break
+        await asyncio.sleep(0)
+    assert len(pause) == 1
+
+    # Acknowledge the pause with the service call's original run context.
+    hass.states.async_set(
+        "media_player.hall",
+        "paused",
+        {"media_content_id": "song-a", "app_id": "music"},
+        context=pause[0].context,
+    )
+    for _ in range(30):
+        await asyncio.sleep(0)
+
+    changed = expanded("pause_resume_media", {**inputs, "resume_delay": 2})
+    with patch(
+        "homeassistant.config.async_hass_config_yaml",
+        return_value={"automation": [changed]},
+    ):
+        await asyncio.wait_for(
+            hass.services.async_call("automation", "reload", {}, blocking=True),
+            timeout=10,
+        )
+
+    # Beyond the original six-minute anchor, no cancelled run may resume.
+    freezer.move_to("2026-10-23T05:07:00Z")
+    async_fire_time_changed(hass, dt_util.parse_datetime("2026-10-23T05:07:00Z"))
+    for _ in range(30):
+        await asyncio.sleep(0)
+    assert len(pause) == 1
+    assert not resume
