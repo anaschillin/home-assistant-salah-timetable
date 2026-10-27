@@ -51,8 +51,10 @@ year, kind and time format. Parsing and timezone validation occur off the event 
 
 Staging writes a candidate with a random identity without changing active records.
 The review shows coverage, missing counts, source hash, sample values and replacement
-scope. Approval atomically replaces the same kind/year source and clears staging;
-other years remain available. Rejection clears staging and retains active data.
+scope. Approval atomically replaces the reviewed source identity and clears staging;
+other sources and years remain available. Annual and Ramadan sources use a
+kind/year identity, whereas monthly ordinary sources use a distinct identity
+for their exact published date span. Rejection clears staging and retains active data.
 Closing the review leaves the proposal durable. A resumed flow reads it from storage.
 A stale preview identity cannot approve/reject a different proposal. A pending proposal
 cannot be overwritten by another concurrent import.
@@ -85,8 +87,10 @@ Normal PDF/URL inputs still use strict automatic adapter recognition.
 Canonical date rows retain original CSV cells separately from parsed times; raw CSV
 text, including any BOM, is stored with an exact UTF-8 SHA-256 digest. Annual and
 Ramadan sources remain distinct. User confirmation of an explicit year avoids
-system-date inference. Sources are keyed by kind/year; replacement is whole-source,
-not a row merge. Legacy IDs are retained during migration; overlapping legacy annual
+system-date inference. Annual and Ramadan sources are keyed by kind/year. Monthly ordinary
+sources are keyed by year and exact published date span, so independent months
+coexist; re-importing the same span replaces that source only. Replacement is
+whole-source, not a row merge. Legacy IDs are retained during migration; overlapping legacy annual
 sources are rejected rather than overwritten through an unrelated import ID.
 
 Dates are strict ISO and increasing. Times must match the explicitly selected 24-hour

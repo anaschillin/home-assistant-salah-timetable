@@ -1,7 +1,6 @@
 /** Pure timestamp and display logic shared by the bundled card and its tests. */
-import {localizedNumber, prayerLabels, tr} from "./card-i18n.js?v=0.9.3";
+import {localizedNumber, tr} from "./card-i18n.js?v=0.9.3";
 
-export const MODES = Object.freeze(["context", "previous", "upcoming"]);
 const PRAYERS = Object.freeze(["fajr", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
 export function timestamp(value) {
@@ -30,12 +29,6 @@ export function countdown(value, now = Date.now(), ui = "en") {
 export function elapsed(value, now = Date.now(), ui = "en") {
   const target = timestamp(value);
   return target === null || target > now ? tr(ui, "status.unavailable") : duration(now - target, ui);
-}
-
-export function prayerName(event, ui = "en") {
-  if (!event) return tr(ui, "status.unavailable");
-  const key = PRAYERS.includes(event.prayer) ? event.prayer : String(event.field || "").replace(/_(?:begin|jamaat)$/, "");
-  return prayerLabels(PRAYERS.includes(key) ? key : "prayer", ui)[0].text;
 }
 
 function displayLocale(localeOrUi) {

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {countdown, duration, elapsed, formatDate, formatHijriDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, prayerName, timestamp, discoverEntity, discoverTimetableEntities, nextRamadanEvent, publishedTimes} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+import {countdown, duration, elapsed, formatDate, formatHijriDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, timestamp, discoverEntity, discoverTimetableEntities, nextRamadanEvent, publishedTimes} from "../../custom_components/salah_timetable/frontend/card-utils.js";
 import {resolveUi} from "../../custom_components/salah_timetable/frontend/card-i18n.js";
 
 const instant = value => Date.parse(`2026-10-21T${value}:00Z`);
@@ -126,10 +126,6 @@ test("Arabic countdowns localize digits, days and statuses at exact boundaries",
   assert.equal(countdown(value, instant("05:31"), ui), "انقضى");
   assert.equal(elapsed(value, instant("05:31"), ui), "٠٠:٠١:٠٠");
   for (const unavailable of [duration(NaN, ui), countdown(null, instant("05:30"), ui), elapsed(value, instant("05:29"), ui)]) assert.equal(unavailable, "غير متاح");
-  assert.equal(prayerName(event("05:30", "fajr"), ui), "الفجر");
-  assert.equal(prayerName({field: "jumuah_jamaat"}, ui), "الجمعة");
-  assert.equal(prayerName(null, ui), "غير متاح");
-  assert.equal(prayerName({prayer: "unknown"}, ui), "الصلاة");
 });
 
 test("automatic French locale retains English UI while formatting published dates in French", () => {

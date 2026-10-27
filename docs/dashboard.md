@@ -131,13 +131,15 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | --- | --- |
 | `language` | `auto` (default), `en`, `ar`; automatic follows the HA interface language with English label fallback |
 | `bilingual_prayer_labels` | `false` (default); show English and Arabic known prayer names |
-| `detail_level` | `standard` (default), `compact`, `detailed` |\n| `layout` | Legacy `compact` maps to Compact; `expanded` maps to Standard if no `detail_level` is saved |
+| `detail_level` | `standard` (default), `compact`, `detailed` |
+| `layout` | Legacy `compact` maps to Compact; `expanded` maps to Standard if no `detail_level` is saved |
 | `mode` | Legacy setting ignored; no longer exposed in the editor |
 | `time_format` | `24h` (default), `12h`; applies to every absolute time |
 | `show_salah_countdown` | `true` |
 | `show_jamaat_countdown` | `true` |
 | `show_hijri_date` | `true`; further hides the mosque-enabled full Hijri date on this card |
 | `show_gregorian_date` | `true`; independently displays the secondary Gregorian date |
+| `show_hijri_month_info` | `true`; displays the offline description for the selected Hijri month |
 | `hijri_adjustment` | Whole days −3 through +3; default `0` |
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
@@ -149,8 +151,14 @@ Hiding both leaves the header and timetable. Connection warnings and narrow-card
 scrolling guidance remain available when the timezone note is hidden. Taraweeh
 belongs to the Ramadan details section. Countdown durations use hours/minutes/seconds
 with a day prefix when needed, independent of 12/24-hour time format.
-The legacy `mode` option is ignored for all cards. The Jamaat panel automatically
+The legacy `mode` option is accepted but ignored for all cards. The Jamaat panel automatically
 switches between the upcoming congregation and the previous one.
+
+The editor also exposes four **coming soon** Islamic-history settings for day
+events, monthly highlights, visible sources and disputed dates. Their values
+may be saved, but they do not currently display historical event records. The
+Hijri month description is implemented separately and can be hidden with
+`show_hijri_month_info: false`.
 
 ## Ramadan controls
 
@@ -205,7 +213,6 @@ For reference, the card's optional YAML representation is:
 ```yaml
 type: custom:salah-timetable-card
 entity: sensor.example_mosque_prayer_timetable
-mode: upcoming
 language: auto
 bilingual_prayer_labels: false
 layout: expanded
@@ -215,8 +222,8 @@ show_gregorian_date: true
 hijri_adjustment: 0
 ```
 
-The graphical editor produces this configuration. `mode` accepts `context`,
-`previous` or `upcoming`; `title` is optional. The example entity ID must be replaced
+The graphical editor produces this configuration. The legacy `mode` property
+is ignored if present; `title` is optional. The example entity ID must be replaced
 with the selected mosque's actual entity ID.
 
 ## Validation limits

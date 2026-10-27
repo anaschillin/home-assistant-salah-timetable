@@ -164,7 +164,9 @@ automatically; one mosque shows no tabs. Each selected mosque retains its own
 published times. Existing cards using the former `mode` and `layout` fields are
 accepted; the old Jamaat mode is ignored and legacy compact layout maps to
 Compact. Per-card language, bilingual labels, time format and date visibility
-remain configurable. The card supports English and draft Arabic translations,
+remain configurable. Optional offline Hijri-month descriptions are implemented;
+historical day-event feeds and monthly history highlights are not yet available.
+The card supports English and draft Arabic translations,
 Home Assistant themes, and narrow screens.
 
 See [dashboard setup and behavior](docs/dashboard.md) for detailed configuration,
@@ -371,7 +373,9 @@ uv run --frozen python scripts/build_release.py --check
 ```
 
 `uv.lock` fixes development dependencies. The integration uses HA's bundled
-`file_upload` component and pinned `pypdf==6.21.1`. Tests use actual config
+`file_upload` component and pins `pypdf==6.21.1` in its runtime manifest.
+The separately locked development environment currently uses `pypdf==6.21.2`;
+its pin is not the Home Assistant runtime requirement. Tests use actual config
 flows, registries, platforms, authenticated local HTTP uploads and atomic storage in
 temporary directories. Transport tests mock remote responses and exercise real connector resolution; PDF
 fixtures execute the isolated worker. The suite requires no external network or
