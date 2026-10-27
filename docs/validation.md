@@ -5,6 +5,26 @@ acceptance checklist. See [remaining work](remaining-work.md) for engineering
 priorities and [release readiness](releasing.md#current-release-readiness) for
 blocking manual sign-offs.
 
+## 0.9.3 main-branch CI evidence — 27 October 2026
+
+On main commit [`78c1a9f018f9676a56b1657865bcdef40a5f8175`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/78c1a9f018f9676a56b1657865bcdef40a5f8175),
+[Validate 40578293746](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40578293746)
+passed all **seven** jobs, and
+[CodeQL 40578293664](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40578293664)
+passed. The locked root suite and both separate Home Assistant
+2026.10.0/2026.10.3 compatibility lanes each passed **904 Python tests**.
+Root coverage measured **3,142 statements, 163 missed, 95% after rounding**
+(actual line ratio approximately **94.81%**). The isolated
+`pdf_worker.py` subprocess accounts for 47 uncovered statements in this
+combined-process report; its worker behaviour is exercised through separate
+black-box parser tests, not instrumented in the same coverage process.
+
+Frontend/Chromium, hassfest, HACS and the HA 2026.10.3 live Container job
+succeeded. This is exact-commit CI evidence, **not** confirmation of a
+published release, full HAOS/Supervisor restore, redistribution rights or
+complete manual/device/HACS UI acceptance. Branch coverage is not enabled;
+line coverage must not be presented as branch coverage.
+
 ## Validation workflow simplification — 27 October 2026
 
 PR #35 reduces the prospective Validate workflow from 12 jobs to **seven**:
@@ -17,7 +37,8 @@ per-test and process timeouts are unchanged.
 
 This is a CI configuration change, not evidence of a release. The previous
 12-job results below are retained as historical, exact-commit records.
-The simplified workflow requires its own successful PR run.
+The simplified workflow later passed on main at `78c1a9f`; see the
+0.9.3 evidence above. The original note is retained as a historical record.
 
 ## 0.9.1 acceptance report — 26 October 2026
 
