@@ -11,7 +11,9 @@ from custom_components.salah_timetable.model import DailyPrayers, PrayerField, T
 from custom_components.salah_timetable.storage import TimetableStorage
 
 
-def pytest_make_parametrize_id(config: pytest.Config, val: object, argname: str) -> str | None:
+def pytest_make_parametrize_id(
+    config: pytest.Config, val: object, argname: str
+) -> str | None:
     """Avoid printing multi-megabyte binary/CSV payloads as verbose test IDs."""
     if isinstance(val, (bytes, str)) and len(val) > 120:
         return f"{argname}-{type(val).__name__}-{len(val)}"
