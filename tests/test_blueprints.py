@@ -365,16 +365,18 @@ async def test_pause_resume_skips_players_not_playing_at_beginning(hass, freezer
     assert not resumed
 
 
-@pytest.mark.parametrize("anchor", ["unknown", "unavailable", "2026-10-23T04:55:00+00:00"])
-async def test_pause_resume_rejects_invalid_or_early_anchor(
-    hass, freezer, anchor
-):
+@pytest.mark.parametrize(
+    "anchor", ["unknown", "unavailable", "2026-10-23T04:55:00+00:00"]
+)
+async def test_pause_resume_rejects_invalid_or_early_anchor(hass, freezer, anchor):
     """Invalid anchors must be rejected before any media player is paused."""
     freezer.move_to("2026-10-23T04:59:00Z")
     paused = async_mock_service(hass, "media_player", "media_pause")
     hass.states.async_set("sensor.prayer_begin", "2026-10-23T05:00:00+00:00", ATTRS)
     hass.states.async_set("sensor.prayer_jamaat", anchor, ATTRS)
-    hass.states.async_set("media_player.hall", "playing", {"media_content_id": "song-a"})
+    hass.states.async_set(
+        "media_player.hall", "playing", {"media_content_id": "song-a"}
+    )
     config = expanded(
         "pause_resume_media",
         {
