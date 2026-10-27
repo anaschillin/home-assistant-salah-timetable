@@ -34,7 +34,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
   }
   async function evaluate(expression) {
     const value = await call("Runtime.evaluate", {expression, returnByValue: true, awaitPromise: true});
-    if (value.exceptionDetails) throw new Error("Browser evaluation failed: " + value.exceptionDetails.text);
+    if (value.exceptionDetails) throw new Error("Browser evaluation failed: " + value.exceptionDetails.text + (value.exceptionDetails.exception?.description ? "\n" + value.exceptionDetails.exception.description : ""));
     return value.result?.value;
   }
   async function until(expression, message, attempts = 100) {
