@@ -319,8 +319,8 @@ export class SalahTimetableCard extends HTMLElement {
     const body = node("tbody");
     for (const prayer of selectedPrayers) {
       if (!prayer || typeof prayer !== "object") continue;
-      const row = node("tr", undefined, prayer.key === highlighted ? "next-prayer" : prayerIsPast(prayer, now) ? "past-prayer" : "");
-      if (prayer.key === highlighted) row.setAttribute("aria-current", "true");
+      const row = node("tr", undefined, this._selectedDay === 0 ? (prayer.key === highlighted ? "next-prayer" : prayerIsPast(prayer, now) ? "past-prayer" : "") : "");
+      if (this._selectedDay === 0 && prayer.key === highlighted) row.setAttribute("aria-current", "true");
       const name = node("th"); name.scope = "row";
       name.append(prayerNode(prayer.key, ui, this._config.bilingual_prayer_labels, prayer.name));
       const congregations = Array.isArray(prayer.jamaat) ? prayer.jamaat : [];
