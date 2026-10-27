@@ -331,9 +331,9 @@ test("new future prayer and Ramadan publications refresh today's countdown", t =
   data.next_salah = {timestamp: "2026-10-21T05:00:00Z", prayer: "fajr"}; card.hass = current;
   assert.equal(clocks()[0].textContent, "00:20:00");
   data.sehri_events = [{timestamp: "2026-10-21T04:45:00Z"}]; card.hass = current;
-  assert.equal(clocks()[1].textContent, "00:05:00");
+  assert.equal(clocks()[2].textContent, "00:05:00");
   data.next_iftar = {timestamp: "2026-10-21T17:00:00Z"}; card.hass = current;
-  assert.equal(clocks()[2].textContent, "12:20:00");
+  assert.equal(clocks()[3].textContent, "12:20:00");
 });
 
 test("HA locale, effective timezone and connection changes refresh the display", t => {
@@ -391,7 +391,7 @@ test("ordinary ticks advance the next Salah and Ramadan clocks without rebuildin
   card._tick(Date.parse("2026-10-21T04:20:01Z"));
   assert.equal(find(card.shadowRoot, "table")[0], table);
   assert.notEqual(clocks[0].textContent, before);
-  assert.equal(clocks[1].textContent, "00:09:59");
+  assert.equal(clocks[2].textContent, "00:09:59");
 });
 
 function withLanguage(language, data = attributes) {
@@ -472,7 +472,7 @@ test("Arabic ticks retain table and numeric runs while crossing a passed boundar
   const table = find(card.shadowRoot, "table")[0]; const clocks = classNodes(card.shadowRoot, "count"); const run = find(clocks[0], "bdi")[0];
   card._tick(Date.parse("2026-10-21T04:40:01Z"));
   assert.equal(find(card.shadowRoot, "table")[0], table); assert.equal(classNodes(card.shadowRoot, "count")[0], clocks[0]); assert.equal(find(clocks[0], "bdi")[0], run);
-  assert.equal(clocks[0].textContent, "٠٠:٠٤:٥٩"); assert.equal(clocks[1].textContent, "٠٠:٠٠:٠١");
+  assert.equal(clocks[0].textContent, "٠٠:٠٤:٥٩"); assert.equal(clocks[2].textContent, "٠٠:٠٠:٠١");
   card._tick(Date.parse("2026-10-21T04:40:03Z"));
   assert.notEqual(find(card.shadowRoot, "table")[0], table);
   const sehri = classNodes(card.shadowRoot, "ramadan-grid")[0].children.find(element => element.attributes["data-ramadan"] === "sehri");
