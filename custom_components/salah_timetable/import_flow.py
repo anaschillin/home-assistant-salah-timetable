@@ -494,9 +494,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 self._review_page = 0
                 return await self.async_step_compare()
             try:
-                applied = await self._async_apply_review_decision(
-                    coordinator, decision
-                )
+                applied = await self._async_apply_review_decision(coordinator, decision)
                 if not applied:
                     errors["base"] = "invalid_import_decision"
             except ReviewChangedError:
