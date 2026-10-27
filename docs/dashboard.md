@@ -50,9 +50,9 @@ times. Date selection does not modify Home Assistant sensor state or stored data
 
 | Level | Today's display |
 | --- | --- |
-| Compact | Next Salah countdown with beginning and Jamaat, plus Previous Jamaat beginning and Jamaat |
-| Standard (default) | Both matching prayer cards, full timetable, Hijri date (if enabled) |
-| Detailed | Standard plus published Fajr sunrise/end, second Friday khutbah (if present), and active Ramadan details |
+| Compact | Next Salah countdown with beginning and Jamaat, plus Previous Jamaat beginning and Jamaat; active Ramadan details when enabled |
+| Standard (default) | Both matching prayer cards, full timetable, Hijri date (if enabled), and active Ramadan details |
+| Detailed | Standard plus published Fajr sunrise/end and second Friday khutbah (if present) |
 
 **Next Salah** always means the next *beginning* time, even if the current
 prayer's Jamaat is still upcoming. The countdown and both published times
@@ -65,8 +65,7 @@ Jamaat panel selector has been removed.
 Fajr end is the *published sunrise*, never a calculated estimate. Published
 Jumu’ah congregations remain in Dhuhr's Jamaat row, and the separately published
 second khutbah (if any) is not treated as a Jamaat. Missing times are displayed
-as unavailable rather than inferred. Ramadan details are shown only when active
-and the Detailed level is selected.
+as unavailable rather than inferred. Ramadan details are shown in all three display levels when Ramadan is active and the card's Ramadan details option is enabled.
 
 ## Timing and boundaries
 
