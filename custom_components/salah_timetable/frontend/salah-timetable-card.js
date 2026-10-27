@@ -10,7 +10,7 @@ const RENDER_ATTRIBUTES = [
 ];
 const PRAYERS = new Set(["fajr", "sunrise", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
-const CSS = `\n.prayer-panel{gap:8px}.prayer-panel .event{min-height:1.7em}.prayer-panel .count{margin:4px 0 8px}.prayer-times{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:auto;padding-top:12px;border-top:1px solid var(--divider-color)}.prayer-time{min-width:0}.prayer-time .label{margin:0 0 5px}.prayer-time .absolute{font-size:1.1rem;font-weight:700;color:var(--primary-text-color);margin:0}.prayer-panel[data-panel="jamaat"]{justify-content:space-between}.fajr-sunrise{margin-top:5px}\n
+const CSS = `\n.mosque-tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 16px;padding:4px;border-radius:12px;background:var(--secondary-background-color)}.mosque-tab{flex:1 0 auto;border:0;border-radius:9px;padding:10px 14px;font:inherit;font-weight:600;background:transparent;color:var(--secondary-text-color);cursor:pointer}.mosque-tab[aria-pressed="true"]{background:var(--primary-color);color:var(--text-primary-color,#fff)}.mosque-tab:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}\n\n.prayer-panel{gap:8px}.prayer-panel .event{min-height:1.7em}.prayer-panel .count{margin:4px 0 8px}.prayer-times{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:auto;padding-top:12px;border-top:1px solid var(--divider-color)}.prayer-time{min-width:0}.prayer-time .label{margin:0 0 5px}.prayer-time .absolute{font-size:1.1rem;font-weight:700;color:var(--primary-text-color);margin:0}.prayer-panel[data-panel="jamaat"]{justify-content:space-between}.fajr-sunrise{margin-top:5px}\n
 :host{display:block;container-type:inline-size;color:var(--primary-text-color);font-family:var(--paper-font-body1_-_font-family,inherit)}
 ha-card{display:block;overflow:hidden;background:var(--ha-card-background,var(--card-background-color));border-radius:var(--ha-card-border-radius,12px)}
 .content{padding:20px}.header{display:flex;gap:12px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}h2{font-size:1.35rem;margin:0;overflow-wrap:anywhere}.date{color:var(--secondary-text-color);font-size:.9rem}
@@ -168,6 +168,7 @@ export class SalahTimetableCard extends HTMLElement {
     this.attachShadow({mode: "open"});
     this._config = normalizeConfig({});
     this._timer = null;
+    this._selectedMosque = null;
   }
 
   static getConfigElement() { return document.createElement("salah-timetable-card-editor"); }
@@ -188,14 +189,20 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._timer !== null) window.clearInterval(this._timer);
     this._timer = null;
   }
-  _state() { return this._hass?.states?.[this._config.entity]; }
+  _mosques() { return discoverTimetableEntities(this._hass); }
+  _activeEntity() {
+    const mosques = this._mosques();
+    if (this._selectedMosque && mosques.some(item => item.entity === this._selectedMosque)) return this._selectedMosque;
+    return this._config.entity || mosques[0]?.entity || "";
+  }
+  _state() { return this._hass?.states?.[this._activeEntity()]; }
 
   _hassRenderKey() {
     const state = this._state();
     const data = state?.attributes;
     const ui = resolveUi(this._config, this._hass);
     return JSON.stringify([
-      Boolean(state), state?.state,
+      this._activeEntity(), this._mosques().map(item => [item.entity, item.name]), Boolean(state), state?.state,
       ...RENDER_ATTRIBUTES.map(key => data?.[key]),
       data?.time_zone || this._hass?.config?.time_zone || "UTC",
       ui.language, ui.locale, ui.dir,
@@ -232,8 +239,8 @@ export class SalahTimetableCard extends HTMLElement {
     const style = node("style", CSS);
     const card = direction(node("ha-card"), ui);
     const state = this._state();
-    if (!this._config.entity || !state || ["unavailable", "unknown"].includes(state.state) || !isTimetableState(state)) {
-      const key = !this._config.entity ? "card.choose_entity" : !state ? "card.entity_missing" : "card.unavailable";
+    if (!this._activeEntity() || !state || ["unavailable", "unknown"].includes(state.state) || !isTimetableState(state)) {
+      const key = !this._activeEntity() ? "card.choose_entity" : !state ? "card.entity_missing" : "card.unavailable";
       card.append(node("div", tr(ui, key), "empty"));
       this.shadowRoot.replaceChildren(style, card);
       return;
@@ -251,6 +258,23 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
     if (this._config.show_gregorian_date) header.append(node("div", formatDate(data.date || state.state, ui), "date gregorian"));
     content.append(header);
+    const mosques = this._mosques();
+    if (mosques.length > 1) {
+      const tabs = node("nav", undefined, "mosque-tabs");
+      tabs.setAttribute("aria-label", "Mosques");
+      for (const mosque of mosques) {
+        const button = node("button", mosque.name || mosque.entity, "mosque-tab");
+        button.type = "button";
+        button.setAttribute("aria-pressed", String(mosque.entity === this._activeEntity()));
+        button.addEventListener("click", () => {
+          if (mosque.entity === this._activeEntity()) return;
+          this._selectedMosque = mosque.entity;
+          this._render();
+        });
+        tabs.append(button);
+      }
+      content.append(tabs);
+    }
     if (this._hass?.connection?.connected === false) content.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
     const next = nextSalah(data, now);
     const previous = jamaatPanel(data, "previous", now).event;
