@@ -28,6 +28,10 @@ def annual_clock(freezer):
     freezer.move_to("2026-01-02T10:00:00+00:00")
 
 
+@pytest.fixture
+async def annual_upload_client(authenticated_upload_client):
+    return authenticated_upload_client
+
 
 async def open_step(hass, entry, step):
     result = await hass.config_entries.options.async_init(entry.entry_id)
@@ -94,12 +98,12 @@ def entity_state(hass, key):
 
 
 async def test_annual_upload_review_approval_reload_and_dst_events(
-    hass, entry, authenticated_upload_client, freezer
+    hass, entry, annual_upload_client, freezer
 ):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entity_state(hass, "fajr_begin") == "unavailable"
-    result = await map_columns(hass, await upload(hass, entry, authenticated_upload_client))
+    result = await map_columns(hass, await upload(hass, entry, annual_upload_client))
     summary = result["description_placeholders"]["summary"]
     assert "May" in summary and "2026-05-01" in summary
     storage = entry.runtime_data.storage
@@ -146,7 +150,7 @@ async def test_annual_upload_review_approval_reload_and_dst_events(
 
 
 async def test_annual_url_profile_and_separate_ramadan_confirmation(
-    hass, entry, authenticated_upload_client, freezer
+    hass, entry, annual_upload_client, freezer
 ):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -177,7 +181,7 @@ async def test_annual_url_profile_and_separate_ramadan_confirmation(
     assert RemoteSource.from_dict(profile.as_dict()) == profile
     result = await map_columns(
         hass,
-        await upload(hass, entry, authenticated_upload_client, kind="ramadan"),
+        await upload(hass, entry, annual_upload_client, kind="ramadan"),
     )
     await approve(hass, result)
     ramadan = entry.runtime_data.storage.approved_sources["ramadan-2026"]
@@ -217,11 +221,11 @@ async def test_annual_url_profile_and_separate_ramadan_confirmation(
 
 
 async def test_reassigning_annual_columns_is_rejected_without_staging(
-    hass, entry, authenticated_upload_client
+    hass, entry, annual_upload_client
 ):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    result = await upload(hass, entry, authenticated_upload_client)
+    result = await upload(hass, entry, annual_upload_client)
     defaults = result["data_schema"]({})
     for original, reassigned, header in (
         ("dhuhr_jamaat", "jumuah", "Dhuhr Jamaat"),
