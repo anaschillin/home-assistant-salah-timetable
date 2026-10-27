@@ -6,5 +6,4 @@ dependencies = [
   "homeassistant==2026.10.0",
   "pytest-homeassistant-custom-component==0.13.371",
   "pypdf==6.21.2",
-  "uv==0.13.5",
 ]
