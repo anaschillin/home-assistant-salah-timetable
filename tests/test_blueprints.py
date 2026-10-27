@@ -779,7 +779,5 @@ async def test_delayed_media_action_rejects_ownership_after_reload(
     assert permitted(replacement_run) is False
 
     # A subsequent state update also invalidates the original run's claim.
-    hass.states.async_set(
-        "media_player.hall", state, attributes, context=replacement_run
-    )
+    hass.states.async_set("media_player.hall", "unavailable", context=replacement_run)
     assert permitted(original_run) is False
