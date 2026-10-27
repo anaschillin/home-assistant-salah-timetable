@@ -63,12 +63,12 @@ test("time formats retain mosque timezone and missing-value marker", () => {
 });
 
 test("config validates new types and preserves explicit old Jamaat modes", () => {
-  assert.equal(normalizeConfig({}).mode, "upcoming");
+  assert.equal(normalizeConfig({}).detail_level, "standard");
   assert.equal(normalizeConfig({}).show_gregorian_date, true);
   assert.equal(normalizeConfig({show_gregorian_date: false}).show_hijri_date, true);
   assert.throws(() => normalizeConfig({show_gregorian_date: "false"}));
-  for (const mode of ["context", "previous", "upcoming"]) assert.equal(normalizeConfig({mode}).mode, mode);
-  for (const invalid of [{layout: "tiny"}, {time_format: "auto"}, {hijri_adjustment: 4}, {hijri_adjustment: 0.5}, {hijri_adjustment: "1"}, {show_hijri_date: "false"}]) assert.throws(() => normalizeConfig(invalid));
+  for (const mode of ["context", "previous", "upcoming"]) assert.equal(normalizeConfig({mode}).mode, undefined);
+  for (const invalid of [{detail_level: "tiny"}, {time_format: "auto"}, {hijri_adjustment: 4}, {hijri_adjustment: 0.5}, {hijri_adjustment: "1"}, {show_hijri_date: "false"}]) assert.throws(() => normalizeConfig(invalid));
 });
 
 test("display calculations do not mutate imported event payloads", () => {
@@ -101,12 +101,12 @@ test("language and bilingual settings validate YAML types and survive config rou
     assert.equal(config.bilingual_prayer_labels, bilingual_prayer_labels);
     assert.equal(config.show_hijri_date, false);
     assert.equal(config.show_gregorian_date, false);
-    assert.equal(config.mode, "context");
+    assert.equal(config.detail_level, "standard");
   }
   for (const language of [null, true, false, 0, 1, {}, [], "", "AR", "ar-EG", "fr"]) assert.throws(() => normalizeConfig({language}), error => error.translationKey === "config.language");
   for (const bilingual_prayer_labels of [null, 0, 1, {}, [], "", "false", "true"]) assert.throws(() => normalizeConfig({bilingual_prayer_labels}), error => error.translationKey === "config.boolean" && error.params.option === "bilingual_prayer_labels");
   // Existing graphical and falsy-option defaults retain their earlier behavior.
-  assert.equal(normalizeConfig({mode: null, entity: ""}).mode, "upcoming");
+  assert.equal(normalizeConfig({mode: null, entity: ""}).detail_level, "standard");
 });
 
 test("Gregorian source dates override locale calendar extensions while Hijri stays Umm al-Qura", () => {
