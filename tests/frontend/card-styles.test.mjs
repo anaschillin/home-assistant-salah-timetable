@@ -7,7 +7,7 @@ test("theme, accessibility and responsive styles remain bundled", () => {
   for (const token of [
     ":host", "ha-card", "--primary-color", "--secondary-background-color",
     ".date-tab,.mosque-tab", ".panel[data-panel=\"salah\"]",
-    ".next-prayer", ".scroll-help", ".sr-only", "unicode-bidi:isolate",
+    ".next-prayer", ".scroll-help", ".sr-only", "unicode-bidi: isolate",
     "@container(max-width:26rem)", "@container(max-width:28rem)",
     "@media(max-width:420px)", "@media(prefers-contrast:more)",
     "@media(prefers-reduced-transparency:reduce)",
