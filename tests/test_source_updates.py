@@ -41,6 +41,37 @@ def source(**changes):
     return replace(initial, **changes)
 
 
+@pytest.mark.parametrize(
+    ("status", "rejected", "download_etag", "expected_rejected", "expected_etag"),
+    [
+        ("rejected", None, None, "a" * 64, '"old"'),
+        ("rejected", "b" * 64, '"new"', "b" * 64, '"new"'),
+        ("approved", None, None, None, '"old"'),
+    ],
+)
+def test_unchanged_metadata_preserves_rejection_and_http_validators(
+    status, rejected, download_etag, expected_rejected, expected_etag
+):
+    previous = {
+        "status": status,
+        "rejected_sha256": rejected,
+        "etag": '"old"',
+        "last_modified": "Thu, 01 Jan 2026 00:00:00 GMT",
+    }
+    result = response(etag=download_etag)
+    now = "2026-10-27T09:00:00+00:00"
+    patch = SourceUpdateManager._unchanged_check_patch(previous, "a" * 64, result, now)
+    assert patch == {
+        "status": "unchanged",
+        "last_checked": now,
+        "last_success": now,
+        "error_code": None,
+        "rejected_sha256": expected_rejected,
+        "etag": expected_etag,
+        "last_modified": previous["last_modified"],
+    }
+
+
 @pytest.fixture
 async def manager(hass, entry):
     storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
