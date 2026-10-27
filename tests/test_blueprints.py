@@ -700,3 +700,88 @@ async def test_media_blueprint_reload_does_not_replay_past_prayer(
 
     await advance(hass, freezer, "2026-10-23T05:02:00Z")
     assert not action
+
+@pytest.mark.parametrize("blueprint", ["adhan", "pause_resume_media"])
+async def test_delayed_media_action_rejects_ownership_after_reload(
+    hass, freezer, blueprint
+):
+    """A replacement run cannot claim media state from the cancelled run."""
+    freezer.move_to("2026-10-23T05:00:00Z")
+    if blueprint == "adhan":
+        config = expanded(
+            "adhan",
+            {
+                "prayer_sensors": ["sensor.prayer_begin"],
+                "media_players": ["media_player.hall"],
+                "adhan_media": {
+                    "media_content_id": "adhan.mp3",
+                    "media_content_type": "audio/mpeg",
+                },
+            },
+        )
+        guard = config["actions"][-1]["then"][-1]["repeat"]["sequence"][0]["if"][0][
+            "value_template"
+        ]
+        state = "playing"
+        attributes = {"media_content_id": "adhan.mp3", "volume_level": 0.6}
+    else:
+        config = expanded(
+            "pause_resume_media",
+            {
+                "prayer_beginning": "sensor.prayer_begin",
+                "resume_anchor": "sensor.prayer_jamaat",
+                "media_players": ["media_player.hall"],
+            },
+        )
+        guard = config["actions"][-1]["repeat"]["sequence"][0]["value_template"]
+        state = "paused"
+        attributes = {"media_content_id": "song-a", "app_id": "music"}
+
+    original_run = Context()
+    replacement_run = Context()
+    hass.states.async_set(
+        "media_player.hall", state, attributes, context=original_run
+    )
+    player = hass.states.get("media_player.hall")
+
+    if blueprint == "adhan":
+        saved = {
+            "entity": "media_player.hall",
+            "content": "adhan.mp3",
+            "app": None,
+            "updated": player.last_updated.isoformat(),
+        }
+
+        def permitted(context):
+            return Template(guard, hass).async_render(
+                {
+                    "repeat": {"item": saved},
+                    "effective_volume": 0.6,
+                    "run_context": context.id,
+                },
+                parse_result=True,
+            )
+
+    else:
+        saved = {
+            "entity_id": "media_player.hall",
+            "content": "song-a",
+            "app": "music",
+            "context": original_run.id,
+            "updated": player.last_updated.isoformat(),
+        }
+
+        def permitted(context):
+            return Template(guard, hass).async_render(
+                {"repeat": {"item": {**saved, "context": context.id}}},
+                parse_result=True,
+            )
+
+    assert permitted(original_run) is True
+    assert permitted(replacement_run) is False
+
+    # A subsequent state update also invalidates the original run's claim.
+    hass.states.async_set(
+        "media_player.hall", state, attributes, context=replacement_run
+    )
+    assert permitted(original_run) is False
