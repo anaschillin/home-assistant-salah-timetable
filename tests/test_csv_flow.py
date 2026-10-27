@@ -23,6 +23,10 @@ def import_clock(freezer):
     freezer.move_to("2026-10-21 10:00:00+00:00")
 
 
+@pytest.fixture
+async def upload_client(authenticated_upload_client):
+    return authenticated_upload_client
+
 
 async def upload(hass, client, content=CSV):
     body = FormData()
@@ -69,7 +73,7 @@ async def stage_upload(hass, entry, client, content=CSV, *, kind="annual", year=
     return result
 
 
-async def test_upload_preview_approve_and_reload(hass, entry, freezer, authenticated_upload_client):
+async def test_upload_preview_approve_and_reload(hass, entry, freezer, upload_client):
     freezer.move_to("2026-10-21 10:00:00+00:00")
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -77,7 +81,7 @@ async def test_upload_preview_approve_and_reload(hass, entry, freezer, authentic
         "sensor", DOMAIN, "example_fajr_begin"
     )
     assert hass.states.get(entity_id).state == "unavailable"
-    result = await stage_upload(hass, entry, authenticated_upload_client)
+    result = await stage_upload(hass, entry, upload_client)
     storage = entry.runtime_data.storage
     assert storage.staged is not None
     assert storage.for_date(date(2026, 10, 21)) is None
@@ -100,10 +104,10 @@ async def test_upload_preview_approve_and_reload(hass, entry, freezer, authentic
     assert entry.options == {}
 
 
-async def test_pending_survives_cancel_reload_and_new_flow(hass, entry, authenticated_upload_client):
+async def test_pending_survives_cancel_reload_and_new_flow(hass, entry, upload_client):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    result = await stage_upload(hass, entry, authenticated_upload_client)
+    result = await stage_upload(hass, entry, upload_client)
     stage_id = entry.runtime_data.storage.staged.stage_id
     hass.config_entries.options.async_abort(result["flow_id"])
     assert await hass.config_entries.async_reload(entry.entry_id)
@@ -123,12 +127,12 @@ async def test_pending_survives_cancel_reload_and_new_flow(hass, entry, authenti
     assert entry.runtime_data.storage.for_date(date(2026, 10, 21)) is not None
 
 
-async def test_rejection_preserves_active_data(hass, populated, freezer, authenticated_upload_client):
+async def test_rejection_preserves_active_data(hass, populated, freezer, upload_client):
     freezer.move_to("2026-10-21 10:00:00+00:00")
     assert await hass.config_entries.async_setup(populated.entry_id)
     await hass.async_block_till_done()
     previous = populated.runtime_data.storage.timetables
-    result = await stage_upload(hass, populated, authenticated_upload_client, REPLACEMENT_CSV)
+    result = await stage_upload(hass, populated, upload_client, REPLACEMENT_CSV)
     assert populated.runtime_data.storage.timetables == previous
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"decision": "reject"}
@@ -151,11 +155,11 @@ async def test_rejection_preserves_active_data(hass, populated, freezer, authent
     ],
     ids=["invalid-encoding", "extra-columns", "oversized-source"],
 )
-async def test_invalid_upload_is_removed(hass, entry, authenticated_upload_client, content):
+async def test_invalid_upload_is_removed(hass, entry, upload_client, content):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     result = await begin_import(hass, entry)
-    file_id, path = await upload(hass, authenticated_upload_client, content)
+    file_id, path = await upload(hass, upload_client, content)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026}
     )
@@ -178,11 +182,11 @@ async def test_missing_upload_is_reported(hass, entry):
     assert entry.runtime_data.storage.staged is None
 
 
-async def test_duplicate_mapping_is_rejected(hass, entry, authenticated_upload_client):
+async def test_duplicate_mapping_is_rejected(hass, entry, upload_client):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     result = await begin_import(hass, entry)
-    file_id, _ = await upload(hass, authenticated_upload_client)
+    file_id, _ = await upload(hass, upload_client)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026}
     )
@@ -210,11 +214,11 @@ async def test_unloaded_entry_cannot_start_import(hass, entry):
     assert result["reason"] == "integration_not_loaded"
 
 
-async def test_stage_save_failure_can_be_retried(hass, entry, authenticated_upload_client):
+async def test_stage_save_failure_can_be_retried(hass, entry, upload_client):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     result = await begin_import(hass, entry)
-    file_id, _ = await upload(hass, authenticated_upload_client)
+    file_id, _ = await upload(hass, upload_client)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026}
     )
@@ -240,12 +244,12 @@ async def test_stage_save_failure_can_be_retried(hass, entry, authenticated_uplo
 
 
 async def test_approval_save_failure_keeps_pending_and_active(
-    hass, populated, authenticated_upload_client
+    hass, populated, upload_client
 ):
     assert await hass.config_entries.async_setup(populated.entry_id)
     await hass.async_block_till_done()
     previous = populated.runtime_data.storage.timetables
-    result = await stage_upload(hass, populated, authenticated_upload_client, REPLACEMENT_CSV)
+    result = await stage_upload(hass, populated, upload_client, REPLACEMENT_CSV)
     staged = populated.runtime_data.storage.staged
     with patch.object(
         populated.runtime_data.storage,
@@ -268,10 +272,10 @@ async def test_approval_save_failure_keeps_pending_and_active(
     assert populated.runtime_data.storage.timetables != previous
 
 
-async def test_stale_preview_cannot_approve_new_stage(hass, entry, authenticated_upload_client):
+async def test_stale_preview_cannot_approve_new_stage(hass, entry, upload_client):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    result = await stage_upload(hass, entry, authenticated_upload_client)
+    result = await stage_upload(hass, entry, upload_client)
     old = entry.runtime_data.storage.staged
     await entry.runtime_data.storage.async_reject(old.stage_id)
     current_id = await entry.runtime_data.storage.async_stage(old.candidate)
@@ -286,7 +290,7 @@ async def test_stale_preview_cannot_approve_new_stage(hass, entry, authenticated
 
 
 async def test_next_year_approval_preserves_current_year(
-    hass, populated, authenticated_upload_client
+    hass, populated, upload_client
 ):
     assert await hass.config_entries.async_setup(populated.entry_id)
     await hass.async_block_till_done()
@@ -296,7 +300,7 @@ async def test_next_year_approval_preserves_current_year(
     )
     state = hass.states.get(entity_id).state
     result = await stage_upload(
-        hass, populated, authenticated_upload_client, CSV.replace(b"2026-", b"2027-"), year=2027
+        hass, populated, upload_client, CSV.replace(b"2026-", b"2027-"), year=2027
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"decision": "approve"}
@@ -312,13 +316,13 @@ async def test_next_year_approval_preserves_current_year(
 
 
 async def test_unconfirmed_ramadan_approval_does_not_apply_overrides(
-    hass, populated, authenticated_upload_client
+    hass, populated, upload_client
 ):
     assert await hass.config_entries.async_setup(populated.entry_id)
     await hass.async_block_till_done()
     previous = populated.runtime_data.storage.for_date(date(2026, 10, 21))
     result = await stage_upload(
-        hass, populated, authenticated_upload_client, REPLACEMENT_CSV, kind="ramadan"
+        hass, populated, upload_client, REPLACEMENT_CSV, kind="ramadan"
     )
     assert "only on confirmed dates" in result["description_placeholders"]["summary"]
     result = await hass.config_entries.options.async_configure(
@@ -333,7 +337,7 @@ async def test_unconfirmed_ramadan_approval_does_not_apply_overrides(
 
 
 async def test_conflicting_ramadan_approval_stays_reviewable_and_can_be_rejected(
-    hass, entry, authenticated_upload_client
+    hass, entry, upload_client
 ):
     from zoneinfo import ZoneInfo
 
@@ -354,7 +358,7 @@ async def test_conflicting_ramadan_approval_stays_reviewable_and_can_be_rejected
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     result = await stage_upload(
-        hass, entry, authenticated_upload_client, REPLACEMENT_CSV, kind="ramadan"
+        hass, entry, upload_client, REPLACEMENT_CSV, kind="ramadan"
     )
     staged = entry.runtime_data.storage.staged
     assert "Unresolved dates" in result["description_placeholders"]["summary"]
@@ -375,11 +379,11 @@ async def test_conflicting_ramadan_approval_stays_reviewable_and_can_be_rejected
     assert entry.runtime_data.storage.staged is None
 
 
-async def test_fractional_year_does_not_consume_upload(hass, entry, authenticated_upload_client):
+async def test_fractional_year_does_not_consume_upload(hass, entry, upload_client):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     result = await begin_import(hass, entry)
-    file_id, path = await upload(hass, authenticated_upload_client)
+    file_id, path = await upload(hass, upload_client)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026.5}
     )
@@ -397,14 +401,14 @@ async def test_fractional_year_does_not_consume_upload(hass, entry, authenticate
 
 
 async def test_two_mapping_flows_cannot_overwrite_pending_import(
-    hass, entry, authenticated_upload_client
+    hass, entry, upload_client
 ):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     flows = []
     for content in (CSV, REPLACEMENT_CSV):
         result = await begin_import(hass, entry)
-        file_id, _ = await upload(hass, authenticated_upload_client, content)
+        file_id, _ = await upload(hass, upload_client, content)
         result = await hass.config_entries.options.async_configure(
             result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026}
         )
@@ -422,10 +426,10 @@ async def test_two_mapping_flows_cannot_overwrite_pending_import(
     assert entry.runtime_data.storage.timetables == ()
 
 
-async def test_reloaded_preview_requires_reopening_review(hass, entry, authenticated_upload_client):
+async def test_reloaded_preview_requires_reopening_review(hass, entry, upload_client):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    result = await stage_upload(hass, entry, authenticated_upload_client)
+    result = await stage_upload(hass, entry, upload_client)
     stage_id = entry.runtime_data.storage.staged.stage_id
     hass.config_entries.async_update_entry(entry, options={"time_zone": "Asia/Riyadh"})
     await hass.async_block_till_done()
@@ -456,11 +460,11 @@ async def test_reloaded_preview_requires_reopening_review(hass, entry, authentic
 
 
 async def test_comparison_review_is_read_only_and_returns_to_reject(
-    hass, populated, authenticated_upload_client
+    hass, populated, upload_client
 ):
     assert await hass.config_entries.async_setup(populated.entry_id)
     await hass.async_block_till_done()
-    result = await stage_upload(hass, populated, authenticated_upload_client, REPLACEMENT_CSV)
+    result = await stage_upload(hass, populated, upload_client, REPLACEMENT_CSV)
     store = populated.runtime_data.storage
     approved = store.timetables
     staged_id = store.staged.stage_id
@@ -488,14 +492,14 @@ async def test_comparison_review_is_read_only_and_returns_to_reject(
     assert store.staged is None
 
 
-async def test_large_comparison_paginates_without_approving(hass, entry, authenticated_upload_client):
+async def test_large_comparison_paginates_without_approving(hass, entry, upload_client):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     content = (
         "Date,Fajr Start,Fajr Jamaat\n"
         + "".join(f"2026-10-{day:02d},05:45,06:15\n" for day in range(1, 32))
     ).encode()
-    result = await stage_upload(hass, entry, authenticated_upload_client, content)
+    result = await stage_upload(hass, entry, upload_client, content)
     store = entry.runtime_data.storage
     assert not store.timetables
     result = await hass.config_entries.options.async_configure(
