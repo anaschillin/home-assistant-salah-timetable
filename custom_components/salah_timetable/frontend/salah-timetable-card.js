@@ -287,8 +287,8 @@ export class SalahTimetableCard extends HTMLElement {
       dateTabs.append(button);
     }
     content.append(dateTabs);
-    const baseDate = new Date(`${data.date || state.state}T12:00:00Z`);
-    const selectedDate = new Date(baseDate.getTime() + this._selectedDay * 86400000).toISOString().slice(0, 10);
+    const baseDate = Date.parse(`${data.date || state.state}T12:00:00Z`);
+    const selectedDate = Number.isFinite(baseDate) ? new Date(baseDate + this._selectedDay * 86400000).toISOString().slice(0, 10) : "";
     const selectedPrayers = this._selectedDay === 0 ? data.prayers : data.day_prayers?.[selectedDate];
     if (this._selectedDay !== 0) {
       content.append(node("div", formatDate(selectedDate, ui), "selected-date"));
@@ -369,7 +369,7 @@ export class SalahTimetableCard extends HTMLElement {
       taraweeh.append(node("div", tr(ui, "ramadan.taraweeh"), "label"), taraweehValue); grid.append(taraweeh);
       ramadan.append(grid); content.append(ramadan);
     }
-    if (this._config.show_timezone_note) {
+    if (this._selectedDay === 0 && this._config.show_timezone_note) {
       const note = translatedRun("p", ui, "card.timezone_note", "zone", zone, "note");
       note.setAttribute("data-role", "timezone-note"); content.append(note);
     }
