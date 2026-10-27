@@ -55,7 +55,9 @@ def bounded_worker(monkeypatch):
         "FLATE_MAX_ROW_LENGTH",
         "ZLIB_MAX_RECOVERY_INPUT_LENGTH",
     ):
-        monkeypatch.setattr(pypdf.filters, name, getattr(pypdf.filters, name))
+        monkeypatch.setattr(
+            pypdf.filters, name, getattr(pypdf.filters, name, None), raising=False
+        )
     output = io.StringIO()
     monkeypatch.setattr(pdf_worker.sys, "stdout", output)
     return applied_limits, output
