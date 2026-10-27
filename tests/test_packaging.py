@@ -54,6 +54,7 @@ def test_archive_is_complete_and_excludes_nonruntime_data(release_source, tmp_pa
             "manifest.json",
             "translations/en.json",
             "frontend/salah-timetable-card.js",
+            "frontend/card-styles.js",
             "frontend/card-utils.js",
             "frontend/card-i18n.js",
             "brand/icon.png",
@@ -105,6 +106,12 @@ def test_archive_does_not_depend_on_source_mtime_or_permissions(
         ),
         (
             "custom_components/salah_timetable/frontend/salah-timetable-card.js",
+            "card-styles.js?v={version}",
+            "card-styles.js?v=999.0.0",
+            "cache version",
+        ),
+        (
+            "custom_components/salah_timetable/frontend/salah-timetable-card.js",
             "card-i18n.js?v={version}",
             "card-i18n.js?v=999.0.0",
             "cache version",
@@ -127,7 +134,7 @@ def test_mismatched_versions_are_rejected(release_source, name, old, new, error)
         check_versions(release_source)
 
 
-@pytest.mark.parametrize("name", ["card-utils.js", "card-i18n.js"])
+@pytest.mark.parametrize("name", ["card-utils.js", "card-i18n.js", "card-styles.js"])
 def test_missing_frontend_asset_is_rejected_before_output(
     release_source, tmp_path, name
 ):
