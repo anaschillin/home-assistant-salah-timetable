@@ -414,7 +414,9 @@ async def test_adhan_restoration_does_not_override_manual_volume_change(hass, fr
         },
     )
     await start(hass, [config])
-    await advance(hass, freezer, "2026-10-23T05:00:00Z")
+    freezer.move_to("2026-10-23T05:00:00Z")
+    async_fire_time_changed(hass, dt_util.parse_datetime("2026-10-23T05:00:00Z"))
+    await hass.async_block_till_done(wait_background_tasks=False)
     assert len(playback) == 1
     assert len(volume) == 1
     assert volume[0].data["volume_level"] == 0.6
@@ -429,7 +431,9 @@ async def test_adhan_restoration_does_not_override_manual_volume_change(hass, fr
         },
     )
     await hass.async_block_till_done()
-    await advance(hass, freezer, "2026-10-23T05:00:20Z")
+    freezer.move_to("2026-10-23T05:00:20Z")
+    async_fire_time_changed(hass, dt_util.parse_datetime("2026-10-23T05:00:20Z"))
+    await hass.async_block_till_done(wait_background_tasks=False)
     assert len(volume) == 1
 
 
