@@ -74,7 +74,7 @@ try {
   card.setConfig(config); card.hass = hass; document.body.append(card); card._render(Date.parse(time(4, 40)));
   check("shadow DOM renders five prayer rows", card.shadowRoot.querySelectorAll("tbody tr").length === 5);
   const rules = card.shadowRoot.querySelector("style")?.sheet?.cssRules;
-  check("bundled CSS module loads responsive rules", Boolean(rules?.length) && [...rules].some(rule => rule.conditionText?.includes("max-width:28rem")));
+  check("bundled CSS module loads responsive rules", Boolean(rules?.length) && [...rules].some(rule => /max-width\s*:\s*28rem/.test(rule.conditionText || "")));
   const panelStyle = getComputedStyle(card.shadowRoot.querySelector(".panel"));
   const gridStyle = getComputedStyle(card.shadowRoot.querySelector(".panels"));
   check("theme panel layout and border radius survive CSS refactoring", panelStyle.display === "flex" && panelStyle.borderRadius === "16px" && gridStyle.display === "grid");
