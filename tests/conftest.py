@@ -4,9 +4,11 @@ from datetime import date, time
 from zoneinfo import ZoneInfo
 
 import pytest
+from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.salah_timetable.const import DOMAIN
+from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.model import DailyPrayers, PrayerField, Timetable
 from custom_components.salah_timetable.storage import TimetableStorage
 
@@ -23,6 +25,14 @@ def pytest_make_parametrize_id(
 @pytest.fixture(autouse=True)
 def custom_integrations(enable_custom_integrations):
     yield
+
+
+@pytest.fixture
+async def authenticated_upload_client(hass, hass_client):
+    """Install upload and card routes before the test client freezes the router."""
+    assert await async_setup_component(hass, "file_upload", {})
+    await async_setup_frontend(hass)
+    return await hass_client()
 
 
 @pytest.fixture
