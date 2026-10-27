@@ -543,9 +543,9 @@ async def test_media_ownership_is_per_player_and_rejects_replaced_run(
                 },
             },
         )
-        guard = config["actions"][-1]["then"][-1]["repeat"]["sequence"][0][
-            "if"
-        ][0]["value_template"]
+        guard = config["actions"][-1]["then"][-1]["repeat"]["sequence"][0]["if"][0][
+            "value_template"
+        ]
         state = "playing"
         attrs = {"volume_level": 0.6, "media_content_id": "adhan.mp3"}
     else:
