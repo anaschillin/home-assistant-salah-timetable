@@ -313,6 +313,75 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             )
         return vol.Schema(schema)
 
+    @staticmethod
+    def _selected_columns(user_input: dict) -> dict[str, str] | None:
+        """Reject duplicate physical headers before starting any parser work."""
+        columns = {}
+        for field in PrayerField:
+            source = user_input.get(field.value, IGNORE_COLUMN)
+            if source == IGNORE_COLUMN:
+                continue
+            if source in columns or source == user_input["date_column"]:
+                return None
+            columns[source] = field.value
+        return columns or None
+
+    async def _stage_mapped_candidate(
+        self, user_input: dict, columns: dict[str, str], coordinator
+    ) -> bool:
+        """Parse and stage without approving; return False if the runtime reloaded."""
+        candidate = await self.hass.async_add_executor_job(
+            lambda: self._parser.parse(
+                self._content,
+                timetable_id=f"{self._kind}-{self._year}",
+                kind=self._kind,
+                year=self._year,
+                date_column=user_input["date_column"],
+                columns=columns,
+                time_format=user_input["time_format"],
+            )
+        )
+        if self._coordinator() is not coordinator:
+            return False
+        if self._monthly:
+            # Exact published spans coexist without removing another month's rows.
+            first, last = candidate.coverage.start_date, candidate.coverage.end_date
+            source_id = f"annual-{self._year}-monthly-{first:%m%d}-{last:%m%d}"
+            candidate = await self.hass.async_add_executor_job(
+                lambda: replace(
+                    candidate,
+                    timetable=replace(candidate.timetable, timetable_id=source_id),
+                )
+            )
+        remote_source = None
+        if self._remote_url is not None:
+            from .source_model import RemoteSource
+
+            candidate = await self.hass.async_add_executor_job(
+                lambda: replace(
+                    candidate,
+                    source_url=self._remote_url,
+                    etag=self._download_result.etag,
+                    last_modified=self._download_result.last_modified,
+                )
+            )
+            remote_source = RemoteSource(
+                source_id=candidate.timetable.timetable_id,
+                url=self._remote_url,
+                media_type=self._source_format,
+                kind=self._kind,
+                year=self._year,
+                date_column=user_input["date_column"],
+                columns=columns,
+                time_format=user_input["time_format"],
+                parser_id=self._parser_id,
+            )
+        self._review_stage_id = await coordinator.storage.async_stage(
+            candidate, remote_source=remote_source
+        )
+        coordinator.async_update_listeners()
+        return True
+
     async def async_step_map_columns(self, user_input=None):
         if self._content is None:
             return self.async_abort(reason="upload_expired")
@@ -323,86 +392,21 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         detail = ""
         if user_input is not None:
             self._mapping_input = dict(user_input)
-            columns = {}
-            for field in PrayerField:
-                source = user_input.get(field.value, IGNORE_COLUMN)
-                if source == IGNORE_COLUMN:
-                    continue
-                if source in columns or source == user_input["date_column"]:
-                    errors["base"] = "invalid_mapping"
-                    break
-                columns[source] = field.value
-            if not columns:
+            columns = self._selected_columns(user_input)
+            if columns is None:
                 errors["base"] = "invalid_mapping"
-            if not errors:
+            else:
                 try:
-                    candidate = await self.hass.async_add_executor_job(
-                        lambda: self._parser.parse(
-                            self._content,
-                            timetable_id=f"{self._kind}-{self._year}",
-                            kind=self._kind,
-                            year=self._year,
-                            date_column=user_input["date_column"],
-                            columns=columns,
-                            time_format=user_input["time_format"],
-                        )
-                    )
-                    if self._coordinator() is not coordinator:
+                    if not await self._stage_mapped_candidate(
+                        user_input, columns, coordinator
+                    ):
                         return self.async_abort(reason="integration_reloaded")
-                    if self._monthly:
-                        # Distinct published date windows coexist. Replacing one
-                        # source must never silently delete another month's rows.
-                        first, last = (
-                            candidate.coverage.start_date,
-                            candidate.coverage.end_date,
-                        )
-                        source_id = (
-                            f"annual-{self._year}-monthly-{first:%m%d}-{last:%m%d}"
-                        )
-                        candidate = await self.hass.async_add_executor_job(
-                            lambda: replace(
-                                candidate,
-                                timetable=replace(
-                                    candidate.timetable, timetable_id=source_id
-                                ),
-                            )
-                        )
-                    remote_source = None
-                    if self._remote_url is not None:
-                        from .source_model import RemoteSource
-
-                        candidate = await self.hass.async_add_executor_job(
-                            lambda: replace(
-                                candidate,
-                                source_url=self._remote_url,
-                                etag=self._download_result.etag,
-                                last_modified=self._download_result.last_modified,
-                            )
-                        )
-                        remote_source = RemoteSource(
-                            source_id=candidate.timetable.timetable_id,
-                            url=self._remote_url,
-                            media_type=self._source_format,
-                            kind=self._kind,
-                            year=self._year,
-                            date_column=user_input["date_column"],
-                            columns=columns,
-                            time_format=user_input["time_format"],
-                            parser_id=self._parser_id,
-                        )
-                    self._review_stage_id = await coordinator.storage.async_stage(
-                        candidate, remote_source=remote_source
-                    )
-                    coordinator.async_update_listeners()
                 except PendingImportError:
                     return self.async_abort(reason="pending_import_exists")
                 except ValueError as err:
                     errors["base"] = "invalid_csv"
                     detail = _safe_text(str(err))
-                except (
-                    OSError,
-                    HomeAssistantError,
-                ):
+                except OSError, HomeAssistantError:
                     errors["base"] = "save_failed"
                 else:
                     self._content = None

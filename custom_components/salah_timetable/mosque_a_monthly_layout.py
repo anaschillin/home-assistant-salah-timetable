@@ -10,7 +10,6 @@ import csv
 import io
 from datetime import date
 
-from .csv_parser import DITTO_MARKERS
 from .import_model import ImportValidationError
 from .mosque_a_layout import (
     _MONTH_PATTERN,
@@ -19,10 +18,9 @@ from .mosque_a_layout import (
     _TABLE_MARKER,
     _WEEKDAYS,
     MOSQUE_A_COLUMNS,
-    _check_order,
-    _clock,
+    _canonical_clocks,
     _compact_header,
-    _format,
+    _resolved_clocks,
     published_second_khutbah,
 )
 
@@ -134,24 +132,8 @@ class MosqueAMonthlyLayout:
                         "MOSQUE_A monthly row needs thirteen published time cells and its x separator"
                     )
                 raw = cells[:8] + cells[9:]
-                values = []
-                for column, value in enumerate(raw):
-                    if value in DITTO_MARKERS:
-                        if column < 8 or column not in prior:
-                            raise ImportValidationError(
-                                "MOSQUE_A Jamaat quotation mark has no preceding explicit value in this month"
-                            )
-                        minute = prior[column]
-                    else:
-                        minute = _clock(value, column)
-                        prior[column] = minute
-                    values.append(minute)
-                _check_order(values)
-                clocks = [_format(value) for value in values]
-                # Resolve the physical-column ditto before assigning its Friday
-                # meaning. The separately printed Khutbah note is not Jamaat.
-                midday = ["", clocks[9]] if day.weekday() == 4 else [clocks[9], ""]
-                normalized = [*clocks[:9], *midday, *clocks[10:], clocks[11]]
+                clocks = _resolved_clocks(raw, prior, monthly=True)
+                normalized = _canonical_clocks(clocks, friday=day.weekday() == 4)
                 writer.writerow(
                     [
                         day.isoformat(),
