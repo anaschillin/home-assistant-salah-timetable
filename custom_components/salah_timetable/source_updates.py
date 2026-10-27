@@ -293,6 +293,74 @@ class SourceUpdateManager:
         self._runtime_error = None
         return True
 
+    @staticmethod
+    def _unchanged_check_patch(previous: dict, baseline: str | None, result, now: str):
+        """Keep validators and legacy rejection when HTTP bytes are unchanged."""
+        return {
+            "status": "unchanged",
+            "last_checked": now,
+            "last_success": now,
+            "error_code": None,
+            "rejected_sha256": previous.get("rejected_sha256")
+            or (baseline if previous.get("status") == "rejected" else None),
+            "etag": result.etag or previous.get("etag"),
+            "last_modified": result.last_modified or previous.get("last_modified"),
+        }
+
+    async def _async_stage_downloaded_source(self, source, result, now: str) -> None:
+        """Stage validated remote bytes, never approve them automatically."""
+        try:
+            candidate = await self.hass.async_add_executor_job(
+                self._parse, source, result.content
+            )
+            candidate = await self.hass.async_add_executor_job(
+                lambda: replace(
+                    candidate,
+                    source_url=source.url,
+                    etag=result.etag,
+                    last_modified=result.last_modified,
+                )
+            )
+            if self._stopped:
+                return
+            await self._async_write(
+                self.storage.async_stage(candidate, expected_source=source)
+            )
+        except PendingImportError:
+            await self._record(
+                source, {"status": "pending", "last_checked": now, "error_code": None}
+            )
+            return
+        except ImportValidationError, ValueError:
+            _LOGGER.warning(
+                "Downloaded timetable failed validation; approved data retained"
+            )
+            await self._record(
+                source,
+                {
+                    "status": "error",
+                    "last_checked": now,
+                    "error_code": "invalid_timetable",
+                },
+            )
+            return
+        except OSError, HomeAssistantError:
+            self._runtime_error = "storage_failed"
+            return
+        await self._record(
+            source,
+            {
+                "status": "pending",
+                "last_checked": now,
+                "last_success": now,
+                "last_seen_sha256": result.sha256,
+                "rejected_sha256": None,
+                "etag": result.etag,
+                "last_modified": result.last_modified,
+                "error_code": None,
+            },
+        )
+
     async def _async_check_source(self, source) -> None:
         checked_at = dt_util.utcnow()
         now = checked_at.isoformat()
@@ -351,18 +419,7 @@ class SourceUpdateManager:
             return
         if result.not_modified or (baseline is not None and result.sha256 == baseline):
             await self._record(
-                source,
-                {
-                    "status": "unchanged",
-                    "last_checked": now,
-                    "last_success": now,
-                    "error_code": None,
-                    "rejected_sha256": previous.get("rejected_sha256")
-                    or (baseline if previous.get("status") == "rejected" else None),
-                    "etag": result.etag or previous.get("etag"),
-                    "last_modified": result.last_modified
-                    or previous.get("last_modified"),
-                },
+                source, self._unchanged_check_patch(previous, baseline, result, now)
             )
             return
         if self.storage.staged is not None:
@@ -370,63 +427,7 @@ class SourceUpdateManager:
                 source, {"status": "pending", "last_checked": now, "error_code": None}
             )
             return
-        try:
-            candidate = await self.hass.async_add_executor_job(
-                self._parse, source, result.content
-            )
-            candidate = await self.hass.async_add_executor_job(
-                lambda: replace(
-                    candidate,
-                    source_url=source.url,
-                    etag=result.etag,
-                    last_modified=result.last_modified,
-                )
-            )
-            if self._stopped:
-                return
-            await self._async_write(
-                self.storage.async_stage(candidate, expected_source=source)
-            )
-        except PendingImportError:
-            await self._record(
-                source, {"status": "pending", "last_checked": now, "error_code": None}
-            )
-            return
-        except (
-            ImportValidationError,
-            ValueError,
-        ):
-            _LOGGER.warning(
-                "Downloaded timetable failed validation; approved data retained"
-            )
-            await self._record(
-                source,
-                {
-                    "status": "error",
-                    "last_checked": now,
-                    "error_code": "invalid_timetable",
-                },
-            )
-            return
-        except (
-            OSError,
-            HomeAssistantError,
-        ):
-            self._runtime_error = "storage_failed"
-            return
-        await self._record(
-            source,
-            {
-                "status": "pending",
-                "last_checked": now,
-                "last_success": now,
-                "last_seen_sha256": result.sha256,
-                "rejected_sha256": None,
-                "etag": result.etag,
-                "last_modified": result.last_modified,
-                "error_code": None,
-            },
-        )
+        await self._async_stage_downloaded_source(source, result, now)
 
     @staticmethod
     def _parse(source, content: bytes):
