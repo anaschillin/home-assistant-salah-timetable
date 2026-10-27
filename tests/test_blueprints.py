@@ -519,3 +519,82 @@ async def test_resume_guard_requires_unchanged_owned_player(
         {"repeat": {"item": saved}}, parse_result=True
     )
     assert result is expected
+
+
+@pytest.mark.parametrize("blueprint", ["adhan", "pause_resume_media"])
+async def test_media_ownership_is_per_player_and_rejects_replaced_run(
+    hass, freezer, blueprint
+):
+    """One interrupted player must not block a still-owned second player.
+
+    A new automation context, as after a reload/restart, must never claim
+    media state left behind by an earlier run.
+    """
+    freezer.move_to("2026-10-23T05:00:00Z")
+    if blueprint == "adhan":
+        config = expanded(
+            "adhan",
+            {
+                "prayer_sensors": ["sensor.mosque_fajr"],
+                "media_players": ["media_player.hall", "media_player.kitchen"],
+                "adhan_media": {
+                    "media_content_id": "adhan.mp3",
+                    "media_content_type": "audio/mpeg",
+                },
+            },
+        )
+        guard = config["actions"][-1]["then"][-1]["repeat"]["sequence"][0]["if"][0][
+            "value_template"
+        ]
+        state = "playing"
+        attrs = {"volume_level": 0.6, "media_content_id": "adhan.mp3"}
+    else:
+        config = expanded(
+            "pause_resume_media",
+            {
+                "prayer_beginning": "sensor.prayer_begin",
+                "resume_anchor": "sensor.prayer_jamaat",
+                "media_players": ["media_player.hall", "media_player.kitchen"],
+            },
+        )
+        guard = config["actions"][-1]["repeat"]["sequence"][0]["value_template"]
+        state = "paused"
+        attrs = {"media_content_id": "song-a", "app_id": "music"}
+
+    original_run = Context()
+    interrupted_run = Context()
+    for entity, context in [
+        ("media_player.hall", original_run),
+        ("media_player.kitchen", interrupted_run),
+    ]:
+        hass.states.async_set(entity, state, attrs, context=context)
+
+    def allowed(entity, run_context):
+        player = hass.states.get(entity)
+        if blueprint == "adhan":
+            saved = {
+                "entity": entity,
+                "content": "adhan.mp3",
+                "app": None,
+                "updated": player.last_updated.isoformat(),
+            }
+            variables = {
+                "repeat": {"item": saved},
+                "effective_volume": 0.6,
+                "run_context": run_context,
+            }
+        else:
+            saved = {
+                "entity_id": entity,
+                "content": "song-a",
+                "app": "music",
+                "context": run_context,
+                "updated": player.last_updated.isoformat(),
+            }
+            variables = {"repeat": {"item": saved}}
+        return Template(guard, hass).async_render(variables, parse_result=True)
+
+    assert allowed("media_player.hall", original_run.id) is True
+    assert allowed("media_player.kitchen", original_run.id) is False
+    # A reloaded automation has a new run context; it must not inherit ownership.
+    assert allowed("media_player.hall", Context().id) is False
