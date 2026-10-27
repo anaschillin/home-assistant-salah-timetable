@@ -655,3 +655,52 @@ async def test_media_ownership_guard_rejects_removed_player(hass, freezer, bluep
 
     assert hass.states.get("media_player.hall") is None
     assert Template(guard, hass).async_render(variables, parse_result=True) is False
+
+
+@pytest.mark.parametrize("blueprint", ["adhan", "pause_resume_media"])
+async def test_media_blueprint_reload_does_not_replay_past_prayer(
+    hass, freezer, blueprint
+):
+    """A real automation reload must not replay a missed prayer beginning."""
+    freezer.move_to("2026-10-23T05:01:00Z")
+    hass.states.async_set(
+        "sensor.prayer_begin", "2026-10-23T05:00:00+00:00", ATTRS
+    )
+    hass.states.async_set(
+        "sensor.prayer_jamaat", "2026-10-23T05:05:00+00:00", ATTRS
+    )
+    hass.states.async_set("media_player.hall", "playing")
+    if blueprint == "adhan":
+        config = expanded(
+            "adhan",
+            {
+                "prayer_sensors": ["sensor.prayer_begin"],
+                "media_players": ["media_player.hall"],
+                "adhan_media": {
+                    "media_content_id": "adhan.mp3",
+                    "media_content_type": "audio/mpeg",
+                },
+            },
+        )
+        action = async_mock_service(hass, "media_player", "play_media")
+    else:
+        config = expanded(
+            "pause_resume_media",
+            {
+                "prayer_beginning": "sensor.prayer_begin",
+                "resume_anchor": "sensor.prayer_jamaat",
+                "media_players": ["media_player.hall"],
+            },
+        )
+        action = async_mock_service(hass, "media_player", "media_pause")
+
+    await start(hass, [config])
+    with patch(
+        "homeassistant.config.async_hass_config_yaml",
+        return_value={"automation": [config]},
+    ):
+        await hass.services.async_call("automation", "reload", {}, blocking=True)
+        await hass.async_block_till_done()
+
+    await advance(hass, freezer, "2026-10-23T05:02:00Z")
+    assert not action
