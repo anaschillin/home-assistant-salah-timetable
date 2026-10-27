@@ -10,11 +10,9 @@ from aiohttp import FormData
 from homeassistant.components.file_upload import DOMAIN as UPLOAD_DATA
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
-from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.const import DOMAIN
 from custom_components.salah_timetable.download import DownloadError, DownloadResult
-from custom_components.salah_timetable.frontend import async_setup_frontend
 from custom_components.salah_timetable.import_model import MAX_PDF_BYTES
 
 PDF_FIXTURE = Path(__file__).parent / "fixtures/pdf/sample_table.pdf"
@@ -27,13 +25,6 @@ def source_clock(freezer):
     """Freeze before bearer token creation so authenticated uploads remain valid."""
     freezer.move_to("2026-01-01 10:00:00+00:00")
 
-
-@pytest.fixture
-async def source_upload_client(hass, hass_client):
-    # Register bundled static assets before the mocked HTTP router freezes.
-    assert await async_setup_component(hass, "file_upload", {})
-    await async_setup_frontend(hass)
-    return await hass_client()
 
 
 def downloaded(content=CSV, media_type="csv"):
@@ -262,12 +253,12 @@ async def upload_pdf(hass, client, content):
 
 
 async def test_manual_pdf_upload_approval_uses_same_persistence(
-    hass, entry, source_upload_client
+    hass, entry, authenticated_upload_client
 ):
     await setup_mosque(hass, entry)
     result = await open_step(hass, entry, "import_pdf")
     content = PDF_FIXTURE.read_bytes()
-    file_id, path = await upload_pdf(hass, source_upload_client, content)
+    file_id, path = await upload_pdf(hass, authenticated_upload_client, content)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"file": file_id, "kind": "annual", "year": 2026},
@@ -296,7 +287,7 @@ async def test_manual_pdf_upload_approval_uses_same_persistence(
     assert entry.runtime_data.storage.for_date(date(2026, 1, 2)).times
 
 
-async def test_invalid_pdf_upload_is_cleaned_up(hass, entry, source_upload_client):
+async def test_invalid_pdf_upload_is_cleaned_up(hass, entry, authenticated_upload_client):
     """Reject each bad PDF and allow another upload on the same options flow.
 
     Reusing one HA/client lifecycle avoids repeated mocked-server teardown
@@ -311,7 +302,7 @@ async def test_invalid_pdf_upload_is_cleaned_up(hass, entry, source_upload_clien
         ("oversized_pdf", b"%PDF-" + b"x" * MAX_PDF_BYTES),
     )
     for case, content in invalid_uploads:
-        file_id, path = await upload_pdf(hass, source_upload_client, content)
+        file_id, path = await upload_pdf(hass, authenticated_upload_client, content)
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {"file": file_id, "kind": "annual", "year": 2026},
@@ -324,11 +315,11 @@ async def test_invalid_pdf_upload_is_cleaned_up(hass, entry, source_upload_clien
 
 
 async def test_monthly_upload_detects_pdf_and_stores_partial_annual_kind(
-    hass, entry, source_upload_client
+    hass, entry, authenticated_upload_client
 ):
     await setup_mosque(hass, entry)
     result = await open_step(hass, entry, "import_pdf")
-    file_id, _ = await upload_pdf(hass, source_upload_client, PDF_FIXTURE.read_bytes())
+    file_id, _ = await upload_pdf(hass, authenticated_upload_client, PDF_FIXTURE.read_bytes())
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"file": file_id, "kind": "monthly", "year": 2026},
@@ -355,7 +346,7 @@ async def test_monthly_upload_detects_pdf_and_stores_partial_annual_kind(
 
 
 async def test_monthly_imports_preserve_other_published_months(
-    hass, entry, source_upload_client
+    hass, entry, authenticated_upload_client
 ):
     import runpy
 
@@ -363,7 +354,7 @@ async def test_monthly_imports_preserve_other_published_months(
 
     async def import_month(content):
         result = await open_step(hass, entry, "import_pdf")
-        file_id, _ = await upload_pdf(hass, source_upload_client, content)
+        file_id, _ = await upload_pdf(hass, authenticated_upload_client, content)
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {"file": file_id, "kind": "monthly", "year": 2026},
