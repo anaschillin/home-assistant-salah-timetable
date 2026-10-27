@@ -4,6 +4,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from homeassistant.core import Context
+from homeassistant.helpers.template import Template
 from homeassistant.components.automation.config import AUTOMATION_BLUEPRINT_SCHEMA
 from homeassistant.components.blueprint.models import Blueprint, BlueprintInputs
 from homeassistant.setup import async_setup_component
@@ -413,3 +415,107 @@ async def test_pause_resume_does_not_claim_unavailable_player(hass, freezer):
     assert not paused
     await advance(hass, freezer, "2026-10-23T05:06:00Z")
     assert not resumed
+
+
+@pytest.mark.parametrize(
+    ("state", "volume", "content", "same_context", "expected"),
+    [
+        ("playing", 0.6, "adhan.mp3", True, True),
+        ("playing", 0.4, "adhan.mp3", True, False),
+        ("playing", 0.6, "other.mp3", False, False),
+        ("paused", 0.6, "adhan.mp3", True, False),
+        ("unavailable", 0.6, "adhan.mp3", True, False),
+    ],
+)
+async def test_adhan_restore_guard_is_deterministic(
+    hass, freezer, state, volume, content, same_context, expected
+):
+    """Render the actual delayed-restoration guard without starting a timer."""
+    freezer.move_to("2026-10-23T05:00:00Z")
+    config = expanded(
+        "adhan",
+        {
+            "prayer_sensors": ["sensor.mosque_fajr"],
+            "media_players": ["media_player.hall"],
+            "adhan_media": {
+                "media_content_id": "adhan.mp3",
+                "media_content_type": "audio/mpeg",
+            },
+        },
+    )
+    restore = config["actions"][-1]["then"][-1]["repeat"]["sequence"][0]["if"][0][
+        "value_template"
+    ]
+    owner = Context()
+    hass.states.async_set(
+        "media_player.hall",
+        state,
+        {"volume_level": volume, "media_content_id": content},
+        context=owner if same_context else Context(),
+    )
+    player = hass.states.get("media_player.hall")
+    saved = {
+        "entity": "media_player.hall",
+        "content": "adhan.mp3",
+        "app": None,
+        "updated": player.last_updated.isoformat(),
+    }
+    result = Template(restore, hass).async_render(
+        {
+            "repeat": {"item": saved},
+            "effective_volume": 0.6,
+            "run_context": owner.id,
+        },
+        parse_result=True,
+    )
+    assert result is expected
+
+
+@pytest.mark.parametrize(
+    ("state", "content", "same_context", "changed_since_pause", "expected"),
+    [
+        ("paused", "song-a", True, False, True),
+        ("playing", "song-a", True, False, False),
+        ("paused", "song-b", True, False, False),
+        ("paused", "song-a", False, False, False),
+        ("paused", "song-a", True, True, False),
+        ("unavailable", "song-a", True, False, False),
+    ],
+)
+async def test_resume_guard_requires_unchanged_owned_player(
+    hass, freezer, state, content, same_context, changed_since_pause, expected
+):
+    """Render the shipped resume guard against real HA state and context."""
+    freezer.move_to("2026-10-23T05:00:00Z")
+    config = expanded(
+        "pause_resume_media",
+        {
+            "prayer_beginning": "sensor.prayer_begin",
+            "resume_anchor": "sensor.prayer_jamaat",
+            "media_players": ["media_player.hall"],
+        },
+    )
+    guard = config["actions"][-1]["repeat"]["sequence"][0]["value_template"]
+    owner = Context()
+    hass.states.async_set(
+        "media_player.hall",
+        state,
+        {"media_content_id": content, "app_id": "music"},
+        context=owner if same_context else Context(),
+    )
+    player = hass.states.get("media_player.hall")
+    saved = {
+        "entity_id": "media_player.hall",
+        "content": "song-a",
+        "app": "music",
+        "context": owner.id,
+        "updated": (
+            "2026-10-23T04:59:00+00:00"
+            if changed_since_pause
+            else player.last_updated.isoformat()
+        ),
+    }
+    result = Template(guard, hass).async_render(
+        {"repeat": {"item": saved}}, parse_result=True
+    )
+    assert result is expected
