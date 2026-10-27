@@ -9,25 +9,19 @@ export const CARD_CSS = `
   border-radius:12px;
   margin:0 0 16px
 }
-.date-tab {
+.date-tab,.mosque-tab {
   border:0;
   border-radius:9px;
-  padding:10px 5px;
   font:inherit;
   font-weight:600;
   background:transparent;
   color:var(--secondary-text-color);
   cursor:pointer
 }
-.date-tab[aria-pressed="true"] {
-  background:var(--primary-color);
-  color:var(--text-primary-color,#fff)
+.date-tab {
+  padding:10px 5px;
 }
-.date-tab:focus-visible {
-  outline:2px solid var(--primary-color);
-  outline-offset:2px
-}
-.selected-date {
+.date-tab[aria-pressed="true"],.date-tab:focus-visible,.selected-date {
   font-size:.9rem;
   font-weight:600;
   color:var(--secondary-text-color);
@@ -44,14 +38,7 @@ export const CARD_CSS = `
 }
 .mosque-tab {
   flex:1 0 auto;
-  border:0;
-  border-radius:9px;
   padding:10px 14px;
-  font:inherit;
-  font-weight:600;
-  background:transparent;
-  color:var(--secondary-text-color);
-  cursor:pointer
 }
 .mosque-tab[aria-pressed="true"] {
   background:var(--primary-color);
@@ -317,9 +304,6 @@ progress {
 .hijri {
   flex-basis:100%
 }
-.compact {
-  padding:12px
-}
 .compact th,.compact td {
   padding-top:6px;
   padding-bottom:6px
@@ -464,9 +448,6 @@ ha-card {
   border-radius:99px;
   overflow:hidden;
   margin-top:10px
-}
-.progress-help {
-  font-size:.72rem
 }
 .table-scroll {
   border:1px solid var(--divider-color);
