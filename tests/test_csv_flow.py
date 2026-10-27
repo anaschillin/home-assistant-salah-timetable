@@ -158,6 +158,7 @@ async def test_rejection_preserves_active_data(hass, populated, freezer, upload_
         b"Date,Fajr\n2026-10-21,05:45,extra\n",
         b"x" * (MAX_SOURCE_BYTES + 1),
     ],
+    ids=["invalid-encoding", "extra-columns", "oversized-source"],
 )
 async def test_invalid_upload_is_removed(hass, entry, upload_client, content):
     assert await hass.config_entries.async_setup(entry.entry_id)
