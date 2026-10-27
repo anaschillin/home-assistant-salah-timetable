@@ -700,4 +700,3 @@ async def test_media_blueprint_reload_does_not_replay_past_prayer(
 
     await advance(hass, freezer, "2026-10-23T05:02:00Z")
     assert not action
-
