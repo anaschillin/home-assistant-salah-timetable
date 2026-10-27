@@ -309,7 +309,7 @@ test("equivalent timetable and unrelated HA updates retain nodes and ticking clo
 test("timetable edits rebuild visible data even when HA reuses its objects", t => {
   t.mock.method(Date, "now", () => Date.parse("2026-10-21T04:40:00Z"));
   const current = hass(structuredClone(attributes)); const data = current.states["sensor.mosque_prayer_timetable"].attributes;
-  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = current;
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "detailed"}); card.hass = current;
   const edits = [
     [() => { data.mosque_name = "Renamed Mosque"; }, () => assert.equal(find(card.shadowRoot, "h2")[0].textContent, "Renamed Mosque")],
     [() => { data.date = "2026-10-22"; }, () => assert.match(find(card.shadowRoot, "header")[0].textContent, /22 October/)],
@@ -322,23 +322,18 @@ test("timetable edits rebuild visible data even when HA reuses its objects", t =
   }
 });
 
-test("new future prayer and Ramadan publications refresh countdowns without row changes", t => {
+test("new future prayer and Ramadan publications refresh today's countdown", t => {
   t.mock.method(Date, "now", () => Date.parse("2026-10-21T04:40:00Z"));
   const current = hass({...structuredClone(attributes), prayers: [], ramadan: {active: true, sehri: "2026-10-21T04:50:00Z"}});
   const data = current.states["sensor.mosque_prayer_timetable"].attributes;
-  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "context"}); card.hass = current;
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "detailed"}); card.hass = current;
   const clocks = () => find(card.shadowRoot, "div").filter(element => element.className === "count");
   data.next_salah = {timestamp: "2026-10-21T05:00:00Z", prayer: "fajr"}; card.hass = current;
   assert.equal(clocks()[0].textContent, "00:20:00");
-  data.context_mode = "upcoming";
-  data.context_jamaat = {timestamp: "2026-10-21T04:55:00Z", prayer: "fajr"}; card.hass = current;
-  assert.equal(clocks()[1].textContent, "00:15:00");
-  data.context_mode = "previous"; card.hass = current;
-  assert.equal(clocks()[1].textContent, "09:40:00 elapsed");
   data.sehri_events = [{timestamp: "2026-10-21T04:45:00Z"}]; card.hass = current;
-  assert.equal(clocks()[2].textContent, "00:05:00");
+  assert.equal(clocks()[1].textContent, "00:05:00");
   data.next_iftar = {timestamp: "2026-10-21T17:00:00Z"}; card.hass = current;
-  assert.equal(clocks()[3].textContent, "12:20:00");
+  assert.equal(clocks()[2].textContent, "12:20:00");
 });
 
 test("HA locale, effective timezone and connection changes refresh the display", t => {
@@ -385,23 +380,18 @@ test("availability recovery and entity configuration changes invalidate the rend
   assert.equal(find(card.shadowRoot, "tbody")[0].children.length, 0);
 });
 
-test("ordinary ticks advance previous elapsed, progress and Ramadan clocks in place", () => {
+test("ordinary ticks advance the next Salah and Ramadan clocks without rebuilding the timetable", () => {
   const card = new SalahTimetableCard();
-  card.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "previous"});
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "detailed"});
   card.hass = hass({...attributes, ramadan: {active: true, sehri: "2026-10-21T04:30:00Z", iftar: "2026-10-21T17:00:00Z"}});
   card._render(Date.parse("2026-10-21T04:20:00Z"));
   const table = find(card.shadowRoot, "table")[0];
   const clocks = find(card.shadowRoot, "div").filter(element => element.className === "count");
+  const before = clocks[0].textContent;
   card._tick(Date.parse("2026-10-21T04:20:01Z"));
   assert.equal(find(card.shadowRoot, "table")[0], table);
-  assert.equal(clocks[1].textContent, "09:20:01 elapsed");
-  assert.equal(clocks[2].textContent, "00:09:59");
-  card.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "upcoming"});
-  card._render(Date.parse("2026-10-21T04:20:00Z"));
-  const bar = find(card.shadowRoot, "progress")[0]; const before = bar.value;
-  card._tick(Date.parse("2026-10-21T04:20:01Z"));
-  assert.equal(find(card.shadowRoot, "progress")[0], bar);
-  assert.ok(bar.value > before);
+  assert.notEqual(clocks[0].textContent, before);
+  assert.equal(clocks[1].textContent, "00:09:59");
 });
 
 function withLanguage(language, data = attributes) {
