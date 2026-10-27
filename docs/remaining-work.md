@@ -43,7 +43,7 @@ Baseline: [main at 7913789](https://github.com/anaschillin/home-assistant-salah-
 
 **CR27-07:** Module responsibilities and change-propagation contracts documented in [integration architecture](integration-architecture.md).
 
-**CR27-06:** Removed the obsolete annual-only `TimetableStorage.for_date` lookup and its unused imports. The coordinator continues to resolve effective days through `ramadan.resolve_day`. Pending CI verification.
+**CR27-06:** Audited the annual-only `TimetableStorage.for_date` lookup. It remains in place for regression-test compatibility (24 tests depend on it); its docstring explicitly distinguishes it from effective Ramadan resolution through `ramadan.resolve_day`. No runtime caller was changed. Pending CI verification.
 
 **CR27-05:** Shared the PDF/CSV source inspection path between uploaded PDF and remote URL imports without changing staged review, explicit approval, or download safeguards. Existing import-flow parity tests and CI must pass before merge.
 
