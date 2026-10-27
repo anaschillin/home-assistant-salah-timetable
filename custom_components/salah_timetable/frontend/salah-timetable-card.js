@@ -53,7 +53,7 @@ th,td{padding:12px 10px}thead th{font-size:.73rem;letter-spacing:.04em;text-tran
 tbody tr:not(:last-child){border-bottom:1px solid var(--divider-color)}
 tbody tr th,tbody tr td{border-bottom:0}
 .next-prayer{background:color-mix(in srgb,var(--primary-color) 13%,transparent);box-shadow:inset 3px 0 var(--primary-color)}
-.next-prayer th,.next-prayer td{font-weight:700}.past-prayer{opacity:.66}
+.next-prayer th,.next-prayer td{font-weight:700}.past-prayer{color:var(--secondary-text-color);opacity:1}.past-prayer th,.past-prayer td{color:inherit}
 .ramadan{margin-top:20px}.ramadan-grid>div{background:var(--secondary-background-color);border:1px solid var(--divider-color);padding:14px;border-radius:12px}
 .compact{padding:12px}.compact .panel{padding:12px}.compact .panel .count{font-size:1.65rem}
 @container(max-width:28rem){.panels{grid-template-columns:1fr}.table-scroll{border:0;border-radius:0}table{width:100%;min-width:0;font-size:.86rem}th,td{padding:9px 4px}th:first-child{width:auto}.panel .count{font-size:2rem}.ramadan-grid{grid-template-columns:1fr 1fr}}
