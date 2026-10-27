@@ -1,6 +1,13 @@
 # Islamic History display defaults — implementation specification
 
-**Status:** approved design direction; implementation pending. This document does not enable the feature in the integration.
+**Status (27 October 2026): partially implemented in 0.9.3.** The bundled card now
+shows an optional offline description for each of the 12 Hijri months, with
+`show_hijri_month_info` enabled by default. The historical day-event and
+month-highlight catalogue remains research-only; it is **not** rendered by
+the running card. The other four history toggles are marked **coming soon**
+in the editor and persist their selections but do not enable an event feed.
+The independently tested `history-utils.js` selector is a prototype, not an
+imported dependency of the live card.
 
 ## Default behaviour
 - Show **information about the current Hijri month** by default for new installations, using short original educational descriptions for all 12 months.
@@ -11,7 +18,7 @@
 - Show month information **above** optional historical events; events never replace the month explanation.
 - Respect an explicit user choice to hide month information; if every content type is disabled, hide the history section entirely.
 
-## Proposed card-level configuration
+## Card-level configuration (month info live; other flags reserved)
 ```json
 {
   "show_hijri_month_info": true,
@@ -33,11 +40,12 @@ Use per-card options to allow different layouts on tablet and mobile. Keep integ
 - Month information should avoid asserting special religious merit for months without supporting evidence.
 - Month summaries are informational, not a religious observance schedule or prayer automation.
 
-## Acceptance criteria
-1. New card defaults to a compact Hijri month explanation.
-2. Historical events, monthly highlights, disputed dates, and visible citations start disabled.
+## Acceptance criteria (complete for the delivered month display; remainder proposed)
+1. **Implemented:** New cards default to a compact Hijri month explanation.
+2. **Implemented as settings only:** Historical events, monthly highlights, disputed dates, and visible citations start disabled; no historical events are rendered yet.
 3. Turning on events adds them below month information; turning off month information removes only that section.
-4. All five toggles persist independently per dashboard card, including after refresh and integration updates.
+4. Five toggle values are defined and persist in card configuration; end-to-end
+   historical-event display remains unimplemented.
 5. Mobile/tablet layout remains readable, with no effect on Salah/Jamaat sensors or countdowns.
 6. No exact-day claim appears without date-level evidence and editorial sign-off.
 7. All 12 month summaries have source attribution and original English wording.
