@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfoNotFoundError
 from homeassistant.components import frontend as ha_frontend
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.components.lovelace.const import MODE_STORAGE
-from homeassistant.const import EVENT_COMPONENT_LOADED
+from homeassistant.const import EVENT_COMPONENT_LOADED, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import Event, HomeAssistant, HomeAssistantError
 
 from .const import DOMAIN
@@ -29,6 +29,8 @@ class _FrontendState:
     lock: Lock = field(default_factory=Lock)
     static_registered: bool = False
     listening: bool = False
+    unsubscribe_loaded: object | None = None
+    unsubscribe_stop: object | None = None
 
 
 def _is_card_resource(url: str) -> bool:
@@ -100,7 +102,18 @@ async def async_setup_frontend(hass: HomeAssistant) -> None:
                 if event.data.get("component") in {"lovelace", "frontend"}:
                     await async_setup_frontend(hass)
 
-            hass.bus.async_listen(EVENT_COMPONENT_LOADED, component_loaded)
+            def homeassistant_stopping(_event: Event) -> None:
+                if state.unsubscribe_loaded is not None:
+                    state.unsubscribe_loaded()
+                    state.unsubscribe_loaded = None
+                state.listening = False
+
+            state.unsubscribe_loaded = hass.bus.async_listen(
+                EVENT_COMPONENT_LOADED, component_loaded
+            )
+            state.unsubscribe_stop = hass.bus.async_listen_once(
+                EVENT_HOMEASSISTANT_STOP, homeassistant_stopping
+            )
             state.listening = True
         try:
             await _async_register_resource(hass)
