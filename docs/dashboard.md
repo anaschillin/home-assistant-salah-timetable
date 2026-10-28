@@ -46,6 +46,10 @@ discovered mosques, including newly added ones.
 
 The **Yesterday / Today / Tomorrow** controls sit in a slim footer inside the
 timetable frame, rather than above the prayer summaries. Today is selected initially.
+The header's Gregorian **and calculated Hijri dates**, plus the contextual Hijri
+month description, update with the selected day. The timetable does not repeat
+the Gregorian date when it is already in the header; a date label remains if
+the Gregorian header is disabled or the card is in Compact mode.
 All three views share the same table styling, labels, time formatting and responsive
 layout. Yesterday and Tomorrow hide **both** prayer summary cards, live countdowns,
 current-prayer highlighting, and today's Ramadan/status sections. They show only
@@ -200,7 +204,12 @@ from **Mosque background** in the card editor, set **Background opacity (%)**
 (0–20), or switch off **Show mosque background** entirely.
 
 The mosque photograph now covers the **full width of the canvas allotted
-to this card** by Home Assistant, without a hard 1280px limit. The timetable,
+to this card** by Home Assistant, without a hard 1280px limit. Its image layer
+retains the full Today-height composition while switching to shorter Yesterday
+or Tomorrow views, so hiding the countdowns **does not re-zoom or re-centre
+the photo**. The card itself still shrinks to its contents without an empty
+reserved space. This background-frame cache is discarded if the allocated
+canvas width changes (e.g. tablet rotation or a dashboard column resize). The timetable,
 header and countdowns remain in an independently centred content column
 (up to 1160px wide). On narrow cards and mobile screens, the content naturally
 fills the available width. This creates wider photographic wings on landscape
