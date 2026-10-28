@@ -78,8 +78,12 @@ current prayer's congregation is still approaching; at its exact instant the
 same panel becomes **Previous Jamaat** and shows elapsed time.
 The mosque title, Hijri date/description, Gregorian date and both countdown
 sections now live inside **one CSS-first liquid-glass summary card**. The
-timetable has the same glass material: translucent theme-aware gradients,
-frosted blur and restrained specular edges. There is no WebGL runtime, animated
+timetable has the **same high-contrast glass material**: a mostly opaque
+theme-aware surface with a restrained gradient, frosted blur and small
+specular edge highlights. The previous overly transparent version reduced
+legibility over light-coloured mosque photographs; table headings and day
+navigation no longer add a second tint. The background photograph remains
+unobscured outside the panels. There is no WebGL runtime, animated
 distortion or remote dependency. Both countdown halves share **identical
 transparent surfaces, padding, label typography, countdown sizing and
 time-grid formatting**, separated by a fine divider. Each countdown still has its own published
