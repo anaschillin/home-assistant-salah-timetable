@@ -38,6 +38,35 @@ test("bundled card and graphical editor register once", () => {
   assert.equal(SalahTimetableCard.getStubConfig(hass()).entity, "sensor.mosque_prayer_timetable");
 });
 
+test("mosque header and both live countdowns share one summary card", () => {
+  const config = {entity: "sensor.mosque_prayer_timetable"};
+  const card = new SalahTimetableCard();
+  card.setConfig(config); card.hass = hass();
+  const shell = () => find(card.shadowRoot, "div").find(element => element.className === "summary-shell");
+  const contents = () => shell().children;
+  assert.ok(shell(), "Shared card must exist");
+  assert.equal(contents()[0].tagName, "header");
+  assert.equal(contents()[1].className, "panels");
+  assert.equal(contents()[1].children.length, 2);
+  assert.equal(contents()[1].children[0].attributes["data-panel"], "salah");
+  assert.equal(contents()[1].children[1].attributes["data-panel"], "jamaat");
+  assert.match(contents()[0].textContent, /Example Mosque/);
+  assert.equal(find(card.shadowRoot, "table").length, 1);
+  assert.ok(!contents().includes(find(card.shadowRoot, "table")[0]), "Timetable stays outside the summary");
+
+  for (const [salah, jamaat] of [[true, false], [false, true], [false, false]]) {
+    card.setConfig({...config, show_salah_countdown: salah, show_jamaat_countdown: jamaat});
+    assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "summary-shell").length, 1);
+    const groups = contents().filter(element => element.className === "panels");
+    assert.equal(groups.length, salah || jamaat ? 1 : 0);
+    if (groups.length) assert.equal(groups[0].children.length, Number(salah) + Number(jamaat));
+  }
+  card.setConfig(config);
+  const footer = find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
+  footer.children[0].dispatchEvent(new Event("click"));
+  assert.equal(contents().length, 1, "Browsing an adjacent date keeps the mosque heading, not live countdowns");
+});
+
 test("card renders local times, missing states and theme-responsive layout", () => {
   const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = hass(); card._render(Date.parse("2026-10-21T04:40:00Z"));
   assert.match(card.shadowRoot.textContent, /Example Mosque/); assert.match(card.shadowRoot.textContent, /05:45/); assert.match(card.shadowRoot.textContent, /00:05:00/);
