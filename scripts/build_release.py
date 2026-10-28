@@ -25,7 +25,7 @@ REQUIRED_FILES = {
     "frontend/card-i18n.js",
 }
 ASSET_SUFFIXES = {
-    "frontend": {".js", ".css", ".svg", ".woff2"},
+    "frontend": {".js", ".css", ".svg", ".woff2", ".webp"},
     "translations": {".json"},
     "brand": {".png", ".svg"},
 }
