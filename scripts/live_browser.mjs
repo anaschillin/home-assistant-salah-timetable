@@ -162,6 +162,23 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
         }
       }
     }
+    // PR #88 regression: real landscape tablet / desktop once put the long
+    // month description on the same line as the Gregorian date.
+    for (const width of [900, 1280, 1536]) {
+      await call("Emulation.setDeviceMetricsOverride", {width, height: 1100, deviceScaleFactor: 1, mobile: false});
+      await pause(100);
+      assert.equal(await evaluate(`(()=>{
+        const card=window.salahAutoCard, root=card.shadowRoot;
+        const header=root.querySelector(".header"), hijri=root.querySelector(".hijri");
+        const gregorian=root.querySelector(".gregorian"), month=root.querySelector(".month-description");
+        if(!header||!hijri||!gregorian||!month) return false;
+        const h=header.getBoundingClientRect(), d=month.getBoundingClientRect();
+        return getComputedStyle(header).display==="grid" &&
+          d.top>=Math.max(hijri.getBoundingClientRect().bottom,gregorian.getBoundingClientRect().bottom)-1 &&
+          d.width>=h.width-1 && card.getBoundingClientRect().width<=1281 &&
+          header.scrollWidth<=header.clientWidth+1;
+      })()`), true, `Real HA header description shares date row or overflows at ${width}px`);
+    }
     console.log("Real card picker, all graphical options, language/bilingual reload, Arabic/English HA locale, keyboard focus, themes and 200% text passed");
     return {viewports: [320, 360, 400, 900], languages: ["en", "ar"], bilingual_modes: [false, true], automatic_locale: ["en", "ar", "en"], configuration_reload: true, picker: true, editor: true, keyboard: true, themes: ["light", "dark"], root_text_scale: "200%"};
   } finally {
