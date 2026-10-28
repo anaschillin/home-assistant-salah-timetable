@@ -11,9 +11,8 @@ They show synthetic data from an isolated Chromium fixture with Home Assistant
 control stand-ins; they do **not** illustrate the new unified liquid-glass
 summary, mosque selector, full-height photograph or footer day navigation.
 
-<img src="images/card-mobile-0.6.1.png" alt="Archived candidate 0.6.1 mobile card, predating the 0.9.18 liquid-glass redesign" width="260">
-
-[Archived 0.6.1 tablet screenshot](images/card-tablet-0.6.1.png) ·
+Archived fixture images: [0.6.1 mobile](images/card-mobile-0.6.1.png) ·
+[0.6.1 tablet](images/card-tablet-0.6.1.png) ·
 [0.5.1 mobile](images/card-mobile.png) ·
 [0.5.1 tablet](images/card-tablet.png)
 
@@ -186,8 +185,10 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_mosque_background` | `true`; enables the full-strength bundled mosque photograph; `false` disables the image |
 | `mosque_background` | `daily` (default); `none`, or a bundled mosque ID for a fixed photo |
 
-Hiding either main panel removes it; the remaining panel fills the width.
-Hiding both leaves the header and timetable. Connection warnings and narrow-card
+Hiding either main countdown half removes it; the remaining half fills
+the available summary width. Hiding both leaves the mosque header and
+the timetable **when Standard or Detailed is selected**; Compact still
+omits today's full timetable (but retains the date footer). Connection warnings and narrow-card
 scrolling guidance remain available when the timezone note is hidden. Taraweeh
 belongs to the Ramadan details section. Countdown durations use hours/minutes/seconds
 with a day prefix when needed, independent of 12/24-hour time format.
