@@ -8,6 +8,21 @@ For completed milestones and future scope, see the
 [implementation plan](milestones.md); dated test evidence is preserved in
 [validation](validation.md).
 
+## Unmerged CSS work — manual acceptance pending
+
+[PR #82](https://github.com/anaschillin/home-assistant-salah-timetable/pull/82)
+extracts and consolidates the card stylesheet into a versioned JavaScript module.
+[CI 40594333792](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40594333792)
+passed 7/7 jobs with 957 Python tests in each version lane and 95.37% line
+coverage; CodeQL passed too. This is **branch evidence, not a merged release**.
+The maintainer will test it in real Home Assistant before merging. Follow
+[the unmerged branch acceptance guide](css-acceptance.md); do not treat the
+existing HACS installation of `main` as evidence for PR #82.
+
+Stronger pixel/visual regression testing, the remaining staged CSS/editor style
+cleanup and optional PDF-worker/branch-coverage improvements are tracked as
+follow-up changes; avoid adding them to PR #82 during manual review.
+
 ## Current engineering status
 
 On 27 October 2026, [main commit `78c1a9f`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/78c1a9f018f9676a56b1657865bcdef40a5f8175)

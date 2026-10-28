@@ -13,6 +13,15 @@ calendar, recognized PDF layouts, speaker controls, import review, Hijri-first
 header and Arabic/RTL controls remains separate. Hosted validation is recorded separately for exact commit
 SHAs; a final release commit still needs its own successful required jobs.
 
+## Unmerged frontend CSS test gate
+
+[PR #82](https://github.com/anaschillin/home-assistant-salah-timetable/pull/82)
+passes automated browser/HA CI but is intentionally **not merged** pending
+maintainer testing on a real phone/tablet dashboard. Follow the
+[CSS branch acceptance checklist](css-acceptance.md) before merging, then
+bump the version and regenerate the bundled frontend import cache keys.
+This does not supersede the asset-rights or HACS/manual acceptance gates below.
+
 ## Current release readiness
 
 **Status reviewed 27 October 2026.** This is the **only active release

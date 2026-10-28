@@ -5,6 +5,19 @@ acceptance checklist. See [remaining work](remaining-work.md) for engineering
 priorities and [release readiness](releasing.md#current-release-readiness) for
 blocking manual sign-offs.
 
+## PR #82 CSS module verification — 27 October 2026 (unmerged)
+
+The [CSS module PR #82](https://github.com/anaschillin/home-assistant-salah-timetable/pull/82)
+passed [Validate 40594333792](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40594333792)
+(**7/7 jobs**) and [CodeQL 40594333630](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40594333630).
+The root and pinned HA 2026.10.0/2026.10.3 Python suites each passed
+**957 tests**, with **95.37% line coverage**. Real Chromium checked sixteen
+mobile/tablet/English/Arabic/bilingual combinations, and Home Assistant
+Container live acceptance passed. The new module is included in runtime
+asset and release-package tests. No screenshot golden comparison was made.
+This is provisional CI evidence: the PR remains **unmerged pending real
+Home Assistant manual acceptance**, documented in [CSS acceptance](css-acceptance.md).
+
 ## 0.9.3 main-branch CI evidence — 27 October 2026
 
 On main commit [`78c1a9f018f9676a56b1657865bcdef40a5f8175`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/78c1a9f018f9676a56b1657865bcdef40a5f8175),

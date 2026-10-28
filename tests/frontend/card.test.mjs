@@ -428,8 +428,8 @@ test("automatic Arabic localizes labels, published names, dates and isolated dig
   assert.equal(region.attributes["aria-label"], tr("ar", "table.region"));
   const timezone = find(card.shadowRoot, "p").find(element => element.attributes["data-role"] === "timezone-note");
   assert.equal(find(timezone, "bdi")[0].textContent, "Europe/London");
-  assert.match(find(card.shadowRoot, "style")[0].textContent, /text-align:start/);
-  assert.match(find(card.shadowRoot, "style")[0].textContent, /text-align:end/);
+  assert.match(find(card.shadowRoot, "style")[0].textContent, /text-align:\s*start/);
+  assert.match(find(card.shadowRoot, "style")[0].textContent, /text-align:\s*end/);
 });
 
 test("explicit language overrides HA and unsupported label languages retain local date formatting", () => {
