@@ -210,7 +210,8 @@ async def test_unsafe_url_rejected_before_network(hass, entry, url):
     await setup_mosque(hass, entry)
     result = await open_step(hass, entry, "import_url")
     with patch(
-        "custom_components.salah_timetable.sources.source_flow.async_download", AsyncMock()
+        "custom_components.salah_timetable.sources.source_flow.async_download",
+        AsyncMock(),
     ) as fetch:
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
@@ -230,7 +231,8 @@ async def test_fractional_url_year_rejected_before_network(hass, entry):
     await setup_mosque(hass, entry)
     result = await open_step(hass, entry, "import_url")
     with patch(
-        "custom_components.salah_timetable.sources.source_flow.async_download", AsyncMock()
+        "custom_components.salah_timetable.sources.source_flow.async_download",
+        AsyncMock(),
     ) as fetch:
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
