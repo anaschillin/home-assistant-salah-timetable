@@ -7,12 +7,13 @@ import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "../../custom_component
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../../custom_components/salah_timetable/frontend");
 
-test("all bundled mosque photos have local, verified metadata and stay under 250 KB", () => {
-  assert.equal(MOSQUE_BACKGROUNDS.length, 8);
+test("20 bundled mosque photos have local, verified metadata and stay under 250 KB", () => {
+  assert.equal(MOSQUE_BACKGROUNDS.length, 20);
   assert.equal(new Set(MOSQUE_BACKGROUNDS.map(item => item.id)).size, 8);
   for (const item of MOSQUE_BACKGROUNDS) {
     assert.match(item.id, /^[a-z0-9-]+$/);
     assert.ok(item.name && item.country && item.photographer);
+    assert.match(item.source_photo_id, /^photo-\d+-[a-f0-9]+$/);
     assert.equal(item.license_url, "https://unsplash.com/license");
     assert.match(item.source_url, /^https:\/\/unsplash\.com\/photos\//);
     assert.equal(item.path, `/salah_timetable/backgrounds/${item.id}.webp`);
