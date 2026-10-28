@@ -14,10 +14,10 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util.json import load_json
 
 from ..const import DOMAIN, STORAGE_VERSION
-from ..parsers.import_model import ImportCandidate
 from ..domain.model import DailyPrayers, PrayerField, Timetable
 from ..domain.ramadan import RamadanSettings
 from ..domain.ramadan_validation import validate_ramadan_selection
+from ..parsers.import_model import ImportCandidate
 from ..sources.source_model import RemoteSource, validate_check
 
 

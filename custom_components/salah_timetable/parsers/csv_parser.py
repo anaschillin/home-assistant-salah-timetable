@@ -7,6 +7,7 @@ import unicodedata
 from datetime import date, time
 from hashlib import sha256
 
+from ..domain.model import DailyPrayers, PrayerField, Timetable, parse_time
 from .import_model import (
     MAX_SOURCE_BYTES,
     ImportCandidate,
@@ -14,7 +15,6 @@ from .import_model import (
     build_coverage,
     coverage_warnings,
 )
-from ..domain.model import DailyPrayers, PrayerField, Timetable, parse_time
 
 MAX_ROWS = 366
 MAX_COLUMNS = 32

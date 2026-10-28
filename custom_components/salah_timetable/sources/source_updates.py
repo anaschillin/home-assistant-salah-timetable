@@ -12,10 +12,10 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.util import dt as dt_util
 
-from . import download
 from ..parsers.csv_parser import CsvParser
 from ..parsers.import_model import ImportValidationError
 from ..persistence.storage import PendingImportError, TimetableStorage
+from . import download
 
 CHECK_INTERVAL = timedelta(days=1)
 _LOGGER = logging.getLogger(__name__)
