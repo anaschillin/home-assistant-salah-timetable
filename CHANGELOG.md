@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.5 — unreleased
+
+- Disable unfinished Islamic-history switches in the graphical card editor.
+- Allow per-card mosque visibility filters: fixed single-mosque cards or tabs among
+  enabled mosques, independently on separate cards or dashboards. Preserve
+  existing cards, missing sensors, and at least one enabled mosque.
+- Refresh bundled frontend resource/cache versions and add regression coverage.
+
 ## 0.9.3 — unreleased
 
 - Match Next Salah beginning, Jamaat and Fajr sunrise to the same approved, dated
