@@ -101,6 +101,7 @@ try {
   // month narrative when required), yet preserve the photograph's original crop.
   const fullTodayHeight = photoCard.getBoundingClientRect().height;
   const originalPhotoHeight = getComputedStyle(photoCard, "::before").height;
+  const originalPhotoPosition = getComputedStyle(photoCard, "::before").backgroundPosition;
   const originalPhotoUrl = photoCard.style.getPropertyValue("--mosque-background-image");
   for (const [offset, key] of [[1, "2026-10-22"], [-1, "2026-10-20"], [0, "2026-10-21"]]) {
     card.shadowRoot.querySelectorAll(".date-tab")[offset + 1].click();
