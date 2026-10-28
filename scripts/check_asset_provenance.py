@@ -166,7 +166,7 @@ def main() -> None:
     try:
         unresolved = audit(args.root, require_cleared=args.require_cleared)
     except (OSError, ValueError, KeyError, TypeError) as err:
-        parser.exit(1, f"Asset provenance failed: {err}\\n")
+        parser.exit(1, f"Asset provenance failed: {err}\n")
     print(
         f"Asset inventory integrity valid; {len(unresolved)} assets need rights review "
         "(not a licence certification)"
