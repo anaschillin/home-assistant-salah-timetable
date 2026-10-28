@@ -4,8 +4,8 @@
 short, offline description of the **selected day's Hijri month** directly
 beneath the calculated Hijri date in the mosque header. It does not repeat
 the month name or create a separate history panel. The explanation updates
-when switching Yesterday/Today/Tomorrow, and disappears if the full Hijri
-date is hidden or `show_hijri_month_info` is disabled. This feature defaults
+when switching Yesterday/Today/Tomorrow, and disappears in Compact mode
+or if the full Hijri date is hidden or `show_hijri_month_info` is disabled. This feature defaults
 to enabled on new and existing cards.
 
 The four additional history options are **disabled as coming soon** in the
@@ -51,7 +51,8 @@ The proposed event flags are reserved for future editorial and frontend work.
 
 ## Acceptance criteria and current status
 1. **Implemented:** Month explanation defaults on, appears only beneath a
-   visible Hijri date, and follows day navigation and the per-card adjustment.
+   visible Hijri date in Standard/Detailed mode, and follows day navigation
+   and the per-card adjustment.
 2. **Implemented:** Disabling month information removes the subtitle without
    changing the date, timetable or countdowns.
 3. **Implemented:** The four historical-event/source/dispute options are shown
