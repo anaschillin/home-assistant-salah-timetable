@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 class Element {
-  constructor(tagName = "custom-element") { this.tagName = tagName; this.children = []; this.listeners = new Map(); this._text = ""; this.attributes = {}; }
+  constructor(tagName = "custom-element") { this.tagName = tagName; this.children = []; this.listeners = new Map(); this._text = ""; this.attributes = {}; this.classes = new Set(); this.classList = {add: name => this.classes.add(name), contains: name => this.classes.has(name)}; this.style = {values: {}, setProperty(name, value) { this.values[name] = value; }}; }
   set textContent(value) { this._text = String(value); this.children = []; }
   get textContent() { return this._text + this.children.map(child => child.textContent).join(""); }
   append(...children) { this.children.push(...children); }
@@ -579,4 +579,19 @@ test("two configured mosques are both selectable as independent dashboard cards"
     ["sensor.second_mosque_prayer_timetable"],
     "Stored card selections remain editable while their sensor is unavailable"
   );
+});
+
+test("bundled background shows photographer credit and local URL", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass();
+  card._render(Date.parse("2026-10-21T04:40:00Z"));
+  const surface = find(card.shadowRoot, "ha-card")[0];
+  assert.equal(surface.classList.contains("has-mosque-background"), true);
+  assert.match(surface.style.values["--mosque-background-image"], /^url\("\/salah_timetable\/backgrounds\//);
+  const [link] = find(card.shadowRoot, "a");
+  assert.ok(link.href.startsWith("https://unsplash.com/photos/"));
+  assert.equal(link.rel, "noopener noreferrer");
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: false});
+  assert.equal(find(card.shadowRoot, "a").length, 0);
 });
