@@ -92,8 +92,11 @@ try {
   const panelStyle = getComputedStyle(card.shadowRoot.querySelector(".panel"));
   const gridStyle = getComputedStyle(card.shadowRoot.querySelector(".panels"));
   check("theme panel layout and border radius survive CSS refactoring", panelStyle.display === "flex" && panelStyle.borderRadius === "16px" && gridStyle.display === "grid");
-  check("container layout uses one column on mobile and two on tablet", gridStyle.gridTemplateColumns.split(" ").length === (width <= 400 ? 1 : 2));
+  check("container layout uses one column on mobile and two on tablet", gridStyle.gridTemplateColumns.split(" ").length === (width <= 336 ? 1 : 2));
   check("card language and direction match configuration", card.getAttribute("lang") === language && card.getAttribute("dir") === ui.dir);
+  check("summary icon silhouettes are hidden from accessibility", card.shadowRoot.querySelectorAll(".panel-silhouette[aria-hidden=\"true\"] svg").length === 2);
+  check("day controls follow timetable, not countdowns", Boolean(card.shadowRoot.querySelector(".timetable-shell > .date-tabs")));
+  check("Hijri month explanation defaults collapsed", card.shadowRoot.querySelector(".hijri-month-info details")?.open === false);
   check("mosque timezone used for absolute times", card.shadowRoot.querySelector('[data-panel="salah"] .absolute').textContent === `${digits(5)}:${digits(45)}`);
   check("local beginning countdown", card.shadowRoot.querySelector('[data-panel="salah"] .count').textContent === `${digits(0)}:${digits(5)}:${digits(0)}`);
   check("Ramadan has textual Taraweeh fallback", card.shadowRoot.textContent.includes("After Isha Jamaat"));
