@@ -86,9 +86,12 @@ try {
     photoStyle.borderTopWidth !== "0px" && photoStyle.borderBottomWidth !== "0px");
   const rimStyle = getComputedStyle(photoCard, "::after");
   const glassStyle = getComputedStyle(photoCard.querySelector(".content"));
-  check("centred glass styling and image-only blurred edge are applied",
-    photoStyle.maxWidth === "1280px" &&
-    photoStyle.marginLeft === photoStyle.marginRight &&
+  check("full-canvas background and centred inner glass content are applied",
+    photoStyle.maxWidth === "none" &&
+    photoStyle.backgroundSize.split(",").every(value => value.trim() === "cover") &&
+    Math.abs(photoCard.getBoundingClientRect().width - card.getBoundingClientRect().width) <= 2 &&
+    glassStyle.maxWidth === "1160px" &&
+    glassStyle.marginLeft === glassStyle.marginRight &&
     rimStyle.filter === "blur(14px)" &&
     rimStyle.maskImage.includes("radial-gradient") &&
     glassStyle.backdropFilter === "blur(1px)");
