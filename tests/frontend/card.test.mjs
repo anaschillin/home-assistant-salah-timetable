@@ -88,12 +88,15 @@ for (const [language, locale, month, gregorianMonth] of [["en", "en-GB", "Ramada
   assert.ok(header.children[1].textContent.includes(tr(language, "card.hijri_calculated")));
   assert.equal(header.children[2].className, "date gregorian");
   assert.ok(header.children[2].textContent.includes(gregorianMonth));
+  assert.equal(header.children[3].className, "month-description");
+  assert.ok(header.children[3].textContent.length > 0);
   for (const show_hijri_date of [true, false]) for (const show_gregorian_date of [true, false]) {
     card.setConfig({entity: "sensor.mosque_prayer_timetable", language, show_hijri_date, show_gregorian_date});
     const currentHeader = find(card.shadowRoot, "header")[0];
-    assert.equal(currentHeader.children.length, 1 + Number(show_hijri_date) + Number(show_gregorian_date));
+    assert.equal(currentHeader.children.length, 1 + Number(show_hijri_date) * 2 + Number(show_gregorian_date));
     assert.equal(currentHeader.children.some(element => element.className === "date hijri"), show_hijri_date);
     assert.equal(currentHeader.children.some(element => element.className === "date gregorian"), show_gregorian_date);
+    assert.equal(currentHeader.children.some(element => element.className === "month-description"), show_hijri_date);
     assert.equal(find(card.shadowRoot, "table").length, 1);
   }
   card.setConfig({entity: "sensor.mosque_prayer_timetable", language, show_hijri_date: true, show_gregorian_date: false});
@@ -232,8 +235,8 @@ test("dashboard controls hide panels and details without hiding published prayer
   const card = new SalahTimetableCard();
   card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "standard", show_salah_countdown: false, show_jamaat_countdown: false, show_hijri_date: false, show_timezone_note: false, show_ramadan_details: false, time_format: "12h"});
   card.hass = hass({...attributes, ramadan: {active: true}}); card._render(Date.parse("2026-10-21T04:40:00Z"));
-  assert.equal(find(card.shadowRoot, "section").filter(element => element.className !== "panel hijri-month-info").length, 0);
-  assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 1);
+  assert.equal(find(card.shadowRoot, "section").length, 0);
+  assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "month-description").length, 0);
   assert.equal(find(card.shadowRoot, "table").length, 1);
   assert.match(find(card.shadowRoot, "table")[0].textContent, /05:45\s*am/i);
   assert.equal(find(card.shadowRoot, "header")[0].textContent.includes("Hijri"), false);
@@ -241,13 +244,26 @@ test("dashboard controls hide panels and details without hiding published prayer
   assert.equal(find(card.shadowRoot, "tr")[1].attributes["aria-current"], "true");
 });
 
-test("Hijri month information defaults on and can be disabled per card", () => {
+test("Hijri month explanation is a single subtitle beneath the date, with visibility controls", () => {
   const card = new SalahTimetableCard();
-  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  const config = {entity: "sensor.mosque_prayer_timetable"};
+  card.setConfig(config);
   card.hass = hass();
-  assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 1);
-  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_hijri_month_info: false});
+  const subtitle = () => find(card.shadowRoot, "div").filter(element => element.className === "month-description");
+  const header = () => find(card.shadowRoot, "header")[0];
+  assert.equal(subtitle().length, 1);
+  assert.equal(header().children.at(-1), subtitle()[0]);
+  assert.match(subtitle()[0].textContent, /fifth month/i);
   assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 0);
+  card.setConfig({...config, show_hijri_month_info: false});
+  assert.equal(subtitle().length, 0);
+  card.setConfig({...config, show_hijri_date: false});
+  assert.equal(subtitle().length, 0, "Do not show an orphan month description when Hijri date is hidden");
+  card.setConfig({...config, detail_level: "compact"});
+  assert.equal(subtitle().length, 0, "Compact mode also hides the Hijri heading");
+  card.setConfig(config);
+  card.hass = hass({...attributes, show_hijri_date: false});
+  assert.equal(subtitle().length, 0, "Mosque-wide Hijri preference remains authoritative");
   assert.equal(find(card.shadowRoot, "table").length, 1);
 });
 
@@ -280,8 +296,8 @@ test("all main countdown visibility combinations keep the timetable and both dat
     const card = new SalahTimetableCard();
     card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level, show_salah_countdown: salah, show_jamaat_countdown: jamaat});
     card.hass = hass(); card._render(Date.parse("2026-10-21T04:40:00Z"));
-    assert.equal(find(card.shadowRoot, "section").filter(element => element.className !== "panel hijri-month-info").length, Number(salah) + Number(jamaat));
-    assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 1);
+    assert.equal(find(card.shadowRoot, "section").length, Number(salah) + Number(jamaat));
+    assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "month-description").length, 1);
     assert.equal(find(card.shadowRoot, "table").length, 1);
     assert.match(find(card.shadowRoot, "header")[0].textContent, /Hijri \(calculated\)/);
   }
@@ -664,7 +680,7 @@ test("compact timetable puts date controls after the table and preserves adjacen
   assert.equal(find(card.shadowRoot, "nav").find(element => element.className === "date-tabs").children[1].attributes["aria-pressed"], "true");
 });
 
-test("watermark icons are decorative, and Hijri information is closed until requested", () => {
+test("minaret and dome silhouettes are decorative, month subtitle does not duplicate the heading", () => {
   const card = new SalahTimetableCard();
   card.setConfig({entity: "sensor.mosque_prayer_timetable"});
   card.hass = hass();
@@ -672,13 +688,11 @@ test("watermark icons are decorative, and Hijri information is closed until requ
   assert.equal(icons.length, 2);
   assert.deepEqual(icons.map(icon => icon.attributes["aria-hidden"]), ["true", "true"]);
   assert.equal(find(card.shadowRoot, "svg").length, 2);
-  const details = find(card.shadowRoot, "details")[0];
-  assert.equal(details.open, false);
-  assert.match(details.children[0].textContent, /About this month/);
-  details.open = true;
-  details.dispatchEvent(new Event("toggle"));
-  card._render(Date.parse("2026-10-21T04:40:00Z"));
-  assert.equal(find(card.shadowRoot, "details")[0].open, true, "Expanded state survives a rerender");
+  const month = find(card.shadowRoot, "div").find(element => element.className === "month-description");
+  assert.ok(month);
+  assert.match(month.textContent, /fifth month/i);
+  assert.equal(find(card.shadowRoot, "details").length, 0);
+  assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 0);
 });
 
 test("mosque selection preserves missing sensors, automatically includes new primary and validates filters", () => {
