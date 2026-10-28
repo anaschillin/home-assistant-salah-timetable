@@ -235,8 +235,8 @@ later backlog item; custom-repository installation is the current route.
 ## Milestone 7 — ready-made automations and coverage monitoring (implemented; release acceptance pending)
 
 Implementation and real automation-engine acceptance are covered in
-`tests/test_blueprints.py`; pure/coordinator coverage cases are in
-`tests/test_coverage.py`. [User setup](automations.md) documents sensor selection,
+`tests/automations/test_blueprints.py`; pure/coordinator coverage cases are in
+`tests/core/test_coverage.py`. [User setup](automations.md) documents sensor selection,
 no catch-up, pending-review deduplication and unresolved future coverage. These
 local checks do not replace Milestone 6's release gate.
 

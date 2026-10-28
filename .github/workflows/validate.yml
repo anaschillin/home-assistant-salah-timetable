@@ -29,9 +29,9 @@ jobs:
       - run: uv sync --frozen --group dev
       - run: python scripts/check_asset_provenance.py
       - name: Run Ruff formatter on modified Python files
-        run: uv run --frozen ruff format scripts/check_coverage.py tests/test_pdf_worker_unit.py
+        run: uv run --frozen ruff format scripts/check_coverage.py tests/parsers/test_pdf_worker_unit.py
       - name: Verify Ruff formatting did not modify checked-in files
-        run: git diff --exit-code -- scripts/check_coverage.py tests/test_pdf_worker_unit.py
+        run: git diff --exit-code -- scripts/check_coverage.py tests/parsers/test_pdf_worker_unit.py
       - run: uv run --frozen ruff check .
       - run: uv run --frozen ruff format --check .
       - name: Run tests with branch coverage measurement

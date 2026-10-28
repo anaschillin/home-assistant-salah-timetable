@@ -12,7 +12,7 @@ The locked `pytest-homeassistant-custom-component` package supplies Home Assista
 test fixtures. These tests and the HACS validation action do not establish an
 authenticated HACS installation; that remains a separate live acceptance check.
 
-Use Node.js 24 for frontend checks. Run `npm test` and `npm run test:browser`; there
+The complete test-file inventory, ownership rules, fixtures and per-area commands are in [the testing guide](docs/testing.md). Keep new Python tests in the matching `tests/<area>/` folder, share reusable fixtures through `tests/conftest.py`, and do not use hard-coded file-relative paths that break when tests move.\n\nUse Node.js 24 for frontend checks. Run `npm test` and `npm run test:browser`; there
 are no npm dependencies and no install step. The browser harness requires Chromium
 or Chrome. Set `CHROME_BIN` to its executable if it is not found on a standard path.
 Set `REQUIRE_BROWSER_TESTS=1` to fail when no browser is available, as CI does; without

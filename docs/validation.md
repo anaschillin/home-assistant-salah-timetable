@@ -291,7 +291,7 @@ for main commit `f962fdbd1f9ecf6d27c30eda94c432d7552bfba3`
 completed successfully on **attempt 2**, with all six jobs green and **873 Python
 tests passed**. On **attempt 1**, the Python job reported **872 passed,
 1 failed, 1 error**, with the observed failure in
-`tests/test_calendar.py::test_calendar_trigger_offset_before_local_midnight_uses_next_date`:
+`tests/calendar/test_calendar.py::test_calendar_trigger_offset_before_local_midnight_uses_next_date`:
 the start-offset event fired, but the expected calendar presentation-end event
 was not observed at frozen time `2026-10-23T23:06:00Z` (actual event count 1,
 expected 2). The same source passed without changes on rerun. The cause and

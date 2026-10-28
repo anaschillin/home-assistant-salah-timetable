@@ -6,7 +6,7 @@ tests continue to run the worker with the current Python interpreter's `-I`
 mode, bounded stdin, child resource limits, a small environment and suppressed
 stderr. Those **real subprocess tests remain authoritative** for sandboxing.
 
-The additional `tests/test_pdf_worker_unit.py` exercises worker validation
+The additional `tests/parsers/test_pdf_worker_unit.py` exercises worker validation
 and output branches in the test process, substituting fake PDF pages,
 stream sizes, pypdf reader results and harmless resource-limit callbacks.
 It restores all pypdf guard settings afterwards. In-process test coverage
