@@ -173,9 +173,17 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
         const gregorian=root.querySelector(".gregorian"), month=root.querySelector(".month-description");
         if(!header||!hijri||!gregorian||!month) return false;
         const h=header.getBoundingClientRect(), d=month.getBoundingClientRect();
+        const canvas=root.querySelector("ha-card"), content=root.querySelector(".content");
+        const hostWidth=card.getBoundingClientRect().width;
         return getComputedStyle(header).display==="grid" &&
           d.top>=Math.max(hijri.getBoundingClientRect().bottom,gregorian.getBoundingClientRect().bottom)-1 &&
-          d.width>=h.width-1 && card.getBoundingClientRect().width<=1281 &&
+          d.width>=h.width-1 &&
+          getComputedStyle(canvas).maxWidth==="none" &&
+          Math.abs(canvas.getBoundingClientRect().width-hostWidth)<=2 &&
+          getComputedStyle(content).maxWidth==="1160px" &&
+          content.getBoundingClientRect().width<=1161 &&
+          Math.abs(content.getBoundingClientRect().left+content.getBoundingClientRect().right-
+            canvas.getBoundingClientRect().left-canvas.getBoundingClientRect().right)<=2 &&
           header.scrollWidth<=header.clientWidth+1;
       })()`), true, `Real HA header description shares date row or overflows at ${width}px`);
     }
