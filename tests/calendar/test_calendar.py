@@ -16,10 +16,10 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.salah_timetable.calendar import _next_event, calendar_events
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.csv_parser import CsvParser
-from custom_components.salah_timetable.model import DailyPrayers, PrayerField, Timetable
-from custom_components.salah_timetable.ramadan import RamadanSettings
-from custom_components.salah_timetable.storage import TimetableStorage
+from custom_components.salah_timetable.parsers.csv_parser import CsvParser
+from custom_components.salah_timetable.domain.model import DailyPrayers, PrayerField, Timetable
+from custom_components.salah_timetable.domain.ramadan import RamadanSettings
+from custom_components.salah_timetable.persistence.storage import TimetableStorage
 
 UTC = ZoneInfo("UTC")
 LONDON = ZoneInfo("Europe/London")

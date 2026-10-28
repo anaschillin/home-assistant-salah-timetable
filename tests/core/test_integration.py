@@ -7,7 +7,7 @@ from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.model import PrayerField
+from custom_components.salah_timetable.domain.model import PrayerField
 
 
 async def test_empty_setup_and_unload(hass, entry):
@@ -53,7 +53,7 @@ async def test_timestamps_reload_rollover_and_stable_ids(hass, populated, freeze
 
 async def test_invalid_store_setup_error(hass, entry):
     with patch(
-        "custom_components.salah_timetable.storage._TimetableStore.async_load",
+        "custom_components.salah_timetable.persistence.storage._TimetableStore.async_load",
         AsyncMock(return_value={"timetables": [{}]}),
     ):
         assert not await hass.config_entries.async_setup(entry.entry_id)
@@ -134,49 +134,3 @@ async def test_unchanged_data_does_not_write_states(hass, populated, freezer):
     await populated.runtime_data.async_refresh()
     await hass.async_block_till_done()
     assert hass.states.get(entity_id) is previous
-
-
-def test_legacy_module_paths_reference_grouped_implementations():
-    """Previously documented imports must preserve their module identity for mocks."""
-    import importlib
-
-    groups = {
-        "domain": (
-            "model",
-            "ramadan",
-            "ramadan_validation",
-            "coverage",
-            "events",
-            "presentation",
-        ),
-        "parsers": (
-            "import_model",
-            "csv_parser",
-            "pdf_parser",
-            "mosque_a_layout",
-            "mosque_a_monthly_layout",
-            "mosque_b_annual_layout",
-            "mosque_b_ramadan_layout",
-        ),
-        "imports": (
-            "import_flow",
-            "import_comparison",
-        ),
-        "sources": (
-            "download",
-            "source_model",
-            "source_flow",
-            "source_updates",
-        ),
-        "persistence": ("storage",),
-        "runtime": ("coordinator",),
-    }
-    for group, names in groups.items():
-        for name in names:
-            legacy = importlib.import_module(
-                f"custom_components.salah_timetable.{name}"
-            )
-            current = importlib.import_module(
-                f"custom_components.salah_timetable.{group}.{name}"
-            )
-            assert legacy is current, (group, name)

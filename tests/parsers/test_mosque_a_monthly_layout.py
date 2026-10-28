@@ -7,14 +7,14 @@ from pathlib import Path
 
 import pytest
 
-from custom_components.salah_timetable.csv_parser import CsvParser
-from custom_components.salah_timetable.import_model import ImportValidationError
-from custom_components.salah_timetable.model import PrayerField
-from custom_components.salah_timetable.mosque_a_monthly_layout import (
+from custom_components.salah_timetable.parsers.csv_parser import CsvParser
+from custom_components.salah_timetable.parsers.import_model import ImportValidationError
+from custom_components.salah_timetable.domain.model import PrayerField
+from custom_components.salah_timetable.parsers.mosque_a_monthly_layout import (
     MOSQUE_A_MONTHLY_COLUMNS,
     MosqueAMonthlyLayout,
 )
-from custom_components.salah_timetable.pdf_parser import extract_pdf_pages
+from custom_components.salah_timetable.parsers.pdf_parser import extract_pdf_pages
 
 FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/mosque_a_monthly_2022.pdf"
 

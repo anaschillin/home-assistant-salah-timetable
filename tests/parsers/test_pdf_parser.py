@@ -16,12 +16,12 @@ import pytest
 from pypdf import PdfReader, PdfWriter
 from pypdf.generic import DecodedStreamObject, NameObject
 
-from custom_components.salah_timetable.import_model import (
+from custom_components.salah_timetable.parsers.import_model import (
     ImportCandidate,
     ImportValidationError,
 )
-from custom_components.salah_timetable.model import PrayerField
-from custom_components.salah_timetable.pdf_parser import (
+from custom_components.salah_timetable.domain.model import PrayerField
+from custom_components.salah_timetable.parsers.pdf_parser import (
     MAX_PDF_BYTES,
     MAX_PDF_PAGES,
     MAX_TEXT_BYTES,
@@ -189,7 +189,7 @@ def test_compressed_stream_limit_is_enforced_in_actual_worker():
 
 def test_extraction_timeout_kills_worker_and_is_safe():
     with patch(
-        "custom_components.salah_timetable.pdf_parser.subprocess.run",
+        "custom_components.salah_timetable.parsers.pdf_parser.subprocess.run",
         side_effect=subprocess.TimeoutExpired("secret-url", PDF_TIMEOUT_SECONDS),
     ) as run:
         with pytest.raises(ImportValidationError, match="time limit") as err:
@@ -204,7 +204,7 @@ def test_extraction_timeout_kills_worker_and_is_safe():
 def test_worker_launch_failure_is_safe():
     with (
         patch(
-            "custom_components.salah_timetable.pdf_parser.subprocess.run",
+            "custom_components.salah_timetable.parsers.pdf_parser.subprocess.run",
             side_effect=OSError("private-path"),
         ),
         pytest.raises(ImportValidationError, match="could not start") as err,
@@ -239,7 +239,7 @@ def test_worker_launch_failure_is_safe():
 def test_worker_result_validation(payload):
     with (
         patch(
-            "custom_components.salah_timetable.pdf_parser.subprocess.run",
+            "custom_components.salah_timetable.parsers.pdf_parser.subprocess.run",
             return_value=SimpleNamespace(returncode=0, stdout=payload),
         ),
         pytest.raises(ImportValidationError),
@@ -250,7 +250,7 @@ def test_worker_result_validation(payload):
 def test_worker_output_bound():
     with (
         patch(
-            "custom_components.salah_timetable.pdf_parser.subprocess.run",
+            "custom_components.salah_timetable.parsers.pdf_parser.subprocess.run",
             return_value=SimpleNamespace(
                 returncode=0, stdout=b"x" * (MAX_WORKER_OUTPUT_BYTES + 1)
             ),
