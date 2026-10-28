@@ -187,6 +187,34 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
           header.scrollWidth<=header.clientWidth+1;
       })()`), true, `Real HA header description shares date row or overflows at ${width}px`);
     }
+    // Real Home Assistant cards can change width slightly as the dashboard's
+    // vertical scrollbar appears/disappears between Today and adjacent days.
+    // Assert that neither pseudo-image layer scales in that situation.
+    assert.equal(await evaluate(`(()=>{
+      const card=window.salahAutoCard;
+      card.setConfig({...card._config,show_mosque_background:true,show_salah_countdown:true,show_jamaat_countdown:true});
+      card._selectedDay=0;
+      card._render();
+      const originalCanvas=card.shadowRoot.querySelector("ha-card");
+      const baseImage=getComputedStyle(originalCanvas,"::before");
+      const before={height:parseFloat(baseImage.height),width:parseFloat(baseImage.width)};
+      const hostWidth=card.getBoundingClientRect().width;
+      if(!Number.isFinite(before.width)||!Number.isFinite(before.height)||!hostWidth)return false;
+      card.shadowRoot.querySelectorAll(".date-tab")[0].click();
+      const yesterday=card.shadowRoot.querySelector("ha-card");
+      const photoFrame=yesterday.style.getPropertyValue("--mosque-photo-frame-width");
+      card.style.width=(hostWidth-12)+"px";
+      card.shadowRoot.querySelectorAll(".date-tab")[2].click();
+      const tomorrow=card.shadowRoot.querySelector("ha-card");
+      const resizedImage=getComputedStyle(tomorrow,"::before");
+      const retained=Boolean(photoFrame) &&
+        tomorrow.style.getPropertyValue("--mosque-photo-frame-width")===photoFrame &&
+        Math.abs(parseFloat(resizedImage.height)-before.height)<2 &&
+        Math.abs(parseFloat(resizedImage.width)-before.width)<2;
+      card.style.width="";
+      card.shadowRoot.querySelectorAll(".date-tab")[1].click();
+      return retained && card._selectedDay===0;
+    })()`),true,"Real HA day navigation changed mosque photo crop after a scrollbar-sized width change");
     console.log("Real card picker, all graphical options, language/bilingual reload, Arabic/English HA locale, keyboard focus, themes and 200% text passed");
     return {viewports: [320, 360, 400, 900], languages: ["en", "ar"], bilingual_modes: [false, true], automatic_locale: ["en", "ar", "en"], configuration_reload: true, picker: true, editor: true, keyboard: true, themes: ["light", "dark"], root_text_scale: "200%"};
   } finally {
