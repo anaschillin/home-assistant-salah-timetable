@@ -1,8 +1,13 @@
-# CSS refactor acceptance (PR #82)
+# Archived CSS refactor acceptance — PR #82 (historical)
 
-This checklist is for the **unmerged branch** `refactor/card-css-module-20261027`.
-The feature is still integration version `0.9.3`; GitHub Actions passing does
-not establish a successful installation on the maintainer's Home Assistant.
+**Archived acceptance notes, not current installation guidance.** PR #82 was
+merged during the October 2026 CSS refactor and has since been superseded by
+the **0.9.18 card redesign** in
+[PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88).
+The following branch-only instructions, 0.9.3 resource URLs and screenshots
+are preserved as evidence of the earlier test, **not actions to perform on the
+current `main` branch**. Use [dashboard.md](dashboard.md) for the current
+layout, installation, fallback resource version and configuration.
 
 ## Maintainer-reported Home Assistant check — 28 October 2026
 
@@ -30,9 +35,14 @@ theme. The panels appeared side by side in the screenshots; that alone is
 not evidence of a layout regression without the browser's actual CSS
 viewport width. RTL-specific interaction, light/dark cross-check, keyboard
 focus, portrait tablet and other manual matrix items below have not been
-individually confirmed. **Do not merge PR #82 until the maintainer explicitly approves.**
+individually confirmed. The approval condition below applied only before PR #82 was merged.
 
-## Manual Home Assistant validation before merge
+## Historical manual validation steps (PR #82 only)
+
+The branch referenced in this section was reviewed and merged; do not downgrade
+a current dashboard to its 0.9.3 resources to repeat these historical steps.
+
+
 
 1. Back up the current `/config/custom_components/salah_timetable/` directory
    or test on a disposable Home Assistant installation.
@@ -41,7 +51,8 @@ individually confirmed. **Do not merge PR #82 until the maintainer explicitly ap
    the branch copy. In particular, confirm these three files are together:
    `frontend/salah-timetable-card.js`, `frontend/card-styles.js`, and the
    existing `frontend/card-utils.js` and `frontend/card-i18n.js` dependencies.
-   A normal HACS download of `main` **will not** install the unmerged PR.
+   At that time a normal HACS download of `main` **did not** install the
+unmerged branch; the changes have since been incorporated in `main`.
 3. Restart Home Assistant so the integration's static routes are registered.
    Confirm `/salah_timetable/card-styles.js?v=0.9.3` returns JavaScript
    (HTTP 200) in browser developer tools; no HTTP 404 or module-import errors.
@@ -78,7 +89,8 @@ individually confirmed. **Do not merge PR #82 until the maintainer explicitly ap
 - The test suite validates import availability, computed styles and layout,
   but does **not** yet compare rendered screenshot pixels to a golden baseline.
 
-**Release status:** reported mobile rendering and asset URL checks passed;
-broader manual acceptance and explicit maintainer merge approval are pending. After merge, increment
-the integration version through the central version-sync workflow for HACS
-cache invalidation.
+**Historical outcome:** the CSS refactor is merged and has been superseded by
+the 0.9.18 liquid-glass design. The earlier PR #82 checks were not release
+certification; current validation and release requirements remain documented
+in [dashboard](dashboard.md), [validation](validation.md) and
+[releasing](releasing.md).

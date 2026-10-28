@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.9.18 — merged into main (28 October 2026)
+
+- Redesign the dashboard as one compact mosque/Next Salah/contextual Jamaat
+  summary and a matching prayer timetable. Put Yesterday/Today/Tomorrow in the
+  timetable footer; header Gregorian/Hijri dates and month explanation follow
+  the selected day. Hide live countdowns on adjacent days without fabricating
+  published times.
+- Support per-card mosque filtering and a single native header selector when
+  multiple mosques are enabled; retain independent cards and dashboards.
+- Add accessible, consistent CSS-first liquid glass to both surfaces, with
+  decorative minaret/dome silhouettes, responsive mobile/tablet layouts,
+  high-contrast/reduced-transparency fallbacks and preserved text selection.
+- Fill the background-enabled card's allocated width and available viewport
+  height with locally bundled mosque photographs; prevent date-tab/scrollbar
+  changes from abruptly cropping the photograph. A full-height background may
+  increase vertical space used in stacked dashboards.
+- Remove the global background-photo opacity overlay and graphical editor
+  control; silently discard legacy `mosque_background_opacity` on card
+  configuration normalisation. Keep image selection/credits and the ability to
+  disable photography.
+- Refresh frontend resource/cache version, current dashboard documentation
+  and responsive/browser/live Home Assistant tests.
+- Squash-merged [PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88)
+  into `main` at [`80b8017`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/80b80173bc45257cc46fd31e81dcbaff87ab97ed).
+  [Validate](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
+  and [CodeQL](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733)
+  passed on the merged PR head. These checks do not constitute a tagged
+  release or full manual HACS acceptance.
+
 ## 0.9.6 — unreleased
 
 - Keep tinted mosque background photographs inside the rounded Home Assistant
@@ -182,7 +211,8 @@
   Beginning/Jamaat columns with individually labelled Jumu’ah congregations.
 - Show independent Next Salah Begins and Next Jamaat countdowns by default,
   with larger numbers, published-event progress and card-width responsive layout.
-  Explicit context/previous modes remain supported.
+  At that historical version, explicit context/previous modes remained supported;
+the card-facing mode selector was subsequently removed in 0.9.18 (see above).
 - Add Gregorian and calculated Umm al-Qura Hijri dates with a per-card −3 to +3
   display adjustment, independent of Ramadan activation and source timetables.
 - Add graphical compact/expanded layout, 12/24-hour time format, individual

@@ -1,13 +1,17 @@
-# Islamic History display defaults — implementation specification
+# Islamic history display defaults — shipped behavior and future specification
 
-**Status (27 October 2026): partially implemented in 0.9.3.** The bundled card now
-shows an optional offline description for each of the 12 Hijri months, with
-`show_hijri_month_info` enabled by default. The historical day-event and
-month-highlight catalogue remains research-only; it is **not** rendered by
-the running card. The other four history toggles are marked **coming soon**
-in the editor and persist their selections but do not enable an event feed.
-The independently tested `history-utils.js` selector is a prototype, not an
-imported dependency of the live card.
+**Current status (0.9.18, 28 October 2026):** The card shows an optional,
+short, offline description of the **selected day's Hijri month** directly
+beneath the calculated Hijri date in the mosque header. It does not repeat
+the month name or create a separate history panel. The explanation updates
+when switching Yesterday/Today/Tomorrow, and disappears in Compact mode
+or if the full Hijri date is hidden or `show_hijri_month_info` is disabled. This feature defaults
+to enabled on new and existing cards.
+
+The four additional history options are **disabled as coming soon** in the
+graphical editor. Their previously saved values have no effect; no day-event
+or monthly-highlights catalogue is rendered. `history-utils.js` is an offline
+research/test prototype, not a runtime dependency of the bundled card.
 
 ## Default behaviour
 - Show **information about the current Hijri month** by default for new installations, using short original educational descriptions for all 12 months.
@@ -15,8 +19,11 @@ imported dependency of the live card.
 - Month-level historical highlights: **off** by default.
 - Disputed/traditional anniversaries: **off** by default and always visibly qualified if enabled.
 - Show source references in the card: **off** by default, but store provenance with every record.
-- Show month information **above** optional historical events; events never replace the month explanation.
-- Respect an explicit user choice to hide month information; if every content type is disabled, hide the history section entirely.
+- **Implemented:** show month explanation as subordinate text in the header,
+  only when the Hijri date is visible; no separate history section or disclosure.
+- **Proposed only:** if day/month events are implemented later, show them
+  without duplicating the header's month explanation. Preserve explicit
+  choices to hide optional history content.
 
 ## Card-level configuration (month info live; other flags reserved)
 ```json
@@ -29,7 +36,9 @@ imported dependency of the live card.
 }
 ```
 
-Use per-card options to allow different layouts on tablet and mobile. Keep integration-level defaults for newly created cards; do not override explicitly saved settings. Existing installations should not unexpectedly gain a large panel: include an unobtrusive default month summary, with a migration/visual-regression check before release.
+The same saved per-card settings work on tablet and mobile. The month
+description is deliberately a small header subtitle, not a large new panel.
+The proposed event flags are reserved for future editorial and frontend work.
 
 ## Date and editorial rules
 - Use the same mosque-local Hijri date and per-card adjustment as the existing timetable header.
@@ -40,16 +49,21 @@ Use per-card options to allow different layouts on tablet and mobile. Keep integ
 - Month information should avoid asserting special religious merit for months without supporting evidence.
 - Month summaries are informational, not a religious observance schedule or prayer automation.
 
-## Acceptance criteria (complete for the delivered month display; remainder proposed)
-1. **Implemented:** New cards default to a compact Hijri month explanation.
-2. **Implemented as settings only:** Historical events, monthly highlights, disputed dates, and visible citations start disabled; no historical events are rendered yet.
-3. Turning on events adds them below month information; turning off month information removes only that section.
-4. Five toggle values are defined and persist in card configuration; end-to-end
-   historical-event display remains unimplemented.
-5. Mobile/tablet layout remains readable, with no effect on Salah/Jamaat sensors or countdowns.
-6. No exact-day claim appears without date-level evidence and editorial sign-off.
-7. All 12 month summaries have source attribution and original English wording.
-8. 29/30-day Hijri boundaries, calendar adjustment, empty dates and multiple events are tested.
+## Acceptance criteria and current status
+1. **Implemented:** Month explanation defaults on, appears only beneath a
+   visible Hijri date in Standard/Detailed mode, and follows day navigation
+   and the per-card adjustment.
+2. **Implemented:** Disabling month information removes the subtitle without
+   changing the date, timetable or countdowns.
+3. **Implemented:** The four historical-event/source/dispute options are shown
+   disabled in the graphical editor; saved legacy values remain inert.
+4. **Not implemented:** Turning on events to show a catalogue, date-level
+   citations, or monthly historical highlights. These require editorial approval
+   and separate frontend acceptance.
+5. **Future requirement:** No exact-day event claim without date-level evidence;
+   no implied religious merit where there is no sound source.
+6. **Implemented for month text:** All 12 educational descriptions are bundled
+   offline. Historical day-event selectors remain research-only.
 
 ## Delivery sequence
 1. Curate and audit 12 original month explanations with citations.

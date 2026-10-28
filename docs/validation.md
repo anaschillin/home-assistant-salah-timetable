@@ -5,7 +5,31 @@ acceptance checklist. See [remaining work](remaining-work.md) for engineering
 priorities and [release readiness](releasing.md#current-release-readiness) for
 blocking manual sign-offs.
 
-## PR #82 CSS module verification — 27 October 2026 (unmerged)
+## 0.9.18 dashboard redesign — 28 October 2026 (merged)
+
+The maintainer reviewed the revised liquid-glass timetable and photo
+background in Home Assistant and explicitly approved merging
+[PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88).
+The PR was **squash-merged** into `main` at
+[`80b8017`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/80b80173bc45257cc46fd31e81dcbaff87ab97ed).
+At its final head (`e8ab5dba`),
+[Validate 40744012961](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
+and [CodeQL 40744012733](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733)
+passed. Validation included the frontend Chromium screenshot/layout checks,
+Python tests, HACS, Hassfest, pinned Home Assistant compatibility and
+disposable live Home Assistant acceptance.
+
+The shipped 0.9.18 card combines mosque name, Gregorian/Hijri dates,
+the inline Hijri-month description and both contextual countdowns in one
+glass summary, with a separate equally styled timetable and footer
+Yesterday/Today/Tomorrow navigation. It supports multi-mosque header
+selection, responsive layouts, a full-viewport local photo, stable photo
+framing across day changes, no photo-opacity control and accessibility
+fallbacks. The maintainer's visual sign-off does **not** establish every
+physical mobile/tablet, RTL, HACS uninstall or full HAOS/Supervisor
+restore case; release gates are tracked in [releasing](releasing.md).
+
+## PR #82 CSS module verification — 27 October 2026 (historical pre-merge)
 
 The [CSS module PR #82](https://github.com/anaschillin/home-assistant-salah-timetable/pull/82)
 passed [Validate 40594333792](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40594333792)
@@ -15,8 +39,9 @@ The root and pinned HA 2026.10.0/2026.10.3 Python suites each passed
 mobile/tablet/English/Arabic/bilingual combinations, and Home Assistant
 Container live acceptance passed. The new module is included in runtime
 asset and release-package tests. No screenshot golden comparison was made.
-This is provisional CI evidence: the PR remains **unmerged pending real
-Home Assistant manual acceptance**, documented in [CSS acceptance](css-acceptance.md).
+This was provisional CI evidence **at the time**; PR #82 was
+subsequently merged and superseded by the 0.9.18 redesign. The original
+branch-only steps are archived in [CSS acceptance](css-acceptance.md).
 
 ## 0.9.3 main-branch CI evidence — 27 October 2026
 

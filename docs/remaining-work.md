@@ -1,47 +1,45 @@
 # Remaining development work
 
-This is the **feature and engineering backlog**, not a second release checklist.
-The current integration candidate is **0.9.3**. For release blockers,
-sign-offs and version-specific manual acceptance, use the
-[release readiness checklist](releasing.md#current-release-readiness).
-For completed milestones and future scope, see the
-[implementation plan](milestones.md); dated test evidence is preserved in
-[validation](validation.md).
+This is the **feature and engineering backlog**, not a release checklist.
+The current merged card/integration version on `main` is **0.9.18** (squash
+merge of [PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88),
+commit [`80b8017`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/80b80173bc45257cc46fd31e81dcbaff87ab97ed)).
+For release-blocking and version-specific acceptance, use
+[releasing.md](releasing.md#current-release-readiness).
 
-## Unmerged CSS work — manual acceptance pending
+## Completed card/CSS redesign
 
-[PR #82](https://github.com/anaschillin/home-assistant-salah-timetable/pull/82)
-extracts and consolidates the card stylesheet into a versioned JavaScript module.
-[CI 40594333792](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40594333792)
-passed 7/7 jobs with 957 Python tests in each version lane and 95.37% line
-coverage; CodeQL passed too. This is **branch evidence, not a merged release**.
-The maintainer will test it in real Home Assistant before merging. Follow
-[the unmerged branch acceptance guide](css-acceptance.md); do not treat the
-existing HACS installation of `main` as evidence for PR #82.
+- **PR #82 CSS module refactor:** merged. Its former
+  [branch-only acceptance checklist](css-acceptance.md) is now archived.
+- **PR #88 compact responsive redesign:** merged and visually accepted by the
+  maintainer. It contains a single mosque/countdown summary, a matching
+  liquid-glass timetable, a single multi-mosque header selector, and the
+  Yesterday/Today/Tomorrow footer. Both dates follow the selected day.
+- The full-strength bundled mosque photo can fill the dashboard viewport,
+  while its crop stays stable across day changes. The obsolete opacity
+  selector and background tint are removed. See [the card guide](dashboard.md)
+  and [mosque backgrounds](mosque-backgrounds.md).
+- The visual-regression workflow still compares 16 responsive image fixtures
+  against the PR base with a 0.5% threshold; deliberate redesigns require
+  explicit approval, recorded in [visual-regression.md](visual-regression.md).
 
-Stronger pixel/visual regression testing, the remaining staged CSS/editor style
-cleanup and optional PDF-worker/branch-coverage improvements are tracked as
-follow-up changes; avoid adding them to PR #82 during manual review.
+[Validate 40744012961](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
+and [CodeQL 40744012733](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733)
+passed on PR #88 before merge. The maintainer subsequently accepted the
+result. This does **not** by itself certify a tagged HACS release, full
+HAOS restore or every device and Arabic/RTL scenario; those gates are in
+[releasing.md](releasing.md).
 
-## Current engineering status
+## Historical engineering baseline (27 October 2026)
 
-On 27 October 2026, [main commit `78c1a9f`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/78c1a9f018f9676a56b1657865bcdef40a5f8175)
+[Main commit `78c1a9f`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/78c1a9f018f9676a56b1657865bcdef40a5f8175)
 passed [Validate 40578293746](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40578293746)
-(**7/7 jobs**) and [CodeQL 40578293664](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40578293664).
-The root and both pinned Home Assistant 2026.10.0 / 2026.10.3 unit suites
-each passed **904 Python tests**, with **95% rounded line coverage** (3,142
-statements, 163 missed). Frontend/Chromium, hassfest, HACS and the single
-supported-current live Container acceptance job also passed.
-
-The seven-job workflow replaces the former 12-job matrix. Both compatibility
-lanes now execute the full suite without sharding; the original October 26
-single-process hang remains an historical incident, not an active five-shard
-configuration. See [compatibility](compatibility.md) and the dated
-[validation log](validation.md) for evidence and limitations.
-
-Green CI does **not** establish a published release, full HAOS restore,
-redistribution rights, or complete manual HACS/physical-device acceptance.
-Those decisions remain in [releasing.md](releasing.md).
+and [CodeQL 40578293664](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40578293664)
+with 904 Python tests, 95% rounded coverage and the pinned compatibility,
+frontend, HACS, Hassfest and live Container checks of that date.
+Those numbers are **historical**, not the current test totals.
+Full HAOS/Supervisor restore and release-level UI/HACS acceptance remain
+separate tracked work.
 
 ## 27 October code-review follow-up (completed)
 
