@@ -73,10 +73,13 @@ event's actual date appear together. **Next Jamaat** counts down while the
 current prayer's congregation is still approaching; at its exact instant the
 same panel becomes **Previous Jamaat** and shows elapsed time.
 The mosque title, Hijri date/description, Gregorian date and both countdown
-sections now live inside **one frosted-glass summary card**, with a subtle
-separator between the two clocks rather than independent bordered tiles.
-Each countdown still has its own published beginning/Jamaat values, label and
-live timer. A faint **minaret silhouette** decorates Next Salah and a faint
+sections now live inside **one consistently frosted-glass summary card**,
+with stronger background opacity and blur to keep prayer information legible over
+the mosque photograph. Both halves have **identical transparent surfaces,
+padding, label typography, countdown sizing and time-grid formatting**; only
+a fine separator distinguishes them, rather than different background tints
+or independent borders. Each countdown still has its own published
+beginning/Jamaat values, label and live timer. A faint **minaret silhouette** decorates Next Salah and a faint
 **dome silhouette** decorates the contextual Next/Previous Jamaat countdown.
 Both are inline local SVG with `aria-hidden`, carry no data and do not
 represent the selected mosque. The two summaries sit side by side on most
