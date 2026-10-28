@@ -258,9 +258,9 @@ export class SalahTimetableCard extends HTMLElement {
     header.append(title);
     if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
     if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(data.date || state.state, ui), "date gregorian"));
-    if (this._config.show_hijri_month_info) {
-      // The Hijri date already names the month: show only its description.
-      // Keep this tied to the header date even when browsing adjacent timetables.
+    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false && this._config.show_hijri_month_info) {
+      // Show context only beneath a visible Hijri date; never repeat its month.
+      // The header remains based on the mosque's current day during date navigation.
       const month = hijriMonthInfo(data.date || state.state, this._config.hijri_adjustment);
       if (month) header.append(node("div", month.summary_en, "month-description"));
     }
