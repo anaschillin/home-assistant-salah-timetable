@@ -221,12 +221,17 @@ export class SalahTimetableCard extends HTMLElement {
     const background = this._config.show_mosque_background && chooseMosqueBackground(MOSQUE_BACKGROUNDS, this._config.mosque_background, (state?.attributes?.date || new Date(now).toISOString().slice(0, 10)));
     if (background) {
       card.classList.add("has-mosque-background");
-      // Use the same image canvas across date tabs. Ignore a cached frame if
-      // the user has switched mosques or resized the dashboard column.
+      // Home Assistant may add/remove a vertical scrollbar when the countdown
+      // panels disappear, changing the card width by roughly 10-20px. Treat
+      // that as the same canvas, not a tablet/desktop resize, and lock BOTH
+      // dimensions of the painted photograph across adjacent-day tabs.
       const frame = this._backgroundFrame;
       const previousWidth = this.shadowRoot?.querySelector?.("ha-card")?.getBoundingClientRect?.().width;
-      if (frame && frame.entity === this._activeEntity() && previousWidth > 0 && Math.abs(previousWidth - frame.width) < 2) {
+      const sameCanvas = frame && frame.entity === this._activeEntity() &&
+        previousWidth > 0 && Math.abs(previousWidth - frame.width) <= 24;
+      if (sameCanvas) {
         card.style.setProperty("--mosque-photo-frame-height", `${Math.max(0, frame.height - 4)}px`);
+        card.style.setProperty("--mosque-photo-frame-width", `${Math.max(0, frame.width - 2)}px`);
       }
       card.style.setProperty("--mosque-background-image", `url("${background.path}")`);
       card.style.setProperty("--mosque-overlay", `color-mix(in srgb, var(--ha-card-background,var(--card-background-color)) ${100 - this._config.mosque_background_opacity}%, transparent)`);
