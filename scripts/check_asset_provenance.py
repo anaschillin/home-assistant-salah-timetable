@@ -88,7 +88,9 @@ def _listed_assets(root: Path) -> set[str]:
             raise ValueError(f"Missing or unsafe asset directory: {directory}")
         for file in target.rglob("*"):
             if file.is_symlink():
-                raise ValueError(f"Symlink in asset directory: {file.relative_to(root)}")
+                raise ValueError(
+                    f"Symlink in asset directory: {file.relative_to(root)}"
+                )
             if file.is_file() and file.suffix.lower() in ASSET_TYPES:
                 actual.add(file.relative_to(root).as_posix())
     return actual
