@@ -102,7 +102,23 @@ try {
   check("narrow table first-column rule parses correctly", [...(narrowRules || [])].some(rule => rule.selectorText === "th:first-child" && rule.style.width === "auto"));
   const panelStyle = getComputedStyle(card.shadowRoot.querySelector(".panel"));
   const gridStyle = getComputedStyle(card.shadowRoot.querySelector(".panels"));
-  check("theme panel layout and border radius survive CSS refactoring", panelStyle.display === "flex" && panelStyle.borderRadius === "16px" && gridStyle.display === "grid");
+  const sharedSummary = card.shadowRoot.querySelector(".summary-shell");
+  const summaryStyle = getComputedStyle(sharedSummary);
+  check("single glass surface holds mosque identity and both countdowns",
+    sharedSummary.querySelector(":scope > header") !== null &&
+    sharedSummary.querySelector(":scope > .panels") !== null &&
+    sharedSummary.querySelectorAll(".prayer-panel").length === 2 &&
+    summaryStyle.borderRadius === "16px" &&
+    summaryStyle.backdropFilter === "blur(12px)" &&
+    panelStyle.display === "flex" && panelStyle.borderWidth === "0px" &&
+    panelStyle.borderRadius === "0px" && gridStyle.display === "grid");
+  const summaryRect = sharedSummary.getBoundingClientRect();
+  check("both countdowns remain contained within the shared card",
+    [...sharedSummary.querySelectorAll(".prayer-panel")].every(panel => {
+      const rect = panel.getBoundingClientRect();
+      return rect.left >= summaryRect.left - 1 && rect.right <= summaryRect.right + 1 &&
+        rect.top >= summaryRect.top - 1 && rect.bottom <= summaryRect.bottom + 1;
+    }));
   check("container layout uses one column on mobile and two on tablet", gridStyle.gridTemplateColumns.split(" ").length === (width <= 336 ? 1 : 2));
   check("card language and direction match configuration", card.getAttribute("lang") === language && card.getAttribute("dir") === ui.dir);
   check("summary icon silhouettes are hidden from accessibility", card.shadowRoot.querySelectorAll(".panel-silhouette[aria-hidden=\"true\"] svg").length === 2);
