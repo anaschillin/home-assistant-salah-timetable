@@ -59,9 +59,9 @@ test("full-canvas mosque background and centered glass content retain accessible
 
 
 test("mosque and both clocks share one frosted card without nested borders", () => {
-  assert.match(CARD_CSS, /\\.summary-shell\\s*\\{[^}]*border-radius:\\s*16px/);
-  assert.match(CARD_CSS, /\\.summary-shell\\s*\\{[^}]*backdrop-filter:\\s*blur\\(12px\\)/);
-  assert.match(CARD_CSS, /\\.summary-shell \\.panel\\.prayer-panel\\s*\\{[^}]*border:\\s*0/);
-  assert.match(CARD_CSS, /\\.summary-shell \\.prayer-panel \\+ \\.prayer-panel\\s*\\{[^}]*border-inline-start/);
-  assert.match(CARD_CSS, /@container\\(max-width:21rem\\)\\s*\\{\\s*\\.summary-shell \\.prayer-panel \\+ \\.prayer-panel/);
+  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*border-radius:\s*16px/);
+  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*backdrop-filter:\s*blur\(12px\)/);
+  assert.match(CARD_CSS, /\.summary-shell \.panel\.prayer-panel\s*\{[^}]*border:\s*0/);
+  assert.match(CARD_CSS, /\.summary-shell \.prayer-panel \+ \.prayer-panel\s*\{[^}]*border-inline-start/);
+  assert.match(CARD_CSS, /@container\(max-width:21rem\)\s*\{\s*\.summary-shell \.prayer-panel \+ \.prayer-panel/);
 });
