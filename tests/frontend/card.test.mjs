@@ -725,10 +725,22 @@ test("mosque photo retains Today's canvas across tabs and invalidates on width c
   assert.deepEqual(card._backgroundFrame, {entity: "sensor.mosque_prayer_timetable", width: 900, height: 720});
   const tomorrow = find(card.shadowRoot, "ha-card")[0];
   assert.equal(tomorrow.style.values["--mosque-photo-frame-height"], "716px");
-  tomorrow.getBoundingClientRect = () => ({width: 800, height: 550});
+  assert.equal(tomorrow.style.values["--mosque-photo-frame-width"], "898px");
+  // A small dashboard width change (e.g. disappearing scrollbar) is not a
+  // meaningful device resize and must not re-crop the image.
+  tomorrow.getBoundingClientRect = () => ({width: 886, height: 550});
   tabs().children[0].dispatchEvent(new Event("click"));
-  assert.equal(find(card.shadowRoot, "ha-card")[0].style.values["--mosque-photo-frame-height"], undefined,
-    "A resized card must not reuse an obsolete photo height");
+  const yesterday = find(card.shadowRoot, "ha-card")[0];
+  assert.equal(yesterday.style.values["--mosque-photo-frame-height"], "716px");
+  assert.equal(yesterday.style.values["--mosque-photo-frame-width"], "898px");
+  // Conversely a substantial change should invalidate both photo dimensions.
+  yesterday.getBoundingClientRect = () => ({width: 800, height: 550});
+  tabs().children[1].dispatchEvent(new Event("click"));
+  const resized = find(card.shadowRoot, "ha-card")[0];
+  assert.equal(resized.style.values["--mosque-photo-frame-height"], undefined,
+    "A genuinely resized card must not reuse an obsolete photo height");
+  assert.equal(resized.style.values["--mosque-photo-frame-width"], undefined,
+    "A genuinely resized card must not reuse an obsolete photo width");
 });
 
 test("compact timetable puts date controls after the table and preserves adjacent-date access", () => {
