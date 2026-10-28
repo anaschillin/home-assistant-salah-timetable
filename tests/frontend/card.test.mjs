@@ -15,7 +15,7 @@ class Element {
 const registry = new Map(); const timers = new Map(); let timerId = 0;
 globalThis.HTMLElement = Element;
 globalThis.customElements = {get: name => registry.get(name), define: (name, type) => registry.set(name, type)};
-globalThis.document = {createElement: name => registry.has(name) ? new (registry.get(name))() : new Element(name)};
+globalThis.document = {createElement: name => registry.has(name) ? new (registry.get(name))() : new Element(name), createElementNS: (_ns, name) => new Element(name)};
 globalThis.window = {setInterval: callback => { timers.set(++timerId, callback); return timerId; }, clearInterval: id => timers.delete(id), customCards: []};
 const {SalahTimetableCard, SalahTimetableCardEditor} = await import("../../custom_components/salah_timetable/frontend/salah-timetable-card.js");
 const {tr} = await import("../../custom_components/salah_timetable/frontend/card-i18n.js");
@@ -622,21 +622,64 @@ test("card filter allows separate fixed mosque cards and a selectable multi-mosq
   assert.deepEqual(changes.at(-1).mosque_entities, [a]);
   assert.equal(choices()[0].disabled, true, "The last enabled mosque cannot be unchecked");
   const fixed = new SalahTimetableCard(); fixed.setConfig(changes.at(-1)); fixed.hass = multi;
-  assert.equal(find(fixed.shadowRoot, "nav").some(nav => nav.className === "mosque-tabs"), false);
+  assert.equal(classNodes(fixed.shadowRoot, "mosque-select").length, 0);
   assert.match(find(fixed.shadowRoot, "h2")[0].textContent, /Example Mosque/);
 
   choices()[1].checked = true; choices()[1].dispatchEvent(new Event("change"));
   assert.deepEqual(changes.at(-1).mosque_entities, [a, b]);
   const switching = new SalahTimetableCard(); switching.setConfig(changes.at(-1)); switching.hass = multi;
-  const tabs = find(switching.shadowRoot, "nav").find(nav => nav.className === "mosque-tabs");
-  assert.equal(tabs.children.length, 2);
-  tabs.children[1].dispatchEvent(new Event("click"));
+  const chooser = find(switching.shadowRoot, "select").find(select => select.className === "mosque-select");
+  assert.equal(chooser.children.length, 2);
+  assert.equal(chooser.value, a);
+  chooser.value = b;
+  chooser.dispatchEvent(new Event("change"));
   assert.match(find(switching.shadowRoot, "h2")[0].textContent, /Second Mosque/);
   assert.equal(switching._activeEntity(), b);
   const secondFixed = new SalahTimetableCard(); secondFixed.setConfig({entity: b, mosque_entities: [b]}); secondFixed.hass = multi;
-  assert.equal(find(secondFixed.shadowRoot, "nav").some(nav => nav.className === "mosque-tabs"), false);
+  assert.equal(classNodes(secondFixed.shadowRoot, "mosque-select").length, 0);
   assert.match(find(secondFixed.shadowRoot, "h2")[0].textContent, /Second Mosque/);
   assert.equal(fixed._activeEntity(), a, "Switching one card must not affect another");
+});
+
+test("compact timetable puts date controls after the table and preserves adjacent-date access", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: false});
+  card.hass = hass();
+  const shell = classNodes(card.shadowRoot, "timetable-shell")[0];
+  assert.ok(shell);
+  assert.equal(shell.children[0].className, "table-scroll");
+  assert.equal(shell.children.at(-1).className, "date-tabs");
+  const [yesterday, today, tomorrow] = shell.children.at(-1).children;
+  assert.equal(today.attributes["aria-pressed"], "true");
+  yesterday.dispatchEvent(new Event("click"));
+  assert.equal(card._selectedDay, -1);
+  assert.equal(find(card.shadowRoot, "table").length, 0, "Missing dates do not borrow today's timetable");
+  assert.match(card.shadowRoot.textContent, /No approved timetable/);
+  assert.equal(classNodes(card.shadowRoot, "date-tabs").length, 1, "Day controls survive an unavailable date");
+  const nextToday = classNodes(card.shadowRoot, "date-tabs")[0].children[1];
+  nextToday.dispatchEvent(new Event("click"));
+  assert.equal(card._selectedDay, 0);
+  assert.equal(find(card.shadowRoot, "table").length, 1);
+  assert.equal(classNodes(card.shadowRoot, "date-tabs")[0].children[1].attributes["aria-pressed"], "true");
+  tomorrow.dispatchEvent(new Event("click")); // Detached old controls must not change current selection.
+  assert.equal(card._selectedDay, 0);
+});
+
+test("watermark icons are decorative, and Hijri information is closed until requested", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass();
+  const icons = classNodes(card.shadowRoot, "panel-silhouette");
+  assert.equal(icons.length, 2);
+  assert.deepEqual(icons.map(icon => icon.attributes["aria-hidden"]), ["true", "true"]);
+  assert.equal(find(card.shadowRoot, "svg").length, 2);
+  const details = find(card.shadowRoot, "details")[0];
+  assert.equal(details.open, false);
+  assert.match(details.children[0].textContent, /About this month/);
+  details.open = true;
+  details.dispatchEvent(new Event("toggle"));
+  card._render(Date.parse("2026-10-21T04:40:00Z"));
+  assert.equal(find(card.shadowRoot, "details")[0].open, true, "Expanded state survives a rerender");
 });
 
 test("mosque selection preserves missing sensors, automatically includes new primary and validates filters", () => {
