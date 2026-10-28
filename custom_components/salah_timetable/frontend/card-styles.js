@@ -412,10 +412,10 @@ ha-card::before {
     background: var(--secondary-background-color);
   }
 }
-/* Modern dashboard presentation: retain HA theme variables and accessible table semantics. */
+/* Theme-aware card edges without a surrounding drop-shadow. */
 ha-card {
   border: 1px solid var(--divider-color);
-  box-shadow: 0 8px 28px rgba(0,0,0,.07);
+  box-shadow: none;
 }
 .content {
   padding: clamp(14px,3cqi,24px);
@@ -755,7 +755,9 @@ ha-card {
   width: 100%;
   max-width: none;
   margin-inline: 0;
-  box-shadow: 0 14px 44px rgba(0,0,0,.13), inset 0 1px rgba(255,255,255,.05);
+  /* Keep all depth within the translucent summary; an outer shadow creates
+     a dark halo across the full-width photograph and dashboard edges. */
+  box-shadow: none;
   border-color: color-mix(in srgb,var(--primary-color) 17%,var(--divider-color));
 }
 .content {
