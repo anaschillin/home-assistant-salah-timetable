@@ -575,6 +575,33 @@ export const EDITOR_CSS = `
 .setting span {
   overflow-wrap: anywhere;
 }
+.mosque-options {
+  display: grid;
+  gap: 8px;
+}
+.mosque-options[hidden] {
+  display: none;
+}
+.mosque-options-heading {
+  font-weight: 600;
+}
+.mosque-options-list {
+  display: grid;
+  gap: 8px;
+}
+.mosque-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.mosque-choice input {
+  accent-color: var(--primary-color);
+}
+.setting input:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
 .title-field {
   display: grid;
   gap: 7px;
