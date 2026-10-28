@@ -9,56 +9,78 @@
   },
   "assets": [
     {
-      "path": "tests/fixtures/pdf/sample_table.pdf",
-      "rights": "original_mit",
-      "owner": "Repository maintainers",
-      "basis": "Independently generated fictional fixture",
-      "evidence": "tests/fixtures/pdf/generate.py"
-    },
-    {
-      "path": "tests/fixtures/pdf/unsupported_layout.pdf",
-      "rights": "original_mit",
-      "owner": "Repository maintainers",
-      "basis": "Independently generated fictional fixture",
-      "evidence": "tests/fixtures/pdf/generate.py"
-    },
-    {
-      "path": "tests/fixtures/pdf/sample_table.expected.csv",
-      "rights": "original_mit",
-      "owner": "Repository maintainers",
-      "basis": "Independently generated fictional fixture",
-      "evidence": "tests/fixtures/pdf/generate.py"
-    },
-    {
-      "path": "tests/fixtures/pdf/mosque_a_synthetic_2026.pdf",
-      "rights": "original_mit",
-      "owner": "Repository maintainers",
-      "basis": "Independently invented fictional times",
-      "evidence": "tests/fixtures/pdf/mosque_a_generate.py"
-    },
-    {
-      "path": "tests/fixtures/pdf/mosque_a_synthetic_2026.expected.csv",
-      "rights": "original_mit",
-      "owner": "Repository maintainers",
-      "basis": "Independently invented fictional times",
-      "evidence": "tests/fixtures/pdf/mosque_a_generate.py"
-    },
-    {
-      "path": "tests/fixtures/pdf/mosque_a_monthly_2022.pdf",
-      "rights": "original_mit",
-      "owner": "Repository maintainers",
-      "basis": "Independently invented fictional times; no published values",
-      "evidence": "tests/fixtures/pdf/generate_mosque_examples.py"
-    },
-    {
-      "path": "tests/fixtures/pdf/mosque_b_2026.pdf",
-      "rights": "original_mit",
-      "owner": "Repository maintainers",
-      "basis": "Independently invented fictional times; no published values",
-      "evidence": "tests/fixtures/pdf/generate_mosque_examples.py"
-    },
-    {
       "path": "custom_components/salah_timetable/brand/icon.png",
+      "rights": "review_pending",
+      "owner": "Unverified",
+      "basis": "Original artist / screenshot rights need evidence",
+      "evidence": null
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/badshahi-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "Sohail Chaudhry",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/brown-concrete-building-under-cloudy-sky-during-daytime-ayAl0D6mxHM",
+      "sha256": "05b47fbe119be9963eaf52d489c1dbb822d4060bd2e725944b7bd7ad28666330"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/baiturrahman-grand-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "Sangga Rima Roman Selia",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/white-concrete-building-during-daytime-2lbcJYnxvqw",
+      "sha256": "cf21218c373466631f63ab8de672ec1bf193aad61e9173eba3a7e36965cd34e2"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/great-mosque-of-kairouan.webp",
+      "rights": "permission_documented",
+      "owner": "Malek Boukhris",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/great-mosque-of-kairouan-in-tunisia-0-Sn6xvf3BM",
+      "sha256": "b0dd76f25f7ab068158f0ad49be3d4dfb70820e900987a74c172bbb95f453cb7"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/hassan-ii-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "Ajmal MK",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/green-and-white-concrete-building-under-blue-sky-during-daytime-EJSGszHvVGI",
+      "sha256": "4ea7aeb05a4bba5d262112754a5e673224f0fde179fa9c780462b98d7ed1589b"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/masjid-al-haram.webp",
+      "rights": "permission_documented",
+      "owner": "Ishan",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/kaaba-in-mecca-with-crowd-66Tu10CxYY0",
+      "sha256": "ab3e56d7fdd7d3ee5d6a9fd03421883a6ac6cc56ae1034d54aed59263296fbfe"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/masjid-an-nabawi.webp",
+      "rights": "permission_documented",
+      "owner": "Haidan",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/al-masjid-an-nabawi-mosque-in-medina-Qec3HPaHWTI",
+      "sha256": "be499d2236c7641baacf40084089f3c3ed33dbe07e68d0029f14decc3bb53d2f"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/sheikh-zayed-grand-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "David Rodrigo",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/sheikh-zayed-grand-mosque-in-abu-dhabi-kZ1zThg6G40",
+      "sha256": "bbfa172f7d740332636e451c280bafbddd2132c92e358a834e6d326015dbc3bc"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/sultan-ahmed-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "Max van den Oetelaar",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/a-walkway-leading-to-a-large-building-with-many-spires-bs1Nu9x7bNc",
+      "sha256": "f2b21267f955227a83f36a4c779cb7f9ccbf32a31d38f601754b769061c74341"
+    },
+    {
+      "path": "docs/images/card-mobile-0.6.1.png",
       "rights": "review_pending",
       "owner": "Unverified",
       "basis": "Original artist / screenshot rights need evidence",
@@ -72,6 +94,13 @@
       "evidence": null
     },
     {
+      "path": "docs/images/card-tablet-0.6.1.png",
+      "rights": "review_pending",
+      "owner": "Unverified",
+      "basis": "Original artist / screenshot rights need evidence",
+      "evidence": null
+    },
+    {
       "path": "docs/images/card-tablet.png",
       "rights": "review_pending",
       "owner": "Unverified",
@@ -79,18 +108,53 @@
       "evidence": null
     },
     {
-      "path": "docs/images/card-mobile-0.6.1.png",
-      "rights": "review_pending",
-      "owner": "Unverified",
-      "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null
+      "path": "tests/fixtures/pdf/mosque_a_monthly_2022.pdf",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Independently invented fictional times; no published values",
+      "evidence": "tests/fixtures/pdf/generate_mosque_examples.py"
     },
     {
-      "path": "docs/images/card-tablet-0.6.1.png",
-      "rights": "review_pending",
-      "owner": "Unverified",
-      "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null
+      "path": "tests/fixtures/pdf/mosque_a_synthetic_2026.expected.csv",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Independently invented fictional times",
+      "evidence": "tests/fixtures/pdf/mosque_a_generate.py"
+    },
+    {
+      "path": "tests/fixtures/pdf/mosque_a_synthetic_2026.pdf",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Independently invented fictional times",
+      "evidence": "tests/fixtures/pdf/mosque_a_generate.py"
+    },
+    {
+      "path": "tests/fixtures/pdf/mosque_b_2026.pdf",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Independently invented fictional times; no published values",
+      "evidence": "tests/fixtures/pdf/generate_mosque_examples.py"
+    },
+    {
+      "path": "tests/fixtures/pdf/sample_table.expected.csv",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Independently generated fictional fixture",
+      "evidence": "tests/fixtures/pdf/generate.py"
+    },
+    {
+      "path": "tests/fixtures/pdf/sample_table.pdf",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Independently generated fictional fixture",
+      "evidence": "tests/fixtures/pdf/generate.py"
+    },
+    {
+      "path": "tests/fixtures/pdf/unsupported_layout.pdf",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Independently generated fictional fixture",
+      "evidence": "tests/fixtures/pdf/generate.py"
     }
   ]
 }
