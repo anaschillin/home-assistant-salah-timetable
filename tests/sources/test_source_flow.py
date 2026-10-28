@@ -374,9 +374,9 @@ async def test_monthly_imports_preserve_other_published_months(
     await import_month(PDF_FIXTURE.read_bytes())
     assert entry.runtime_data.storage.for_date(date(2026, 1, 1)) is not None
 
-    make_pdf = runpy.run_path(str(Path(__file__).parents[1] / "fixtures/pdf/generate.py"))[
-        "make_pdf"
-    ]
+    make_pdf = runpy.run_path(
+        str(Path(__file__).parents[1] / "fixtures/pdf/generate.py")
+    )["make_pdf"]
     february = make_pdf(
         [
             [

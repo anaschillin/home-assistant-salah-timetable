@@ -292,7 +292,9 @@ async def test_mosque_a_monthly_pdf_ramadan_upload_approval_and_activation(
     """MOSQUE_A monthly PDF can be approved and activated as a Ramadan source."""
     from datetime import time
 
-    monthly_fixture = Path(__file__).parents[1] / "fixtures/pdf/mosque_a_monthly_2022.pdf"
+    monthly_fixture = (
+        Path(__file__).parents[1] / "fixtures/pdf/mosque_a_monthly_2022.pdf"
+    )
 
     await setup(hass, entry)
 
