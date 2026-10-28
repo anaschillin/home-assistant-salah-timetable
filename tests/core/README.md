@@ -12,6 +12,6 @@ This skips the **whole-integration** coverage threshold for a focused run. Full-
 
 ## Where to add tests
 
-Add entity lifecycle and cross-component integration cases here. Put import approval, parsing, and persistence cases in their own domains.
+Add entity lifecycle and cross-component integration cases here. The compatibility import-path regression check lives in `test_integration.py` to protect relocated implementations and legacy patch targets. Put import approval, parsing, and persistence cases in their own domains.
 
 Shared Home Assistant fixtures belong in [`tests/conftest.py`](../conftest.py). The authoritative per-file inventory, Node/browser commands, and CI scope are in [the test suite guide](../../docs/testing.md).

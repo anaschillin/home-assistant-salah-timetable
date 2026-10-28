@@ -1,16 +1,16 @@
 # Integration module boundaries
 
-This document describes runtime ownership and the contracts between modules. It is not a replacement for the import review guide.
+This document describes runtime ownership and the contracts between modules. See the [complete code inventory](module-inventory.md) for the folder layout, public entrypoints and legacy import aliases; this is not a replacement for the import review guide.
 
 | Module | Responsibility | Contract |
 | --- | --- | --- |
-| `import_flow.py` | CSV upload, mapping, staged review and comparison UI | Never activate an import without the user's explicit approval |
-| `source_flow.py` | HTTPS/PDF source configuration and source-management options | Validate inputs before staging; notify the source manager after source removal |
-| `pdf_parser.py`, `csv_parser.py` | Parse and validate bounded publications | Preserve printed dates and reject ambiguous layouts |
-| `download.py` | Constrained HTTPS fetching | Preserve DNS/IP/redirect protections and size/time limits |
-| `storage.py` | Per-entry durable approved, staged and source metadata | Atomic writes, exact stage identity and approval compare-and-swap |
-| `source_updates.py` | Background and manual remote checks | Never auto-approve; reschedule after source-profile changes and stop timers on unload |
-| `coordinator.py` | Resolve current effective day and upcoming events | Boundary refresh plus one-minute fallback; cache coverage by input snapshot |
+| `imports/import_flow.py` | CSV upload, mapping, staged review and comparison UI | Never activate an import without the user's explicit approval |
+| `sources/source_flow.py` | HTTPS/PDF source configuration and source-management options | Validate inputs before staging; notify the source manager after source removal |
+| `parsers/pdf_parser.py`, `parsers/csv_parser.py` | Parse and validate bounded publications | Preserve printed dates and reject ambiguous layouts |
+| `sources/download.py` | Constrained HTTPS fetching | Preserve DNS/IP/redirect protections and size/time limits |
+| `persistence/storage.py` | Per-entry durable approved, staged and source metadata | Atomic writes, exact stage identity and approval compare-and-swap |
+| `sources/source_updates.py` | Background and manual remote checks | Never auto-approve; reschedule after source-profile changes and stop timers on unload |
+| `runtime/coordinator.py` | Resolve current effective day and upcoming events | Boundary refresh plus one-minute fallback; cache coverage by input snapshot |
 | `calendar.py`, `sensor.py` | Read-only entities for approved data | Calendar display intervals do not imply prayer duration |
 | `frontend.py` | Register bundled card resource once per HA instance | Preserve user-owned YAML resources; remove component-loaded listener at HA shutdown |
 
@@ -24,4 +24,4 @@ This document describes runtime ownership and the contracts between modules. It 
 
 ## Refactoring guardrails
 
-PDF upload and URL imports now share parser inspection preparation in `source_flow.py`; CSV upload retains its dedicated path. Any further shared import refactoring requires parity tests for CSV, PDF, URL, staged review, rejection, approval and multiple mosque instances. Avoid merging download security, parsing and storage into a single abstraction. The legacy `TimetableStorage.for_date` returns an annual-only row and must not be used for effective Ramadan selection; use `ramadan.resolve_day` instead.
+PDF upload and URL imports now share parser inspection preparation in `sources/source_flow.py`; CSV upload retains its dedicated path. Any further shared import refactoring requires parity tests for CSV, PDF, URL, staged review, rejection, approval and multiple mosque instances. Avoid merging download security, parsing and storage into a single abstraction. The legacy `TimetableStorage.for_date` returns an annual-only row and must not be used for effective Ramadan selection; use `ramadan.resolve_day` instead.

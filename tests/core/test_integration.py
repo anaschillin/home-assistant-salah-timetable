@@ -134,3 +134,50 @@ async def test_unchanged_data_does_not_write_states(hass, populated, freezer):
     await populated.runtime_data.async_refresh()
     await hass.async_block_till_done()
     assert hass.states.get(entity_id) is previous
+
+def test_legacy_module_paths_reference_grouped_implementations():
+    """Previously documented imports must preserve their module identity for mocks."""
+    import importlib
+
+    groups = {
+        "domain": (
+            "model",
+            "ramadan",
+            "ramadan_validation",
+            "coverage",
+            "events",
+            "presentation",
+        ),
+        "parsers": (
+            "import_model",
+            "csv_parser",
+            "pdf_parser",
+            "mosque_a_layout",
+            "mosque_a_monthly_layout",
+            "mosque_b_annual_layout",
+            "mosque_b_ramadan_layout",
+        ),
+        "imports": (
+            "import_flow",
+            "import_comparison",
+        ),
+        "sources": (
+            "download",
+            "source_model",
+            "source_flow",
+            "source_updates",
+        ),
+        "persistence": (
+            "storage",
+        ),
+        "runtime": (
+            "coordinator",
+        ),
+    }
+    for group, names in groups.items():
+        for name in names:
+            legacy = importlib.import_module(f"custom_components.salah_timetable.{name}")
+            current = importlib.import_module(
+                f"custom_components.salah_timetable.{group}.{name}"
+            )
+            assert legacy is current, (group, name)
