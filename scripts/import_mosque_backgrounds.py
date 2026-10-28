@@ -286,7 +286,11 @@ def main() -> None:
         if file.is_file():
             # Keep the eight already reviewed assets byte-for-byte unchanged.
             webp = file.read_bytes()
-            if len(webp) > MAX_WEBP_BYTES or webp[:4] != b"RIFF" or webp[8:12] != b"WEBP":
+            if (
+                len(webp) > MAX_WEBP_BYTES
+                or webp[:4] != b"RIFF"
+                or webp[8:12] != b"WEBP"
+            ):
                 raise ValueError(f"Invalid existing background: {photo['id']}")
         else:
             webp = optimise(fetch_image(photo))

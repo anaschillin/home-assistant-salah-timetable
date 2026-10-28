@@ -16,6 +16,22 @@
       "evidence": null
     },
     {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/al-azhar-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "Seif Amr",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/people-walking-near-white-concrete-building-during-daytime-vjv3xVeDguA",
+      "sha256": "b97efc832ce4d6e991e36cebb435f9657c167eb55aa3b94b86c924d00d9b759e"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/al-qibli-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "Cole Keister",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/al-aqsa-mosque-behind-blurred-flowers-PQnkV6-iZMw",
+      "sha256": "a951f0fbdeaac302bc76b05d61c3f180dda9b40a2768ceb5ae9e1a906ec4704c"
+    },
+    {
       "path": "custom_components/salah_timetable/frontend/backgrounds/badshahi-mosque.webp",
       "rights": "permission_documented",
       "owner": "Sohail Chaudhry",
@@ -32,6 +48,14 @@
       "sha256": "cf21218c373466631f63ab8de672ec1bf193aad61e9173eba3a7e36965cd34e2"
     },
     {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/faisal-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "Faisal Mehmood",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/a-building-with-a-tower-OgP5pfVRdhk",
+      "sha256": "fc618a84718480e5c954a5ab12fdaf894d1f5534b6b73742007b988a0d504dd1"
+    },
+    {
       "path": "custom_components/salah_timetable/frontend/backgrounds/great-mosque-of-kairouan.webp",
       "rights": "permission_documented",
       "owner": "Malek Boukhris",
@@ -40,12 +64,36 @@
       "sha256": "b0dd76f25f7ab068158f0ad49be3d4dfb70820e900987a74c172bbb95f453cb7"
     },
     {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/hagia-sophia-grand-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "Dmitry Limonov",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/a-large-building-with-hagia-sophia-JC-nWdz_tSI",
+      "sha256": "2cc2531130f43ebb5104f949e0410bd06f4d9b4d6bdda03d0c7383a7f9c796a3"
+    },
+    {
       "path": "custom_components/salah_timetable/frontend/backgrounds/hassan-ii-mosque.webp",
       "rights": "permission_documented",
       "owner": "Ajmal MK",
       "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
       "evidence": "https://unsplash.com/photos/green-and-white-concrete-building-under-blue-sky-during-daytime-EJSGszHvVGI",
       "sha256": "4ea7aeb05a4bba5d262112754a5e673224f0fde179fa9c780462b98d7ed1589b"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/jama-masjid-delhi.webp",
+      "rights": "permission_documented",
+      "owner": "Naveed Ahmed",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/people-outside-mosque-XIdBO7BtZhY",
+      "sha256": "fbbfb1c23695bceb14affbc62ff9f8adc811f0e0b77db936c2c193271364f885"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/koutoubia-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "gemmmm 🖤",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/brown-concrete-building-under-blue-sky-during-daytime-tSy3SRzYJu4",
+      "sha256": "8dd9ad8588a3c20c57d996165fcdf8b1756d0f0502c75ebc4c7e6a2d6e319806"
     },
     {
       "path": "custom_components/salah_timetable/frontend/backgrounds/masjid-al-haram.webp",
@@ -64,6 +112,38 @@
       "sha256": "be499d2236c7641baacf40084089f3c3ed33dbe07e68d0029f14decc3bb53d2f"
     },
     {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/mosque-cathedral-cordoba.webp",
+      "rights": "permission_documented",
+      "owner": "Alexandra Tran",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/the-inside-of-a-building-with-columns-and-arches-rvE_jTiejVc",
+      "sha256": "dd866e5abd60e2c5833945d67a3727a36bdd1249ead9670331d4296f39def9c0"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/muhammad-ali-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "Martijn Vonk",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/a-picture-of-a-very-large-building-with-many-spires-dHQBr-oNodQ",
+      "sha256": "9bb217bccc679eef506807eb7fb64ed973bfaa46ac77f156c1fedf3b0f017dd6"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/national-mosque-malaysia.webp",
+      "rights": "permission_documented",
+      "owner": "The Simple Travel",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/a-fountain-with-a-clock-tower-in-the-background-2vwnPAk47Gg",
+      "sha256": "d9d412b6d16da887b2c5d9b1125acb9e31565d4184db3bc3a4828fd7fdce1e14"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/omar-ali-saifuddien-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "Jimmy Whitson",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/golden-domed-mosque-with-minarets-at-sunrise-KNIIpxvwPaM",
+      "sha256": "c192cd37f9e7d51a59537353c7fa019357ea91d52a39111040e2a04dc887a2f9"
+    },
+    {
       "path": "custom_components/salah_timetable/frontend/backgrounds/sheikh-zayed-grand-mosque.webp",
       "rights": "permission_documented",
       "owner": "David Rodrigo",
@@ -72,12 +152,28 @@
       "sha256": "bbfa172f7d740332636e451c280bafbddd2132c92e358a834e6d326015dbc3bc"
     },
     {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/suleymaniye-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "ekrem osmanoglu",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/suleymaniye-mosque-in-istanbul-turkey-ukXyJKPg94s",
+      "sha256": "14a2e4e276121fe4cc2b0e41cb6ea759b7cbcaba26c0091d0f6de28989f2c982"
+    },
+    {
       "path": "custom_components/salah_timetable/frontend/backgrounds/sultan-ahmed-mosque.webp",
       "rights": "permission_documented",
       "owner": "Max van den Oetelaar",
       "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
       "evidence": "https://unsplash.com/photos/a-walkway-leading-to-a-large-building-with-many-spires-bs1Nu9x7bNc",
       "sha256": "f2b21267f955227a83f36a4c779cb7f9ccbf32a31d38f601754b769061c74341"
+    },
+    {
+      "path": "custom_components/salah_timetable/frontend/backgrounds/wazir-khan-mosque.webp",
+      "rights": "permission_documented",
+      "owner": "Arooba Arif",
+      "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
+      "evidence": "https://unsplash.com/photos/a-view-of-a-building-through-an-archway-LbRCic9i5JY",
+      "sha256": "800ab5e6f641a43fa841026435307819d4396405cdbe2539f08bbd277af8d070"
     },
     {
       "path": "docs/images/card-mobile-0.6.1.png",
