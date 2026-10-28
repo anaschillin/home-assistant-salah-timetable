@@ -226,7 +226,7 @@ export class SalahTimetableCard extends HTMLElement {
       const frame = this._backgroundFrame;
       const previousWidth = this.shadowRoot?.querySelector?.("ha-card")?.getBoundingClientRect?.().width;
       if (frame && frame.entity === this._activeEntity() && previousWidth > 0 && Math.abs(previousWidth - frame.width) < 2) {
-        card.style.setProperty("--mosque-photo-frame-height", `${frame.height}px`);
+        card.style.setProperty("--mosque-photo-frame-height", `${Math.max(0, frame.height - 2)}px`);
       }
       card.style.setProperty("--mosque-background-image", `url("${background.path}")`);
       card.style.setProperty("--mosque-overlay", `color-mix(in srgb, var(--ha-card-background,var(--card-background-color)) ${100 - this._config.mosque_background_opacity}%, transparent)`);
