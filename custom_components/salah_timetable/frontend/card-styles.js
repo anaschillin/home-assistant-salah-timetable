@@ -4,10 +4,19 @@ export const CARD_CSS = `
 .background-credit a { color: var(--secondary-text-color); text-decoration: underline; text-underline-offset: 2px; }
 .background-credit a:focus-visible { outline: 2px solid var(--primary-color); }
 
-/* Keep the photograph and translucent tint inside the card border. Dark HA
-   themes may use translucent borders; painting under them creates a bright,
-   un-tinted 1px seam at the top/bottom on mobile and tablet. */
+/* The background has its own photo canvas. Its height is anchored to the
+   full Today card so hiding countdowns does not re-zoom/re-centre the image.
+   Clip the extended photo layer inside the card without changing card height. */
 ha-card.has-mosque-background {
+  background: var(--ha-card-background,var(--card-background-color));
+}
+ha-card.has-mosque-background::before {
+  content: "";
+  position: absolute;
+  inset: 1px 1px auto;
+  height: max(calc(100% - 2px),var(--mosque-photo-frame-height,100%));
+  z-index: 0;
+  pointer-events: none;
   background-image: linear-gradient(var(--mosque-overlay),var(--mosque-overlay)),var(--mosque-background-image);
   background-origin: padding-box;
   background-clip: padding-box;
@@ -15,8 +24,10 @@ ha-card.has-mosque-background {
   background-size: cover;
   background-repeat: no-repeat;
 }
-ha-card.has-mosque-background .content { position: relative; }
-@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) { ha-card.has-mosque-background { background-image: none; } }
+ha-card.has-mosque-background .content { position: relative; z-index: 1; }
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  ha-card.has-mosque-background::before { display: none; }
+}
 
 .date-tabs {
   display: grid;
@@ -762,7 +773,8 @@ ha-card.has-mosque-background .content {
 ha-card.has-mosque-background::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 1px 1px auto;
+  height: max(calc(100% - 2px),var(--mosque-photo-frame-height,100%));
   z-index: 0;
   pointer-events: none;
   background-image: var(--mosque-background-image);
