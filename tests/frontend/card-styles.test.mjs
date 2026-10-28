@@ -37,12 +37,15 @@ test("background photo is clipped and its frame is independent of card height", 
   const imageLayer = CARD_CSS.match(/ha-card\.has-mosque-background::before\s*\{([^}]+)\}/);
   assert.ok(imageLayer, "Missing isolated image layer");
   assert.match(imageLayer[1], /height:\s*max\(calc\(100% - 2px\),var\(--mosque-photo-frame-height,100%\)\)/);
+  assert.match(imageLayer[1], /width:\s*var\(--mosque-photo-frame-width,calc\(100% - 2px\)\)/);
+  assert.match(imageLayer[1], /transform:\s*translateX\(-50%\)/);
   assert.match(imageLayer[1], /background-origin:\s*padding-box\s*;/);
   assert.match(imageLayer[1], /background-clip:\s*padding-box\s*;/);
   assert.match(imageLayer[1], /background-image:\s*linear-gradient\(var\(--mosque-overlay\)/);
   const blurredRim = CARD_CSS.match(/ha-card\.has-mosque-background::after\s*\{([^}]+)\}/);
   assert.ok(blurredRim, "Missing blurred photo rim");
   assert.match(blurredRim[1], /height:\s*max\(calc\(100% - 2px\),var\(--mosque-photo-frame-height,100%\)\)/);
+  assert.match(blurredRim[1], /width:\s*var\(--mosque-photo-frame-width,calc\(100% - 2px\)\)/);
   assert.match(CARD_CSS, /ha-card\s*\{[^}]*overflow:\s*hidden\s*;/);
   assert.match(CARD_CSS, /ha-card\s*\{[^}]*border-radius:\s*var\(--ha-card-border-radius/);
 });
