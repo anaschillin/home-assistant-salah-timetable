@@ -404,7 +404,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
     }
     entity.selector = {select: {options}};
     mosqueHeading.textContent = tr(ui, "editor.mosques");
-    const listed = options.map(option => ({entity: option.value, name: option.label.split(" (")[0]}));
+    const listed = options.map(option => ({entity: option.value, name: mosques.find(item => item.entity === option.value)?.name || option.value}));
     // Preserve any selected-but-temporarily-missing mosque during HA startup.
     for (const value of this._config.mosque_entities || []) {
       if (!listed.some(item => item.entity === value)) listed.push({entity: value, name: value});
