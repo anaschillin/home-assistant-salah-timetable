@@ -3,7 +3,6 @@ export const CATALOGS = Object.freeze({
   en: Object.freeze({
     "card.name": "Salah Timetable",
     "card.select_mosque": "Select mosque",
-    "card.about_month": "About this month",
     "card.day_navigation": "Timetable date",
     "card.yesterday": "Yesterday",
     "card.today": "Today",
@@ -107,7 +106,6 @@ export const CATALOGS = Object.freeze({
     "card.disconnected": "انقطع اتصال Home Assistant — يُعرض آخر جدول مواقيت تم استلامه.",
     "card.timezone_note": "تُعرض الأوقات حسب المنطقة الزمنية {zone}. لا تُقدَّر الأوقات الناقصة.",
     "card.select_mosque": "اختر المسجد",
-    "card.about_month": "عن هذا الشهر",
     "card.day_navigation": "تاريخ جدول الصلاة",
     "card.yesterday": "أمس",
     "card.today": "اليوم",
