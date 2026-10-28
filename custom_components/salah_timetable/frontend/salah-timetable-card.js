@@ -136,11 +136,17 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._timer !== null) window.clearInterval(this._timer);
     this._timer = null;
   }
-  _mosques() { return discoverTimetableEntities(this._hass); }
+  _mosques() {
+    const available = discoverTimetableEntities(this._hass);
+    if (!this._config.mosque_entities) return available;
+    const enabled = new Set(this._config.mosque_entities);
+    return available.filter(mosque => enabled.has(mosque.entity));
+  }
   _activeEntity() {
     const mosques = this._mosques();
     if (this._selectedMosque && mosques.some(item => item.entity === this._selectedMosque)) return this._selectedMosque;
-    return this._config.entity || mosques[0]?.entity || "";
+    if (this._config.entity && (!this._config.mosque_entities || this._config.mosque_entities.includes(this._config.entity))) return this._config.entity;
+    return mosques[0]?.entity || this._config.mosque_entities?.[0] || "";
   }
   _state() { return this._hass?.states?.[this._activeEntity()]; }
 
@@ -382,9 +388,12 @@ export class SalahTimetableCardEditor extends HTMLElement {
       label.textContent = text; control.setAttribute("aria-label", text);
       for (const {option, value} of options || []) option.textContent = key === "hijri_adjustment" ? localizedNumber(value, ui, {signDisplay: "exceptZero"}) : key === "mosque_background_opacity" ? `${value}%` : key === "mosque_background" ? (MOSQUE_BACKGROUNDS.find(item => item.id === value)?.name || (value === "daily" ? "Rotate daily" : "None")) : tr(ui, `editor.${key}.${value}`);
       if (checkbox) control.checked = this._config[key];
+      // These settings have no implemented behaviour yet; do not allow users
+      // to enable an option that cannot display any history data.
+      control.disabled = ["show_historical_day_events", "show_historical_month_highlights", "show_historical_sources", "show_disputed_historical_dates"].includes(key);
       else if (control.value !== String(this._config[key])) control.value = String(this._config[key]);
     }
-    const {entity, title, titleLabel, error, help} = this._controls;
+    const {entity, title, titleLabel, error, help, mosqueGroup, mosqueHeading, mosqueList} = this._controls;
     entity.hass = this._hass; entity.label = tr(ui, "editor.entity");
     const mosques = discoverTimetableEntities(this._hass);
     const options = mosques.map(({entity: value, name}) => ({value, label: `${name} (${value})`}));
@@ -394,6 +403,33 @@ export class SalahTimetableCardEditor extends HTMLElement {
       options.push({value: this._config.entity, label: this._config.entity});
     }
     entity.selector = {select: {options}};
+    mosqueHeading.textContent = tr(ui, "editor.mosques");
+    const listed = options.map(option => ({entity: option.value, name: option.label.split(" (")[0]}));
+    // Preserve any selected-but-temporarily-missing mosque during HA startup.
+    for (const value of this._config.mosque_entities || []) {
+      if (!listed.some(item => item.entity === value)) listed.push({entity: value, name: value});
+    }
+    mosqueGroup.hidden = listed.length < 2;
+    mosqueList.replaceChildren();
+    const enabled = new Set(this._config.mosque_entities || listed.map(item => item.entity));
+    for (const mosque of listed) {
+      const row = node("label", undefined, "mosque-choice");
+      const checkbox = node("input"); checkbox.type = "checkbox";
+      checkbox.checked = enabled.has(mosque.entity);
+      checkbox.disabled = checkbox.checked && enabled.size === 1;
+      checkbox.setAttribute("data-mosque-entity", mosque.entity);
+      row.append(checkbox, node("span", mosque.name));
+      checkbox.addEventListener("change", () => {
+        const allowed = new Set(this._config.mosque_entities || listed.map(item => item.entity));
+        if (checkbox.checked) allowed.add(mosque.entity);
+        else allowed.delete(mosque.entity);
+        if (!allowed.size) { this._updateControls(); return; }
+        const entities = [...allowed];
+        this._changed({mosque_entities: entities,
+          entity: entities.includes(this._config.entity) ? this._config.entity : entities[0]});
+      });
+      mosqueList.append(row);
+    }
     titleLabel.textContent = tr(ui, "editor.title");
     error.textContent = this._entityError ? tr(ui, "editor.invalid_entity") : "";
     help.textContent = tr(ui, "editor.help");
@@ -411,15 +447,23 @@ export class SalahTimetableCardEditor extends HTMLElement {
       const value = event.detail?.value;
       this._entityError = Boolean(value && !isTimetableState(this._hass?.states?.[value]));
       if (this._entityError) { this._updateControls(); return; }
-      this._changed({entity: value || ""});
+      const patch = {entity: value || ""};
+      if (value && this._config.mosque_entities && !this._config.mosque_entities.includes(value)) {
+        patch.mosque_entities = [...this._config.mosque_entities, value];
+      }
+      this._changed(patch);
     });
     const titleField = node("div", undefined, "title-field");
     const titleLabel = node("label"); titleLabel.htmlFor = "mosque-title";
     const title = node("input"); title.id = "mosque-title"; title.type = "text"; title.value = this._config.title || ""; title.maxLength = 100; title.setAttribute("dir", "auto");
     titleField.append(titleLabel, title);
     title.addEventListener("input", event => this._changed({title: event.target.value}));
+    const mosqueGroup = node("div", undefined, "mosque-options");
+    const mosqueHeading = node("div", undefined, "mosque-options-heading");
+    const mosqueList = node("div", undefined, "mosque-options-list");
+    mosqueGroup.append(mosqueHeading, mosqueList);
     const help = node("div", undefined, "help");
-    this._controls = {entity, title, titleLabel, error, help};
+    this._controls = {entity, title, titleLabel, error, help, mosqueGroup, mosqueHeading, mosqueList};
     this._extraControls = {};
     const settings = [
       ["language", ["auto", "en", "ar"]], ["bilingual_prayer_labels"],
@@ -437,10 +481,13 @@ export class SalahTimetableCardEditor extends HTMLElement {
       if (choices) for (const value of choices) { const option = node("option"); option.value = String(value); control.append(option); options.push({option, value}); }
       else control.type = "checkbox";
       control.setAttribute("data-option", key);
-      control.addEventListener("change", () => this._changed({[key]: choices ? ["hijri_adjustment", "mosque_background_opacity"].includes(key) ? Number(control.value) : control.value : control.checked}));
+      control.addEventListener("change", () => {
+        if (control.disabled) return;
+        this._changed({[key]: choices ? ["hijri_adjustment", "mosque_background_opacity"].includes(key) ? Number(control.value) : control.value : control.checked});
+      });
       this._extraControls[key] = {control, checkbox: !choices, label, options}; field.append(control); extras.push(field);
     }
-    form.append(entity, error, titleField, ...extras, help);
+    form.append(entity, error, titleField, mosqueGroup, ...extras, help);
     this._updateControls();
     this.shadowRoot.replaceChildren(style, form);
   }
