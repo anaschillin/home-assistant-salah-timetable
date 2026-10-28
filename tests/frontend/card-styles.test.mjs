@@ -58,10 +58,15 @@ test("full-canvas mosque background and centered glass content retain accessible
 });
 
 
-test("mosque and both clocks share one frosted card without nested borders", () => {
-  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*border-radius:\s*16px/);
-  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*backdrop-filter:\s*blur\(12px\)/);
-  assert.match(CARD_CSS, /\.summary-shell \.panel\.prayer-panel\s*\{[^}]*border:\s*0/);
+test("one stronger glass surface gives Salah and Jamaat identical panel formatting", () => {
+  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*border-radius:\s*18px/);
+  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*secondary-background-color\) 94%,transparent/);
+  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*backdrop-filter:\s*blur\(18px\) saturate\(115%\)/);
+  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*margin-bottom:\s*16px/);
+  // One shared selector must override the old Salah-only tint.
+  assert.match(CARD_CSS, /\.summary-shell \.panel\.prayer-panel,\s*\.summary-shell \.panel\.prayer-panel\[data-panel="salah"\]\s*\{[^}]*background:\s*transparent/);
+  assert.match(CARD_CSS, /\.summary-shell \.panel\.prayer-panel,\s*\.summary-shell \.panel\.prayer-panel\[data-panel="salah"\]\s*\{[^}]*border:\s*0/);
   assert.match(CARD_CSS, /\.summary-shell \.prayer-panel \+ \.prayer-panel\s*\{[^}]*border-inline-start/);
-  assert.match(CARD_CSS, /@container\(max-width:21rem\)\s*\{\s*\.summary-shell \.prayer-panel \+ \.prayer-panel/);
+  assert.match(CARD_CSS, /@container\(max-width:21rem\)\s*\{\s*\.summary-shell \.panels\s*\{\s*grid-template-columns:\s*1fr/);
+  assert.match(CARD_CSS, /@media \(prefers-contrast: more\), \(prefers-reduced-transparency: reduce\)/);
 });
