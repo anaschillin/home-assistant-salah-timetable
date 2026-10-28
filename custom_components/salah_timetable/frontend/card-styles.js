@@ -781,6 +781,58 @@ ha-card.has-mosque-background::after {
     background: transparent;
   }
 }
+/* Unified summary: mosque name, dates and both countdowns form ONE glass
+   card. Keep each clock a semantic section, without double card borders. */
+.summary-shell {
+  min-width: 0;
+  padding: clamp(12px,2.2cqi,20px);
+  border: 1px solid color-mix(in srgb,var(--primary-color) 20%,var(--divider-color));
+  border-radius: 16px;
+  overflow: hidden;
+  isolation: isolate;
+  background: color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 74%,transparent);
+  box-shadow: 0 8px 26px rgba(0,0,0,.10), inset 0 1px rgba(255,255,255,.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.summary-shell .header {
+  margin: 0;
+}
+.summary-shell .panels {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  gap: 0;
+  border-top: 1px solid var(--divider-color);
+}
+.summary-shell .panel.prayer-panel {
+  min-width: 0;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.summary-shell .panel.prayer-panel[data-panel="salah"] {
+  background: color-mix(in srgb,var(--primary-color) 7%,transparent);
+}
+.summary-shell .prayer-panel + .prayer-panel {
+  border-inline-start: 1px solid var(--divider-color);
+}
+@container(max-width:21rem) {
+  .summary-shell .prayer-panel + .prayer-panel {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--divider-color);
+  }
+}
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  .summary-shell {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--secondary-background-color);
+  }
+}
 @container(max-width:28rem) {
   .panels {
     grid-template-columns: repeat(2,minmax(0,1fr));
