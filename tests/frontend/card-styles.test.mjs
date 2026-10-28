@@ -43,8 +43,10 @@ test("mosque background and tint are clipped at the rounded card border", () => 
   assert.match(CARD_CSS, /ha-card\s*\{[^}]*border-radius:\s*var\(--ha-card-border-radius/);
 });
 
-test("centered glass card blurs only the background rim with accessible fallback", () => {
-  assert.match(CARD_CSS, /ha-card\s*\{[^}]*max-width:\s*1280px/);
+test("full-canvas mosque background and centered glass content retain accessible fallback", () => {
+  assert.match(CARD_CSS, /ha-card\s*\{[^}]*max-width:\s*none/);
+  assert.match(CARD_CSS, /\.content\s*\{[^}]*max-width:\s*1160px/);
+  assert.match(CARD_CSS, /\.content\s*\{[^}]*margin-inline:\s*auto/);
   assert.match(CARD_CSS, /ha-card\.has-mosque-background::after\s*\{[^}]*filter:\s*blur\(14px\)/);
   assert.match(CARD_CSS, /ha-card\.has-mosque-background::after\s*\{[^}]*mask-image:\s*radial-gradient/);
   assert.match(CARD_CSS, /ha-card\.has-mosque-background \.content\s*\{[^}]*backdrop-filter:\s*blur\(1px\)/);
