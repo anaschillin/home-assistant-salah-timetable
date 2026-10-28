@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {existsSync, readFileSync, statSync} from "node:fs";
+import {createHash} from "node:crypto";
 import {fileURLToPath} from "node:url";
 import {dirname, join} from "node:path";
 import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "../../custom_components/salah_timetable/frontend/mosque-backgrounds.js";
@@ -23,6 +24,22 @@ test("20 bundled mosque photos have local, verified metadata and stay under 250 
     assert.ok(bytes.subarray(0, 4).equals(Buffer.from("RIFF")), "WebP RIFF container");
     assert.equal(bytes.toString("ascii", 8, 12), "WEBP");
     assert.ok(statSync(path).size <= 250_000, path);
+  }
+});
+
+test("bundled mosque photos match the provenance manifest and SHA-256", () => {
+  const manifest = JSON.parse(readFileSync(join(root, "../../../docs/asset-provenance.json"), "utf8"));
+  const entries = new Map(manifest.assets.map(asset => [asset.path, asset]));
+  for (const item of MOSQUE_BACKGROUNDS) {
+    const name = `custom_components/salah_timetable/frontend/backgrounds/${item.id}.webp`;
+    const record = entries.get(name);
+    assert.ok(record, `Missing provenance entry: ${name}`);
+    assert.equal(record.rights, "permission_documented");
+    assert.equal(record.owner, item.photographer);
+    assert.equal(record.evidence, item.source_url);
+    const bytes = readFileSync(join(root, "backgrounds", `${item.id}.webp`));
+    const digest = createHash("sha256").update(bytes).digest("hex");
+    assert.equal(record.sha256, digest);
   }
 });
 
