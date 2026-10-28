@@ -10,7 +10,7 @@ from custom_components.salah_timetable.mosque_b_annual_layout import (
 )
 from custom_components.salah_timetable.pdf_parser import PdfParser
 
-FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_b_2026.pdf"
+FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/mosque_b_2026.pdf"
 
 
 @pytest.mark.parametrize(

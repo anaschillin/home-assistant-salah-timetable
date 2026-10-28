@@ -17,7 +17,7 @@ from custom_components.salah_timetable.pdf_parser import PdfParser
 from custom_components.salah_timetable.ramadan import RamadanSettings, resolve_day
 from custom_components.salah_timetable.source_model import RemoteSource
 
-FIXTURES = Path(__file__).parent / "fixtures/pdf"
+FIXTURES = Path(__file__).parents[1] / "fixtures/pdf"
 
 
 @pytest.fixture(autouse=True)

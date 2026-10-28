@@ -15,7 +15,7 @@ from custom_components.salah_timetable.const import DOMAIN
 from custom_components.salah_timetable.download import DownloadError, DownloadResult
 from custom_components.salah_timetable.import_model import MAX_PDF_BYTES
 
-PDF_FIXTURE = Path(__file__).parent / "fixtures/pdf/sample_table.pdf"
+PDF_FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/sample_table.pdf"
 CSV = b"Date,Fajr Start,Fajr Jamaat\n2026-01-01,05:45,06:15\n2026-01-02,05:47,06:15\n"
 PUBLIC_URL = "https://mosque.example.org/timetable.pdf"
 
@@ -374,7 +374,7 @@ async def test_monthly_imports_preserve_other_published_months(
     await import_month(PDF_FIXTURE.read_bytes())
     assert entry.runtime_data.storage.for_date(date(2026, 1, 1)) is not None
 
-    make_pdf = runpy.run_path(str(Path(__file__).parent / "fixtures/pdf/generate.py"))[
+    make_pdf = runpy.run_path(str(Path(__file__).parents[1] / "fixtures/pdf/generate.py"))[
         "make_pdf"
     ]
     february = make_pdf(

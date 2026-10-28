@@ -141,7 +141,7 @@ async def test_monthly_url_update_preserves_original_date_window(
             rows = ["Date,Fajr Begin"] + [f"{day},05:{minute:02d}" for day in dates]
             return ("\n".join(rows) + "\n").encode()
         make_pdf = runpy.run_path(
-            str(Path(__file__).parent / "fixtures/pdf/generate.py")
+            str(Path(__file__).parents[1] / "fixtures/pdf/generate.py")
         )["make_pdf"]
         return make_pdf(
             [

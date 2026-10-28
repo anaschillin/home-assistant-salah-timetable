@@ -18,7 +18,7 @@ from custom_components.salah_timetable.csv_parser import CsvParser
 from custom_components.salah_timetable.model import PrayerField
 from custom_components.salah_timetable.storage import TimetableStorage
 
-FIXTURES = Path(__file__).parent / "fixtures" / "storage"
+FIXTURES = Path(__file__).parents[1] / "fixtures" / "storage"
 
 
 def historical_payload(version):
