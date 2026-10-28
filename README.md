@@ -164,8 +164,9 @@ time. The minaret and dome watermarks are decorative.
 The **Yesterday / Today / Tomorrow** selector appears in the timetable footer.
 Adjacent days display their own *approved* timetable rows (even in Compact)
 but hide the live countdowns, Ramadan section and current-prayer highlight.
-The header's Gregorian date, calculated Hijri date and month explanation track
-the selected day. Missing approved rows remain unavailable; the card never
+In Standard/Detailed, the visible Gregorian date, calculated Hijri date
+and month explanation track the selected day (Compact hides the dates and
+month explanation). Missing approved rows remain unavailable; the card never
 copies or estimates prayer times.
 
 For multiple configured mosques, each card can enable or exclude individual
