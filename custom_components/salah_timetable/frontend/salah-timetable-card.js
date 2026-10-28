@@ -264,7 +264,11 @@ export class SalahTimetableCard extends HTMLElement {
       const month = hijriMonthInfo(data.date || state.state, this._config.hijri_adjustment);
       if (month) header.append(node("div", month.summary_en, "month-description"));
     }
-    content.append(header);
+    // One cohesive glass surface for mosque identity and both live summaries.
+    // Individual countdown components remain independent for timing and options.
+    const summary = node("div", undefined, "summary-shell");
+    summary.append(header);
+    content.append(summary);
     const dateTabs = node("nav", undefined, "date-tabs");
     dateTabs.setAttribute("aria-label", tr(ui, "card.day_navigation"));
     for (const [offset, key] of [[-1, "yesterday"], [0, "today"], [1, "tomorrow"]]) {
@@ -279,7 +283,7 @@ export class SalahTimetableCard extends HTMLElement {
     const selectedPrayers = this._selectedDay === 0 ? data.prayers : data.day_prayers?.[selectedDate];
     const tableShell = node("div", undefined, "timetable-shell");
     if (this._selectedDay !== 0) tableShell.append(node("div", formatDate(selectedDate, ui), "selected-date"));
-    if (this._hass?.connection?.connected === false) content.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
+    if (this._hass?.connection?.connected === false) summary.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
     const next = nextSalah(data, now);
     const congregation = jamaatPanel(data, "context", now);
     const panels = node("div", undefined, "panels");
@@ -296,7 +300,7 @@ export class SalahTimetableCard extends HTMLElement {
       updates.push(instant => { box.clock.run.textContent = congregationClock(instant); });
       panels.append(box);
     }
-    if (panels.children.length) content.append(panels);
+    if (panels.children.length) summary.append(panels);
     const highlighted = highlightedPrayer(data, now);
     let tableRegion;
     if (Array.isArray(selectedPrayers) && (this._selectedDay !== 0 || this._config.detail_level !== "compact")) {
