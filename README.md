@@ -394,6 +394,9 @@ REQUIRE_BROWSER_TESTS=1 npm run test:browser
 uv run --frozen python scripts/build_release.py --check
 ```
 
+For the folder layout, all Python/Node test files, fixture conventions and focused
+commands, see the [test suite guide](docs/testing.md).
+
 `uv.lock` fixes development dependencies. The integration uses HA's bundled
 `file_upload` component and pins `pypdf==6.21.1` in its runtime manifest.
 The separately locked development environment currently uses `pypdf==6.21.2`;

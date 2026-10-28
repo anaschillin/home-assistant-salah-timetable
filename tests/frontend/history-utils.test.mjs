@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {HISTORY_DEFAULTS, historyOptions, selectHistory} from "../custom_components/salah_timetable/frontend/history-utils.js";
+import {HISTORY_DEFAULTS, historyOptions, selectHistory} from "../../custom_components/salah_timetable/frontend/history-utils.js";
 
 test("month information is on by default; history is opt-in", () => {
   assert.equal(HISTORY_DEFAULTS.show_hijri_month_info, true);

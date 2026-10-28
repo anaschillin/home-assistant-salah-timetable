@@ -16,7 +16,7 @@ from custom_components.salah_timetable.mosque_a_monthly_layout import (
 )
 from custom_components.salah_timetable.pdf_parser import extract_pdf_pages
 
-FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_a_monthly_2022.pdf"
+FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/mosque_a_monthly_2022.pdf"
 
 
 @pytest.fixture(scope="module")

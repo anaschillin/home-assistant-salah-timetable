@@ -9,7 +9,7 @@ from custom_components.salah_timetable import pdf_parser
 from custom_components.salah_timetable.import_model import ImportValidationError
 from custom_components.salah_timetable.pdf_parser import PdfParser
 
-FIXTURES = Path(__file__).parent / "fixtures" / "pdf"
+FIXTURES = Path(__file__).parents[1] / "fixtures" / "pdf"
 
 
 @pytest.mark.parametrize(

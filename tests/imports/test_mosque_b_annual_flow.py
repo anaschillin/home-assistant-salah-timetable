@@ -18,7 +18,7 @@ from custom_components.salah_timetable.import_flow import IGNORE_COLUMN
 from custom_components.salah_timetable.model import PrayerField
 from custom_components.salah_timetable.source_model import RemoteSource
 
-FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_b_2026.pdf"
+FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/mosque_b_2026.pdf"
 SOURCE_URL = "https://mosque.example.org/mosque-b-2026.pdf"
 
 

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "scope": "Public repository binary fixtures and documentation visuals; original program source excluded.",
+  "scope": "Repository test fixtures (PDF/CSV/JSON), tracked images, brand graphics, and bundled photo backgrounds; source code and generated distributions excluded.",
   "states": {
     "original_mit": "Original independently generated content under MIT",
     "permission_documented": "Permission evidenced",
@@ -13,7 +13,8 @@
       "rights": "review_pending",
       "owner": "Unverified",
       "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null
+      "evidence": null,
+      "sha256": "49380782a6b987b91cf3cbbef4a4145ee4cc031403c752211ebaaffe9bed0b1d"
     },
     {
       "path": "custom_components/salah_timetable/frontend/backgrounds/al-azhar-mosque.webp",
@@ -180,77 +181,128 @@
       "rights": "review_pending",
       "owner": "Unverified",
       "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null
+      "evidence": null,
+      "sha256": "289b2916deaa65140734328f3df1881534f2fd03138ab7ff62081ae77f2873d9"
     },
     {
       "path": "docs/images/card-mobile.png",
       "rights": "review_pending",
       "owner": "Unverified",
       "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null
+      "evidence": null,
+      "sha256": "ff45114265348ca3fdc4874e36d21cf819a7a76c0ebccd4e0d3a4a8e87e3d1c2"
     },
     {
       "path": "docs/images/card-tablet-0.6.1.png",
       "rights": "review_pending",
       "owner": "Unverified",
       "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null
+      "evidence": null,
+      "sha256": "7c4665fa9faafa784ec8efead2a2832cbddfcfb08f4adf0c421b70b60366445c"
     },
     {
       "path": "docs/images/card-tablet.png",
       "rights": "review_pending",
       "owner": "Unverified",
       "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null
+      "evidence": null,
+      "sha256": "14edc29c8c28a6aef91e36b19974856c14728dc2ae879013f3738ca9fc1c6a24"
+    },
+    {
+      "path": "tests/fixtures/csv/annual.csv",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Original hand-authored fictional CSV values and ditto-format edge cases",
+      "evidence": "tests/fixtures/csv/README.md",
+      "sha256": "6f26b78657518cdbc65ac1990aa995c735535f9ffffd7330257ec606e2a8d897"
+    },
+    {
+      "path": "tests/fixtures/csv/explicit_ampm.csv",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Original hand-authored fictional 12-hour clock CSV example",
+      "evidence": "tests/fixtures/csv/README.md",
+      "sha256": "b8401c705e3f5cc6ef4fa7248a3ab8a59c68eaa8d895b80122151f58cc1bfd2d"
+    },
+    {
+      "path": "tests/fixtures/csv/ramadan.csv",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Original hand-authored fictional Ramadan columns and missing value cases",
+      "evidence": "tests/fixtures/csv/README.md",
+      "sha256": "2d321ec235bdaedf243aa59669536ff9f655205e541c39c15c3aa5690baa56f7"
     },
     {
       "path": "tests/fixtures/pdf/mosque_a_monthly_2022.pdf",
       "rights": "original_mit",
       "owner": "Repository maintainers",
       "basis": "Independently invented fictional times; no published values",
-      "evidence": "tests/fixtures/pdf/generate_mosque_examples.py"
+      "evidence": "tests/fixtures/pdf/generate_mosque_examples.py",
+      "sha256": "b0b590f03609b52ba4b58497eb48b759727417b3b553a155a879bc011c4551c6"
     },
     {
       "path": "tests/fixtures/pdf/mosque_a_synthetic_2026.expected.csv",
       "rights": "original_mit",
       "owner": "Repository maintainers",
       "basis": "Independently invented fictional times",
-      "evidence": "tests/fixtures/pdf/mosque_a_generate.py"
+      "evidence": "tests/fixtures/pdf/mosque_a_generate.py",
+      "sha256": "3b7fce139ad8dc13acf8868d66c81d37eb3e346e7564c8106b6a1093c5e33122"
     },
     {
       "path": "tests/fixtures/pdf/mosque_a_synthetic_2026.pdf",
       "rights": "original_mit",
       "owner": "Repository maintainers",
       "basis": "Independently invented fictional times",
-      "evidence": "tests/fixtures/pdf/mosque_a_generate.py"
+      "evidence": "tests/fixtures/pdf/mosque_a_generate.py",
+      "sha256": "fe505afec8780eb7946a8e799aef7a046a43b19e6dc4fc55a372e5ba65d61f09"
     },
     {
       "path": "tests/fixtures/pdf/mosque_b_2026.pdf",
       "rights": "original_mit",
       "owner": "Repository maintainers",
       "basis": "Independently invented fictional times; no published values",
-      "evidence": "tests/fixtures/pdf/generate_mosque_examples.py"
+      "evidence": "tests/fixtures/pdf/generate_mosque_examples.py",
+      "sha256": "9dced01e7bc138add4f7b48d9fb1cbd5f7cb1d36a107d1c0ab293996944722a9"
     },
     {
       "path": "tests/fixtures/pdf/sample_table.expected.csv",
       "rights": "original_mit",
       "owner": "Repository maintainers",
       "basis": "Independently generated fictional fixture",
-      "evidence": "tests/fixtures/pdf/generate.py"
+      "evidence": "tests/fixtures/pdf/generate.py",
+      "sha256": "35b2e98d7e56b91ee964951fbbb6e872de7f1f0553c4ac44655908056e4eb93f"
     },
     {
       "path": "tests/fixtures/pdf/sample_table.pdf",
       "rights": "original_mit",
       "owner": "Repository maintainers",
       "basis": "Independently generated fictional fixture",
-      "evidence": "tests/fixtures/pdf/generate.py"
+      "evidence": "tests/fixtures/pdf/generate.py",
+      "sha256": "a4b12c11b616f346156456b0d051bbdc09b11c4ef5a50fabc4805faab2fed8b1"
     },
     {
       "path": "tests/fixtures/pdf/unsupported_layout.pdf",
       "rights": "original_mit",
       "owner": "Repository maintainers",
       "basis": "Independently generated fictional fixture",
-      "evidence": "tests/fixtures/pdf/generate.py"
+      "evidence": "tests/fixtures/pdf/generate.py",
+      "sha256": "2fc57eca4aebbca68dbb6a39004965692424eb3f70410a7b4053f5166ca58452"
+    },
+    {
+      "path": "tests/fixtures/storage/v1_multi_year.json",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Synthetic historical serialization of fictional times",
+      "evidence": "tests/fixtures/storage/README.md",
+      "sha256": "cf6100df4685c90412c980a45064deb46afb2a84d6e869481c5d78937751b3f8"
+    },
+    {
+      "path": "tests/fixtures/storage/v2_approved_pending.json",
+      "rights": "original_mit",
+      "owner": "Repository maintainers",
+      "basis": "Synthetic historical import/approval state with fictional values",
+      "evidence": "tests/fixtures/storage/README.md",
+      "sha256": "3bded584866ef16de79a2a6afc4febad309cb46311c28c56b251bf4f61d5df73"
     }
   ]
 }

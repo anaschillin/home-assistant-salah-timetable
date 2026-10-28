@@ -33,7 +33,7 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 
 ## REV-01 — CalendarEvent start/end semantics
 
-**Evidence:** [`calendar.py`](../../custom_components/salah_timetable/calendar.py) in `_day_events()` sets `end=stamp`. [`test_calendar.py`](../../tests/test_calendar.py) explicitly asserts that `start == end`. The [Home Assistant calendar entity developer documentation](https://contributors.home-assistant.io/core/entities/calendar/) treats event starts as inclusive and ends as exclusive; verify the contract against the supported Core versions before changing behaviour.
+**Evidence:** [`calendar.py`](../../custom_components/salah_timetable/calendar.py) in `_day_events()` sets `end=stamp`. [`test_calendar.py`](../../tests/calendar/test_calendar.py) explicitly asserts that `start == end`. The [Home Assistant calendar entity developer documentation](https://contributors.home-assistant.io/core/entities/calendar/) treats event starts as inclusive and ends as exclusive; verify the contract against the supported Core versions before changing behaviour.
 
 **Risk:** Zero-length events have no active interval. UI rendering, calendar integrations, overlapping range queries and start/end-trigger semantics may be inconsistent even if current API smoke tests succeed. Prayer/Jamaat times themselves must remain exact instants—an event's display interval must not be presented as a religious or congregational duration.
 
@@ -63,7 +63,7 @@ Keep changes small, add regression tests, and link the implementing commit/PR an
 
 ## REV-03 — Distinguish rejected content from approved source freshness
 
-**Evidence:** [`source_updates.py`](../../custom_components/salah_timetable/source_updates.py) returns `up_to_date` when checks have `last_success`, even if content was staged and rejected. [`test_source_updates.py`](../../tests/test_source_updates.py) intentionally asserts `up_to_date` for a rejected, unchanged source with no approved table.
+**Evidence:** [`source_updates.py`](../../custom_components/salah_timetable/source_updates.py) returns `up_to_date` when checks have `last_success`, even if content was staged and rejected. [`test_source_updates.py`](../../tests/sources/test_source_updates.py) intentionally asserts `up_to_date` for a rejected, unchanged source with no approved table.
 
 **Risk:** Users may read “up to date” as “the current publication has been approved and is active,” whereas it can mean only “the last download was successful.” The existing checksum suppression after a rejection is valuable and should be retained.
 

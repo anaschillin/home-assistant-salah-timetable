@@ -12,7 +12,7 @@ from custom_components.salah_timetable.mosque_a_layout import MOSQUE_A_COLUMNS
 from custom_components.salah_timetable.pdf_parser import PdfParser
 from custom_components.salah_timetable.source_model import RemoteSource
 
-FIXTURE = Path(__file__).parent / "fixtures/pdf/mosque_a_synthetic_2026.pdf"
+FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/mosque_a_synthetic_2026.pdf"
 
 
 @pytest.mark.parametrize(
