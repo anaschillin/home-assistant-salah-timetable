@@ -237,7 +237,7 @@ test("dashboard controls hide panels and details without hiding published prayer
   assert.equal(find(card.shadowRoot, "table").length, 1);
   assert.match(find(card.shadowRoot, "table")[0].textContent, /05:45\s*am/i);
   assert.equal(find(card.shadowRoot, "header")[0].textContent.includes("Hijri"), false);
-  assert.equal(find(card.shadowRoot, "p").filter(element => element.className !== "note scroll-help").length, 0);
+  assert.equal(find(card.shadowRoot, "p").filter(element => !["note scroll-help", "note"].includes(element.className)).length, 0);
   assert.equal(find(card.shadowRoot, "tr")[1].attributes["aria-current"], "true");
 });
 
@@ -385,7 +385,8 @@ test("availability recovery and entity configuration changes invalidate the rend
   assert.equal(find(card.shadowRoot, "table").length, 1);
   current.states["sensor.other_mosque"] = {...state, attributes: {...state.attributes, mosque_name: "Other Mosque"}};
   card.setConfig({entity: "sensor.other_mosque", title: "Selected Mosque"});
-  assert.equal(find(card.shadowRoot, "h2")[0].textContent, "Selected Mosque");
+  assert.equal(find(card.shadowRoot, "select").find(element => element.className === "mosque-select").value, "sensor.other_mosque");
+  assert.ok(find(card.shadowRoot, "h2")[0].textContent.includes("Selected Mosque"));
   const table = find(card.shadowRoot, "table")[0]; card.hass = current;
   assert.equal(find(card.shadowRoot, "table")[0], table);
   current.states["sensor.other_mosque"].attributes.prayers = []; card.hass = current;
@@ -655,19 +656,19 @@ test("compact timetable puts date controls after the table and preserves adjacen
   assert.equal(card._selectedDay, -1);
   assert.equal(find(card.shadowRoot, "table").length, 0, "Missing dates do not borrow today's timetable");
   assert.match(card.shadowRoot.textContent, /No approved timetable/);
-  assert.equal(classNodes(card.shadowRoot, "date-tabs").length, 1, "Day controls survive an unavailable date");
-  const nextToday = classNodes(card.shadowRoot, "date-tabs")[0].children[1];
+  assert.equal(find(card.shadowRoot, "nav").filter(element => element.className === "date-tabs").length, 1, "Day controls survive an unavailable date");
+  const nextToday = find(card.shadowRoot, "nav").find(element => element.className === "date-tabs").children[1];
   nextToday.dispatchEvent(new Event("click"));
   assert.equal(card._selectedDay, 0);
   assert.equal(find(card.shadowRoot, "table").length, 1);
-  assert.equal(classNodes(card.shadowRoot, "date-tabs")[0].children[1].attributes["aria-pressed"], "true");
+  assert.equal(find(card.shadowRoot, "nav").find(element => element.className === "date-tabs").children[1].attributes["aria-pressed"], "true");
 });
 
 test("watermark icons are decorative, and Hijri information is closed until requested", () => {
   const card = new SalahTimetableCard();
   card.setConfig({entity: "sensor.mosque_prayer_timetable"});
   card.hass = hass();
-  const icons = classNodes(card.shadowRoot, "panel-silhouette");
+  const icons = find(card.shadowRoot, "span").filter(element => element.className === "panel-silhouette");
   assert.equal(icons.length, 2);
   assert.deepEqual(icons.map(icon => icon.attributes["aria-hidden"]), ["true", "true"]);
   assert.equal(find(card.shadowRoot, "svg").length, 2);
