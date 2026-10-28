@@ -41,7 +41,8 @@ test("background photo is clipped and its frame is independent of card height", 
   assert.match(imageLayer[1], /transform:\s*translateX\(-50%\)/);
   assert.match(imageLayer[1], /background-origin:\s*padding-box\s*;/);
   assert.match(imageLayer[1], /background-clip:\s*padding-box\s*;/);
-  assert.match(imageLayer[1], /background-image:\s*linear-gradient\(var\(--mosque-overlay\)/);
+  assert.match(imageLayer[1], /background-image:\s*var\(--mosque-background-image\)/);
+  assert.doesNotMatch(CARD_CSS, /--mosque-overlay/);
   const blurredRim = CARD_CSS.match(/ha-card\.has-mosque-background::after\s*\{([^}]+)\}/);
   assert.ok(blurredRim, "Missing blurred photo rim");
   assert.match(blurredRim[1], /height:\s*max\(calc\(100% - 2px\),var\(--mosque-photo-frame-height,100%\)\)/);
@@ -56,7 +57,7 @@ test("full-canvas mosque background and centered glass content retain accessible
   assert.match(CARD_CSS, /\.content\s*\{[^}]*margin-inline:\s*auto/);
   assert.match(CARD_CSS, /ha-card\.has-mosque-background::after\s*\{[^}]*filter:\s*blur\(14px\)/);
   assert.match(CARD_CSS, /ha-card\.has-mosque-background::after\s*\{[^}]*mask-image:\s*radial-gradient/);
-  assert.match(CARD_CSS, /ha-card\.has-mosque-background \.content\s*\{[^}]*backdrop-filter:\s*blur\(1px\)/);
+  assert.match(CARD_CSS, /ha-card\.has-mosque-background \.content\s*\{[^}]*backdrop-filter:\s*none/);
   assert.match(CARD_CSS, /prefers-reduced-transparency:\s*reduce/);
   assert.match(CARD_CSS, /ha-card\.has-mosque-background::after\s*\{\s*display:\s*none/);
   assert.match(CARD_CSS, /\.header \.month-description\s*\{[^}]*grid-column:\s*1 \/ -1/);
@@ -65,25 +66,28 @@ test("full-canvas mosque background and centered glass content retain accessible
 });
 
 
-test("outer Home Assistant card has no drop shadow while its glass panel retains depth", () => {
+test("outer Home Assistant card has no drop shadow while both glass cards retain depth", () => {
   const cardRules = [...CARD_CSS.matchAll(/ha-card\s*\{([^}]+)\}/g)];
-  assert.ok(cardRules.length >= 2, "Expected base and full-canvas card styles");
-  assert.ok(cardRules.slice(-2).every(match => /box-shadow:\s*none\s*;/.test(match[1])),
-    "No generic or wide-canvas rule should leave an external card shadow");
+  assert.ok(cardRules.length >= 2);
+  assert.ok(cardRules.slice(-2).every(match => /box-shadow:\s*none\s*;/.test(match[1])));
   assert.doesNotMatch(CARD_CSS, /ha-card\s*\{[^}]*box-shadow:\s*0\s+\d+px/);
-  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*box-shadow:\s*0 12px 32px/);
+  assert.match(CARD_CSS, /\.summary-shell,\s*\.timetable-shell\s*\{[^}]*box-shadow:/);
   assert.match(CARD_CSS, /ha-card\.has-mosque-background::after\s*\{[^}]*filter:\s*blur\(14px\)/);
 });
 
-test("one stronger glass surface gives Salah and Jamaat identical panel formatting", () => {
-  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*border-radius:\s*18px/);
-  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*secondary-background-color\) 94%,transparent/);
-  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*backdrop-filter:\s*blur\(18px\) saturate\(115%\)/);
-  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*margin-bottom:\s*16px/);
-  // One shared selector must override the old Salah-only tint.
-  assert.match(CARD_CSS, /\.summary-shell \.panel\.prayer-panel,\s*\.summary-shell \.panel\.prayer-panel\[data-panel="salah"\]\s*\{[^}]*background:\s*transparent/);
-  assert.match(CARD_CSS, /\.summary-shell \.panel\.prayer-panel,\s*\.summary-shell \.panel\.prayer-panel\[data-panel="salah"\]\s*\{[^}]*border:\s*0/);
-  assert.match(CARD_CSS, /\.summary-shell \.prayer-panel \+ \.prayer-panel\s*\{[^}]*border-inline-start/);
-  assert.match(CARD_CSS, /@container\(max-width:21rem\)\s*\{\s*\.summary-shell \.panels\s*\{\s*grid-template-columns:\s*1fr/);
+test("summary and timetable share one CSS-first liquid-glass material", () => {
+  const shared = CARD_CSS.match(/\.summary-shell,\s*\.timetable-shell\s*\{([^}]+)\}/);
+  assert.ok(shared, "Both panels must share the same glass surface rule");
+  for (const pattern of [
+    /border-radius:\s*18px/, /linear-gradient\(135deg/,
+    /backdrop-filter:\s*blur\(20px\) saturate\(160%\)/,
+    /box-shadow:/, /secondary-background-color/
+  ]) assert.match(shared[1], pattern);
+  assert.match(CARD_CSS, /\.summary-shell::before,\s*\.timetable-shell::before\s*\{/);
+  assert.match(CARD_CSS, /\.summary-shell > \*,\s*\.timetable-shell > \*\s*\{/);
+  assert.match(CARD_CSS, /\.timetable-shell thead,\s*\.timetable-shell \.date-tabs\s*\{/);
+  assert.match(CARD_CSS, /@supports not \(backdrop-filter: blur\(1px\)\)/);
   assert.match(CARD_CSS, /@media \(prefers-contrast: more\), \(prefers-reduced-transparency: reduce\)/);
+  assert.match(CARD_CSS, /\.summary-shell \.panel\.prayer-panel,\s*\.summary-shell \.panel\.prayer-panel\[data-panel="salah"\]\s*\{[^}]*background:\s*transparent/);
+  assert.match(CARD_CSS, /@container\(max-width:21rem\)\s*\{\s*\.summary-shell \.panels\s*\{\s*grid-template-columns:\s*1fr/);
 });
