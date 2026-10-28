@@ -683,33 +683,75 @@ tbody tr th,tbody tr td {
   padding: 7px 4px;
   font-size: .79rem;
 }
-/* The Hijri date already names the month; its explanation is subordinate
-   text in the header, without a second heading or a separate panel. */
-.header .month-description {
-  flex-basis: 100%;
-  max-width: 74ch;
+/* A real grid reserves a full row for the month description. The previous
+   flex-basis:100% + max-width combination let the description share a line
+   with the dates on tablet and desktop. */
+.header {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) max-content;
+  align-items: start;
+  justify-content: stretch;
+  column-gap: 16px;
+  row-gap: 5px;
+}
+.header h2 {
+  grid-column: 1 / -1;
   min-width: 0;
-  margin: 3px 0 0;
-  font-size: .78rem;
+}
+.header .hijri {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.header .gregorian {
+  grid-column: 2;
+  grid-row: 2;
+  text-align: end;
+  white-space: normal;
+}
+.header .month-description {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 2px 0 0;
+  font-size: .82rem;
   line-height: 1.45;
   font-weight: 400;
   color: var(--secondary-text-color);
   overflow-wrap: anywhere;
 }
-/* A centered glass surface within the dashboard card's allotted column. */
+/* When card space is truly narrow, dates stack instead of competing for
+   horizontal space. Use container width, not overall device viewport. */
+@container(max-width:23rem) {
+  .header { grid-template-columns: minmax(0,1fr); }
+  .header .hijri { grid-column: 1; grid-row: 2; }
+  .header .gregorian {
+    grid-column: 1;
+    grid-row: 3;
+    text-align: start;
+  }
+  .header .month-description { grid-row: 4; }
+}
+/* Keep a framed, centred presentation, but allow tablet and desktop cards
+   to use the available landscape width instead of a narrow 1000px strip. */
 ha-card {
   box-sizing: border-box;
   width: 100%;
-  max-width: 1000px;
+  max-width: 1280px;
   margin-inline: auto;
-  box-shadow: 0 14px 44px rgba(0,0,0,.16), inset 0 1px rgba(255,255,255,.07);
+  box-shadow: 0 14px 44px rgba(0,0,0,.13), inset 0 1px rgba(255,255,255,.05);
   border-color: color-mix(in srgb,var(--primary-color) 17%,var(--divider-color));
 }
+/* Only soften the photo through the card; keep the true glass blur on
+   individual panels and concentrate the stronger blur at the image rim. */
 ha-card.has-mosque-background .content {
   z-index: 1;
-  background: color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 12%,transparent);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  background: color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 8%,transparent);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
 }
 /* Blur only the photograph at the rim, never the timetable or lettering. */
 ha-card.has-mosque-background::after {
