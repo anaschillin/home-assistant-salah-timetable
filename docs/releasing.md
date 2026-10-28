@@ -13,24 +13,28 @@ calendar, recognized PDF layouts, speaker controls, import review, Hijri-first
 header and Arabic/RTL controls remains separate. Hosted validation is recorded separately for exact commit
 SHAs; a final release commit still needs its own successful required jobs.
 
-## Unmerged frontend CSS test gate
+## Merged card redesign — release-acceptance scope
 
-[PR #82](https://github.com/anaschillin/home-assistant-salah-timetable/pull/82)
-passes automated browser/HA CI but is intentionally **not merged** pending
-maintainer testing on a real phone/tablet dashboard. Follow the
-[CSS branch acceptance checklist](css-acceptance.md) before merging, then
-bump the version and regenerate the bundled frontend import cache keys.
-This does not supersede the asset-rights or HACS/manual acceptance gates below.
+The CSS refactor in [PR #82](https://github.com/anaschillin/home-assistant-salah-timetable/pull/82)
+and the responsive liquid-glass card redesign in
+[PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88)
+have **both been merged**. The current version on `main` is **0.9.18**.
+The maintainer reviewed the revised dashboard and approved the PR #88 merge;
+[Validate 40744012961](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
+and [CodeQL 40744012733](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733)
+passed on its final head. The old [PR #82 acceptance checklist](css-acceptance.md)
+is historical only. This approval does not substitute for release-tag validation,
+recorded HACS reinstalls or the remaining release gates below.
 
 ## Current release readiness
 
-**Status reviewed 27 October 2026.** This is the **only active release
+**Status updated 28 October 2026 (merged card 0.9.18).** This is the **only active release
 acceptance checklist**. The [archived review plan](archive/review-action-plan-2026-10-25.md)
 preserves the original REV-01–06 implementation history. REV-07's isolated
 minimum/current unit and live-HA testing is implemented and has passed
 hosted validation; REV-08's import change comparison is implemented in
 Milestone 17. Milestone 10A's card/editor language and RTL features are
-implemented in candidate **0.9.3**, with applicable manual release acceptance
+implemented in **0.9.18**, with applicable manual release acceptance
 still outstanding. Milestone 10B's integration translations and reviewed
 Arabic wording belong in the [development backlog](remaining-work.md) unless
 they uncover a blocker. The automated checks do not replace the manual or
@@ -43,6 +47,7 @@ asset-rights gates below.
 | REV-06 HACS removal/re-addition | [PR #10](https://github.com/anaschillin/home-assistant-salah-timetable/pull/10) merged; real HA Container two-mosque isolation and config-entry removal/re-addition passed. **On 25 October the user also confirmed removal and reinstallation worked** in their installation; [evidence and limits](hacs-removal-acceptance.md#reported-hacs-removereinstall-outcome--25-october-2026). | **Partially user-confirmed, full gate pending:** capture whether the UI route was HACS and the environment/version, then verify two-mosque isolation, deleted-entry cleanup, single frontend resource/device identity and restart in the documented disposable acceptance sequence. Do not equate a successful reinstall alone with full REV-06 sign-off. |
 | REV-05 full HAOS restore | [PR #11](https://github.com/anaschillin/home-assistant-salah-timetable/pull/11) merged; real **Home Assistant Container** backup archive creation and isolated restore passed on Core 2026.10.0 and 2026.10.3 | **Deferred / lower priority for the next work cycle; not yet verified:** restore an actual *full HAOS/Supervisor* backup into a **second disposable HAOS instance**, verify entry/entity IDs, approved versus pending source data, Ramadan options, dashboard resources, Repairs and a second restart; record redacted evidence using the [restore procedure](backup-restore-acceptance.md) |
 | Required hosted validation | [27 October 2026 main Validate 40578293746](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40578293746) passed **7/7 jobs** on `78c1a9f018f9676a56b1657865bcdef40a5f8175`: locked 904-test Python suite, complete HA 2026.10.0 / 2026.10.3 compatibility suites (both 904 tests), frontend/Chromium, hassfest, HACS and HA 2026.10.3 live Container acceptance. Rounded line coverage was **95%**. [CodeQL 40578293664](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40578293664) passed. Historical 12-job evidence is preserved in [validation](validation.md). | **Automated code validation complete at this SHA, not a tagged release:** the eventual release-tagged commit still needs independent validation, and the remaining asset, manual, HACS and HAOS gates must be documented or explicitly scoped. |
+| Card redesign 0.9.18 | [PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88), [Validate](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961), [CodeQL](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733) green, merged to `main` at `80b8017`; maintainer approved the visual result | **Implementation complete; release acceptance still separate:** verify selected-day header dates, multi-mosque selector, viewport-height image, high-contrast glass and old-card opacity migration on the release candidate |
 | Manual release acceptance | See [the UI/runtime checks below](#manual-home-assistant-and-hacs-acceptance) and [validation log](validation.md) | **Still requires recorded results** for every applicable real-world/UI scenario; a passing automated workflow is not a substitute |
 | Version, packaging and publication | Build/release scripts and draft workflow exist | **Pending:** match manifest/project/card/cache versions, changelog and notes; review existing tag, successful CI and prepared draft before publishing |
 
@@ -50,9 +55,10 @@ The [validation log](validation.md) is the evidence record, **not** a second
 checklist. The `--require-cleared` provenance audit deliberately blocks draft
 release preparation while rights remain unresolved; this is not a licence grant
 and must not be bypassed just because a release ZIP excludes the PDF fixtures.
-No GitHub release has been published for candidate 0.9.0 or its 0.8.1/0.8.0/0.7.0 predecessors; successful
-PR and main CI runs are implementation evidence, not publication or manual
-release acceptance.
+The historical 0.9.0 and earlier candidate checks were not themselves
+proof of a published release. Likewise, the **0.9.18 merged PR** and its
+green CI are implementation evidence, not a release-tag publication or full
+manual release acceptance.
 
 ### Next priorities and final sign-off
 
@@ -208,11 +214,18 @@ where possible. Record the HA/integration versions and browser/device used.
 - Confirm Ramadan dates, shift the active window and try manual On/Off. Check
   exact-date overrides, preservation of published Iftar, the Maghrib-beginning
   fallback and the text-only Taraweeh default. Restart to verify settings persist.
-- Add the bundled card through the real graphical picker/editor. Select each
-  mosque, change modes/title and reopen the editor. Check automatic loading in
-  storage-resource and YAML-resource dashboard modes without editing YAML.
-- Check compact/expanded layouts, individual countdown/detail switches, both time
-  formats and calculated Hijri adjustment without altering Ramadan activation.
+- Add the bundled card through the real graphical picker/editor. Configure
+  two mosques, verify the **single header selector** (no duplicate title),
+  restrict each card's enabled mosques and reopen the editor. Check automatic
+  loading in storage-resource and YAML-resource dashboard modes without
+  editing YAML. The old `mode` control must not appear.
+- Check `compact`, `standard` and `detailed` layouts, individual countdown
+  visibility, both time formats and calculated Hijri adjustment without changing
+  Ramadan activation. Verify the two uniform liquid-glass surfaces, minaret/dome
+  artwork and absence of the retired photo-opacity control. Confirm
+  Yesterday/Today/Tomorrow update both calendar dates and published table rows
+  without copying times or re-cropping the photo; the background-enabled card
+  fills the viewport and uses an opaque fallback for reduced transparency.
   Enable and disable the **full Hijri date** during initial mosque setup and later
   under **Configure → Mosque settings**; verify the per-card toggle can also hide
   it, older entries default to visible, and preferences persist after restart.
