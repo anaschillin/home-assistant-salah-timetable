@@ -85,9 +85,18 @@ def test_other_fixture_or_runtime_asset_types_are_not_ignored(
 @pytest.mark.parametrize(
     ("change", "message"),
     [
-        ({"rights": "permission_documented", "evidence": None}, "lacks documented evidence"),
-        ({"rights": "permission_documented", "evidence": "https://"}, "rights evidence"),
-        ({"rights": "permission_documented", "evidence": "docs/missing.txt"}, "rights evidence"),
+        (
+            {"rights": "permission_documented", "evidence": None},
+            "lacks documented evidence",
+        ),
+        (
+            {"rights": "permission_documented", "evidence": "https://"},
+            "rights evidence",
+        ),
+        (
+            {"rights": "permission_documented", "evidence": "docs/missing.txt"},
+            "rights evidence",
+        ),
         ({"evidence": "docs/missing.txt"}, "rights evidence"),
         ({"evidence": "../docs/evidence.md"}, "rights evidence"),
         ({"owner": "   "}, "rights/owner/basis"),
