@@ -2767,7 +2767,7 @@ wheels = [
 
 [[package]]
 name = "salah-timetable"
-version = "0.9.17"
+version = "0.9.18"
 source = { virtual = "." }
 
 [package.dev-dependencies]
