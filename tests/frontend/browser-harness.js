@@ -102,6 +102,10 @@ try {
   // A full Today/adjacent-day round trip must change BOTH dates (and the Hijri
   // month narrative when required), yet preserve the photograph's original crop.
   const fullTodayHeight = photoCard.getBoundingClientRect().height;
+  const minimumCanvasHeight = parseFloat(getComputedStyle(photoCard).minHeight);
+  check("photograph canvas reaches the available viewport even if content is short",
+    Number.isFinite(minimumCanvasHeight) && minimumCanvasHeight > 0 &&
+    photoCard.getBoundingClientRect().height >= minimumCanvasHeight - 1);
   const originalPhotoHeight = getComputedStyle(photoCard, "::before").height;
   const originalPhotoPosition = getComputedStyle(photoCard, "::before").backgroundPosition;
   const originalPhotoUrl = photoCard.style.getPropertyValue("--mosque-background-image");
@@ -123,8 +127,11 @@ try {
       Number.isFinite(candidatePixels) && Math.abs(candidatePixels - originalPixels) < 2 &&
       current.style.getPropertyValue("--mosque-background-image") === originalPhotoUrl &&
       candidateImage.backgroundPosition === originalPhotoPosition);
-    check(`shorter date tabs do not leave empty card space for ${key}`,
-      offset === 0 || current.getBoundingClientRect().height < fullTodayHeight);
+    check(`adjacent day keeps full-viewport photograph while summary stays compact for ${key}`,
+      current.getBoundingClientRect().height >= minimumCanvasHeight - 1 &&
+      (offset === 0 || !current.querySelector(".prayer-panel")) &&
+      current.querySelector(".timetable-shell").getBoundingClientRect().bottom <=
+        current.getBoundingClientRect().bottom + 1);
   }
   // Reproduce a disappearing browser/dashboard scrollbar: a small width
   // change after Today is selected must NOT discard the original photo frame.
