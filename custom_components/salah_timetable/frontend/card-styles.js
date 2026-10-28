@@ -683,37 +683,56 @@ tbody tr th,tbody tr td {
   padding: 7px 4px;
   font-size: .79rem;
 }
-.hijri-month-info {
-  margin-top: 10px;
-  padding: 0;
-  border-radius: 12px;
-}
-.month-summary {
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-  align-items: baseline;
-  flex-wrap: wrap;
-  padding: 10px 12px;
-  font-size: .83rem;
-  font-weight: 650;
-  cursor: pointer;
-}
-.month-summary .month-prompt {
-  color: var(--secondary-text-color);
+/* The Hijri date already names the month; its explanation is subordinate
+   text in the header, without a second heading or a separate panel. */
+.header .month-description {
+  flex-basis: 100%;
+  max-width: 74ch;
+  min-width: 0;
+  margin: 3px 0 0;
+  font-size: .78rem;
+  line-height: 1.45;
   font-weight: 400;
-  font-size: .76rem;
-  white-space: normal;
+  color: var(--secondary-text-color);
   overflow-wrap: anywhere;
 }
-.month-summary:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: -2px;
+/* A centered glass surface within the dashboard card's allotted column. */
+ha-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1000px;
+  margin-inline: auto;
+  box-shadow: 0 14px 44px rgba(0,0,0,.16), inset 0 1px rgba(255,255,255,.07);
+  border-color: color-mix(in srgb,var(--primary-color) 17%,var(--divider-color));
 }
-.hijri-month-info details > .note {
-  margin: 0;
-  padding: 0 12px 12px;
-  font-size: .78rem;
+ha-card.has-mosque-background .content {
+  z-index: 1;
+  background: color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 12%,transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+/* Blur only the photograph at the rim, never the timetable or lettering. */
+ha-card.has-mosque-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--mosque-background-image);
+  background-size: cover;
+  background-position: var(--mosque-background-position,center);
+  filter: blur(14px);
+  opacity: .14;
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 55%, #000 100%);
+  mask-image: radial-gradient(ellipse at center, transparent 55%, #000 100%);
+}
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  ha-card.has-mosque-background::after { display: none; }
+  ha-card.has-mosque-background .content {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: transparent;
+  }
 }
 @container(max-width:28rem) {
   .panels {
