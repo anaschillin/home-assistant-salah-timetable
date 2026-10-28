@@ -211,7 +211,9 @@ Context selects the previous congregation before a prayer begins, the upcoming
 congregation after its beginning, then the previous congregation once its scheduled
 instant arrives. At the exact beginning, that prayer has begun; at the exact Jamaat
 instant, it is previous with zero elapsed time. A congregation has no duration.
-The card can instead request unconditional previous or upcoming Jamaat. Sehri/Iftar
+The live card always displays context-aware Next/Previous Jamaat. The pure
+frontend event-selection helper still supports explicit selection modes for
+internal tests, but the graphical card `mode` option was retired. Sehri/Iftar
 events are drawn only from active Ramadan dates.
 
 The coordinator returns an immutable snapshot and schedules a UTC callback for the
