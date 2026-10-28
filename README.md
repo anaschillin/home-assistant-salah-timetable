@@ -169,7 +169,7 @@ historical day-event feeds and monthly history highlights are not yet available.
 The card supports English and draft Arabic translations,
 Home Assistant themes, and narrow screens.
 
-The card also includes **eight locally bundled mosque photo backgrounds** from free Unsplash photographs,\nwith a subtle 7% default opacity, daily rotation or fixed mosque selection, and a\nper-card switch to disable images. Photos load locally (no internet required at\nviewing time), and photographer credits link to the originals. The full source\nand licence details are in [mosque photo credits](docs/mosque-background-credits.md).\n\nSee [dashboard setup and behavior](docs/dashboard.md) for detailed configuration,
+The card also includes **20 locally bundled mosque photo backgrounds** from free Unsplash photographs,\nwith a subtle 7% default opacity, daily rotation or fixed mosque selection, and a\nper-card switch to disable images. Photos load locally (no internet required at\nviewing time), and photographer credits link to the originals. The full source\nand licence details are in [mosque photo credits](docs/mosque-background-credits.md).\n\nSee [dashboard setup and behavior](docs/dashboard.md) for detailed configuration,
 missing-date behaviour, event boundaries and troubleshooting.
 
 ## Automations and coverage alerts
