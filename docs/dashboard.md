@@ -33,21 +33,26 @@ for backwards compatibility. Uncheck mosques to exclude them from this card;
 at least one mosque must remain enabled. The primary **Prayer timetable** selection
 controls which mosque appears first, and is kept within the enabled set.
 
-When multiple mosques are enabled, tabs let users switch between those mosques
-without changing Home Assistant entity states. With just one enabled mosque,
-the card has no mosque tabs. Each card has independent selections: add multiple
-cards to the same dashboard, restrict each to one mosque, or use separate
-dashboards for each mosque. Existing cards without `mosque_entities` continue to
-show all discovered mosques, including new ones.
+When multiple mosques are enabled, a native selector in the header replaces
+the duplicated mosque name and wide tab strip. With one enabled mosque, the
+header displays a plain title. An optional custom title replaces the primary
+mosque's selector label. Switching mosques resets day navigation to Today without
+changing Home Assistant entity states. Each card has independent selections:
+add multiple cards to one dashboard, restrict each to one mosque, or use separate
+dashboards. Existing cards without `mosque_entities` continue to show all
+discovered mosques, including newly added ones.
 
 ## Day navigation
 
-The date tabs are **Yesterday / Today / Tomorrow**. Today is selected initially.
+The **Yesterday / Today / Tomorrow** controls sit in a slim footer inside the
+timetable frame, rather than above the prayer summaries. Today is selected initially.
 All three views share the same table styling, labels, time formatting and responsive
 layout. Yesterday and Tomorrow hide **both** prayer summary cards, live countdowns,
 current-prayer highlighting, and today's Ramadan/status sections. They show only
 the selected day's actual approved beginning and Jamaat timetable. This also
 applies when Compact is selected: its adjacent-day views show the full table.
+On a date with no approved times, the footer stays visible beneath an unavailable
+message so users can return to Today.
 
 The backend supplies independent published rows for the three local dates using
 its already-resolved effective timetables. Missing approved rows display
@@ -67,8 +72,12 @@ prayer's Jamaat is still upcoming. The countdown and published times from that
 event's actual date appear together. **Next Jamaat** counts down while the
 current prayer's congregation is still approaching; at its exact instant the
 same panel becomes **Previous Jamaat** and shows elapsed time.
-The two panels share the same component, dimensions, typography, time grid,
-theme-aware surfaces and responsive behaviour. The old context/upcoming/previous
+The two panels share compact padding, readable countdowns, published beginning
+and Jamaat times, theme-aware surfaces and responsive behaviour. A faint
+**minaret silhouette** decorates Next Salah and a faint **dome silhouette**
+decorates Jamaat. Both are inline local SVG with `aria-hidden`, carry no data,
+and do not represent the selected mosque. They remain side by side on most
+phones/tablets and stack on very narrow cards. The old context/upcoming/previous
 Jamaat panel selector has been removed.
 
 Fajr end is the *published sunrise*, never a calculated estimate. Published
@@ -149,7 +158,7 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_jamaat_countdown` | `true` |
 | `show_hijri_date` | `true`; further hides the mosque-enabled full Hijri date on this card |
 | `show_gregorian_date` | `true`; independently displays the secondary Gregorian date |
-| `show_hijri_month_info` | `true`; displays the offline description for the selected Hijri month |
+| `show_hijri_month_info` | `true`; shows a collapsed month-information row below the timetable, expandable for the selected date |
 | `hijri_adjustment` | Whole days −3 through +3; default `0` |
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
@@ -205,7 +214,7 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.9.3
+/salah_timetable/salah-timetable-card.js?v=0.9.6
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an
