@@ -76,6 +76,14 @@ try {
   render({show_mosque_background: true, mosque_background: "masjid-al-haram", mosque_background_opacity: 7});
   check("bundled mosque background resolves to local WebP", card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-background-image").includes("/salah_timetable/backgrounds/masjid-al-haram.webp"));
   check("photo includes a photographer credit", card.shadowRoot.querySelector(".background-credit a")?.href.includes("unsplash.com/photos/"));
+  const photoCard = card.shadowRoot.querySelector("ha-card");
+  const photoStyle = getComputedStyle(photoCard);
+  check("photo and tint stay inside the themed border at mobile and tablet widths",
+    photoStyle.backgroundImage.includes("linear-gradient") &&
+    photoStyle.backgroundClip.split(",").every(value => value.trim() === "padding-box") &&
+    photoStyle.backgroundOrigin.split(",").every(value => value.trim() === "padding-box") &&
+    photoStyle.overflow === "hidden" &&
+    photoStyle.borderTopWidth !== "0px" && photoStyle.borderBottomWidth !== "0px");
   render();
   const rules = card.shadowRoot.querySelector("style")?.sheet?.cssRules;
   check("bundled CSS module loads responsive rules", Boolean(rules?.length) && [...rules].some(rule => /max-width\s*:\s*28rem/.test(rule.conditionText || "")));
