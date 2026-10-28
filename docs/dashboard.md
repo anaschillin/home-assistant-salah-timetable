@@ -158,7 +158,7 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_jamaat_countdown` | `true` |
 | `show_hijri_date` | `true`; further hides the mosque-enabled full Hijri date on this card |
 | `show_gregorian_date` | `true`; independently displays the secondary Gregorian date |
-| `show_hijri_month_info` | `true`; shows a collapsed month-information row below the timetable, expandable for the selected date |
+| `show_hijri_month_info` | `true`; shows a short, non-repeating description directly beneath the visible Hijri date in the header; hidden when the Hijri date is hidden |
 | `hijri_adjustment` | Whole days −3 through +3; default `0` |
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
@@ -177,9 +177,38 @@ The four **coming soon** Islamic-history settings for day events, monthly
 highlights, visible sources and disputed dates are disabled in the editor until
 those features are implemented. Previously saved values remain inert. The Hijri
 month description is implemented separately and can be hidden with
-`show_hijri_month_info: false`.
+`show_hijri_month_info: false`. The description appears only as smaller text
+beneath the full Hijri date, without a duplicate heading, separate panel or
+footer disclosure. It follows the mosque's current header date when browsing
+yesterday or tomorrow, and hides when the Hijri date is hidden.
 
-## Optional mosque photograph backgrounds\n\nThe card bundles 20 WebP photographs from free Unsplash photo pages. They\nare served from the integration itself, without remote requests or an Unsplash\naccount. Photo backgrounds rotate once per mosque-local published date by\ndefault and do not repeat until all 20 have appeared. Choose a fixed mosque\nfrom **Mosque background** in the card editor, set **Background opacity (%)**\n(0–20), or switch off **Show mosque background** entirely.\n\nA dark/light-theme-aware colour overlay keeps images very faint behind the\nprayer timetable and countdowns. Increased-contrast or reduced-transparency\naccessibility preferences hide the image; the content remains readable without\nit. Photographer credit appears below the card content with a link to the\noriginal photo. See [image credits and source links](mosque-background-credits.md).\n\nThese decorative backgrounds do not represent the currently configured mosque\nand cannot influence prayers, mosque identity, calculations, or data imports.\n\n## Ramadan controls
+## Optional mosque photograph backgrounds
+
+The card bundles 20 WebP photographs from free Unsplash photo pages. They
+are served from the integration itself, without remote requests or an Unsplash
+account. Photo backgrounds rotate once per mosque-local published date by
+default and do not repeat until all 20 have appeared. Choose a fixed mosque
+from **Mosque background** in the card editor, set **Background opacity (%)**
+(0–20), or switch off **Show mosque background** entirely.
+
+A centred glass surface keeps the card within the width allocated by the Home
+Assistant dashboard (up to 1000px; full width on narrow cards/phones). A
+softly blurred photographic rim, translucent glass overlay and theme-aware
+shadow evoke the visual mockup without blurring text or prayer times. The
+configured background opacity continues to control the base photo's visibility.
+Increased-contrast and reduced-transparency accessibility preferences hide
+the image and disable glass effects.
+
+Home Assistant layouts determine each card's column width: the card cannot
+centre itself across multiple dashboard columns. For a wide, centred display,
+place it in a full-width dashboard section. Photographer credit appears below
+the content and links to the original photo. See
+[image credits and source links](mosque-background-credits.md).
+
+These decorative backgrounds do not represent the currently configured mosque
+and cannot influence prayers, mosque identity, calculations or data imports.
+
+## Ramadan controls
 
 Use the mosque integration's **Configure → Ramadan settings**; the card reflects
 these settings automatically.
