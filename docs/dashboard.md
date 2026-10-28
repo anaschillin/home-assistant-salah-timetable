@@ -48,8 +48,9 @@ discovered mosques, including newly added ones.
 
 The **Yesterday / Today / Tomorrow** controls sit in a slim footer inside the
 timetable frame, rather than above the prayer summaries. Today is selected initially.
-The header's Gregorian **and calculated Hijri dates**, plus the contextual Hijri
-month description, update with the selected day. The timetable does not repeat
+The header's Gregorian **and calculated Hijri dates**, plus the contextual
+Hijri month description, update with the selected day whenever those fields
+are visible (Standard/Detailed; Compact hides those dates). The timetable does not repeat
 the Gregorian date when it is already in the header; a date label remains if
 the Gregorian header is disabled or the card is in Compact mode.
 All three views share the same table styling, labels, time formatting and responsive
@@ -143,7 +144,7 @@ older device confirmations do not establish Arabic/RTL acceptance.
 
 ## Dates and customization
 
-The **primary Hijri header** uses the browser's **Umm al-Qura** calendar to
+In Standard/Detailed mode, the **primary Hijri header** uses the browser's **Umm al-Qura** calendar to
 convert the mosque's Gregorian timetable date, displaying its Islamic day,
 **named Hijri month** and year. The Gregorian date is a separate secondary
 header field; hide it via the card's `show_gregorian_date: false` switch without
