@@ -15,6 +15,7 @@ ASSET_DIRS = (
     Path("tests/fixtures/pdf"),
     Path("docs/images"),
     Path("custom_components/salah_timetable/brand"),
+    Path("custom_components/salah_timetable/frontend/backgrounds"),
 )
 ASSET_TYPES = {".pdf", ".csv", ".png", ".jpg", ".jpeg", ".svg", ".webp"}
 CLEARED = {"original_mit", "permission_documented"}
