@@ -1,5 +1,13 @@
 /** Theme-aware card styles. Keep responsive and preference overrides in cascade order. */
 export const CARD_CSS = `
+.background-credit { display: block; text-align: end; margin-top: 10px; font-size: .7rem; opacity: .75; }
+.background-credit a { color: var(--secondary-text-color); text-decoration: underline; text-underline-offset: 2px; }
+.background-credit a:focus-visible { outline: 2px solid var(--primary-color); }
+
+ha-card.has-mosque-background { background-image: linear-gradient(var(--mosque-overlay),var(--mosque-overlay)),var(--mosque-background-image); background-position: center,var(--mosque-background-position,center); background-size: cover; background-repeat: no-repeat; }
+ha-card.has-mosque-background .content { position: relative; }
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) { ha-card.has-mosque-background { background-image: none; } }
+
 .date-tabs {
   display: grid;
   grid-template-columns: repeat(3,minmax(0,1fr));

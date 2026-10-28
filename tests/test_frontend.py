@@ -50,6 +50,13 @@ async def test_bundled_modules_are_served_and_paths_registered_once(hass, hass_c
     styles = await client.get("/salah_timetable/card-styles.js")
     assert styles.status == 200
     assert "CARD_CSS" in await styles.text()
+    backgrounds = await client.get("/salah_timetable/mosque-backgrounds.js")
+    assert backgrounds.status == 200
+    assert "MOSQUE_BACKGROUNDS" in await backgrounds.text()
+    image = await client.get("/salah_timetable/backgrounds/masjid-al-haram.webp")
+    assert image.status == 200
+    assert image.headers["Content-Type"].startswith("image/webp")
+    assert (await image.read()).startswith(b"RIFF")
     translations = await client.get("/salah_timetable/card-i18n.js")
     assert translations.status == 200
     source = await translations.text()

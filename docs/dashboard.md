@@ -144,7 +144,7 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
 | `show_iftar_countdown` | `true`; hiding retains the displayed absolute time |
-| `show_timezone_note` | `true`; controls the timezone and missing-time note |
+| `show_timezone_note` | `true`; controls the timezone and missing-time note |\n| `show_mosque_background` | `true`; display a subtle bundled mosque photograph; `false` disables the image |\n| `mosque_background` | `daily` (default); `none`, or a bundled mosque ID for a fixed photo |\n| `mosque_background_opacity` | Whole number from `0` to `20`; default `7` (%) |
 
 Hiding either main panel removes it; the remaining panel fills the width.
 Hiding both leaves the header and timetable. Connection warnings and narrow-card
@@ -160,7 +160,7 @@ may be saved, but they do not currently display historical event records. The
 Hijri month description is implemented separately and can be hidden with
 `show_hijri_month_info: false`.
 
-## Ramadan controls
+## Optional mosque photograph backgrounds\n\nThe card bundles 20 WebP photographs from free Unsplash photo pages. They\nare served from the integration itself, without remote requests or an Unsplash\naccount. Photo backgrounds rotate once per mosque-local published date by\ndefault and do not repeat until all 20 have appeared. Choose a fixed mosque\nfrom **Mosque background** in the card editor, set **Background opacity (%)**\n(0–20), or switch off **Show mosque background** entirely.\n\nA dark/light-theme-aware colour overlay keeps images very faint behind the\nprayer timetable and countdowns. Increased-contrast or reduced-transparency\naccessibility preferences hide the image; the content remains readable without\nit. Photographer credit appears below the card content with a link to the\noriginal photo. See [image credits and source links](mosque-background-credits.md).\n\nThese decorative backgrounds do not represent the currently configured mosque\nand cannot influence prayers, mosque identity, calculations, or data imports.\n\n## Ramadan controls
 
 Use the mosque integration's **Configure → Ramadan settings**; the card reflects
 these settings automatically.

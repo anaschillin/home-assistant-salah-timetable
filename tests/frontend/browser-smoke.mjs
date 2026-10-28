@@ -9,6 +9,7 @@ import {resolve, join} from "node:path";
 import {fileURLToPath} from "node:url";
 import {spawn} from "node:child_process";
 import {waitForDebuggerPort} from "./browser-startup.mjs";
+import {MOSQUE_BACKGROUNDS} from "../../custom_components/salah_timetable/frontend/mosque-backgrounds.js";
 
 const root = resolve(fileURLToPath(new URL("../../", import.meta.url)));
 let browser;
@@ -116,12 +117,14 @@ nextFixture();
     ["/custom_components/salah_timetable/frontend/card-utils.js", join(root, "custom_components/salah_timetable/frontend/card-utils.js")],
     ["/custom_components/salah_timetable/frontend/card-i18n.js", join(root, "custom_components/salah_timetable/frontend/card-i18n.js")],
     ["/custom_components/salah_timetable/frontend/card-styles.js", join(root, "custom_components/salah_timetable/frontend/card-styles.js")],
+    ["/custom_components/salah_timetable/frontend/mosque-backgrounds.js", join(root, "custom_components/salah_timetable/frontend/mosque-backgrounds.js")],
   ]);
+  for (const photo of MOSQUE_BACKGROUNDS) files.set(photo.path, join(root, "custom_components/salah_timetable/frontend/backgrounds", `${photo.id}.webp`));
   const server = createServer(async (request, response) => {
     const path = new URL(request.url, "http://127.0.0.1").pathname;
     try {
       if (path === "/" || path === "/frame.html") { response.writeHead(200, {"Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store"}); response.end(path === "/" ? main : frame); }
-      else if (files.has(path)) { response.writeHead(200, {"Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-store"}); response.end(await readFile(files.get(path))); }
+      else if (files.has(path)) { response.writeHead(200, {"Content-Type": path.endsWith(".webp") ? "image/webp" : "text/javascript; charset=utf-8", "Cache-Control": "no-store"}); response.end(await readFile(files.get(path))); }
       else { response.writeHead(404); response.end(); }
     } catch { response.writeHead(500); response.end(); }
   });

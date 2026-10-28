@@ -1,6 +1,6 @@
 /** Real-browser fixture: native shadow DOM/CSS with small HA control stand-ins. */
-import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.3";
-import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.3";
+import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.4";
+import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.4";
 
 class Selector extends HTMLElement {
   constructor() {
@@ -63,7 +63,7 @@ const data = {
 };
 let serviceCalls = 0;
 const hass = {states: {"sensor.example_prayer_timetable": {state: data.date, attributes: data}}, locale: {language: "en-GB"}, config: {time_zone: data.time_zone}, connection: {connected: true}, callService() { serviceCalls++; }};
-const config = {entity: "sensor.example_prayer_timetable", detail_level: "detailed", language, bilingual_prayer_labels: bilingual};
+const config = {entity: "sensor.example_prayer_timetable", detail_level: "detailed", language, bilingual_prayer_labels: bilingual, show_mosque_background: false};
 const ui = resolveUi(config, hass);
 const digits = value => new Intl.NumberFormat(ui.locale, {useGrouping: false, minimumIntegerDigits: 2}).format(value);
 const zero = `${digits(0)}:${digits(0)}:${digits(0)}`;
@@ -73,6 +73,10 @@ try {
   const render = (patch = {}, now = time(4, 40)) => { card.setConfig({...config, ...patch}); card._render(Date.parse(now)); };
   card.setConfig(config); card.hass = hass; document.body.append(card); card._render(Date.parse(time(4, 40)));
   check("shadow DOM renders five prayer rows", card.shadowRoot.querySelectorAll("tbody tr").length === 5);
+  render({show_mosque_background: true, mosque_background: "masjid-al-haram", mosque_background_opacity: 7});
+  check("bundled mosque background resolves to local WebP", card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-background-image").includes("/salah_timetable/backgrounds/masjid-al-haram.webp"));
+  check("photo includes a photographer credit", card.shadowRoot.querySelector(".background-credit a")?.href.includes("unsplash.com/photos/"));
+  render();
   const rules = card.shadowRoot.querySelector("style")?.sheet?.cssRules;
   check("bundled CSS module loads responsive rules", Boolean(rules?.length) && [...rules].some(rule => /max-width\s*:\s*28rem/.test(rule.conditionText || "")));
   const narrowRules = [...rules].find(rule => /max-width\s*:\s*28rem/.test(rule.conditionText || ""))?.cssRules;
