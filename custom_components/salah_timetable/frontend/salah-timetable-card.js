@@ -1,3 +1,4 @@
+import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=0.9.3";
 import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=0.9.3";
 import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.3";
 import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9.3";
@@ -185,6 +186,13 @@ export class SalahTimetableCard extends HTMLElement {
     const style = node("style", CARD_CSS);
     const card = direction(node("ha-card"), ui);
     const state = this._state();
+    const background = this._config.show_mosque_background && chooseMosqueBackground(MOSQUE_BACKGROUNDS, this._config.mosque_background, new Date(now).toISOString().slice(0, 10));
+    if (background) {
+      card.classList.add("has-mosque-background");
+      card.style.setProperty("--mosque-background-image", `url("${background.path}")`);
+      card.style.setProperty("--mosque-overlay", `color-mix(in srgb, var(--ha-card-background,var(--card-background-color)) ${100 - this._config.mosque_background_opacity}%, transparent)`);
+      card.style.setProperty("--mosque-background-position", background.position || "center");
+    }
     if (!this._activeEntity() || !state || ["unavailable", "unknown"].includes(state.state) || !isTimetableState(state)) {
       const key = !this._activeEntity() ? "card.choose_entity" : !state ? "card.entity_missing" : "card.unavailable";
       card.append(node("div", tr(ui, key), "empty"));
@@ -360,10 +368,10 @@ export class SalahTimetableCardEditor extends HTMLElement {
     const ui = resolveUi(this._config, this._hass);
     direction(this, ui); direction(this._form, ui);
     for (const [key, {control, checkbox, label, options}] of Object.entries(this._extraControls || {})) {
-      const historyLabels = {show_hijri_month_info: "Show Hijri month information", show_historical_day_events: "Show historical day events (coming soon)", show_historical_month_highlights: "Show monthly history highlights (coming soon)", show_historical_sources: "Show history sources (coming soon)", show_disputed_historical_dates: "Include disputed dates (coming soon)"};
+      const historyLabels = {show_mosque_background: "Show mosque background", mosque_background: "Mosque background", mosque_background_opacity: "Background opacity (%)",show_hijri_month_info: "Show Hijri month information", show_historical_day_events: "Show historical day events (coming soon)", show_historical_month_highlights: "Show monthly history highlights (coming soon)", show_historical_sources: "Show history sources (coming soon)", show_disputed_historical_dates: "Include disputed dates (coming soon)"};
       const text = historyLabels[key] || tr(ui, `editor.${key}`);
       label.textContent = text; control.setAttribute("aria-label", text);
-      for (const {option, value} of options || []) option.textContent = key === "hijri_adjustment" ? localizedNumber(value, ui, {signDisplay: "exceptZero"}) : tr(ui, `editor.${key}.${value}`);
+      for (const {option, value} of options || []) option.textContent = key === "hijri_adjustment" ? localizedNumber(value, ui, {signDisplay: "exceptZero"}) : key === "mosque_background_opacity" ? `${value}%` : key === "mosque_background" ? (MOSQUE_BACKGROUNDS.find(item => item.id === value)?.name || (value === "daily" ? "Rotate daily" : "None")) : tr(ui, `editor.${key}.${value}`);
       if (checkbox) control.checked = this._config[key];
       else if (control.value !== String(this._config[key])) control.value = String(this._config[key]);
     }
@@ -410,6 +418,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]],
       ["show_hijri_date"], ["show_gregorian_date"], ["show_salah_countdown"], ["show_jamaat_countdown"],
       ["show_hijri_month_info"], ["show_historical_day_events"], ["show_historical_month_highlights"], ["show_historical_sources"], ["show_disputed_historical_dates"],
+      ["show_mosque_background"], ["mosque_background", ["daily", "none", ...MOSQUE_BACKGROUNDS.map(item => item.id)]], ["mosque_background_opacity", [0, 3, 5, 7, 10, 12, 15, 20]],
       ["show_ramadan_details"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_timezone_note"]
     ];
     const extras = [];
@@ -419,7 +428,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       if (choices) for (const value of choices) { const option = node("option"); option.value = String(value); control.append(option); options.push({option, value}); }
       else control.type = "checkbox";
       control.setAttribute("data-option", key);
-      control.addEventListener("change", () => this._changed({[key]: choices ? key === "hijri_adjustment" ? Number(control.value) : control.value : control.checked}));
+      control.addEventListener("change", () => this._changed({[key]: choices ? ["hijri_adjustment", "mosque_background_opacity"].includes(key) ? Number(control.value) : control.value : control.checked}));
       this._extraControls[key] = {control, checkbox: !choices, label, options}; field.append(control); extras.push(field);
     }
     form.append(entity, error, titleField, ...extras, help);
