@@ -191,20 +191,24 @@ default and do not repeat until all 20 have appeared. Choose a fixed mosque
 from **Mosque background** in the card editor, set **Background opacity (%)**
 (0–20), or switch off **Show mosque background** entirely.
 
-A centred glass surface keeps the card within the width allocated by the Home
-Assistant dashboard (up to 1280px; full width on narrow cards/phones). A
-softly blurred photographic rim, subtle translucent glass overlay and theme-aware
-shadow evoke the visual mockup without blurring text or prayer times. The Hijri
-date, Gregorian date and month explanation occupy deliberate header rows even
-on tablet and desktop layouts. The
-configured background opacity continues to control the base photo's visibility.
-Increased-contrast and reduced-transparency accessibility preferences hide
-the image and disable glass effects.
+The mosque photograph now covers the **full width of the canvas allotted
+to this card** by Home Assistant, without a hard 1280px limit. The timetable,
+header and countdowns remain in an independently centred content column
+(up to 1160px wide). On narrow cards and mobile screens, the content naturally
+fills the available width. This creates wider photographic wings on landscape
+tablets and desktops without stretching the prayer table excessively.
 
-Home Assistant layouts determine each card's column width: the card cannot
-centre itself across multiple dashboard columns. For a wide, centred display,
-place it in a full-width dashboard section. Photographer credit appears below
-the content and links to the original photo. See
+A softly blurred photographic rim, subtle translucent glass overlay and
+theme-aware shadow evoke the mockup without blurring text or prayer times.
+The Hijri date, Gregorian date and month explanation occupy separate header
+rows on mobile, tablet and desktop. Background opacity still controls the
+photo's visibility. Increased-contrast and reduced-transparency preferences
+hide the image and disable glass effects.
+
+Home Assistant determines each card's **parent column width**, and the card
+cannot paint outside that column or across a sidebar. To fill a wider dashboard
+canvas, place the card in a full-width section or panel view. Photographer
+credit stays with the centred content and links to the original photo. See
 [image credits and source links](mosque-background-credits.md).
 
 These decorative backgrounds do not represent the currently configured mosque
