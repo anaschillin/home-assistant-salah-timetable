@@ -95,9 +95,8 @@ test("summary and timetable share one CSS-first liquid-glass material", () => {
 test("glass readability uses the same high-contrast substrate without an extra timetable tint", () => {
   const shared = CARD_CSS.match(/\.summary-shell,\s*\.timetable-shell\s*\{([^}]+)\}/);
   assert.ok(shared);
-  for (const strength of [92, 95, 92]) {
-    assert.match(shared[1], new RegExp("ha-card-background[^\n]*\) " + strength + "%,transparent"));
-  }
+  assert.equal((shared[1].match(/ha-card-background[^\n]*\) 92%,transparent/g) || []).length, 2);
+  assert.equal((shared[1].match(/ha-card-background[^\n]*\) 95%,transparent/g) || []).length, 1);
   assert.doesNotMatch(shared[1], /secondary-background-color\) (?:59|70|72)%,transparent/);
   assert.match(shared[1], /color:\s*var\(--primary-text-color\)/);
   const table = CARD_CSS.match(/\.timetable-shell thead,\s*\.timetable-shell \.date-tabs,\s*\.timetable-shell \.table-scroll\s*\{([^}]+)\}/);
