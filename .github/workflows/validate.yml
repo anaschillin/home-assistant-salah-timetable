@@ -84,9 +84,17 @@ jobs:
           BROWSER_SCREENSHOT_DIR: ${{ runner.temp }}/salah-visual-baseline
       - name: Compare rendered card pixels with pull request base
         if: github.event_name == 'pull_request'
-        run: node scripts/compare_screenshots.mjs "${{ runner.temp }}/salah-visual-baseline" "${{ runner.temp }}/salah-visual-current"
-      - name: Upload screenshots when a visual check fails
-        if: failure() && github.event_name == 'pull_request'
+        env:
+          VISUAL_CHANGE_APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'visual-change-approved') }}
+        run: |
+          approval=""
+          if [[ "$VISUAL_CHANGE_APPROVED" == "true" ]]; then
+            echo "Explicit visual redesign approval present on pull request"
+            approval="--approved-visual-change"
+          fi
+          node scripts/compare_screenshots.mjs "${{ runner.temp }}/salah-visual-baseline" "${{ runner.temp }}/salah-visual-current" ${approval}
+      - name: Upload screenshot evidence for failures and approved redesigns
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && (failure() || contains(github.event.pull_request.labels.*.name, 'visual-change-approved')) }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: frontend-visual-diff-${{ github.event.pull_request.number }}
