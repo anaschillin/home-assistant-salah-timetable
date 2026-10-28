@@ -1,6 +1,7 @@
 /** Real-browser fixture: native shadow DOM/CSS with small HA control stand-ins. */
 import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.11";
 import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.11";
+import {formatDate, formatHijriDate, hijriMonthInfo} from "/custom_components/salah_timetable/frontend/card-utils.js?v=0.9.11";
 
 class Selector extends HTMLElement {
   constructor() {
@@ -78,23 +79,47 @@ try {
   check("photo includes a photographer credit", card.shadowRoot.querySelector(".background-credit a")?.href.includes("unsplash.com/photos/"));
   const photoCard = card.shadowRoot.querySelector("ha-card");
   const photoStyle = getComputedStyle(photoCard);
-  check("photo and tint stay inside the themed border at mobile and tablet widths",
-    photoStyle.backgroundImage.includes("linear-gradient") &&
-    photoStyle.backgroundClip.split(",").every(value => value.trim() === "padding-box") &&
-    photoStyle.backgroundOrigin.split(",").every(value => value.trim() === "padding-box") &&
+  const imageStyle = getComputedStyle(photoCard, "::before");
+  check("photo and tint stay inside themed borders at mobile/tablet widths",
+    imageStyle.backgroundImage.includes("linear-gradient") &&
+    imageStyle.backgroundClip.split(",").every(value => value.trim() === "padding-box") &&
+    imageStyle.backgroundOrigin.split(",").every(value => value.trim() === "padding-box") &&
     photoStyle.overflow === "hidden" &&
     photoStyle.borderTopWidth !== "0px" && photoStyle.borderBottomWidth !== "0px");
   const rimStyle = getComputedStyle(photoCard, "::after");
   const glassStyle = getComputedStyle(photoCard.querySelector(".content"));
   check("full-canvas background and centred inner glass content are applied",
     photoStyle.maxWidth === "none" &&
-    photoStyle.backgroundSize.split(",").every(value => value.trim() === "cover") &&
+    imageStyle.backgroundSize.split(",").every(value => value.trim() === "cover") &&
     Math.abs(photoCard.getBoundingClientRect().width - card.getBoundingClientRect().width) <= 2 &&
     glassStyle.maxWidth === "1160px" &&
     glassStyle.marginLeft === glassStyle.marginRight &&
     rimStyle.filter === "blur(14px)" &&
     rimStyle.maskImage.includes("radial-gradient") &&
     glassStyle.backdropFilter === "blur(1px)");
+  // A full Today/adjacent-day round trip must change BOTH dates (and the Hijri
+  // month narrative when required), yet preserve the photograph's original crop.
+  const fullTodayHeight = photoCard.getBoundingClientRect().height;
+  const originalPhotoHeight = getComputedStyle(photoCard, "::before").height;
+  const originalPhotoUrl = photoCard.style.getPropertyValue("--mosque-background-image");
+  for (const [offset, key] of [[1, "2026-10-22"], [-1, "2026-10-20"], [0, "2026-10-21"]]) {
+    card.shadowRoot.querySelectorAll(".date-tab")[offset + 1].click();
+    const current = card.shadowRoot.querySelector("ha-card");
+    const h = card.shadowRoot.querySelector(".header");
+    const description = h.querySelector(".month-description");
+    const gregorian = h.querySelector(".gregorian");
+    const hijri = h.querySelector(".hijri");
+    check(`both selected-day calendars update for ${key}`,
+      gregorian?.textContent === formatDate(key, ui) &&
+      hijri?.textContent.startsWith(formatHijriDate(key, 0, ui)) &&
+      description?.textContent === hijriMonthInfo(key, 0)?.summary_en);
+    check(`image crop and position survive date navigation for ${key}`,
+      Math.abs(parseFloat(getComputedStyle(current, "::before").height) - parseFloat(originalPhotoHeight)) < 2 &&
+      current.style.getPropertyValue("--mosque-background-image") === originalPhotoUrl &&
+      getComputedStyle(current, "::before").backgroundPosition === imageStyle.backgroundPosition);
+    check(`shorter date tabs do not leave empty card space for ${key}`,
+      offset === 0 || current.getBoundingClientRect().height < fullTodayHeight);
+  }
   render();
   const rules = card.shadowRoot.querySelector("style")?.sheet?.cssRules;
   check("bundled CSS module loads responsive rules", Boolean(rules?.length) && [...rules].some(rule => /max-width\s*:\s*28rem/.test(rule.conditionText || "")));
