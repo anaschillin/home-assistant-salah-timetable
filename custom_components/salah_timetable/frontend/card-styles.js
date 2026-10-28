@@ -733,15 +733,22 @@ tbody tr th,tbody tr td {
   }
   .header .gregorian { text-align: start; }
 }
-/* Keep a framed, centred presentation, but allow tablet and desktop cards
-   to use the available landscape width instead of a narrow 1000px strip. */
+/* Full-bleed mosque photograph across the entire canvas allocated by
+   Home Assistant. Limit only the inner content width, never the background.
+   The dashboard layout still determines the available canvas width. */
 ha-card {
   box-sizing: border-box;
   width: 100%;
-  max-width: 1280px;
-  margin-inline: auto;
+  max-width: none;
+  margin-inline: 0;
   box-shadow: 0 14px 44px rgba(0,0,0,.13), inset 0 1px rgba(255,255,255,.05);
   border-color: color-mix(in srgb,var(--primary-color) 17%,var(--divider-color));
+}
+.content {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1160px;
+  margin-inline: auto;
 }
 /* Only soften the photo through the card; keep the true glass blur on
    individual panels and concentrate the stronger blur at the image rim. */
