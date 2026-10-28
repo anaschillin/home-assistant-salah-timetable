@@ -32,3 +32,13 @@ test("later responsive and modern panel overrides remain ordered", () => {
   assert.ok(CARD_CSS.indexOf("/* Modern dashboard presentation") < CARD_CSS.indexOf("@container(max-width:28rem)"));
   assert.ok(CARD_CSS.includes(".panel .count"));
 });
+
+test("mosque background and tint are clipped at the rounded card border", () => {
+  const rules = CARD_CSS.match(/ha-card\.has-mosque-background\s*\{([^}]+)\}/);
+  assert.ok(rules, "Missing photo backdrop style");
+  assert.match(rules[1], /background-origin:\s*padding-box\s*;/);
+  assert.match(rules[1], /background-clip:\s*padding-box\s*;/);
+  assert.match(rules[1], /background-image:\s*linear-gradient\(var\(--mosque-overlay\)/);
+  assert.match(CARD_CSS, /ha-card\s*\{[^}]*overflow:\s*hidden\s*;/);
+  assert.match(CARD_CSS, /ha-card\s*\{[^}]*border-radius:\s*var\(--ha-card-border-radius/);
+});

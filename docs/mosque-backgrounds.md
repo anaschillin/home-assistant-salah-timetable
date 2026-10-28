@@ -6,7 +6,7 @@ Status: **20 reviewed Unsplash License photographs are bundled on PR #86**; any 
 - Optional background, disabled if no bundled asset is available.
 - Default opacity 7%, configurable 0–20%.
 - Fixed selection or deterministic daily rotation; avoid repeating before a full cycle.
-- Responsive cover positioning and an opaque enough surface to preserve contrast in dark/light themes.
+- Responsive cover positioning and an opaque enough surface to preserve contrast in dark/light themes.\n- Photo and tint layers are painted in the padding box, not underneath Home Assistant's potentially translucent border, preventing bright top/bottom seams on phones and tablets. Rounded-corner clipping stays on the card.
 - Local WebP assets, no runtime remote requests, no impact on prayer calculations.
 - Each asset requires source URL, photographer, license URL, modifications, and verified attribution.
 - Target up to 20 geographically diverse mosques; **20 are currently bundled on PR #86**, with only individually reviewed compatible licences.

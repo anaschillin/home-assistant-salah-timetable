@@ -4,7 +4,17 @@ export const CARD_CSS = `
 .background-credit a { color: var(--secondary-text-color); text-decoration: underline; text-underline-offset: 2px; }
 .background-credit a:focus-visible { outline: 2px solid var(--primary-color); }
 
-ha-card.has-mosque-background { background-image: linear-gradient(var(--mosque-overlay),var(--mosque-overlay)),var(--mosque-background-image); background-position: center,var(--mosque-background-position,center); background-size: cover; background-repeat: no-repeat; }
+/* Keep the photograph and translucent tint inside the card border. Dark HA
+   themes may use translucent borders; painting under them creates a bright,
+   un-tinted 1px seam at the top/bottom on mobile and tablet. */
+ha-card.has-mosque-background {
+  background-image: linear-gradient(var(--mosque-overlay),var(--mosque-overlay)),var(--mosque-background-image);
+  background-origin: padding-box;
+  background-clip: padding-box;
+  background-position: center,var(--mosque-background-position,center);
+  background-size: cover;
+  background-repeat: no-repeat;
+}
 ha-card.has-mosque-background .content { position: relative; }
 @media (prefers-contrast: more), (prefers-reduced-transparency: reduce) { ha-card.has-mosque-background { background-image: none; } }
 
@@ -574,6 +584,33 @@ export const EDITOR_CSS = `
 }
 .setting span {
   overflow-wrap: anywhere;
+}
+.mosque-options {
+  display: grid;
+  gap: 8px;
+}
+.mosque-options[hidden] {
+  display: none;
+}
+.mosque-options-heading {
+  font-weight: 600;
+}
+.mosque-options-list {
+  display: grid;
+  gap: 8px;
+}
+.mosque-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.mosque-choice input {
+  accent-color: var(--primary-color);
+}
+.setting input:disabled {
+  cursor: not-allowed;
+  opacity: .55;
 }
 .title-field {
   display: grid;

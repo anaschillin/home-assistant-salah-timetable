@@ -595,3 +595,66 @@ test("bundled background shows photographer credit and local URL", () => {
   card.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: false});
   assert.equal(find(card.shadowRoot, "a").length, 0);
 });
+
+test("coming-soon history settings cannot be enabled from the editor", () => {
+  const editor = new SalahTimetableCardEditor(); editor.hass = hass();
+  const keys = ["show_historical_day_events", "show_historical_month_highlights", "show_historical_sources", "show_disputed_historical_dates"];
+  const changes = []; editor.addEventListener("config-changed", event => changes.push(event.detail.config));
+  for (const key of keys) {
+    const field = editor._extraControls[key].control;
+    assert.equal(field.disabled, true, key);
+    field.checked = true; field.dispatchEvent(new Event("change"));
+  }
+  assert.equal(changes.length, 0, "Disabled history controls never write unimplemented settings");
+});
+
+test("card filter allows separate fixed mosque cards and a selectable multi-mosque card", () => {
+  const multi = hass();
+  const a = "sensor.mosque_prayer_timetable", b = "sensor.second_mosque_prayer_timetable";
+  multi.states[b] = {state: "2026-10-21", attributes: {...attributes, mosque_name: "Second Mosque"}};
+  const editor = new SalahTimetableCardEditor();
+  editor.setConfig({entity: a}); editor.hass = multi;
+  const choices = () => find(editor._controls.mosqueList, "input");
+  assert.equal(choices().length, 2);
+  assert.deepEqual(choices().map(c => c.checked), [true, true], "Old cards default to all mosques");
+  const changes = []; editor.addEventListener("config-changed", event => { changes.push(event.detail.config); editor.setConfig(event.detail.config); });
+  choices()[1].checked = false; choices()[1].dispatchEvent(new Event("change"));
+  assert.deepEqual(changes.at(-1).mosque_entities, [a]);
+  assert.equal(choices()[0].disabled, true, "The last enabled mosque cannot be unchecked");
+  const fixed = new SalahTimetableCard(); fixed.setConfig(changes.at(-1)); fixed.hass = multi;
+  assert.equal(find(fixed.shadowRoot, "nav").some(nav => nav.className === "mosque-tabs"), false);
+  assert.match(find(fixed.shadowRoot, "h2")[0].textContent, /Example Mosque/);
+
+  choices()[1].checked = true; choices()[1].dispatchEvent(new Event("change"));
+  assert.deepEqual(changes.at(-1).mosque_entities, [a, b]);
+  const switching = new SalahTimetableCard(); switching.setConfig(changes.at(-1)); switching.hass = multi;
+  const tabs = find(switching.shadowRoot, "nav").find(nav => nav.className === "mosque-tabs");
+  assert.equal(tabs.children.length, 2);
+  tabs.children[1].dispatchEvent(new Event("click"));
+  assert.match(find(switching.shadowRoot, "h2")[0].textContent, /Second Mosque/);
+  assert.equal(switching._activeEntity(), b);
+  const secondFixed = new SalahTimetableCard(); secondFixed.setConfig({entity: b, mosque_entities: [b]}); secondFixed.hass = multi;
+  assert.equal(find(secondFixed.shadowRoot, "nav").some(nav => nav.className === "mosque-tabs"), false);
+  assert.match(find(secondFixed.shadowRoot, "h2")[0].textContent, /Second Mosque/);
+  assert.equal(fixed._activeEntity(), a, "Switching one card must not affect another");
+});
+
+test("mosque selection preserves missing sensors, automatically includes new primary and validates filters", () => {
+  const a = "sensor.mosque_prayer_timetable", b = "sensor.second_mosque_prayer_timetable";
+  const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: a, mosque_entities: [a]}); editor.hass = hass();
+  editor.addEventListener("config-changed", event => editor.setConfig(event.detail.config));
+  editor._controls.entity.dispatchEvent(new CustomEvent("value-changed", {detail: {value: a}}));
+  assert.deepEqual(editor._config.mosque_entities, [a]);
+  const multi = hass(); multi.states[b] = {state: "2026-10-21", attributes: {...attributes, mosque_name: "Second Mosque"}};
+  editor.hass = multi;
+  editor._controls.entity.dispatchEvent(new CustomEvent("value-changed", {detail: {value: b}}));
+  assert.deepEqual(editor._config.mosque_entities, [a,b]);
+  const missing = new SalahTimetableCard(); missing.setConfig({entity: b, mosque_entities: [b]}); missing.hass = hass();
+  assert.equal(missing._activeEntity(), b);
+  assert.match(missing.shadowRoot.textContent, /entity was not found/);
+  editor.hass = hass(); 
+  assert.equal(find(editor._controls.mosqueList, "input").length, 2, "Missing chosen mosque remains editable");
+  for (const mosque_entities of [[], ["sensor.fajr", "sensor.fajr"], ["switch.bad"], "oops"]) {
+    assert.throws(() => new SalahTimetableCard().setConfig({entity: a, mosque_entities}));
+  }
+});

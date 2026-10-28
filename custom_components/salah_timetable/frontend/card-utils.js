@@ -1,5 +1,5 @@
 /** Pure timestamp and display logic shared by the bundled card and its tests. */
-import {localizedNumber, tr} from "./card-i18n.js?v=0.9.4";
+import {localizedNumber, tr} from "./card-i18n.js?v=0.9.6";
 
 const PRAYERS = Object.freeze(["fajr", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
@@ -69,6 +69,12 @@ export function normalizeConfig(config) {
   // Legacy mode is ignored: the card always displays the previous Jamaat.
   if (config.entity && (typeof config.entity !== "string" || !/^sensor\.[a-z0-9_]+$/.test(config.entity))) throw configError("entity");
   if (config.title !== undefined && (typeof config.title !== "string" || config.title.length > 100)) throw configError("title");
+  // Omitted means all available mosques (backwards compatible); a present list
+  // must contain at least one unique dashboard timetable sensor entity ID.
+  if (config.mosque_entities !== undefined && (!Array.isArray(config.mosque_entities) ||
+    !config.mosque_entities.length ||
+    config.mosque_entities.some(entity => typeof entity !== "string" || !/^sensor\.[a-z0-9_]+$/.test(entity)) ||
+    new Set(config.mosque_entities).size !== config.mosque_entities.length)) throw configError("entity");
   const defaults = {detail_level: config.detail_level || (config.layout === "compact" ? "compact" : "standard"), layout: "expanded", time_format: "24h", hijri_adjustment: 0, language: "auto", bilingual_prayer_labels: false, show_hijri_date: true, show_gregorian_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true, show_hijri_month_info: true, show_historical_day_events: false, show_historical_month_highlights: false, show_historical_sources: false, show_disputed_historical_dates: false, show_mosque_background: true, mosque_background: "daily", mosque_background_opacity: 7};
   const result = {...defaults, ...config};
   if (!["compact", "standard", "detailed"].includes(result.detail_level)) throw configError("detail_level");

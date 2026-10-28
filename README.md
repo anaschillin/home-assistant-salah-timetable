@@ -159,8 +159,10 @@ without live countdown cards or current-prayer highlighting. Missing approved
 dates display an unavailable message; times are never inferred. Today is selected
 initially. The mosque timezone governs all published timestamps.
 
-If multiple mosque timetable sensors are configured, the card offers mosque tabs
-automatically; one mosque shows no tabs. Each selected mosque retains its own
+If multiple mosque timetable sensors are configured, the editor lets users enable
+or disable individual mosques per card; cards with multiple enabled mosques offer
+tabs to switch among them. A card restricted to one mosque has no tabs. Existing
+cards default to all mosques unless explicitly filtered. Each mosque retains its own
 published times. Existing cards using the former `mode` and `layout` fields are
 accepted; the old Jamaat mode is ignored and legacy compact layout maps to
 Compact. Per-card language, bilingual labels, time format and date visibility
