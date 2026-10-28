@@ -95,6 +95,114 @@ PHOTOS = [
         "photo": "photo-1591019401711-0f983e4af346",
         "position": "center",
     },
+    {
+        "id": "faisal-mosque",
+        "name": "Faisal Mosque",
+        "country": "Pakistan",
+        "photographer": "Faisal Mehmood",
+        "page": "https://unsplash.com/photos/a-building-with-a-tower-OgP5pfVRdhk",
+        "photo": "photo-1664185494321-37a1fcf6e04d",
+        "position": "center",
+    },
+    {
+        "id": "wazir-khan-mosque",
+        "name": "Wazir Khan Mosque",
+        "country": "Pakistan",
+        "photographer": "Arooba Arif",
+        "page": "https://unsplash.com/photos/a-view-of-a-building-through-an-archway-LbRCic9i5JY",
+        "photo": "photo-1653248388588-208e466ec0b0",
+        "position": "center",
+    },
+    {
+        "id": "suleymaniye-mosque",
+        "name": "Süleymaniye Mosque",
+        "country": "Türkiye",
+        "photographer": "ekrem osmanoglu",
+        "page": "https://unsplash.com/photos/suleymaniye-mosque-in-istanbul-turkey-ukXyJKPg94s",
+        "photo": "photo-1577890300102-d01f7e6b010f",
+        "position": "center",
+    },
+    {
+        "id": "hagia-sophia-grand-mosque",
+        "name": "Hagia Sophia Grand Mosque",
+        "country": "Türkiye",
+        "photographer": "Dmitry Limonov",
+        "page": "https://unsplash.com/photos/a-large-building-with-hagia-sophia-JC-nWdz_tSI",
+        "photo": "photo-1667816405141-197c14c30738",
+        "position": "center",
+    },
+    {
+        "id": "al-azhar-mosque",
+        "name": "Al-Azhar Mosque",
+        "country": "Egypt",
+        "photographer": "Seif Amr",
+        "page": "https://unsplash.com/photos/people-walking-near-white-concrete-building-during-daytime-vjv3xVeDguA",
+        "photo": "photo-1618224237039-0f55d9f40c1c",
+        "position": "center",
+    },
+    {
+        "id": "muhammad-ali-mosque",
+        "name": "Muhammad Ali Mosque",
+        "country": "Egypt",
+        "photographer": "Martijn Vonk",
+        "page": "https://unsplash.com/photos/a-picture-of-a-very-large-building-with-many-spires-dHQBr-oNodQ",
+        "photo": "photo-1738511582259-470641311732",
+        "position": "center",
+    },
+    {
+        "id": "koutoubia-mosque",
+        "name": "Koutoubia Mosque",
+        "country": "Morocco",
+        "photographer": "gemmmm 🖤",
+        "page": "https://unsplash.com/photos/brown-concrete-building-under-blue-sky-during-daytime-tSy3SRzYJu4",
+        "photo": "photo-1585336897192-540964ec47f2",
+        "position": "center",
+    },
+    {
+        "id": "mosque-cathedral-cordoba",
+        "name": "Historic Mosque-Cathedral of Córdoba",
+        "country": "Spain",
+        "photographer": "Alexandra Tran",
+        "page": "https://unsplash.com/photos/the-inside-of-a-building-with-columns-and-arches-rvE_jTiejVc",
+        "photo": "photo-1632904080322-e71e16a5987f",
+        "position": "center",
+    },
+    {
+        "id": "jama-masjid-delhi",
+        "name": "Jama Masjid, Delhi",
+        "country": "India",
+        "photographer": "Naveed Ahmed",
+        "page": "https://unsplash.com/photos/people-outside-mosque-XIdBO7BtZhY",
+        "photo": "photo-1577214382660-a347368c7325",
+        "position": "center",
+    },
+    {
+        "id": "omar-ali-saifuddien-mosque",
+        "name": "Sultan Omar Ali Saifuddien Mosque",
+        "country": "Brunei",
+        "photographer": "Jimmy Whitson",
+        "page": "https://unsplash.com/photos/golden-domed-mosque-with-minarets-at-sunrise-KNIIpxvwPaM",
+        "photo": "photo-1777858344918-ee54fb902d23",
+        "position": "center",
+    },
+    {
+        "id": "national-mosque-malaysia",
+        "name": "National Mosque of Malaysia (Masjid Negara)",
+        "country": "Malaysia",
+        "photographer": "The Simple Travel",
+        "page": "https://unsplash.com/photos/a-fountain-with-a-clock-tower-in-the-background-2vwnPAk47Gg",
+        "photo": "photo-1635528266606-2a40bdc071d9",
+        "position": "center",
+    },
+    {
+        "id": "al-qibli-mosque",
+        "name": "Al-Qibli Mosque (Al-Aqsa compound)",
+        "country": "Jerusalem",
+        "photographer": "Cole Keister",
+        "page": "https://unsplash.com/photos/al-aqsa-mosque-behind-blurred-flowers-PQnkV6-iZMw",
+        "photo": "photo-1542317803-0fc679478393",
+        "position": "center",
+    },
 ]
 
 
@@ -174,9 +282,15 @@ def main() -> None:
     items = []
     checksums = {}
     for photo in PHOTOS:
-        webp = optimise(fetch_image(photo))
         file = TARGET / f"{photo['id']}.webp"
-        file.write_bytes(webp)
+        if file.is_file():
+            # Keep the eight already reviewed assets byte-for-byte unchanged.
+            webp = file.read_bytes()
+            if len(webp) > MAX_WEBP_BYTES or webp[:4] != b"RIFF" or webp[8:12] != b"WEBP":
+                raise ValueError(f"Invalid existing background: {photo['id']}")
+        else:
+            webp = optimise(fetch_image(photo))
+            file.write_bytes(webp)
         checksums[photo["id"]] = hashlib.sha256(webp).hexdigest()
         items.append(
             {
@@ -188,6 +302,7 @@ def main() -> None:
                 "license_url": LICENSE_URL,
                 "path": f"/salah_timetable/backgrounds/{photo['id']}.webp",
                 "position": photo["position"],
+                "source_photo_id": photo["photo"],
             }
         )
         print(f"{file.relative_to(ROOT)}: {len(webp)} bytes")
