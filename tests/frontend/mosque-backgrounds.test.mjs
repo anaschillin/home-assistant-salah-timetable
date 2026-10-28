@@ -9,7 +9,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "../../custom_compone
 
 test("20 bundled mosque photos have local, verified metadata and stay under 250 KB", () => {
   assert.equal(MOSQUE_BACKGROUNDS.length, 20);
-  assert.equal(new Set(MOSQUE_BACKGROUNDS.map(item => item.id)).size, 8);
+  assert.equal(new Set(MOSQUE_BACKGROUNDS.map(item => item.id)).size, 20);
   for (const item of MOSQUE_BACKGROUNDS) {
     assert.match(item.id, /^[a-z0-9-]+$/);
     assert.ok(item.name && item.country && item.photographer);
