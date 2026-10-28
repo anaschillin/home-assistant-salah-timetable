@@ -104,14 +104,28 @@ try {
   const gridStyle = getComputedStyle(card.shadowRoot.querySelector(".panels"));
   const sharedSummary = card.shadowRoot.querySelector(".summary-shell");
   const summaryStyle = getComputedStyle(sharedSummary);
-  check("single glass surface holds mosque identity and both countdowns",
+  const bothClocks = [...sharedSummary.querySelectorAll(".prayer-panel")];
+  check("single frosted glass surface holds mosque identity and both countdowns",
     sharedSummary.querySelector(":scope > header") !== null &&
     sharedSummary.querySelector(":scope > .panels") !== null &&
-    sharedSummary.querySelectorAll(".prayer-panel").length === 2 &&
-    summaryStyle.borderRadius === "16px" &&
-    summaryStyle.backdropFilter === "blur(12px)" &&
+    bothClocks.length === 2 &&
+    summaryStyle.borderRadius === "18px" &&
+    summaryStyle.backdropFilter.includes("blur(18px)") &&
+    summaryStyle.marginBottom === "16px" &&
     panelStyle.display === "flex" && panelStyle.borderWidth === "0px" &&
     panelStyle.borderRadius === "0px" && gridStyle.display === "grid");
+  const [salahStyle, jamaatStyle] = bothClocks.map(panel => getComputedStyle(panel));
+  const [salahClockStyle, jamaatClockStyle] = bothClocks.map(panel => getComputedStyle(panel.querySelector(".count")));
+  const [salahEventStyle, jamaatEventStyle] = bothClocks.map(panel => getComputedStyle(panel.querySelector(".event")));
+  check("Salah and Jamaat use identical backgrounds, padding, countdown sizes and type hierarchy",
+    salahStyle.backgroundColor === jamaatStyle.backgroundColor &&
+    salahStyle.backgroundImage === jamaatStyle.backgroundImage &&
+    salahStyle.padding === jamaatStyle.padding &&
+    salahStyle.borderTopWidth === jamaatStyle.borderTopWidth &&
+    salahStyle.borderBottomWidth === jamaatStyle.borderBottomWidth &&
+    salahClockStyle.fontSize === jamaatClockStyle.fontSize &&
+    salahClockStyle.color === jamaatClockStyle.color &&
+    salahEventStyle.fontSize === jamaatEventStyle.fontSize);
   const summaryRect = sharedSummary.getBoundingClientRect();
   check("both countdowns remain contained within the shared card",
     [...sharedSummary.querySelectorAll(".prayer-panel")].every(panel => {
