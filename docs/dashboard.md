@@ -208,8 +208,10 @@ to this card** by Home Assistant, without a hard 1280px limit. Its image layer
 retains the full Today-height composition while switching to shorter Yesterday
 or Tomorrow views, so hiding the countdowns **does not re-zoom or re-centre
 the photo**. The card itself still shrinks to its contents without an empty
-reserved space. This background-frame cache is discarded if the allocated
-canvas width changes (e.g. tablet rotation or a dashboard column resize). The timetable,
+reserved space. The captured image width and height stay fixed across
+small Home Assistant canvas changes, including scrollbars appearing or
+disappearing when countdowns are hidden. The cache is discarded for substantial
+width changes (such as tablet rotation or a dashboard column resize). The timetable,
 header and countdowns remain in an independently centred content column
 (up to 1160px wide). On narrow cards and mobile screens, the content naturally
 fills the available width. This creates wider photographic wings on landscape
