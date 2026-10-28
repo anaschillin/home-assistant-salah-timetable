@@ -138,41 +138,60 @@ month’s dates. See [Ramadan validation](docs/ramadan_validation.md).
 
 ## Dashboard
 
-The bundled **Salah Timetable** Lovelace card includes a graphical editor. Select
-the mosque's **Prayer timetable** sensor; no separate card download or Card Mod
-is required. The old Jamaat panel mode selector is removed: **Next Salah** always
-counts down to the next published beginning and displays times from that event's
-actual date, while the contextual Jamaat panel counts down to the current prayer's
-upcoming congregation and switches to elapsed time when it becomes the previous
-Jamaat. Both panels use the same responsive design.
+The bundled **Salah Timetable** Lovelace card includes a graphical editor.
+Add **Salah Timetable** to a Home Assistant dashboard and select a mosque's
+**Prayer timetable** sensor; no Card Mod, template sensors, separate card
+download or manually created resource is normally required.
 
-Choose **Card detail** in the editor:
+The current card (integration version **0.9.18**) uses two matching liquid-glass
+surfaces: a **single summary card** with mosque name, calculated Hijri and
+Gregorian dates, an optional short Hijri-month explanation and two uniform
+live countdown halves; and a **prayer timetable card** with the date selector
+in its footer. Next Salah counts down to the next published *beginning* and
+uses that event's published dates/times. The contextual Jamaat half shows
+the current upcoming congregation or the previous congregation's elapsed
+time. The minaret and dome watermarks are decorative.
 
-- **Compact:** Next Salah and Next/Previous Jamaat cards, plus Ramadan details when Ramadan is active and enabled.
-- **Standard (default):** Both cards, the full daily timetable, calculated Hijri date and active Ramadan details.
-- **Detailed:** Standard plus published Fajr sunrise/end, Friday second khutbah
-  (when provided).
+**Card detail** controls today's content:
 
-A **Yesterday / Today / Tomorrow** date selector is available at every detail level.
-Yesterday and Tomorrow show only their own approved published timetable rows,
-without live countdown cards or current-prayer highlighting. Missing approved
-dates display an unavailable message; times are never inferred. Today is selected
-initially. The mosque timezone governs all published timestamps.
+- **Compact:** the unified header/countdown summary and active Ramadan details,
+  without today's full timetable.
+- **Standard (default):** the summary and five-row timetable, with active
+  Ramadan details when enabled.
+- **Detailed:** Standard plus the published Fajr sunrise/end note and the
+  separately published second Friday khutbah, when available.
 
-If multiple mosque timetable sensors are configured, the editor lets users enable
-or disable individual mosques per card; cards with multiple enabled mosques offer
-tabs to switch among them. A card restricted to one mosque has no tabs. Existing
-cards default to all mosques unless explicitly filtered. Each mosque retains its own
-published times. Existing cards using the former `mode` and `layout` fields are
-accepted; the old Jamaat mode is ignored and legacy compact layout maps to
-Compact. Per-card language, bilingual labels, time format and date visibility
-remain configurable. Optional offline Hijri-month descriptions are implemented;
-historical day-event feeds and monthly history highlights are not yet available.
-The card supports English and draft Arabic translations,
-Home Assistant themes, and narrow screens.
+The **Yesterday / Today / Tomorrow** selector appears in the timetable footer.
+Adjacent days display their own *approved* timetable rows (even in Compact)
+but hide the live countdowns, Ramadan section and current-prayer highlight.
+The header's Gregorian date, calculated Hijri date and month explanation track
+the selected day. Missing approved rows remain unavailable; the card never
+copies or estimates prayer times.
 
-The card also includes **20 locally bundled mosque photo backgrounds** from free Unsplash photographs,\nwith a subtle 7% default opacity, daily rotation or fixed mosque selection, and a\nper-card switch to disable images. Photos load locally (no internet required at\nviewing time), and photographer credits link to the originals. The full source\nand licence details are in [mosque photo credits](docs/mosque-background-credits.md).\n\nSee [dashboard setup and behavior](docs/dashboard.md) for detailed configuration,
-missing-date behaviour, event boundaries and troubleshooting.
+For multiple configured mosques, each card can enable or exclude individual
+mosque timetable sensors. A **header dropdown** appears only when several
+mosques are enabled. Cards can be independent, on the same dashboard or on
+different dashboards. Legacy `layout` values map to the current detail
+levels; the former `mode` selector is ignored. Language, bilingual prayer
+labels, 12/24-hour time format, calendar visibility and individual countdown
+visibility remain configurable. Historical day events and monthly history
+highlights are **not yet rendered**; their coming-soon editor options are
+disabled.
+
+The card bundles **20 local WebP mosque photographs**, with daily rotation
+or a fixed image and source credits. The photograph fills the card's available
+width and at least its dashboard viewport height, while both liquid-glass
+panels remain centred above it. **There is no background opacity slider or
+whole-photo tint**. The legacy `mosque_background_opacity` value is discarded
+when existing card configuration is normalised. A background-enabled card
+reserves viewport height, so a full-width dedicated timetable dashboard is
+recommended rather than stacking other cards beneath it. Photos load locally
+and are unrelated to the mosque supplying prayer times.
+
+See [the current dashboard guide](docs/dashboard.md) for setup, configuration
+and accessibility; see [the photograph credits](docs/mosque-background-credits.md)
+for the bundled sources. The preview images in that guide are explicitly
+labelled **historical**, not screenshots of the 0.9.18 card.
 
 ## Automations and coverage alerts
 
