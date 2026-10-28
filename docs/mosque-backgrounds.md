@@ -1,6 +1,6 @@
 # Mosque background implementation
 
-Status: **eight reviewed Unsplash License photographs are bundled on PR #86**; any additional images require separate review. The initial 20-mosque list is a future target, not a claim that 20 images are shipped. See [credits](mosque-background-credits.md).
+Status: **20 reviewed Unsplash License photographs are bundled on PR #86**; any additional images require separate review. The initial 20-mosque collection is present; newly added photos remain subject to CI and live acceptance. See [credits](mosque-background-credits.md).
 
 ## Scope
 - Optional background, disabled if no bundled asset is available.
@@ -9,7 +9,7 @@ Status: **eight reviewed Unsplash License photographs are bundled on PR #86**; a
 - Responsive cover positioning and an opaque enough surface to preserve contrast in dark/light themes.
 - Local WebP assets, no runtime remote requests, no impact on prayer calculations.
 - Each asset requires source URL, photographer, license URL, modifications, and verified attribution.
-- Target up to 20 geographically diverse mosques; **eight are currently shipped**, with only individually reviewed compatible licences.
+- Target up to 20 geographically diverse mosques; **20 are currently bundled on PR #86**, with only individually reviewed compatible licences.
 
 ## Asset acceptance
 1. Search Wikimedia Commons file namespace, using its MediaSearch UI or MediaWiki API.
@@ -51,7 +51,7 @@ For a downloadable public HACS integration, prioritize:
 
 Each individual image must be reviewed for licensing and third-party architectural/property and model rights. These candidates have not been downloaded or bundled.
 
-### Initial Unsplash source candidates (not yet accepted assets)
+### Initial eight Unsplash sources (now bundled; see complete source list in credits)
 
 | Mosque | Candidate photo | Photographer | Page license statement |
 |---|---|---|---|
