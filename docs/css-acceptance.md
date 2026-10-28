@@ -4,6 +4,26 @@ This checklist is for the **unmerged branch** `refactor/card-css-module-20261027
 The feature is still integration version `0.9.3`; GitHub Actions passing does
 not establish a successful installation on the maintainer's Home Assistant.
 
+## Maintainer-reported Home Assistant check — 28 October 2026
+
+**Mobile visual check passed (reported), broader acceptance still pending.**
+The maintainer confirmed installing PR #82's branch files in Home Assistant,
+clearing the frontend cache, and opening
+`/salah_timetable/card-styles.js?v=0.9.3` successfully. The endpoint
+displayed JavaScript including `export const CARD_CSS`, rather than an
+error. Two shared mobile dashboard screenshots showed the Hijri-month
+section, bilingual prayer labels, current row emphasis, displayed prayer
+times and both countdown panels. Across the two captures, Next Salah
+decreased by 3m 15s and Previous Jamaat elapsed increased by 3m 15s.
+
+This confirms **asset availability and observed mobile presentation**, not
+a full cache-bypass network trace or acceptance across every viewport and
+theme. The panels appeared side by side in the screenshots; that alone is
+not evidence of a layout regression without the browser's actual CSS
+viewport width. Tablet, RTL-specific, dark/light cross-check, keyboard
+focus and other manual matrix items below have not been individually
+confirmed. **Do not merge PR #82 until the maintainer explicitly approves.**
+
 ## Manual Home Assistant validation before merge
 
 1. Back up the current `/config/custom_components/salah_timetable/` directory
@@ -50,7 +70,7 @@ not establish a successful installation on the maintainer's Home Assistant.
 - The test suite validates import availability, computed styles and layout,
   but does **not** yet compare rendered screenshot pixels to a golden baseline.
 
-**Release status:** await maintainer's actual Home Assistant visual acceptance;
-do not merge PR #82 until that review is complete. After merge, increment
+**Release status:** reported mobile rendering and asset URL checks passed;
+broader manual acceptance and explicit maintainer merge approval are pending. After merge, increment
 the integration version through the central version-sync workflow for HACS
 cache invalidation.
