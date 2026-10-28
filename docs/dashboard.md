@@ -27,10 +27,18 @@ The older [0.5.1 phone](images/card-mobile.png) and
 4. Select **Card detail**: **Compact**, **Standard** (default) or **Detailed**.
    Set optional title, language, time format and visibility preferences, then save.
 
-When two or more mosque timetable sensors are available, the card automatically
-displays mosque tabs. Selecting a tab switches the entire view to that mosque's
-published schedule. A single configured mosque has no mosque tabs. You may still
-add separate card instances for fixed dashboard layouts.
+When two or more mosque timetable sensors are available, the editor shows
+**Mosques available on this card** checkboxes. By default all mosques are enabled
+for backwards compatibility. Uncheck mosques to exclude them from this card;
+at least one mosque must remain enabled. The primary **Prayer timetable** selection
+controls which mosque appears first, and is kept within the enabled set.
+
+When multiple mosques are enabled, tabs let users switch between those mosques
+without changing Home Assistant entity states. With just one enabled mosque,
+the card has no mosque tabs. Each card has independent selections: add multiple
+cards to the same dashboard, restrict each to one mosque, or use separate
+dashboards for each mosque. Existing cards without `mosque_entities` continue to
+show all discovered mosques, including new ones.
 
 ## Day navigation
 
@@ -154,10 +162,10 @@ with a day prefix when needed, independent of 12/24-hour time format.
 The legacy `mode` option is accepted but ignored for all cards. The Jamaat panel automatically
 switches between the upcoming congregation and the previous one.
 
-The editor also exposes four **coming soon** Islamic-history settings for day
-events, monthly highlights, visible sources and disputed dates. Their values
-may be saved, but they do not currently display historical event records. The
-Hijri month description is implemented separately and can be hidden with
+The four **coming soon** Islamic-history settings for day events, monthly
+highlights, visible sources and disputed dates are disabled in the editor until
+those features are implemented. Previously saved values remain inert. The Hijri
+month description is implemented separately and can be hidden with
 `show_hijri_month_info: false`.
 
 ## Optional mosque photograph backgrounds\n\nThe card bundles 20 WebP photographs from free Unsplash photo pages. They\nare served from the integration itself, without remote requests or an Unsplash\naccount. Photo backgrounds rotate once per mosque-local published date by\ndefault and do not repeat until all 20 have appeared. Choose a fixed mosque\nfrom **Mosque background** in the card editor, set **Background opacity (%)**\n(0–20), or switch off **Show mosque background** entirely.\n\nA dark/light-theme-aware colour overlay keeps images very faint behind the\nprayer timetable and countdowns. Increased-contrast or reduced-transparency\naccessibility preferences hide the image; the content remains readable without\nit. Photographer credit appears below the card content with a link to the\noriginal photo. See [image credits and source links](mosque-background-credits.md).\n\nThese decorative backgrounds do not represent the currently configured mosque\nand cannot influence prayers, mosque identity, calculations, or data imports.\n\n## Ramadan controls
