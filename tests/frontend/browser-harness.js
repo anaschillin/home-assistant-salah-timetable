@@ -121,11 +121,13 @@ try {
     salahStyle.backgroundColor === jamaatStyle.backgroundColor &&
     salahStyle.backgroundImage === jamaatStyle.backgroundImage &&
     salahStyle.padding === jamaatStyle.padding &&
-    salahStyle.borderTopWidth === jamaatStyle.borderTopWidth &&
-    salahStyle.borderBottomWidth === jamaatStyle.borderBottomWidth &&
     salahClockStyle.fontSize === jamaatClockStyle.fontSize &&
     salahClockStyle.color === jamaatClockStyle.color &&
     salahEventStyle.fontSize === jamaatEventStyle.fontSize);
+  check("countdown divider changes direction only on narrow cards",
+    width <= 336
+      ? jamaatStyle.borderTopWidth === "1px" && jamaatStyle.borderLeftWidth === "0px"
+      : jamaatStyle.borderLeftWidth === "1px" && jamaatStyle.borderTopWidth === "0px");
   const summaryRect = sharedSummary.getBoundingClientRect();
   check("both countdowns remain contained within the shared card",
     [...sharedSummary.querySelectorAll(".prayer-panel")].every(panel => {
