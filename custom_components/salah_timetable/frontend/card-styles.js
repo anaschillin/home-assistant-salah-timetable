@@ -550,6 +550,189 @@ tbody tr th,tbody tr td {
     transition: background-color .2s ease,border-color .2s ease;
   }
 }
+
+/* Compact, timetable-first dashboard: keep summaries informative without
+   making the primary published timetable require excessive scrolling. */
+.header {
+  margin-bottom: 12px;
+  gap: 3px 12px;
+}
+.header h2 {
+  line-height: 1.25;
+  font-size: clamp(1.15rem, 3cqi, 1.45rem);
+}
+.mosque-select {
+  box-sizing: border-box;
+  display: block;
+  max-width: 100%;
+  width: fit-content;
+  font: inherit;
+  font-weight: inherit;
+  line-height: 1.25;
+  padding: 2px 26px 2px 0;
+  color: var(--primary-text-color);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+.mosque-select option {
+  background: var(--ha-card-background,var(--card-background-color));
+  color: var(--primary-text-color);
+}
+.mosque-select:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+.panels {
+  gap: 10px;
+  margin: 0 0 12px;
+}
+.panel.prayer-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 12px 14px;
+  gap: 3px;
+}
+.prayer-panel .event {
+  font-size: 1rem;
+  min-height: 0;
+  line-height: 1.3;
+}
+.prayer-panel .label {
+  margin: 0;
+  font-size: .65rem;
+  letter-spacing: .055em;
+}
+.panel.prayer-panel .count {
+  font-size: clamp(1.15rem, 3.8cqi, 1.85rem);
+  line-height: 1.18;
+  margin: 2px 0 4px;
+}
+.prayer-panel .count span {
+  font-size: .75em;
+  letter-spacing: normal;
+}
+.prayer-panel .prayer-times {
+  margin-top: 4px;
+  padding-top: 8px;
+  gap: 5px;
+}
+.prayer-panel .prayer-time .label {
+  margin-bottom: 2px;
+  font-size: .6rem;
+}
+.prayer-panel .prayer-time .absolute {
+  margin: 0;
+  font-size: .82rem;
+}
+.prayer-panel .panel-silhouette {
+  position: absolute;
+  inset-block-start: 25px;
+  inset-inline-end: 8px;
+  width: min(30%, 80px);
+  color: var(--primary-color);
+  opacity: .13;
+  z-index: 0;
+  pointer-events: none;
+}
+.panel-silhouette svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  fill: currentColor;
+}
+.prayer-panel > :not(.panel-silhouette) {
+  position: relative;
+  z-index: 1;
+}
+.timetable-shell {
+  min-width: 0;
+  border: 1px solid var(--divider-color);
+  border-radius: 14px;
+  overflow: hidden;
+  background: color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 92%,transparent);
+}
+.timetable-shell .table-scroll {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.timetable-shell .selected-date {
+  padding: 9px 12px 0;
+  margin-bottom: 6px;
+}
+.timetable-shell .empty {
+  padding: 14px;
+}
+.timetable-shell .scroll-help {
+  margin: 0;
+  padding: 6px 10px;
+}
+.date-tabs {
+  margin: 0;
+  padding: 4px;
+  border-radius: 0;
+  border-top: 1px solid var(--divider-color);
+  background: var(--secondary-background-color);
+}
+.date-tab {
+  min-width: 0;
+  min-height: 34px;
+  padding: 7px 4px;
+  font-size: .79rem;
+}
+.hijri-month-info {
+  margin-top: 10px;
+  padding: 0;
+  border-radius: 12px;
+}
+.month-summary {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 12px;
+  font-size: .83rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.month-summary .month-prompt {
+  color: var(--secondary-text-color);
+  font-weight: 400;
+  font-size: .76rem;
+  white-space: nowrap;
+}
+.month-summary:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+}
+.hijri-month-info details > .note {
+  margin: 0;
+  padding: 0 12px 12px;
+  font-size: .78rem;
+}
+@container(max-width:28rem) {
+  .panels {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  .panel.prayer-panel {
+    padding: 10px;
+  }
+  .panel.prayer-panel .count {
+    font-size: clamp(1.1rem, 3.7cqi, 1.65rem);
+  }
+  .prayer-panel .panel-silhouette {
+    width: min(28%, 56px);
+  }
+}
+@container(max-width:21rem) {
+  .panels {
+    grid-template-columns: 1fr;
+  }
+}
+
 `;
 
 /** Card configuration editor styles, scoped to its separate shadow root. */
