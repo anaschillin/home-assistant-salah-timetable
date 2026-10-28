@@ -33,6 +33,15 @@ test("later responsive and modern panel overrides remain ordered", () => {
   assert.ok(CARD_CSS.includes(".panel .count"));
 });
 
+test("the mosque photograph covers the viewport below short day views", () => {
+  const rule = CARD_CSS.match(/ha-card\.has-mosque-background\s*\{([^}]+)\}/);
+  assert.ok(rule, "Missing full-canvas background rule");
+  assert.match(rule[1], /min-height:\s*calc\(100vh - var\(--header-height, 0px\)\)/);
+  assert.match(rule[1], /min-height:\s*calc\(100dvh - var\(--header-height, 0px\)\)/);
+  assert.match(CARD_CSS, /ha-card\s*\{[^}]*overflow:\s*hidden/);
+  assert.doesNotMatch(CARD_CSS, /\.summary-shell\s*\{[^}]*min-height:\s*100dvh/);
+});
+
 test("background photo is clipped and its frame is independent of card height", () => {
   const imageLayer = CARD_CSS.match(/ha-card\.has-mosque-background::before\s*\{([^}]+)\}/);
   assert.ok(imageLayer, "Missing isolated image layer");
