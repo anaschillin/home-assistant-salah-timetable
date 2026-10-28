@@ -13,7 +13,10 @@ ha-card.has-mosque-background {
 ha-card.has-mosque-background::before {
   content: "";
   position: absolute;
-  inset: 1px 1px auto;
+  top: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: var(--mosque-photo-frame-width,calc(100% - 2px));
   height: max(calc(100% - 2px),var(--mosque-photo-frame-height,100%));
   z-index: 0;
   pointer-events: none;
@@ -773,7 +776,10 @@ ha-card.has-mosque-background .content {
 ha-card.has-mosque-background::after {
   content: "";
   position: absolute;
-  inset: 1px 1px auto;
+  top: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: var(--mosque-photo-frame-width,calc(100% - 2px));
   height: max(calc(100% - 2px),var(--mosque-photo-frame-height,100%));
   z-index: 0;
   pointer-events: none;
