@@ -132,7 +132,6 @@ export class SalahTimetableCard extends HTMLElement {
     this._timer = null;
     this._selectedMosque = null;
     this._selectedDay = 0;
-    this._monthInfoExpanded = false;
   }
 
   static getConfigElement() { return document.createElement("salah-timetable-card-editor"); }
@@ -259,6 +258,12 @@ export class SalahTimetableCard extends HTMLElement {
     header.append(title);
     if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
     if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(data.date || state.state, ui), "date gregorian"));
+    if (this._config.show_hijri_month_info) {
+      // The Hijri date already names the month: show only its description.
+      // Keep this tied to the header date even when browsing adjacent timetables.
+      const month = hijriMonthInfo(data.date || state.state, this._config.hijri_adjustment);
+      if (month) header.append(node("div", month.summary_en, "month-description"));
+    }
     content.append(header);
     const dateTabs = node("nav", undefined, "date-tabs");
     dateTabs.setAttribute("aria-label", tr(ui, "card.day_navigation"));
@@ -333,20 +338,6 @@ export class SalahTimetableCard extends HTMLElement {
     if (!selectedPrayers) tableShell.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
     tableShell.append(dateTabs);
     content.append(tableShell);
-    if (this._config.show_hijri_month_info) {
-      const month = hijriMonthInfo(selectedDate || data.date || state.state, this._config.hijri_adjustment);
-      if (month) {
-        const panel = node("section", undefined, "panel hijri-month-info");
-        const details = node("details");
-        details.open = this._monthInfoExpanded;
-        const summary = node("summary", undefined, "month-summary");
-        summary.append(node("span", `${month.name_en} · ${month.name_ar}`), node("span", tr(ui, "card.about_month"), "month-prompt"));
-        details.append(summary, node("p", month.summary_en, "note"));
-        details.addEventListener("toggle", () => { this._monthInfoExpanded = details.open; });
-        panel.append(details);
-        content.append(panel);
-      }
-    }
     if (this._selectedDay === 0 && this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
       content.append(translatedRun("p", ui, "card.second_khutbah", "time", formatTime(data.second_khutbah, zone, ui, timeFormat), "note khutbah"));
     }
