@@ -5,6 +5,8 @@ on:
     branches: [feature/mosque-backgrounds]
     paths: [.github/workflows/import-mosque-backgrounds.yml]
   workflow_dispatch:
+  pull_request:
+    paths: [.github/workflows/import-mosque-backgrounds.yml]
 
 permissions:
   contents: write
@@ -15,7 +17,7 @@ concurrency:
 
 jobs:
   import:
-    if: github.ref == 'refs/heads/feature/mosque-backgrounds'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/mosque-backgrounds') || (github.event_name == 'pull_request' && github.event.pull_request.number == 86 && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
