@@ -20,10 +20,10 @@ ha-card.has-mosque-background::before {
   height: max(calc(100% - 2px),var(--mosque-photo-frame-height,100%));
   z-index: 0;
   pointer-events: none;
-  background-image: linear-gradient(var(--mosque-overlay),var(--mosque-overlay)),var(--mosque-background-image);
+  background-image: var(--mosque-background-image);
   background-origin: padding-box;
   background-clip: padding-box;
-  background-position: center,var(--mosque-background-position,center);
+  background-position: var(--mosque-background-position,center);
   background-size: cover;
   background-repeat: no-repeat;
 }
@@ -666,7 +666,7 @@ tbody tr th,tbody tr td {
   border: 1px solid var(--divider-color);
   border-radius: 14px;
   overflow: hidden;
-  background: color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 92%,transparent);
+  background: transparent;
 }
 .timetable-shell .table-scroll {
   border: 0;
@@ -766,13 +766,13 @@ ha-card {
   max-width: 1160px;
   margin-inline: auto;
 }
-/* Only soften the photo through the card; keep the true glass blur on
-   individual panels and concentrate the stronger blur at the image rim. */
+/* Photograph stays un-tinted outside the two glass panels; only their
+   own surfaces refract/soften the scene underneath. */
 ha-card.has-mosque-background .content {
   z-index: 1;
-  background: color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 8%,transparent);
-  backdrop-filter: blur(1px);
-  -webkit-backdrop-filter: blur(1px);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 /* Blur only the photograph at the rim, never the timetable or lettering. */
 ha-card.has-mosque-background::after {
@@ -801,25 +801,52 @@ ha-card.has-mosque-background::after {
     background: transparent;
   }
 }
-/* A single, evenly frosted surface provides contrast over the full-width
-   mosque photo. Both live countdowns use exactly the same visual treatment:
-   no second background, border, shadow or inset accent on either half. */
-.summary-shell {
+/* CSS-first liquid glass: one reusable optical treatment for the heading/
+   countdown summary and timetable. No WebGL, CDN, SVG content capture or
+   continually running effects: the live DOM stays accessible and selectable. */
+.summary-shell,
+.timetable-shell {
+  position: relative;
+  isolation: isolate;
   min-width: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb,var(--primary-text-color) 20%,transparent);
+  border-radius: 18px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb,var(--secondary-background-color) 72%,transparent),
+    color-mix(in srgb,var(--secondary-background-color) 59%,transparent) 48%,
+    color-mix(in srgb,var(--secondary-background-color) 70%,transparent));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -1px 0 rgba(255,255,255,.07),
+    0 8px 20px rgba(0,0,0,.11);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+/* Edge lighting and a delicate curved highlight simulate the thickness of
+   refractive glass; keep highlight behind text, table and interactive tabs. */
+.summary-shell::before,
+.timetable-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(118deg,rgba(255,255,255,.15),transparent 22%,transparent 78%,rgba(255,255,255,.06)),
+    radial-gradient(ellipse at 8% 0%,rgba(255,255,255,.11),transparent 40%);
+}
+.summary-shell > *,
+.timetable-shell > * {
+  position: relative;
+  z-index: 1;
+}
+.summary-shell {
   margin-bottom: 16px;
   padding: clamp(14px,2.4cqi,22px);
-  border: 1px solid color-mix(in srgb,var(--primary-text-color) 15%,transparent);
-  border-radius: 18px;
-  overflow: hidden;
-  isolation: isolate;
-  background: color-mix(in srgb,var(--secondary-background-color) 94%,transparent);
-  box-shadow: 0 12px 32px rgba(0,0,0,.16), inset 0 1px rgba(255,255,255,.10);
-  backdrop-filter: blur(18px) saturate(115%);
-  -webkit-backdrop-filter: blur(18px) saturate(115%);
 }
-.summary-shell .header {
-  margin: 0;
-}
+.summary-shell .header { margin: 0; }
 .summary-shell .panels {
   grid-template-columns: repeat(2,minmax(0,1fr));
   align-items: stretch;
@@ -828,8 +855,7 @@ ha-card.has-mosque-background::after {
   gap: 0;
   border-top: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
 }
-/* Match specificity for Salah and Jamaat, including the earlier data-panel
-   accent selector. Color is reserved for both clocks, not either background. */
+/* Both countdown halves get exactly the same transparent glass formatting. */
 .summary-shell .panel.prayer-panel,
 .summary-shell .panel.prayer-panel[data-panel="salah"] {
   min-width: 0;
@@ -848,9 +874,14 @@ ha-card.has-mosque-background::after {
 .summary-shell .prayer-panel .prayer-times {
   border-top-color: color-mix(in srgb,var(--primary-text-color) 14%,transparent);
 }
-.summary-shell .prayer-panel .panel-silhouette {
-  opacity: .08;
+.summary-shell .prayer-panel .panel-silhouette { opacity: .08; }
+/* The timetable headings and date navigation live in the SAME glass material. */
+.timetable-shell thead,
+.timetable-shell .date-tabs {
+  background: color-mix(in srgb,var(--secondary-background-color) 38%,transparent);
 }
+.timetable-shell .table-scroll { background: transparent; }
+.timetable-shell .date-tabs { border-top-color: color-mix(in srgb,var(--primary-text-color) 14%,transparent); }
 @container(max-width:21rem) {
   .summary-shell .panels { grid-template-columns: 1fr; }
   .summary-shell .prayer-panel + .prayer-panel {
@@ -858,23 +889,31 @@ ha-card.has-mosque-background::after {
     border-block-start: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
   }
 }
+/* Do not rely on backdrop-filter support or transparency for legibility. */
+@supports not (backdrop-filter: blur(1px)) {
+  .summary-shell,.timetable-shell {
+    background: var(--secondary-background-color);
+    -webkit-backdrop-filter: none;
+  }
+}
 @media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
-  .summary-shell {
+  .summary-shell,.timetable-shell {
+    background: var(--secondary-background-color);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    box-shadow: none;
+  }
+  .summary-shell::before,.timetable-shell::before { display: none; }
+  .timetable-shell thead,.timetable-shell .date-tabs {
     background: var(--secondary-background-color);
   }
 }
 @media (prefers-contrast: more) {
-  .summary-shell {
-    border: 2px solid var(--primary-text-color);
-    box-shadow: none;
-  }
+  .summary-shell,.timetable-shell { border: 2px solid var(--primary-text-color); }
   .summary-shell .panels,
   .summary-shell .prayer-panel + .prayer-panel,
-  .summary-shell .prayer-panel .prayer-times {
-    border-color: var(--primary-text-color);
-  }
+  .summary-shell .prayer-panel .prayer-times,
+  .timetable-shell .date-tabs { border-color: var(--primary-text-color); }
 }
 @container(max-width:28rem) {
   .panels {
