@@ -51,7 +51,8 @@ a current dashboard to its 0.9.3 resources to repeat these historical steps.
    the branch copy. In particular, confirm these three files are together:
    `frontend/salah-timetable-card.js`, `frontend/card-styles.js`, and the
    existing `frontend/card-utils.js` and `frontend/card-i18n.js` dependencies.
-   A normal HACS download of `main` **will not** install the unmerged PR.
+   At that time a normal HACS download of `main` **did not** install the
+unmerged branch; the changes have since been incorporated in `main`.
 3. Restart Home Assistant so the integration's static routes are registered.
    Confirm `/salah_timetable/card-styles.js?v=0.9.3` returns JavaScript
    (HTTP 200) in browser developer tools; no HTTP 404 or module-import errors.
