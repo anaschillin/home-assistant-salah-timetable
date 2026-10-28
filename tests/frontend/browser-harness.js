@@ -79,6 +79,7 @@ try {
   check("photo includes a photographer credit", card.shadowRoot.querySelector(".background-credit a")?.href.includes("unsplash.com/photos/"));
   const photoCard = card.shadowRoot.querySelector("ha-card");
   const photoStyle = getComputedStyle(photoCard);
+  check("full-canvas card has no outer drop shadow", photoStyle.boxShadow === "none");
   const imageStyle = getComputedStyle(photoCard, "::before");
   check("photo and tint stay inside themed borders at mobile/tablet widths",
     imageStyle.backgroundImage.includes("linear-gradient") &&
@@ -152,6 +153,7 @@ try {
   const gridStyle = getComputedStyle(card.shadowRoot.querySelector(".panels"));
   const sharedSummary = card.shadowRoot.querySelector(".summary-shell");
   const summaryStyle = getComputedStyle(sharedSummary);
+  check("glass summary keeps its own internal depth", summaryStyle.boxShadow !== "none");
   const bothClocks = [...sharedSummary.querySelectorAll(".prayer-panel")];
   check("single frosted glass surface holds mosque identity and both countdowns",
     sharedSummary.querySelector(":scope > header") !== null &&
