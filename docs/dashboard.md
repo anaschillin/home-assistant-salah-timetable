@@ -77,12 +77,12 @@ event's actual date appear together. **Next Jamaat** counts down while the
 current prayer's congregation is still approaching; at its exact instant the
 same panel becomes **Previous Jamaat** and shows elapsed time.
 The mosque title, Hijri date/description, Gregorian date and both countdown
-sections now live inside **one consistently frosted-glass summary card**,
-with stronger background opacity and blur to keep prayer information legible over
-the mosque photograph. Both halves have **identical transparent surfaces,
-padding, label typography, countdown sizing and time-grid formatting**; only
-a fine separator distinguishes them, rather than different background tints
-or independent borders. Each countdown still has its own published
+sections now live inside **one CSS-first liquid-glass summary card**. The
+timetable has the same glass material: translucent theme-aware gradients,
+frosted blur and restrained specular edges. There is no WebGL runtime, animated
+distortion or remote dependency. Both countdown halves share **identical
+transparent surfaces, padding, label typography, countdown sizing and
+time-grid formatting**, separated by a fine divider. Each countdown still has its own published
 beginning/Jamaat values, label and live timer. A faint **minaret silhouette** decorates Next Salah and a faint
 **dome silhouette** decorates the contextual Next/Previous Jamaat countdown.
 Both are inline local SVG with `aria-hidden`, carry no data and do not
@@ -175,7 +175,9 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
 | `show_iftar_countdown` | `true`; hiding retains the displayed absolute time |
-| `show_timezone_note` | `true`; controls the timezone and missing-time note |\n| `show_mosque_background` | `true`; display a subtle bundled mosque photograph; `false` disables the image |\n| `mosque_background` | `daily` (default); `none`, or a bundled mosque ID for a fixed photo |\n| `mosque_background_opacity` | Whole number from `0` to `20`; default `7` (%) |
+| `show_timezone_note` | `true`; controls the timezone and missing-time note |
+| `show_mosque_background` | `true`; enables the full-strength bundled mosque photograph; `false` disables the image |
+| `mosque_background` | `daily` (default); `none`, or a bundled mosque ID for a fixed photo |
 
 Hiding either main panel removes it; the remaining panel fills the width.
 Hiding both leaves the header and timetable. Connection warnings and narrow-card
@@ -200,8 +202,11 @@ The card bundles 20 WebP photographs from free Unsplash photo pages. They
 are served from the integration itself, without remote requests or an Unsplash
 account. Photo backgrounds rotate once per mosque-local published date by
 default and do not repeat until all 20 have appeared. Choose a fixed mosque
-from **Mosque background** in the card editor, set **Background opacity (%)**
-(0–20), or switch off **Show mosque background** entirely.
+from **Mosque background** in the card editor, or switch off
+**Show mosque background** entirely. The old background-opacity overlay and
+editor option have been removed. Saved cards containing
+`mosque_background_opacity` are accepted, but that obsolete value is ignored
+and stripped when the configuration is normalised.
 
 The mosque photograph now covers the **full width of the canvas allotted
 to this card** by Home Assistant, without a hard 1280px limit. Its image layer
@@ -217,14 +222,17 @@ header and countdowns remain in an independently centred content column
 fills the available width. This creates wider photographic wings on landscape
 tablets and desktops without stretching the prayer table excessively.
 
-A softly blurred photographic rim and subtle translucent glass overlay
-evoke the mockup without blurring text or prayer times. The full-width outer
-card has **no drop shadow**, avoiding a dark halo around the photograph; the
-inner frosted summary retains its own restrained depth.
+The photograph is shown without a global opacity tint. Liquid-glass styling
+now applies only to the **summary and timetable surfaces**, with matching
+backdrop blur, layered translucent gradients, subtle specular edge lighting and
+a calm inset shadow. The photograph remains visible around them. The full-width
+outer card has **no drop shadow**, avoiding a dark halo. Text remains crisp.
+High-contrast/reduced-transparency preferences show opaque panel surfaces
+and hide the photo; browsers without backdrop filtering also use opaque panels.
 The Hijri date, Gregorian date and month explanation occupy separate header
-rows on mobile, tablet and desktop. Background opacity still controls the
-photo's visibility. Increased-contrast and reduced-transparency preferences
-hide the image and disable glass effects.
+rows on mobile, tablet and desktop. Photo visibility remains controlled by `show_mosque_background`.
+Increased-contrast and reduced-transparency preferences hide the image and
+disable glass effects.
 
 Home Assistant determines each card's **parent column width**, and the card
 cannot paint outside that column or across a sidebar. To fill a wider dashboard
