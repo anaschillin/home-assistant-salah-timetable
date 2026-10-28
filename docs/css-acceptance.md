@@ -6,7 +6,7 @@ not establish a successful installation on the maintainer's Home Assistant.
 
 ## Maintainer-reported Home Assistant check — 28 October 2026
 
-**Mobile visual check passed (reported), broader acceptance still pending.**
+**Mobile and landscape-tablet visual checks passed (reported), broader acceptance still pending.**
 The maintainer confirmed installing PR #82's branch files in Home Assistant,
 clearing the frontend cache, and opening
 `/salah_timetable/card-styles.js?v=0.9.3` successfully. The endpoint
@@ -16,13 +16,21 @@ section, bilingual prayer labels, current row emphasis, displayed prayer
 times and both countdown panels. Across the two captures, Next Salah
 decreased by 3m 15s and Previous Jamaat elapsed increased by 3m 15s.
 
-This confirms **asset availability and observed mobile presentation**, not
+A subsequent Home Assistant **landscape tablet** screenshot showed the
+same mosque/day, full-width three-tab navigation, two equal-width Salah and
+Jamaat panels, bilingual headings and prayer rows, and the highlighted Dhuhr
+row. No obvious horizontal overflow, overlapping controls or truncated text
+was visible in the captured area. The table continues below the screenshot's
+bottom edge, which alone is not evidence of clipping. The screenshots do not
+measure the actual CSS viewport or establish all interaction/theme states.
+
+This confirms **asset availability and observed mobile/tablet presentation**, not
 a full cache-bypass network trace or acceptance across every viewport and
 theme. The panels appeared side by side in the screenshots; that alone is
 not evidence of a layout regression without the browser's actual CSS
-viewport width. Tablet, RTL-specific, dark/light cross-check, keyboard
-focus and other manual matrix items below have not been individually
-confirmed. **Do not merge PR #82 until the maintainer explicitly approves.**
+viewport width. RTL-specific interaction, light/dark cross-check, keyboard
+focus, portrait tablet and other manual matrix items below have not been
+individually confirmed. **Do not merge PR #82 until the maintainer explicitly approves.**
 
 ## Manual Home Assistant validation before merge
 
