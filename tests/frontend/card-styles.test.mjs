@@ -1,7 +1,7 @@
 /** Style regressions complement the real Chromium responsive-layout checks. */
 import test from "node:test";
 import assert from "node:assert/strict";
-import {CARD_CSS} from "../../custom_components/salah_timetable/frontend/card-styles.js";
+import {CARD_CSS, EDITOR_CSS} from "../../custom_components/salah_timetable/frontend/card-styles.js";
 
 test("theme, accessibility and responsive styles remain bundled", () => {
   for (const token of [
@@ -19,6 +19,12 @@ test("shared tab controls retain active and keyboard-focus treatments", () => {
   assert.match(CARD_CSS, /\.date-tab\[aria-pressed="true"\],\.mosque-tab\[aria-pressed="true"\]/);
   assert.match(CARD_CSS, /\.date-tab:focus-visible,\.mosque-tab:focus-visible/);
   assert.match(CARD_CSS, /\.date-tab,\.mosque-tab\s*\{/);
+});
+
+test("graphical editor retains focus, layout, theme and narrow-screen styles", () => {
+  for (const token of [":host", ".form", ".title-field input", ".title-field input:focus", "--primary-color", "--secondary-text-color", "@media(max-width: 420px)"]) {
+    assert.ok(EDITOR_CSS.includes(token), `Missing editor style: ${token}`);
+  }
 });
 
 test("later responsive and modern panel overrides remain ordered", () => {
