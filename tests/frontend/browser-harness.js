@@ -74,15 +74,16 @@ try {
   const render = (patch = {}, now = time(4, 40)) => { card.setConfig({...config, ...patch}); card._render(Date.parse(now)); };
   card.setConfig(config); card.hass = hass; document.body.append(card); card._render(Date.parse(time(4, 40)));
   check("shadow DOM renders five prayer rows", card.shadowRoot.querySelectorAll("tbody tr").length === 5);
-  render({show_mosque_background: true, mosque_background: "masjid-al-haram", mosque_background_opacity: 7});
+  render({show_mosque_background: true, mosque_background: "masjid-al-haram"});
   check("bundled mosque background resolves to local WebP", card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-background-image").includes("/salah_timetable/backgrounds/masjid-al-haram.webp"));
   check("photo includes a photographer credit", card.shadowRoot.querySelector(".background-credit a")?.href.includes("unsplash.com/photos/"));
   const photoCard = card.shadowRoot.querySelector("ha-card");
   const photoStyle = getComputedStyle(photoCard);
   check("full-canvas card has no outer drop shadow", photoStyle.boxShadow === "none");
   const imageStyle = getComputedStyle(photoCard, "::before");
-  check("photo and tint stay inside themed borders at mobile/tablet widths",
-    imageStyle.backgroundImage.includes("linear-gradient") &&
+  check("unobscured photo stays inside themed borders at mobile/tablet widths",
+    imageStyle.backgroundImage.includes("masjid-al-haram.webp") &&
+    !imageStyle.backgroundImage.includes("linear-gradient") &&
     imageStyle.backgroundClip.split(",").every(value => value.trim() === "padding-box") &&
     imageStyle.backgroundOrigin.split(",").every(value => value.trim() === "padding-box") &&
     photoStyle.overflow === "hidden" &&
@@ -97,7 +98,7 @@ try {
     glassStyle.marginLeft === glassStyle.marginRight &&
     rimStyle.filter === "blur(14px)" &&
     rimStyle.maskImage.includes("radial-gradient") &&
-    glassStyle.backdropFilter === "blur(1px)");
+    glassStyle.backdropFilter === "none");
   // A full Today/adjacent-day round trip must change BOTH dates (and the Hijri
   // month narrative when required), yet preserve the photograph's original crop.
   const fullTodayHeight = photoCard.getBoundingClientRect().height;
@@ -153,14 +154,27 @@ try {
   const gridStyle = getComputedStyle(card.shadowRoot.querySelector(".panels"));
   const sharedSummary = card.shadowRoot.querySelector(".summary-shell");
   const summaryStyle = getComputedStyle(sharedSummary);
-  check("glass summary keeps its own internal depth", summaryStyle.boxShadow !== "none");
+  const timetableStyle = getComputedStyle(card.shadowRoot.querySelector(".timetable-shell"));
+  check("both glass cards have identical optical material",
+    summaryStyle.backgroundImage === timetableStyle.backgroundImage &&
+    summaryStyle.backdropFilter === timetableStyle.backdropFilter &&
+    summaryStyle.backdropFilter.includes("blur(20px)") &&
+    summaryStyle.borderRadius === timetableStyle.borderRadius &&
+    summaryStyle.borderColor === timetableStyle.borderColor &&
+    summaryStyle.boxShadow === timetableStyle.boxShadow &&
+    summaryStyle.boxShadow !== "none" &&
+    getComputedStyle(sharedSummary, "::before").backgroundImage ===
+      getComputedStyle(card.shadowRoot.querySelector(".timetable-shell"), "::before").backgroundImage);
+  check("outer background does not apply a configurable opacity overlay",
+    !photoCard.style.getPropertyValue("--mosque-overlay") &&
+    !Object.prototype.hasOwnProperty.call(card._config, "mosque_background_opacity"));
   const bothClocks = [...sharedSummary.querySelectorAll(".prayer-panel")];
   check("single frosted glass surface holds mosque identity and both countdowns",
     sharedSummary.querySelector(":scope > header") !== null &&
     sharedSummary.querySelector(":scope > .panels") !== null &&
     bothClocks.length === 2 &&
     summaryStyle.borderRadius === "18px" &&
-    summaryStyle.backdropFilter.includes("blur(18px)") &&
+    summaryStyle.backdropFilter.includes("blur(20px)") &&
     summaryStyle.marginBottom === "16px" &&
     panelStyle.display === "flex" && panelStyle.borderWidth === "0px" &&
     panelStyle.borderRadius === "0px" && gridStyle.display === "grid");
