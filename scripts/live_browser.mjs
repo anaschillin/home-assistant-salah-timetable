@@ -187,6 +187,31 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
           header.scrollWidth<=header.clientWidth+1;
       })()`), true, `Real HA header description shares date row or overflows at ${width}px`);
     }
+    // The full-bleed photograph should reach the dashboard viewport bottom
+    // even when Yesterday/Tomorrow omit both live countdowns. The timetable
+    // itself stays compact at the top; only the photo canvas fills the view.
+    assert.equal(await evaluate(`(()=>{
+      const card=window.salahAutoCard;
+      card.setConfig({...card._config,show_mosque_background:true,show_salah_countdown:true,show_jamaat_countdown:true});
+      card._selectedDay=0;card._render();
+      const today=card.shadowRoot.querySelector("ha-card");
+      const todayPhoto=getComputedStyle(today,"::before");
+      const before={width:parseFloat(todayPhoto.width),height:parseFloat(todayPhoto.height)};
+      let ok=true;
+      for(const index of [0,2,1]){
+        card.shadowRoot.querySelectorAll(".date-tab")[index].click();
+        const next=card.shadowRoot.querySelector("ha-card");
+        const min=parseFloat(getComputedStyle(next).minHeight);
+        const img=getComputedStyle(next,"::before");
+        const table=next.querySelector(".timetable-shell").getBoundingClientRect();
+        ok &&= min>0 && next.getBoundingClientRect().height>=min-1 &&
+          Math.abs(parseFloat(img.width)-before.width)<2 &&
+          Math.abs(parseFloat(img.height)-before.height)<2 &&
+          table.bottom<=next.getBoundingClientRect().bottom+1 &&
+          (index===1||!next.querySelector(".prayer-panel"));
+      }
+      return ok && card._selectedDay===0;
+    })()`),true,"Real HA photo canvas cropped below short Yesterday/Tomorrow contents");
     // Real Home Assistant cards can change width slightly as the dashboard's
     // vertical scrollbar appears/disappears between Today and adjacent days.
     // Assert that neither pseudo-image layer scales in that situation.
