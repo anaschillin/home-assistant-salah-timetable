@@ -155,6 +155,8 @@ try {
   check("light theme follows HA variables", getComputedStyle(card).color === "rgb(20, 20, 20)");
 
   const editor = new SalahTimetableCardEditor(); editor.setConfig(config); editor.hass = hass; document.body.append(editor);
+  const editorForm = editor.shadowRoot.querySelector(".form");
+  check("graphical editor stylesheet applies grid and HA theme colors", getComputedStyle(editorForm).display === "grid" && getComputedStyle(editor.shadowRoot.querySelector(".title-field input")).boxSizing === "border-box");
   let lastConfig;
   editor.addEventListener("config-changed", event => { lastConfig = event.detail.config; editor.setConfig(event.detail.config); card.setConfig(event.detail.config); card._render(Date.parse(time(4, 40))); });
   const input = editor.shadowRoot.querySelector("input#mosque-title");

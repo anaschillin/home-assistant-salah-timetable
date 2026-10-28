@@ -345,7 +345,6 @@ th:first-child {
 ha-card {
   position: relative;
   isolation: isolate;
-  background: var(--ha-card-background,var(--card-background-color));
 }
 ha-card::before {
   content: "";
@@ -452,7 +451,6 @@ ha-card {
 .table-scroll {
   border: 1px solid var(--divider-color);
   border-radius: 14px;
-  overflow-x: auto;
 }
 table {
   min-width: 0;
@@ -479,11 +477,7 @@ tbody tr th,tbody tr td {
   background: color-mix(in srgb,var(--primary-color) 13%,transparent);
   box-shadow: inset 3px 0 var(--primary-color);
 }
-.next-prayer th,.next-prayer td {
-  font-weight: 700;
-}
 .past-prayer {
-  color: var(--secondary-text-color);
   opacity: 1;
 }
 .past-prayer th,.past-prayer td {
@@ -536,6 +530,68 @@ tbody tr th,tbody tr td {
 @media(prefers-reduced-motion:no-preference) {
   .panel,.next-prayer {
     transition: background-color .2s ease,border-color .2s ease;
+  }
+}
+`;
+
+/** Card configuration editor styles, scoped to its separate shadow root. */
+export const EDITOR_CSS = `
+:host {
+  display: block;
+}
+.form {
+  display: grid;
+  gap: 16px;
+  padding: 12px 0;
+}
+.help {
+  color: var(--secondary-text-color);
+  font-size: .9rem;
+}
+.error {
+  color: var(--error-color);
+}
+.setting {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.setting select {
+  font: inherit;
+  color: var(--primary-text-color);
+  background: var(--card-background-color);
+  padding: 8px;
+  max-width: 55%;
+}
+.setting span {
+  overflow-wrap: anywhere;
+}
+.title-field {
+  display: grid;
+  gap: 7px;
+}
+.title-field label {
+  font: inherit;
+  color: var(--primary-text-color);
+}
+.title-field input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--divider-color);
+  border-radius: 4px;
+  background: var(--card-background-color);
+  color: var(--primary-text-color);
+  font: inherit;
+}
+.title-field input:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 1px;
+}
+@media(max-width: 420px) {
+  .setting {
+    gap: 8px;
   }
 }
 `;

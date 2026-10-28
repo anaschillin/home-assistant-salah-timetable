@@ -1,4 +1,4 @@
-import {CARD_CSS} from "./card-styles.js?v=0.9.3";
+import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=0.9.3";
 import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.3";
 import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9.3";
 
@@ -386,7 +386,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
   _render() {
     if (!this.shadowRoot) return;
     if (this._controls) { this._updateControls(); return; }
-    const style = node("style", ":host{display:block}.form{display:grid;gap:16px;padding:12px 0}.help{color:var(--secondary-text-color);font-size:.9rem}.error{color:var(--error-color)}.setting{display:flex;justify-content:space-between;gap:12px;align-items:center}.setting select{font:inherit;color:var(--primary-text-color);background:var(--card-background-color);padding:8px;max-width:55%}.setting span{overflow-wrap:anywhere}.title-field{display:grid;gap:7px}.title-field label{font:inherit;color:var(--primary-text-color)}.title-field input{box-sizing:border-box;width:100%;padding:12px;border:1px solid var(--divider-color);border-radius:4px;background:var(--card-background-color);color:var(--primary-text-color);font:inherit}.title-field input:focus{outline:2px solid var(--primary-color);outline-offset:1px}@media(max-width:420px){.setting{gap:8px}}");
+    const style = node("style", EDITOR_CSS);
     const form = node("div", undefined, "form"); this._form = form;
     const entity = node("ha-selector");
     const error = node("div", "", "error"); error.setAttribute("role", "alert");
