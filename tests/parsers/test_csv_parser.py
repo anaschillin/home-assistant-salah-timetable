@@ -19,7 +19,7 @@ from custom_components.salah_timetable.import_model import (
 )
 from custom_components.salah_timetable.model import PrayerField
 
-FIXTURES = Path(__file__).parent / "fixtures" / "csv"
+FIXTURES = Path(__file__).parents[1] / "fixtures" / "csv"
 
 
 def parse(content, **overrides):

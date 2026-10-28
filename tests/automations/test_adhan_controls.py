@@ -15,7 +15,7 @@ from homeassistant.util import yaml as yaml_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 BLUEPRINT = (
-    Path(__file__).parents[1] / "blueprints/automation/salah_timetable/adhan.yaml"
+    Path(__file__).parents[1]s[2] / "blueprints/automation/salah_timetable/adhan.yaml"
 )
 TIMESTAMP = {"device_class": "timestamp"}
 NORMAL = {"media_content_id": "local/adhan.mp3", "media_content_type": "audio/mpeg"}

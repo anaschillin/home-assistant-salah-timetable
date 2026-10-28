@@ -17,7 +17,7 @@ from custom_components.salah_timetable.mosque_a_layout import (
 )
 from custom_components.salah_timetable.pdf_parser import extract_pdf_pages
 
-FIXTURES = Path(__file__).parent / "fixtures" / "pdf"
+FIXTURES = Path(__file__).parents[1] / "fixtures" / "pdf"
 
 
 def fixture_data(year=2026):

@@ -18,7 +18,7 @@ from pytest_homeassistant_custom_component.common import (
     async_mock_service,
 )
 
-BLUEPRINTS = Path(__file__).parents[1] / "blueprints/automation/salah_timetable"
+BLUEPRINTS = Path(__file__).parents[1]s[2] / "blueprints/automation/salah_timetable"
 ATTRS = {"device_class": "timestamp"}
 
 
