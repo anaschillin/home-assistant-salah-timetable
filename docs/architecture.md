@@ -268,8 +268,9 @@ The `custom:salah-timetable-card` custom element and graphical editor consume
 each mosque's Prayer timetable entity. Multiple enabled entities are selected
 through a **single header dropdown**; each card instance maintains its own
 selected mosque and day. Its **unified summary** contains the mosque heading,
-calculated Hijri/Gregorian dates, a short optional month description and
-contextual Next Salah / Next-or-Previous Jamaat countdown halves. A separate
+contextual Next Salah / Next-or-Previous Jamaat countdown halves and (in
+Standard/Detailed mode) calculated Hijri/Gregorian dates and an optional short
+month description. Compact omits the full calendar header and today's table. A separate
 timetable surface includes the three-day selector in its footer. Yesterday
 and Tomorrow follow their own approved rows and update both calendars while
 suppressing live countdowns and Ramadan details.
