@@ -42,3 +42,15 @@ test("mosque background and tint are clipped at the rounded card border", () => 
   assert.match(CARD_CSS, /ha-card\s*\{[^}]*overflow:\s*hidden\s*;/);
   assert.match(CARD_CSS, /ha-card\s*\{[^}]*border-radius:\s*var\(--ha-card-border-radius/);
 });
+
+test("centered glass card blurs only the background rim with accessible fallback", () => {
+  assert.match(CARD_CSS, /ha-card\s*\{[^}]*max-width:\s*1000px/);
+  assert.match(CARD_CSS, /ha-card\.has-mosque-background::after\s*\{[^}]*filter:\s*blur\(14px\)/);
+  assert.match(CARD_CSS, /ha-card\.has-mosque-background::after\s*\{[^}]*mask-image:\s*radial-gradient/);
+  assert.match(CARD_CSS, /ha-card\.has-mosque-background \.content\s*\{[^}]*backdrop-filter:\s*blur\(3px\)/);
+  assert.match(CARD_CSS, /prefers-reduced-transparency:\s*reduce/);
+  assert.match(CARD_CSS, /ha-card\.has-mosque-background::after\s*\{\s*display:\s*none/);
+  assert.match(CARD_CSS, /\.header \.month-description\s*\{[^}]*flex-basis:\s*100%/);
+  assert.doesNotMatch(CARD_CSS, /\.month-summary\s*\{/);
+});
+
