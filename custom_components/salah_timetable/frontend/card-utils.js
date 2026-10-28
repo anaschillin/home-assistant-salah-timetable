@@ -1,5 +1,5 @@
 /** Pure timestamp and display logic shared by the bundled card and its tests. */
-import {localizedNumber, tr} from "./card-i18n.js?v=0.9.10";
+import {localizedNumber, tr} from "./card-i18n.js?v=0.9.11";
 
 const PRAYERS = Object.freeze(["fajr", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
