@@ -217,8 +217,10 @@ header and countdowns remain in an independently centred content column
 fills the available width. This creates wider photographic wings on landscape
 tablets and desktops without stretching the prayer table excessively.
 
-A softly blurred photographic rim, subtle translucent glass overlay and
-theme-aware shadow evoke the mockup without blurring text or prayer times.
+A softly blurred photographic rim and subtle translucent glass overlay
+evoke the mockup without blurring text or prayer times. The full-width outer
+card has **no drop shadow**, avoiding a dark halo around the photograph; the
+inner frosted summary retains its own restrained depth.
 The Hijri date, Gregorian date and month explanation occupy separate header
 rows on mobile, tablet and desktop. Background opacity still controls the
 photo's visibility. Increased-contrast and reduced-transparency preferences
