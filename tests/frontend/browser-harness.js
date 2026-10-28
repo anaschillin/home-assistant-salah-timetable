@@ -84,6 +84,14 @@ try {
     photoStyle.backgroundOrigin.split(",").every(value => value.trim() === "padding-box") &&
     photoStyle.overflow === "hidden" &&
     photoStyle.borderTopWidth !== "0px" && photoStyle.borderBottomWidth !== "0px");
+  const rimStyle = getComputedStyle(photoCard, "::after");
+  const glassStyle = getComputedStyle(photoCard.querySelector(".content"));
+  check("centred glass styling and image-only blurred edge are applied",
+    photoStyle.maxWidth === "1000px" &&
+    photoStyle.marginLeft === photoStyle.marginRight &&
+    rimStyle.filter === "blur(14px)" &&
+    rimStyle.maskImage.includes("radial-gradient") &&
+    glassStyle.backdropFilter === "blur(3px)");
   render();
   const rules = card.shadowRoot.querySelector("style")?.sheet?.cssRules;
   check("bundled CSS module loads responsive rules", Boolean(rules?.length) && [...rules].some(rule => /max-width\s*:\s*28rem/.test(rule.conditionText || "")));
