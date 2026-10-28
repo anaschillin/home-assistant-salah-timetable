@@ -7,7 +7,7 @@ from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.model import PrayerField
+from custom_components.salah_timetable.domain.model import PrayerField
 
 
 async def test_empty_setup_and_unload(hass, entry):
@@ -53,7 +53,7 @@ async def test_timestamps_reload_rollover_and_stable_ids(hass, populated, freeze
 
 async def test_invalid_store_setup_error(hass, entry):
     with patch(
-        "custom_components.salah_timetable.storage._TimetableStore.async_load",
+        "custom_components.salah_timetable.persistence.storage._TimetableStore.async_load",
         AsyncMock(return_value={"timetables": [{}]}),
     ):
         assert not await hass.config_entries.async_setup(entry.entry_id)

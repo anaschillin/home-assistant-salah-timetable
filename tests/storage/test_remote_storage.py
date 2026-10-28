@@ -14,15 +14,18 @@ from homeassistant.util.file import WriteError
 from homeassistant.util.json import load_json
 
 from custom_components.salah_timetable.const import DOMAIN, STORAGE_VERSION
-from custom_components.salah_timetable.csv_parser import CsvParser
-from custom_components.salah_timetable.import_model import (
+from custom_components.salah_timetable.parsers.csv_parser import CsvParser
+from custom_components.salah_timetable.parsers.import_model import (
     ImportCandidate,
     ImportValidationError,
 )
-from custom_components.salah_timetable.source_model import RemoteSource, validate_check
-from custom_components.salah_timetable.storage import (
+from custom_components.salah_timetable.persistence.storage import (
     PendingImportError,
     TimetableStorage,
+)
+from custom_components.salah_timetable.sources.source_model import (
+    RemoteSource,
+    validate_check,
 )
 
 

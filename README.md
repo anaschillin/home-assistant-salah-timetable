@@ -30,6 +30,8 @@ and [candidate dataset](docs/islamic-history-candidates.json) inform proposed
 This optional offline history companion remains research only; no historical
 panel, event feed or candidate catalogue is included in the running integration.
 
+For contributor navigation, see the [production module inventory](docs/module-inventory.md), [module contracts](docs/integration-architecture.md), and [architecture guide](docs/architecture.md).
+
 ## Requirements and installation
 
 Home Assistant **2026.10.0 or newer**. Development uses Python **3.14.2+** and is

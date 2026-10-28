@@ -2,35 +2,37 @@
 
 ## Boundaries
 
+The authoritative [production module inventory](module-inventory.md) lists every grouped Python module, stable Home Assistant entrypoint and frontend helper. There are no duplicate root modules or legacy import aliases.
+
 - `config_flow.py`: mosque identity, UI creation, timezone/Ramadan options and import
   flow entry. Options updates preserve unrelated settings and reload the entry.
-- `import_flow.py`: native HA file selector, bounded upload consumption, graphical
+- `imports/import_flow.py`: native HA file selector, bounded upload consumption, graphical
   column mapping and explicit approval/rejection of a durable proposal.
-- `csv_parser.py`: dependency-free bounded parser. Returns a candidate; never mutates
+- `parsers/csv_parser.py`: dependency-free bounded parser. Returns a candidate; never mutates
   active HA state. PDF adapters delegate their explicit extracted columns to it.
-- `import_model.py`: immutable source, SHA-256 provenance, coverage, warnings and
+- `parsers/import_model.py`: immutable source, SHA-256 provenance, coverage, warnings and
   parser protocol, selected date/field mapping and time format. Stored reports validate
   their metadata against the canonical rows.
-- `model.py`: immutable dated prayer values independent of HA. Only Jumu'ah accepts
+- `domain/model.py`: immutable dated prayer values independent of HA. Only Jumu'ah accepts
   multiple ordered times. Missing imported values remain missing.
-- `storage.py`: versioned per-entry Store, staged candidate, approved sources and
+- `persistence/storage.py`: versioned per-entry Store, staged candidate, approved sources and
   active table snapshot. Validate and persist before changing in-memory data.
-- `ramadan.py`: explicit date confirmation and exact-date, immutable effective
+- `domain/ramadan.py`: explicit date confirmation and exact-date, immutable effective
   overrides. Published values take precedence over the documented Ramadan defaults.
-- `events.py`: pure timezone-aware next/previous events and contextual Jamaat
+- `domain/events.py`: pure timezone-aware next/previous events and contextual Jamaat
   selection, independent of storage, UI and HA scheduling.
-- `coordinator.py`: resolve yesterday/today/tomorrow in the mosque timezone, calculate
+- `runtime/coordinator.py`: resolve yesterday/today/tomorrow in the mosque timezone, calculate
   events and schedule boundary refreshes, with no network calls. Its immutable snapshot
   also retains approved tables so changes outside that horizon notify the calendar.
 - `calendar.py`: one read-only calendar per mosque, using approved effective dated
   rows, stable event UIDs and bounded timezone-aware queries. It preserves individual
   beginnings/Jamaat and multiple Jumu’ah starts with a 60-second calendar-only
   presentation interval.
-- `coverage.py`: consecutive effective approved dates, cached by date/sources/Ramadan
+- `domain/coverage.py`: consecutive effective approved dates, cached by date/sources/Ramadan
   settings. Pending proposals never extend coverage; ambiguous dates beyond the live
   horizon stop coverage and expose `unresolved_date` without disabling valid current
   prayer events.
-- `presentation.py`: serialize effective dates and absolute event timelines for the
+- `domain/presentation.py`: serialize effective dates and absolute event timelines for the
   card without adding ticking countdown state.
 - `sensor.py`: 26 entities per mosque with stable `{mosque_id}_{field}` unique IDs
   and HA registry persistence; the card's unique ID uses `{mosque_id}_dashboard`.
@@ -59,7 +61,7 @@ Closing the review leaves the proposal durable. A resumed flow reads it from sto
 A stale preview identity cannot approve/reject a different proposal. A pending proposal
 cannot be overwritten by another concurrent import.
 
-`import_comparison.py` compares the candidate with the exact approved source ID,
+`imports/import_comparison.py` compares the candidate with the exact approved source ID,
 including all dates retained by a legacy multi-year source. It keeps canonical
 published field differences separate from original-token and provenance changes;
 it does not substitute effective Ramadan defaults into the comparison. The review
@@ -124,16 +126,16 @@ own recovery handling. Restore a backup rather than editing private storage.
 
 ## Downloads and PDF adapters
 
-`source_flow.py` makes the options menu URL-first and also offers manual PDF/CSV.
-Every route reuses graphical mapping and explicit persisted review. `download.py`
+`sources/source_flow.py` makes the options menu URL-first and also offers manual PDF/CSV.
+Every route reuses graphical mapping and explicit persisted review. `sources/download.py`
 owns a dedicated HTTPS session/connector whose resolver validates actual connection
 addresses. Redirects, body size, time, content encoding/type/signatures and HTTP
 validators are bounded. No environment proxy or authenticated shared session is reused.
 
-`pdf_parser.py` dispatches tested layouts, converts extracted values into canonical
+`parsers/pdf_parser.py` dispatches tested layouts, converts extracted values into canonical
 CSV and delegates value validation to the existing parser. `pdf_worker.py` extracts
 untrusted PDF text in a separate, isolated, resource-limited process. Unknown layouts
-fail closed. `mosque_a_layout.py` validates the inspected annual table: 14 pages, explicit
+fail closed. `parsers/mosque_a_layout.py` validates the inspected annual table: 14 pages, explicit
 cover/month years, exact headings, all Gregorian dates/weekdays and 13 physical time
 columns. It applies documented column meridiems, resolves same-column quotation marks
 before splitting Friday Jumu’ah from ordinary Dhuhr, and retains all raw cells. The
@@ -144,8 +146,8 @@ congregation event or changes the published Dhuhr beginning. The inspected
 MOSQUE_A monthly adapter applies the same separation. Printed Hijri cells never
 confirm Ramadan. See [PDF layouts](pdf_layouts.md).
 
-`source_model.py` holds immutable URL/parser profiles and allowlisted check metadata.
-`source_updates.py` serializes manual and scheduled checks. A source comparison inside
+`sources/source_model.py` holds immutable URL/parser profiles and allowlisted check metadata.
+`sources/source_updates.py` serializes manual and scheduled checks. A source comparison inside
 the storage transaction prevents an old download from staging after its profile has
 changed or been removed. Seen digest/HTTP validators are advanced only for validated
 content; rejection retains the baseline without making the source active. No polling
@@ -188,7 +190,7 @@ Absent published Taraweeh produces the text “After Isha Jamaat”, with no tim
 The immutable result retains references to the annual and Ramadan rows; neither
 canonical nor original imported values are rewritten.
 
-`ramadan_validation.py` reviews a prospective replacement without mutating storage.
+`domain/ramadan_validation.py` reviews a prospective replacement without mutating storage.
 It reports exact-window coverage, annual retention, default Iftar and unavailable
 timestamps, plus advisory source/effective time-order warnings. The same selection
 validator runs when saving Ramadan settings and, under the store lock, before

@@ -12,10 +12,10 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.util import dt as dt_util
 
+from ..parsers.csv_parser import CsvParser
+from ..parsers.import_model import ImportValidationError
+from ..persistence.storage import PendingImportError, TimetableStorage
 from . import download
-from .csv_parser import CsvParser
-from .import_model import ImportValidationError
-from .storage import PendingImportError, TimetableStorage
 
 CHECK_INTERVAL = timedelta(days=1)
 _LOGGER = logging.getLogger(__name__)
@@ -432,7 +432,7 @@ class SourceUpdateManager:
     @staticmethod
     def _parse(source, content: bytes):
         if source.media_type == "pdf":
-            from .pdf_parser import PdfParser
+            from ..parsers.pdf_parser import PdfParser
 
             parser = PdfParser(layout_id=source.parser_id)
         else:

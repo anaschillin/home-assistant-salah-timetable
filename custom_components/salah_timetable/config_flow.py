@@ -10,9 +10,9 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import CONF_MOSQUE_ID, CONF_SHOW_HIJRI_DATE, CONF_TIME_ZONE, DOMAIN
-from .ramadan import RamadanSettings
-from .ramadan_validation import validate_ramadan_selection
-from .source_flow import SourceOptionsFlow
+from .domain.ramadan import RamadanSettings
+from .domain.ramadan_validation import validate_ramadan_selection
+from .sources.source_flow import SourceOptionsFlow
 
 
 def valid_zone(value: str) -> bool:

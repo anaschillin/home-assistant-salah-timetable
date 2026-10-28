@@ -13,12 +13,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.util.json import load_json
 
-from .const import DOMAIN, STORAGE_VERSION
-from .import_model import ImportCandidate
-from .model import DailyPrayers, PrayerField, Timetable
-from .ramadan import RamadanSettings
-from .ramadan_validation import validate_ramadan_selection
-from .source_model import RemoteSource, validate_check
+from ..const import DOMAIN, STORAGE_VERSION
+from ..domain.model import DailyPrayers, PrayerField, Timetable
+from ..domain.ramadan import RamadanSettings
+from ..domain.ramadan_validation import validate_ramadan_selection
+from ..parsers.import_model import ImportCandidate
+from ..sources.source_model import RemoteSource, validate_check
 
 
 class PendingImportError(ValueError):

@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from custom_components.salah_timetable.import_model import (
+from custom_components.salah_timetable.parsers.import_model import (
     ImportCandidate,
     ImportValidationError,
 )
-from custom_components.salah_timetable.mosque_a_layout import MOSQUE_A_COLUMNS
-from custom_components.salah_timetable.pdf_parser import PdfParser
-from custom_components.salah_timetable.source_model import RemoteSource
+from custom_components.salah_timetable.parsers.mosque_a_layout import MOSQUE_A_COLUMNS
+from custom_components.salah_timetable.parsers.pdf_parser import PdfParser
+from custom_components.salah_timetable.sources.source_model import RemoteSource
 
 FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/mosque_a_synthetic_2026.pdf"
 

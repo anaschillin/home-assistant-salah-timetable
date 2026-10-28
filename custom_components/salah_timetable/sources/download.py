@@ -25,7 +25,7 @@ from aiohttp.abc import AbstractResolver, ResolveResult
 from aiohttp.resolver import DefaultResolver
 from yarl import URL
 
-from .import_model import MAX_PDF_BYTES
+from ..parsers.import_model import MAX_PDF_BYTES
 
 MAX_CSV_BYTES = 512 * 1024
 MAX_REDIRECTS = 3

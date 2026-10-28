@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock
 import pytest
 from aiohttp import ClientConnectionError, DummyCookieJar
 
-from custom_components.salah_timetable import download
+from custom_components.salah_timetable.sources import download
 
 PUBLIC_URL = "https://mosque.example.org/timetable.pdf?private=value"
 PDF = b"%PDF-1.7\nfixture\n%%EOF\n"

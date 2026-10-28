@@ -6,8 +6,8 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import Any, Mapping
 
-from .import_model import ImportValidationError
-from .model import PrayerField
+from ..domain.model import PrayerField
+from ..parsers.import_model import ImportValidationError
 
 PDF_PARSER_IDS = frozenset(
     {

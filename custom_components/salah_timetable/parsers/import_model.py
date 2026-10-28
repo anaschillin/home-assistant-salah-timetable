@@ -10,7 +10,7 @@ from hashlib import sha256
 from types import MappingProxyType
 from typing import Mapping, Protocol
 
-from .model import PrayerField, Timetable
+from ..domain.model import PrayerField, Timetable
 
 MAX_SOURCE_BYTES = 512 * 1024
 MAX_PDF_BYTES = 4 * 1024 * 1024
@@ -164,7 +164,7 @@ class ImportCandidate:
             raise ImportValidationError("Unsupported source format")
         if self.sha256 != sha256(source_bytes).hexdigest():
             raise ImportValidationError("The stored source checksum does not match")
-        from .source_model import validate_source_url, validate_validator
+        from ..sources.source_model import validate_source_url, validate_validator
 
         if self.source_url is not None:
             object.__setattr__(self, "source_url", validate_source_url(self.source_url))
@@ -185,7 +185,7 @@ class ImportCandidate:
         object.__setattr__(self, "warnings", warnings)
 
     def _validate_provenance(self) -> None:
-        from .source_model import PDF_PARSER_IDS
+        from ..sources.source_model import PDF_PARSER_IDS
 
         if (
             self.time_format not in {"24h", "12h"}

@@ -127,7 +127,7 @@ def extract_pdf_pages(content: bytes) -> tuple[str, ...]:
         raise ImportValidationError("The file is not a PDF")
     if len(content) > MAX_PDF_BYTES:
         raise ImportValidationError("PDF must be no larger than 4 MiB")
-    worker = Path(__file__).with_name("pdf_worker.py")
+    worker = Path(__file__).resolve().parent.parent / "pdf_worker.py"
     try:
         with _WORKERS:
             result = subprocess.run(

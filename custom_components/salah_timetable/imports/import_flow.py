@@ -15,17 +15,21 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import selector
 from homeassistant.util import dt as dt_util
 
-from .csv_parser import CsvParser
+from ..domain.model import PrayerField, normalize_field
+from ..domain.ramadan import RamadanSettings
+from ..domain.ramadan_validation import ramadan_review
+from ..parsers.csv_parser import CsvParser
+from ..parsers.import_model import MAX_SOURCE_BYTES, ImportValidationError
+from ..persistence.storage import (
+    PendingImportError,
+    RamadanApprovalError,
+    ReviewChangedError,
+)
 from .import_comparison import (
     compare_import,
     comparison_overview,
     render_comparison_page,
 )
-from .import_model import MAX_SOURCE_BYTES, ImportValidationError
-from .model import PrayerField, normalize_field
-from .ramadan import RamadanSettings
-from .ramadan_validation import ramadan_review
-from .storage import PendingImportError, RamadanApprovalError, ReviewChangedError
 
 PARSER = CsvParser()
 IGNORE_COLUMN = "__ignore__"
@@ -355,7 +359,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             )
         remote_source = None
         if self._remote_url is not None:
-            from .source_model import RemoteSource
+            from ..sources.source_model import RemoteSource
 
             candidate = await self.hass.async_add_executor_job(
                 lambda: replace(

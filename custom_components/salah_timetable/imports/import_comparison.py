@@ -9,8 +9,8 @@ from dataclasses import dataclass
 from datetime import date, time
 from html import escape
 
-from .import_model import ImportCandidate
-from .model import DailyPrayers, PrayerField, Timetable
+from ..domain.model import DailyPrayers, PrayerField, Timetable
+from ..parsers.import_model import ImportCandidate
 
 DIFF_PAGE_SIZE = 20
 DEFAULT_PAGE_SIZE = 10

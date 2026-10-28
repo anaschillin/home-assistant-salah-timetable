@@ -11,8 +11,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
-from .model import PrayerField, Timetable
-from .ramadan import RamadanSettings, resolve_day
+from .domain.model import PrayerField, Timetable
+from .domain.ramadan import RamadanSettings, resolve_day
 
 MAX_QUERY_DAYS = 366
 # Calendar interoperability only: prayer and Jamaat remain exact start instants.

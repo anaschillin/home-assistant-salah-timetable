@@ -9,8 +9,8 @@ from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CONF_SHOW_HIJRI_DATE, DOMAIN
-from .model import PrayerField
-from .presentation import dashboard_attributes
+from .domain.model import PrayerField
+from .domain.presentation import dashboard_attributes
 
 DESCRIPTIONS = tuple(
     SensorEntityDescription(

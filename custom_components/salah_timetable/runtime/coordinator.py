@@ -10,11 +10,11 @@ from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
-from .coverage import CoverageSnapshot, calculate_coverage
-from .events import EventSnapshot, calculate_events
-from .model import Timetable
-from .ramadan import EffectiveTimetable, RamadanSettings, resolve_day
-from .storage import TimetableStorage
+from ..domain.coverage import CoverageSnapshot, calculate_coverage
+from ..domain.events import EventSnapshot, calculate_events
+from ..domain.model import Timetable
+from ..domain.ramadan import EffectiveTimetable, RamadanSettings, resolve_day
+from ..persistence.storage import TimetableStorage
 
 
 @dataclass(frozen=True)
