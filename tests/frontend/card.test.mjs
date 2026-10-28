@@ -308,16 +308,32 @@ test("Ramadan countdown switches retain published times and Taraweeh", () => {
   assert.equal(find(section, "div").filter(element => element.className === "count").length, 0);
 });
 
+test("retired background opacity is discarded from old Lovelace configs without affecting mosque choice", () => {
+  const old = {entity: "sensor.mosque_prayer_timetable", mosque_background_opacity: 17, mosque_background: "masjid-al-haram"};
+  const card = new SalahTimetableCard();
+  card.setConfig(old);
+  card.hass = hass();
+  assert.equal(Object.hasOwn(card._config, "mosque_background_opacity"), false);
+  assert.equal(card._config.mosque_background, "masjid-al-haram");
+  assert.equal(find(card.shadowRoot, "ha-card")[0].style.values["--mosque-overlay"], undefined);
+  const editor = new SalahTimetableCardEditor();
+  editor.setConfig(old);
+  editor.hass = hass();
+  assert.equal(Object.hasOwn(editor._extraControls, "mosque_background_opacity"), false);
+  assert.equal(editor._config.mosque_background, "masjid-al-haram");
+  assert.equal(editor._config.mosque_background_opacity, undefined);
+});
+
 test("new editor controls round trip and retain nodes through HA config echoes", () => {
   const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "sensor.mosque_prayer_timetable"}); editor.hass = hass();
   const changes = []; editor.addEventListener("config-changed", event => { changes.push(event.detail.config); editor.setConfig(event.detail.config); });
   for (const [key, entry] of Object.entries(editor._extraControls)) {
     const control = entry.control;
     if (entry.checkbox) control.checked = false;
-    else control.value = ({language: "ar", detail_level: "compact", time_format: "12h", hijri_adjustment: "-2", mosque_background: "masjid-al-haram", mosque_background_opacity: "12"})[key];
+    else control.value = ({language: "ar", detail_level: "compact", time_format: "12h", hijri_adjustment: "-2", mosque_background: "masjid-al-haram"})[key];
     control.dispatchEvent(new Event("change")); editor.hass = hass();
     assert.equal(editor._extraControls[key].control, control);
-    assert.equal(changes.at(-1)[key], entry.checkbox ? false : ["hijri_adjustment", "mosque_background_opacity"].includes(key) ? Number(control.value) : control.value);
+    assert.equal(changes.at(-1)[key], entry.checkbox ? false : key === "hijri_adjustment" ? Number(control.value) : control.value);
   }
 });
 
