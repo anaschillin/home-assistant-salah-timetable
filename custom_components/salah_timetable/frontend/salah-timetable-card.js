@@ -434,10 +434,10 @@ export class SalahTimetableCardEditor extends HTMLElement {
     const ui = resolveUi(this._config, this._hass);
     direction(this, ui); direction(this._form, ui);
     for (const [key, {control, checkbox, label, options}] of Object.entries(this._extraControls || {})) {
-      const historyLabels = {show_mosque_background: "Show mosque background", mosque_background: "Mosque background", history labelshow_hijri_month_info: "Show Hijri month information", show_historical_day_events: "Show historical day events (coming soon)", show_historical_month_highlights: "Show monthly history highlights (coming soon)", show_historical_sources: "Show history sources (coming soon)", show_disputed_historical_dates: "Include disputed dates (coming soon)"};
+      const historyLabels = {show_mosque_background: "Show mosque background", mosque_background: "Mosque background", show_hijri_month_info: "Show Hijri month information", show_historical_day_events: "Show historical day events (coming soon)", show_historical_month_highlights: "Show monthly history highlights (coming soon)", show_historical_sources: "Show history sources (coming soon)", show_disputed_historical_dates: "Include disputed dates (coming soon)"};
       const text = historyLabels[key] || tr(ui, `editor.${key}`);
       label.textContent = text; control.setAttribute("aria-label", text);
-      for (const {option, value} of options || []) option.textContent = key === "hijri_adjustment" ? localizedNumber(value, ui, {signDisplay: "exceptZero"})editor options : key === "mosque_background" ? (MOSQUE_BACKGROUNDS.find(item => item.id === value)?.name || (value === "daily" ? "Rotate daily" : "None")) : tr(ui, `editor.${key}.${value}`);
+      for (const {option, value} of options || []) option.textContent = key === "hijri_adjustment" ? localizedNumber(value, ui, {signDisplay: "exceptZero"}) : key === "mosque_background" ? (MOSQUE_BACKGROUNDS.find(item => item.id === value)?.name || (value === "daily" ? "Rotate daily" : "None")) : tr(ui, `editor.${key}.${value}`);
       if (checkbox) control.checked = this._config[key];
       else if (control.value !== String(this._config[key])) control.value = String(this._config[key]);
       // These settings have no implemented behaviour yet; do not allow users
