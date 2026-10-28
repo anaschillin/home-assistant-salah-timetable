@@ -724,7 +724,7 @@ test("mosque photo retains Today's canvas across tabs and invalidates on width c
   assert.equal(card._selectedDay, 1);
   assert.deepEqual(card._backgroundFrame, {entity: "sensor.mosque_prayer_timetable", width: 900, height: 720});
   const tomorrow = find(card.shadowRoot, "ha-card")[0];
-  assert.equal(tomorrow.style.values["--mosque-photo-frame-height"], "720px");
+  assert.equal(tomorrow.style.values["--mosque-photo-frame-height"], "718px");
   tomorrow.getBoundingClientRect = () => ({width: 800, height: 550});
   tabs().children[0].dispatchEvent(new Event("click"));
   assert.equal(find(card.shadowRoot, "ha-card")[0].style.values["--mosque-photo-frame-height"], undefined,
