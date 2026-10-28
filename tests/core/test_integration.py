@@ -169,7 +169,7 @@ def test_legacy_module_paths_reference_grouped_implementations():
             "source_updates",
         ),
         "persistence": ("storage",),
-        "runtime": ("coordinator",)
+        "runtime": ("coordinator",),
     }
     for group, names in groups.items():
         for name in names:
