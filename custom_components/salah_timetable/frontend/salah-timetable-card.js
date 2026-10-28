@@ -83,6 +83,22 @@ function clockNode(text, ui, elapsedClock = false) {
   return result;
 }
 
+// Subtle inline SVG silhouettes; purely decorative and independent of mosque data.
+function panelSilhouette(kind) {
+  const holder = node("span", undefined, "panel-silhouette");
+  holder.setAttribute("aria-hidden", "true");
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 64 64");
+  svg.setAttribute("focusable", "false");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", kind === "salah"
+    ? "M30 7V3h4v4l4 6H26l4-6Zm-8 11h20v5H22v-5Zm3 7h14v28H25V25Zm5 6v12h4V31h-4ZM20 54h24v5H20v-5ZM17 60h30v3H17v-3Z"
+    : "M30 5V2h4v3l4 3-4 3v3h-4v-3l-4-3 4-3ZM32 15c-12 7-20 16-20 29v9h40v-9c0-13-8-22-20-29ZM8 54h48v6H8v-6ZM5 61h54v3H5v-3Z");
+  svg.append(path);
+  holder.append(svg);
+  return holder;
+}
+
 // Shared structure and styles for the upcoming Salah and contextual Jamaat.
 function prayerPanel(kind, event, data, zone, ui, config, clock, mode = "previous") {
   const result = node("section", undefined, "panel prayer-panel");
@@ -103,7 +119,7 @@ function prayerPanel(kind, event, data, zone, ui, config, clock, mode = "previou
     cell.append(node("div", tr(ui, key), "label"), formattedNode("div", formatTime(value, zone, ui, config.time_format), "absolute"));
     grid.append(cell);
   }
-  result.append(grid);
+  result.append(grid, panelSilhouette(kind));
   if (kind === "salah" && config.detail_level === "detailed" && times.end) result.append(translatedRun("div", ui, "table.fajr_end", "time", formatTime(times.end, zone, ui, config.time_format), "note fajr-sunrise"));
   return result;
 }
@@ -116,6 +132,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._timer = null;
     this._selectedMosque = null;
     this._selectedDay = 0;
+    this._monthInfoExpanded = false;
   }
 
   static getConfigElement() { return document.createElement("salah-timetable-card-editor"); }
@@ -213,36 +230,36 @@ export class SalahTimetableCard extends HTMLElement {
     const content = node("div", undefined, `content ${this._config.detail_level === "compact" ? "compact" : "expanded"}`);
     const timeFormat = this._config.time_format;
     const header = node("header", undefined, "header");
-    const title = node("h2", this._config.title || data.mosque_name); title.setAttribute("dir", "auto");
+    const mosques = this._mosques();
+    const title = node("h2");
+    if (mosques.length > 1) {
+      // The active mosque is displayed only in the header, never repeated in tabs.
+      const chooser = node("select", undefined, "mosque-select");
+      chooser.setAttribute("aria-label", tr(ui, "card.select_mosque"));
+      chooser.setAttribute("dir", "auto");
+      for (const mosque of mosques) {
+        const name = mosque.entity === this._config.entity && this._config.title
+          ? this._config.title : (mosque.name || mosque.entity);
+        const option = node("option", name);
+        option.value = mosque.entity;
+        chooser.append(option);
+      }
+      chooser.value = this._activeEntity();
+      chooser.addEventListener("change", () => {
+        if (chooser.value === this._activeEntity()) return;
+        this._selectedMosque = chooser.value;
+        this._selectedDay = 0;
+        this._render();
+      });
+      title.append(chooser);
+    } else {
+      title.textContent = this._config.title || data.mosque_name;
+      title.setAttribute("dir", "auto");
+    }
     header.append(title);
     if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
     if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(data.date || state.state, ui), "date gregorian"));
     content.append(header);
-    if (this._config.show_hijri_month_info) {
-      const month = hijriMonthInfo(data.date || state.state, this._config.hijri_adjustment);
-      if (month) {
-        const panel = node("section", undefined, "panel hijri-month-info");
-        panel.append(node("div", `${month.name_en} · ${month.name_ar}`, "event"), node("div", month.summary_en, "note"));
-        content.append(panel);
-      }
-    }
-    const mosques = this._mosques();
-    if (mosques.length > 1) {
-      const tabs = node("nav", undefined, "mosque-tabs");
-      tabs.setAttribute("aria-label", "Mosques");
-      for (const mosque of mosques) {
-        const button = node("button", mosque.name || mosque.entity, "mosque-tab");
-        button.type = "button";
-        button.setAttribute("aria-pressed", String(mosque.entity === this._activeEntity()));
-        button.addEventListener("click", () => {
-          if (mosque.entity === this._activeEntity()) return;
-          this._selectedMosque = mosque.entity;
-          this._render();
-        });
-        tabs.append(button);
-      }
-      content.append(tabs);
-    }
     const dateTabs = node("nav", undefined, "date-tabs");
     dateTabs.setAttribute("aria-label", tr(ui, "card.day_navigation"));
     for (const [offset, key] of [[-1, "yesterday"], [0, "today"], [1, "tomorrow"]]) {
@@ -252,18 +269,11 @@ export class SalahTimetableCard extends HTMLElement {
       button.addEventListener("click", () => { if (this._selectedDay !== offset) { this._selectedDay = offset; this._render(); } });
       dateTabs.append(button);
     }
-    content.append(dateTabs);
     const baseDate = Date.parse(`${data.date || state.state}T12:00:00Z`);
     const selectedDate = Number.isFinite(baseDate) ? new Date(baseDate + this._selectedDay * 86400000).toISOString().slice(0, 10) : "";
     const selectedPrayers = this._selectedDay === 0 ? data.prayers : data.day_prayers?.[selectedDate];
-    if (this._selectedDay !== 0) {
-      content.append(node("div", formatDate(selectedDate, ui), "selected-date"));
-      if (!selectedPrayers) {
-        content.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
-        card.append(content); this.shadowRoot.replaceChildren(style, card);
-        return;
-      }
-    }
+    const tableShell = node("div", undefined, "timetable-shell");
+    if (this._selectedDay !== 0) tableShell.append(node("div", formatDate(selectedDate, ui), "selected-date"));
     if (this._hass?.connection?.connected === false) content.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
     const next = nextSalah(data, now);
     const congregation = jamaatPanel(data, "context", now);
@@ -284,7 +294,7 @@ export class SalahTimetableCard extends HTMLElement {
     if (panels.children.length) content.append(panels);
     const highlighted = highlightedPrayer(data, now);
     let tableRegion;
-    if (this._selectedDay !== 0 || this._config.detail_level !== "compact") {
+    if (Array.isArray(selectedPrayers) && (this._selectedDay !== 0 || this._config.detail_level !== "compact")) {
     const table = node("table");
     table.append(node("caption", tr(ui, "table.caption"), "sr-only"));
     const head = node("thead"); const headRow = node("tr");
@@ -318,7 +328,24 @@ export class SalahTimetableCard extends HTMLElement {
     tableRegion.setAttribute("role", "region");
     tableRegion.setAttribute("aria-label", tr(ui, "table.region"));
     const scrollHelp = node("p", tr(ui, "table.scroll_help"), "note scroll-help");
-    tableRegion.append(table); content.append(tableRegion, scrollHelp);
+    tableRegion.append(table); tableShell.append(tableRegion, scrollHelp);
+    }
+    if (!selectedPrayers) tableShell.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
+    tableShell.append(dateTabs);
+    content.append(tableShell);
+    if (this._config.show_hijri_month_info) {
+      const month = hijriMonthInfo(selectedDate || data.date || state.state, this._config.hijri_adjustment);
+      if (month) {
+        const panel = node("section", undefined, "panel hijri-month-info");
+        const details = node("details");
+        details.open = this._monthInfoExpanded;
+        const summary = node("summary", undefined, "month-summary");
+        summary.append(node("span", `${month.name_en} · ${month.name_ar}`), node("span", tr(ui, "card.about_month"), "month-prompt"));
+        details.append(summary, node("p", month.summary_en, "note"));
+        details.addEventListener("toggle", () => { this._monthInfoExpanded = details.open; });
+        panel.append(details);
+        content.append(panel);
+      }
     }
     if (this._selectedDay === 0 && this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
       content.append(translatedRun("p", ui, "card.second_khutbah", "time", formatTime(data.second_khutbah, zone, ui, timeFormat), "note khutbah"));
