@@ -211,7 +211,8 @@
   Beginning/Jamaat columns with individually labelled Jumu’ah congregations.
 - Show independent Next Salah Begins and Next Jamaat countdowns by default,
   with larger numbers, published-event progress and card-width responsive layout.
-  Explicit context/previous modes remain supported.
+  At that historical version, explicit context/previous modes remained supported;
+the card-facing mode selector was subsequently removed in 0.9.18 (see above).
 - Add Gregorian and calculated Umm al-Qura Hijri dates with a per-card −3 to +3
   display adjustment, independent of Ramadan activation and source timetables.
 - Add graphical compact/expanded layout, 12/24-hour time format, individual
