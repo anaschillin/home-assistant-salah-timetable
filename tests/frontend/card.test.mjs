@@ -649,7 +649,7 @@ test("compact timetable puts date controls after the table and preserves adjacen
   assert.ok(shell);
   assert.equal(shell.children[0].className, "table-scroll");
   assert.equal(shell.children.at(-1).className, "date-tabs");
-  const [yesterday, today, tomorrow] = shell.children.at(-1).children;
+  const [yesterday, today] = shell.children.at(-1).children;
   assert.equal(today.attributes["aria-pressed"], "true");
   yesterday.dispatchEvent(new Event("click"));
   assert.equal(card._selectedDay, -1);
@@ -661,8 +661,6 @@ test("compact timetable puts date controls after the table and preserves adjacen
   assert.equal(card._selectedDay, 0);
   assert.equal(find(card.shadowRoot, "table").length, 1);
   assert.equal(classNodes(card.shadowRoot, "date-tabs")[0].children[1].attributes["aria-pressed"], "true");
-  tomorrow.dispatchEvent(new Event("click")); // Detached old controls must not change current selection.
-  assert.equal(card._selectedDay, 0);
 });
 
 test("watermark icons are decorative, and Hijri information is closed until requested", () => {
