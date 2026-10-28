@@ -1,5 +1,9 @@
 /** Theme-aware card styles. Keep responsive and preference overrides in cascade order. */
 export const CARD_CSS = `
+ha-card.has-mosque-background { background-image: linear-gradient(var(--mosque-overlay),var(--mosque-overlay)),var(--mosque-background-image); background-position: center,var(--mosque-background-position,center); background-size: cover; background-repeat: no-repeat; }
+ha-card.has-mosque-background .content { position: relative; }
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) { ha-card.has-mosque-background { background-image: none; } }
+
 .date-tabs {
   display: grid;
   grid-template-columns: repeat(3,minmax(0,1fr));
