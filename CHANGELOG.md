@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.6 — unreleased
+
+- Keep tinted mosque background photographs inside the rounded Home Assistant
+  card border, preventing thin bright image seams at the top and bottom on
+  mobile and tablet dark themes. Add native-browser and CSS regressions.
+
+
 ## 0.9.5 — unreleased
 
 - Disable unfinished Islamic-history switches in the graphical card editor.
