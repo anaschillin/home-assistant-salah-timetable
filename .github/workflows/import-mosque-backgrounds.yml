@@ -1,0 +1,49 @@
+name: One-time import of remaining mosque backgrounds
+
+on:
+  push:
+    branches: [feature/mosque-backgrounds]
+    paths: [.github/workflows/import-mosque-backgrounds.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: salah-mosque-background-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    if: github.ref == 'refs/heads/feature/mosque-backgrounds'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: feature/mosque-backgrounds
+          persist-credentials: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Install image processing tools
+        run: python -m pip install Pillow==12.3.0 ruff==0.17.2
+      - name: Fetch 12 new free-use photos and regenerate metadata
+        run: python scripts/import_mosque_backgrounds.py
+      - name: Ruff format importer
+        run: python -m ruff format scripts/import_mosque_backgrounds.py
+      - name: Validate license provenance and release contents
+        run: |
+          python scripts/check_asset_provenance.py
+          python scripts/build_release.py --check
+          npm test
+      - name: Commit photos and metadata to PR #86
+        run: |
+          git add scripts/import_mosque_backgrounds.py docs/asset-provenance.json docs/mosque-background-credits.md custom_components/salah_timetable/frontend/mosque-backgrounds.js custom_components/salah_timetable/frontend/backgrounds/
+          if ! git diff --cached --quiet; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "assets: bundle 12 additional credited mosque backgrounds"
+            git push origin HEAD:feature/mosque-backgrounds
+          fi
