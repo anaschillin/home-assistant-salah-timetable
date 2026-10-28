@@ -1,6 +1,6 @@
 # Test suite guide
 
-This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 50 Python test modules are grouped by the behaviour they protect, not by test framework. All 12 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
+This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 51 Python test modules are grouped by the behaviour they protect, not by test framework. All 12 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
 
@@ -26,7 +26,28 @@ node --test tests/frontend/card-utils.test.mjs
 
 The full suite should run on Linux/WSL because the isolated PDF worker uses POSIX process limits. Python unit and mocked-HA tests do not require network access or a production HA installation. The Python tests exercise real HA fixtures, registries, config entries, services and storage where appropriate; they are not all pure unit tests.
 
-## Python test modules (50)
+## Area maintenance guides
+
+Every domain folder has a short [README](../tests/README.md) explaining **what belongs there**, the focused pytest command, fixture ownership, and boundaries with adjacent domains. Follow the matching guide before adding or moving tests:
+
+| Area | Guide | What it owns |
+| --- | --- | --- |
+| Automations | [tests/automations](../tests/automations/README.md) | Adhan and media blueprints |
+| Calendar | [tests/calendar](../tests/calendar/README.md) | Calendar/event calculations and HA delivery |
+| Core | [tests/core](../tests/core/README.md) | Entities, coordinator, models, diagnostics |
+| Frontend | [tests/frontend](../tests/frontend/README.md) | Dashboard, Node unit tests and browser smoke |
+| Imports | [tests/imports](../tests/imports/README.md) | Setup, mapping, comparison and approval flows |
+| Parsers | [tests/parsers](../tests/parsers/README.md) | CSV, PDF, layout recognition and worker limits |
+| Ramadan | [tests/ramadan](../tests/ramadan/README.md) | Ramadan timetable options and date windows |
+| Sources | [tests/sources](../tests/sources/README.md) | Remote downloads, profiles and updates |
+| Storage | [tests/storage](../tests/storage/README.md) | Persistence, migrations, repairs and restore |
+| Tooling | [tests/tooling](../tests/tooling/README.md) | Packaging, compatibility, provenance and inventory |
+
+The suite is intentionally grouped at one domain level rather than making single-file subfolders such as `parsers/csv` or `imports/configuration`. Split an area further when it becomes too large to navigate, and update fixture paths, CI and this inventory in the same change.
+
+`tests/tooling/test_suite_inventory.py` runs in normal pytest CI and fails if a Python/Node test module is missing from this inventory, a module is listed twice, the count is stale, or a category guide is absent. Whenever a module is added, moved, or removed, update the inventory table and relevant guide in the same PR.
+
+## Python test modules (51)
 
 The files below are the complete set of pytest test modules. When adding a regression, extend the relevant existing module before introducing a second module for the same responsibility.
 
@@ -82,6 +103,7 @@ The files below are the complete set of pytest test modules. When adding a regre
 | | `test_compatibility_environment.py` | Pinned HA/Python environment assertions |
 | | `test_packaging.py` | Release file inclusion/exclusion and version integrity |
 | | `test_release_preparation.py` | Release archive and notes preparation |
+| | `test_suite_inventory.py` | Verify all Python/Node test modules and category guides remain documented |
 
 Names indicate the primary module ownership; some tests deliberately span unit, integration and acceptance boundaries. Do not rely on folder names alone to infer a test's isolation level.
 
