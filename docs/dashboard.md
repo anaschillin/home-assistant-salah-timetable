@@ -137,6 +137,8 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 
 | YAML option | Values and default |
 | --- | --- |
+| `entity` | The initial/primary `sensor.*_prayer_timetable` entity on the card |
+| `mosque_entities` | Optional list of enabled Prayer timetable sensor IDs; omit to show all configured mosques (legacy behaviour); requires at least one when set |
 | `language` | `auto` (default), `en`, `ar`; automatic follows the HA interface language with English label fallback |
 | `bilingual_prayer_labels` | `false` (default); show English and Arabic known prayer names |
 | `detail_level` | `standard` (default), `compact`, `detailed` |
