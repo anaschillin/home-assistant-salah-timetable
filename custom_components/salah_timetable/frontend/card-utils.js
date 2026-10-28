@@ -74,8 +74,8 @@ export function normalizeConfig(config) {
   if (!["compact", "standard", "detailed"].includes(result.detail_level)) throw configError("detail_level");
   if (!["12h", "24h"].includes(result.time_format)) throw configError("time_format");
   if (!Number.isInteger(result.hijri_adjustment) || Math.abs(result.hijri_adjustment) > 3) throw configError("hijri_adjustment");
-  if (!Number.isInteger(result.mosque_background_opacity) || result.mosque_background_opacity < 0 || result.mosque_background_opacity > 20) throw configError("boolean", {option: "mosque_background_opacity (0–20)"});
-  if (typeof result.mosque_background !== "string" || !/^(daily|none|[a-z0-9_-]+)$/.test(result.mosque_background)) throw configError("boolean", {option: "mosque_background"});
+  if (!Number.isInteger(result.mosque_background_opacity) || result.mosque_background_opacity < 0 || result.mosque_background_opacity > 20) throw configError("background_opacity");
+  if (typeof result.mosque_background !== "string" || !/^(daily|none|[a-z0-9_-]+)$/.test(result.mosque_background)) throw configError("background_selection");
   if (!["auto", "en", "ar"].includes(result.language)) throw configError("language");
   for (const key of Object.keys(defaults).filter(key => key.startsWith("show_") || key === "bilingual_prayer_labels")) if (typeof result[key] !== "boolean") throw configError("boolean", {option: key});
   const {mode: _legacyMode, ...withoutMode} = result;
