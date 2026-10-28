@@ -1,7 +1,7 @@
 /** Real-browser fixture: native shadow DOM/CSS with small HA control stand-ins. */
-import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.14";
-import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.14";
-import {formatDate, formatHijriDate, hijriMonthInfo} from "/custom_components/salah_timetable/frontend/card-utils.js?v=0.9.14";
+import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.15";
+import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.15";
+import {formatDate, formatHijriDate, hijriMonthInfo} from "/custom_components/salah_timetable/frontend/card-utils.js?v=0.9.15";
 
 class Selector extends HTMLElement {
   constructor() {
