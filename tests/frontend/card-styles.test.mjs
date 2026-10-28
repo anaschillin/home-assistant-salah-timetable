@@ -65,6 +65,16 @@ test("full-canvas mosque background and centered glass content retain accessible
 });
 
 
+test("outer Home Assistant card has no drop shadow while its glass panel retains depth", () => {
+  const cardRules = [...CARD_CSS.matchAll(/ha-card\s*\{([^}]+)\}/g)];
+  assert.ok(cardRules.length >= 2, "Expected base and full-canvas card styles");
+  assert.ok(cardRules.slice(-2).every(match => /box-shadow:\s*none\s*;/.test(match[1])),
+    "No generic or wide-canvas rule should leave an external card shadow");
+  assert.doesNotMatch(CARD_CSS, /ha-card\s*\{[^}]*box-shadow:\s*0\s+\d+px/);
+  assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*box-shadow:\s*0 12px 32px/);
+  assert.match(CARD_CSS, /ha-card\.has-mosque-background::after\s*\{[^}]*filter:\s*blur\(14px\)/);
+});
+
 test("one stronger glass surface gives Salah and Jamaat identical panel formatting", () => {
   assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*border-radius:\s*18px/);
   assert.match(CARD_CSS, /\.summary-shell\s*\{[^}]*secondary-background-color\) 94%,transparent/);
