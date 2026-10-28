@@ -87,11 +87,11 @@ try {
   const rimStyle = getComputedStyle(photoCard, "::after");
   const glassStyle = getComputedStyle(photoCard.querySelector(".content"));
   check("centred glass styling and image-only blurred edge are applied",
-    photoStyle.maxWidth === "1000px" &&
+    photoStyle.maxWidth === "1280px" &&
     photoStyle.marginLeft === photoStyle.marginRight &&
     rimStyle.filter === "blur(14px)" &&
     rimStyle.maskImage.includes("radial-gradient") &&
-    glassStyle.backdropFilter === "blur(3px)");
+    glassStyle.backdropFilter === "blur(1px)");
   render();
   const rules = card.shadowRoot.querySelector("style")?.sheet?.cssRules;
   check("bundled CSS module loads responsive rules", Boolean(rules?.length) && [...rules].some(rule => /max-width\s*:\s*28rem/.test(rule.conditionText || "")));
@@ -105,6 +105,14 @@ try {
   check("summary icon silhouettes are hidden from accessibility", card.shadowRoot.querySelectorAll(".panel-silhouette[aria-hidden=\"true\"] svg").length === 2);
   check("day controls follow timetable, not countdowns", Boolean(card.shadowRoot.querySelector(".timetable-shell > .date-tabs")));
   check("Hijri month subtext follows header dates without duplicate month panel", Boolean(card.shadowRoot.querySelector("header > .month-description")) && !card.shadowRoot.querySelector(".hijri-month-info"));
+  const heading = card.shadowRoot.querySelector(".header");
+  const hijriBounds = heading.querySelector(".hijri").getBoundingClientRect();
+  const gregorianBounds = heading.querySelector(".gregorian").getBoundingClientRect();
+  const descriptionBounds = heading.querySelector(".month-description").getBoundingClientRect();
+  check("month description occupies its own full header row at every viewport",
+    getComputedStyle(heading).display === "grid" &&
+    descriptionBounds.top >= Math.max(hijriBounds.bottom, gregorianBounds.bottom) - 1 &&
+    descriptionBounds.width >= heading.getBoundingClientRect().width - 1);
   check("mosque timezone used for absolute times", card.shadowRoot.querySelector('[data-panel="salah"] .absolute').textContent === `${digits(5)}:${digits(45)}`);
   check("local beginning countdown", card.shadowRoot.querySelector('[data-panel="salah"] .count').textContent === `${digits(0)}:${digits(5)}:${digits(0)}`);
   check("Ramadan has textual Taraweeh fallback", card.shadowRoot.textContent.includes("After Isha Jamaat"));
