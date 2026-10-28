@@ -132,6 +132,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._timer = null;
     this._selectedMosque = null;
     this._selectedDay = 0;
+    this._backgroundFrame = null;
   }
 
   static getConfigElement() { return document.createElement("salah-timetable-card-editor"); }
@@ -179,6 +180,15 @@ export class SalahTimetableCard extends HTMLElement {
     ]);
   }
 
+  _rememberBackgroundFrame() {
+    // Snapshot the full Today photo canvas before its countdowns disappear.
+    // This preserves photographic framing without introducing empty timetable space.
+    const card = this.shadowRoot?.querySelector?.("ha-card");
+    const rect = card?.getBoundingClientRect?.();
+    if (!rect || rect.height <= 0 || rect.width <= 0 || !this._config.show_mosque_background) return;
+    this._backgroundFrame = {entity: this._activeEntity(), width: rect.width, height: rect.height};
+  }
+
   _selection(data, now) {
     const next = nextSalah(data, now);
     const congregation = jamaatPanel(data, "context", now);
@@ -211,6 +221,13 @@ export class SalahTimetableCard extends HTMLElement {
     const background = this._config.show_mosque_background && chooseMosqueBackground(MOSQUE_BACKGROUNDS, this._config.mosque_background, (state?.attributes?.date || new Date(now).toISOString().slice(0, 10)));
     if (background) {
       card.classList.add("has-mosque-background");
+      // Use the same image canvas across date tabs. Ignore a cached frame if
+      // the user has switched mosques or resized the dashboard column.
+      const frame = this._backgroundFrame;
+      const previousWidth = this.shadowRoot?.querySelector?.("ha-card")?.getBoundingClientRect?.().width;
+      if (frame && frame.entity === this._activeEntity() && previousWidth > 0 && Math.abs(previousWidth - frame.width) < 2) {
+        card.style.setProperty("--mosque-photo-frame-height", `${frame.height}px`);
+      }
       card.style.setProperty("--mosque-background-image", `url("${background.path}")`);
       card.style.setProperty("--mosque-overlay", `color-mix(in srgb, var(--ha-card-background,var(--card-background-color)) ${100 - this._config.mosque_background_opacity}%, transparent)`);
       card.style.setProperty("--mosque-background-position", background.position || "center");
@@ -227,6 +244,9 @@ export class SalahTimetableCard extends HTMLElement {
     const data = state.attributes;
     const zone = data.time_zone || this._hass?.config?.time_zone || "UTC";
     const content = node("div", undefined, `content ${this._config.detail_level === "compact" ? "compact" : "expanded"}`);
+    const baseDate = Date.parse(`${data.date || state.state}T12:00:00Z`);
+    const selectedDate = Number.isFinite(baseDate) ? new Date(baseDate + this._selectedDay * 86400000).toISOString().slice(0, 10) : "";
+    const displayDate = selectedDate || data.date || state.state;
     const timeFormat = this._config.time_format;
     const header = node("header", undefined, "header");
     const mosques = this._mosques();
@@ -256,12 +276,11 @@ export class SalahTimetableCard extends HTMLElement {
       title.setAttribute("dir", "auto");
     }
     header.append(title);
-    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(data.date || state.state, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
-    if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(data.date || state.state, ui), "date gregorian"));
+    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(displayDate, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
+    if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(displayDate, ui), "date gregorian"));
     if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false && this._config.show_hijri_month_info) {
-      // Show context only beneath a visible Hijri date; never repeat its month.
-      // The header remains based on the mosque's current day during date navigation.
-      const month = hijriMonthInfo(data.date || state.state, this._config.hijri_adjustment);
+      // The month description tracks the selected day's Hijri date, too.
+      const month = hijriMonthInfo(displayDate, this._config.hijri_adjustment);
       if (month) header.append(node("div", month.summary_en, "month-description"));
     }
     // One cohesive glass surface for mosque identity and both live summaries.
@@ -275,14 +294,19 @@ export class SalahTimetableCard extends HTMLElement {
       const button = node("button", tr(ui, `card.${key}`), "date-tab");
       button.type = "button";
       button.setAttribute("aria-pressed", String(this._selectedDay === offset));
-      button.addEventListener("click", () => { if (this._selectedDay !== offset) { this._selectedDay = offset; this._render(); } });
+      button.addEventListener("click", () => {
+        if (this._selectedDay === offset) return;
+        if (this._selectedDay === 0) this._rememberBackgroundFrame();
+        this._selectedDay = offset;
+        this._render();
+      });
       dateTabs.append(button);
     }
-    const baseDate = Date.parse(`${data.date || state.state}T12:00:00Z`);
-    const selectedDate = Number.isFinite(baseDate) ? new Date(baseDate + this._selectedDay * 86400000).toISOString().slice(0, 10) : "";
     const selectedPrayers = this._selectedDay === 0 ? data.prayers : data.day_prayers?.[selectedDate];
     const tableShell = node("div", undefined, "timetable-shell");
-    if (this._selectedDay !== 0) tableShell.append(node("div", formatDate(selectedDate, ui), "selected-date"));
+    if (this._selectedDay !== 0 && (this._config.detail_level === "compact" || !this._config.show_gregorian_date)) {
+      tableShell.append(node("div", formatDate(displayDate, ui), "selected-date"));
+    }
     if (this._hass?.connection?.connected === false) summary.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
     const next = nextSalah(data, now);
     const congregation = jamaatPanel(data, "context", now);
@@ -378,6 +402,7 @@ export class SalahTimetableCard extends HTMLElement {
       content.append(credit);
     }
     card.append(content); this.shadowRoot.replaceChildren(style, card);
+    if (this._selectedDay === 0 && background) this._rememberBackgroundFrame();
     if (tableRegion) {
       tableRegion.scrollLeft = scrollLeft;
       if (regionFocused) tableRegion.focus({preventScroll: true});
