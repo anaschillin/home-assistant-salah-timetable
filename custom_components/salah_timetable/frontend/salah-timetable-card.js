@@ -186,7 +186,7 @@ export class SalahTimetableCard extends HTMLElement {
     const style = node("style", CARD_CSS);
     const card = direction(node("ha-card"), ui);
     const state = this._state();
-    const background = this._config.show_mosque_background && chooseMosqueBackground(MOSQUE_BACKGROUNDS, this._config.mosque_background, new Date(now).toISOString().slice(0, 10));
+    const background = this._config.show_mosque_background && chooseMosqueBackground(MOSQUE_BACKGROUNDS, this._config.mosque_background, (state?.attributes?.date || new Date(now).toISOString().slice(0, 10)));
     if (background) {
       card.classList.add("has-mosque-background");
       card.style.setProperty("--mosque-background-image", `url("${background.path}")`);
@@ -339,6 +339,15 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._selectedDay === 0 && this._config.show_timezone_note) {
       const note = translatedRun("p", ui, "card.timezone_note", "zone", zone, "note");
       note.setAttribute("data-role", "timezone-note"); content.append(note);
+    }
+    if (background) {
+      const credit = node("small", undefined, "background-credit");
+      const link = node("a", `Photo: ${background.photographer} · ${background.name}`);
+      link.href = background.source_url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      credit.append(link);
+      content.append(credit);
     }
     card.append(content); this.shadowRoot.replaceChildren(style, card);
     if (tableRegion) {
