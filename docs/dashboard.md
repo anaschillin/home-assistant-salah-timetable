@@ -4,9 +4,9 @@ The **Salah Timetable** card is bundled with the integration. It uses the mosque
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
 template sensors or YAML configuration.
 
-## Preview — archived screenshots
+## Preview
 
-**These are historical 0.6.1 screenshots, not the current 0.9.18 design.**
+**Archived screenshot gallery:** These are historical 0.6.1 screenshots, not the current 0.9.18 design.
 They show synthetic data from an isolated Chromium fixture with Home Assistant
 control stand-ins; they do **not** illustrate the new unified liquid-glass
 summary, mosque selector, full-height photograph or footer day navigation.
