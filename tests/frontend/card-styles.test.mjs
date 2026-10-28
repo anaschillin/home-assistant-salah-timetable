@@ -80,8 +80,8 @@ test("summary and timetable share one CSS-first liquid-glass material", () => {
   assert.ok(shared, "Both panels must share the same glass surface rule");
   for (const pattern of [
     /border-radius:\s*18px/, /linear-gradient\(135deg/,
-    /backdrop-filter:\s*blur\(20px\) saturate\(160%\)/,
-    /box-shadow:/, /secondary-background-color/
+    /backdrop-filter:\s*blur\(20px\) saturate\(115%\)/,
+    /box-shadow:/, /ha-card-background/
   ]) assert.match(shared[1], pattern);
   assert.match(CARD_CSS, /\.summary-shell::before,\s*\.timetable-shell::before\s*\{/);
   assert.match(CARD_CSS, /\.summary-shell > \*,\s*\.timetable-shell > \*\s*\{/);
@@ -90,4 +90,18 @@ test("summary and timetable share one CSS-first liquid-glass material", () => {
   assert.match(CARD_CSS, /@media \(prefers-contrast: more\), \(prefers-reduced-transparency: reduce\)/);
   assert.match(CARD_CSS, /\.summary-shell \.panel\.prayer-panel,\s*\.summary-shell \.panel\.prayer-panel\[data-panel="salah"\]\s*\{[^}]*background:\s*transparent/);
   assert.match(CARD_CSS, /@container\(max-width:21rem\)\s*\{\s*\.summary-shell \.panels\s*\{\s*grid-template-columns:\s*1fr/);
+});
+
+test("glass readability uses the same high-contrast substrate without an extra timetable tint", () => {
+  const shared = CARD_CSS.match(/\\.summary-shell,\\s*\\.timetable-shell\\s*\\{([^}]+)\\}/);
+  assert.ok(shared);
+  for (const strength of [92, 95, 92]) {
+    assert.match(shared[1], new RegExp("ha-card-background[^\\n]*\\) " + strength + "%,transparent"));
+  }
+  assert.doesNotMatch(shared[1], /secondary-background-color\\) (?:59|70|72)%,transparent/);
+  assert.match(shared[1], /color:\\s*var\\(--primary-text-color\\)/);
+  const table = CARD_CSS.match(/\\.timetable-shell thead,\\s*\\.timetable-shell \\.date-tabs,\\s*\\.timetable-shell \\.table-scroll\\s*\\{([^}]+)\\}/);
+  assert.ok(table, "Timetable header and navigation must not add their own glass layer");
+  assert.match(table[1], /background:\\s*transparent/);
+  assert.match(CARD_CSS, /\\.summary-shell \\.date,\\s*\\.summary-shell \\.month-description/);
 });
