@@ -72,13 +72,18 @@ prayer's Jamaat is still upcoming. The countdown and published times from that
 event's actual date appear together. **Next Jamaat** counts down while the
 current prayer's congregation is still approaching; at its exact instant the
 same panel becomes **Previous Jamaat** and shows elapsed time.
-The two panels share compact padding, readable countdowns, published beginning
-and Jamaat times, theme-aware surfaces and responsive behaviour. A faint
-**minaret silhouette** decorates Next Salah and a faint **dome silhouette**
-decorates Jamaat. Both are inline local SVG with `aria-hidden`, carry no data,
-and do not represent the selected mosque. They remain side by side on most
-phones/tablets and stack on very narrow cards. The old context/upcoming/previous
-Jamaat panel selector has been removed.
+The mosque title, Hijri date/description, Gregorian date and both countdown
+sections now live inside **one frosted-glass summary card**, with a subtle
+separator between the two clocks rather than independent bordered tiles.
+Each countdown still has its own published beginning/Jamaat values, label and
+live timer. A faint **minaret silhouette** decorates Next Salah and a faint
+**dome silhouette** decorates the contextual Next/Previous Jamaat countdown.
+Both are inline local SVG with `aria-hidden`, carry no data and do not
+represent the selected mosque. The two summaries sit side by side on most
+phones/tablets, stack on very narrow cards, and collapse independently through
+the card's existing visibility options. On Yesterday/Tomorrow, the shared
+surface retains the mosque/date heading but hides the live countdowns.
+The old context/upcoming/previous Jamaat panel selector has been removed.
 
 Fajr end is the *published sunrise*, never a calculated estimate. Published
 Jumu’ah congregations remain in Dhuhr's Jamaat row, and the separately published
