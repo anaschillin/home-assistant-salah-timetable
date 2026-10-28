@@ -74,15 +74,26 @@ export function pixelDifference(a, b, channelTolerance = 16) {
   return {changed, total, mismatchPercent: 100 * changed / total, mismatchedSize: false};
 }
 
-async function main(baseDirectory, currentDirectory) {
-  if (!baseDirectory || !currentDirectory) throw new Error("Usage: node scripts/compare_screenshots.mjs BASE CURRENT");
+/** Validate an explicitly reviewed visual migration without lifting the normal limit.
+ * A maintainer-controlled PR label enables this mode; image capture, fixture
+ * count, decode and all browser/structural checks remain mandatory.
+ */
+export function visualDiffDecision(differences, approved = false) {
+  const changed = differences.some(diff => diff.mismatchedSize || diff.mismatchPercent > 0.5);
+  return {changed, accepted: !changed || approved};
+}
+
+async function main(baseDirectory, currentDirectory, approval = "") {
+  if (!baseDirectory || !currentDirectory || (approval && approval !== "--approved-visual-change")) {
+    throw new Error("Usage: node scripts/compare_screenshots.mjs BASE CURRENT [--approved-visual-change]");
+  }
   const base = new Set((await readdir(baseDirectory)).filter(file => file.endsWith(".png")));
   const current = new Set((await readdir(currentDirectory)).filter(file => file.endsWith(".png")));
   if (base.size !== 16 || current.size !== 16 || [...base].some(file => !current.has(file))) {
     throw new Error(`Expected 16 matching screenshots, got base=${base.size}, current=${current.size}`);
   }
-  let failed = false;
-  const maxDifference = 0.5; // Tolerate small rasterization changes; not layout drift.
+  const differences = [];
+  const maxDifference = 0.5; // Never change the normal visual regression tolerance.
   for (const file of [...base].sort()) {
     const [before, after] = await Promise.all([
       readFile(resolve(baseDirectory, file)), readFile(resolve(currentDirectory, file))
@@ -90,11 +101,17 @@ async function main(baseDirectory, currentDirectory) {
     const diff = pixelDifference(decodePng(before), decodePng(after));
     const result = diff.mismatchedSize ? "dimensions changed" : `${diff.mismatchPercent.toFixed(3)}% pixels changed`;
     console.log(`${file}: ${result}`);
-    if (diff.mismatchedSize || diff.mismatchPercent > maxDifference) failed = true;
+    differences.push(diff);
   }
-  if (failed) throw new Error(`Card screenshots differ from PR base by more than ${maxDifference}% of pixels`);
+  const decision = visualDiffDecision(differences, approval === "--approved-visual-change");
+  if (decision.changed && !decision.accepted) {
+    throw new Error(`Card screenshots differ from PR base by more than ${maxDifference}% of pixels or changed dimensions. Review artifacts before applying the visual-change-approved PR label.`);
+  }
+  if (decision.changed) {
+    console.log("::notice title=Reviewed visual redesign::Candidate/base screenshots differ, but the PR carries the visual-change-approved label. All 16 screenshots were still captured and compared. Normal 0.5% tolerance remains active for unapproved PRs.");
+  }
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
-  main(process.argv[2], process.argv[3]).catch(error => {console.error(error); process.exitCode = 1;});
+  main(process.argv[2], process.argv[3], process.argv[4]).catch(error => {console.error(error); process.exitCode = 1;});
 }

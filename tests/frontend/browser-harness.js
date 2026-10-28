@@ -1,6 +1,7 @@
 /** Real-browser fixture: native shadow DOM/CSS with small HA control stand-ins. */
-import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.6";
-import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.6";
+import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.18";
+import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.18";
+import {formatDate, formatHijriDate, hijriMonthInfo} from "/custom_components/salah_timetable/frontend/card-utils.js?v=0.9.18";
 
 class Selector extends HTMLElement {
   constructor() {
@@ -73,17 +74,84 @@ try {
   const render = (patch = {}, now = time(4, 40)) => { card.setConfig({...config, ...patch}); card._render(Date.parse(now)); };
   card.setConfig(config); card.hass = hass; document.body.append(card); card._render(Date.parse(time(4, 40)));
   check("shadow DOM renders five prayer rows", card.shadowRoot.querySelectorAll("tbody tr").length === 5);
-  render({show_mosque_background: true, mosque_background: "masjid-al-haram", mosque_background_opacity: 7});
+  render({show_mosque_background: true, mosque_background: "masjid-al-haram"});
   check("bundled mosque background resolves to local WebP", card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-background-image").includes("/salah_timetable/backgrounds/masjid-al-haram.webp"));
   check("photo includes a photographer credit", card.shadowRoot.querySelector(".background-credit a")?.href.includes("unsplash.com/photos/"));
   const photoCard = card.shadowRoot.querySelector("ha-card");
   const photoStyle = getComputedStyle(photoCard);
-  check("photo and tint stay inside the themed border at mobile and tablet widths",
-    photoStyle.backgroundImage.includes("linear-gradient") &&
-    photoStyle.backgroundClip.split(",").every(value => value.trim() === "padding-box") &&
-    photoStyle.backgroundOrigin.split(",").every(value => value.trim() === "padding-box") &&
+  check("full-canvas card has no outer drop shadow", photoStyle.boxShadow === "none");
+  const imageStyle = getComputedStyle(photoCard, "::before");
+  check("unobscured photo stays inside themed borders at mobile/tablet widths",
+    imageStyle.backgroundImage.includes("masjid-al-haram.webp") &&
+    !imageStyle.backgroundImage.includes("linear-gradient") &&
+    imageStyle.backgroundClip.split(",").every(value => value.trim() === "padding-box") &&
+    imageStyle.backgroundOrigin.split(",").every(value => value.trim() === "padding-box") &&
     photoStyle.overflow === "hidden" &&
     photoStyle.borderTopWidth !== "0px" && photoStyle.borderBottomWidth !== "0px");
+  const rimStyle = getComputedStyle(photoCard, "::after");
+  const glassStyle = getComputedStyle(photoCard.querySelector(".content"));
+  check("full-canvas background and centred inner glass content are applied",
+    photoStyle.maxWidth === "none" &&
+    imageStyle.backgroundSize.split(",").every(value => value.trim() === "cover") &&
+    Math.abs(photoCard.getBoundingClientRect().width - card.getBoundingClientRect().width) <= 2 &&
+    glassStyle.maxWidth === "1160px" &&
+    glassStyle.marginLeft === glassStyle.marginRight &&
+    rimStyle.filter === "blur(14px)" &&
+    rimStyle.maskImage.includes("radial-gradient") &&
+    glassStyle.backdropFilter === "none");
+  // A full Today/adjacent-day round trip must change BOTH dates (and the Hijri
+  // month narrative when required), yet preserve the photograph's original crop.
+  const fullTodayHeight = photoCard.getBoundingClientRect().height;
+  const minimumCanvasHeight = parseFloat(getComputedStyle(photoCard).minHeight);
+  check("photograph canvas reaches the available viewport even if content is short",
+    Number.isFinite(minimumCanvasHeight) && minimumCanvasHeight > 0 &&
+    photoCard.getBoundingClientRect().height >= minimumCanvasHeight - 1);
+  const originalPhotoHeight = getComputedStyle(photoCard, "::before").height;
+  const originalPhotoPosition = getComputedStyle(photoCard, "::before").backgroundPosition;
+  const originalPhotoUrl = photoCard.style.getPropertyValue("--mosque-background-image");
+  for (const [offset, key] of [[1, "2026-10-22"], [-1, "2026-10-20"], [0, "2026-10-21"]]) {
+    card.shadowRoot.querySelectorAll(".date-tab")[offset + 1].click();
+    const current = card.shadowRoot.querySelector("ha-card");
+    const h = card.shadowRoot.querySelector(".header");
+    const description = h.querySelector(".month-description");
+    const gregorian = h.querySelector(".gregorian");
+    const hijri = h.querySelector(".hijri");
+    check(`both selected-day calendars update for ${key}`,
+      gregorian?.textContent === formatDate(key, ui) &&
+      hijri?.textContent.startsWith(formatHijriDate(key, 0, ui)) &&
+      description?.textContent === hijriMonthInfo(key, 0)?.summary_en);
+    const candidateImage = getComputedStyle(current, "::before");
+    const originalPixels = parseFloat(originalPhotoHeight);
+    const candidatePixels = parseFloat(candidateImage.height);
+    check(`image crop survives ${key}: original=${originalPhotoHeight}, next=${candidateImage.height}, photoFrame=${current.style.getPropertyValue("--mosque-photo-frame-height")}, stored=${JSON.stringify(card._backgroundFrame)}, url=${current.style.getPropertyValue("--mosque-background-image") === originalPhotoUrl}, position=${candidateImage.backgroundPosition} vs ${originalPhotoPosition}`,
+      Number.isFinite(candidatePixels) && Math.abs(candidatePixels - originalPixels) < 2 &&
+      current.style.getPropertyValue("--mosque-background-image") === originalPhotoUrl &&
+      candidateImage.backgroundPosition === originalPhotoPosition);
+    check(`adjacent day keeps full-viewport photograph while summary stays compact for ${key}`,
+      current.getBoundingClientRect().height >= minimumCanvasHeight - 1 &&
+      (offset === 0 || !current.querySelector(".prayer-panel")) &&
+      current.querySelector(".timetable-shell").getBoundingClientRect().bottom <=
+        current.getBoundingClientRect().bottom + 1);
+  }
+  // Reproduce a disappearing browser/dashboard scrollbar: a small width
+  // change after Today is selected must NOT discard the original photo frame.
+  const widthBeforeScrollbar = card.getBoundingClientRect().width;
+  card.shadowRoot.querySelectorAll(".date-tab")[2].click();
+  const initialFrame = card._backgroundFrame;
+  const initiallyLockedWidth = card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-photo-frame-width");
+  const initiallyLockedHeight = card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-photo-frame-height");
+  card.style.width = `${Math.max(250, widthBeforeScrollbar - 12)}px`;
+  card.shadowRoot.querySelectorAll(".date-tab")[0].click();
+  const narrowed = card.shadowRoot.querySelector("ha-card");
+  const narrowedImageStyle = getComputedStyle(narrowed, "::before");
+  check("scrollbar-width changes do not reset background photo width or height",
+    Boolean(initialFrame) &&
+    narrowed.style.getPropertyValue("--mosque-photo-frame-width") === initiallyLockedWidth &&
+    narrowed.style.getPropertyValue("--mosque-photo-frame-height") === initiallyLockedHeight &&
+    Math.abs(parseFloat(narrowedImageStyle.width) - (initialFrame.width - 2)) < 2 &&
+    Math.abs(parseFloat(narrowedImageStyle.height) - (initialFrame.height - 4)) < 2);
+  card.style.width = "";
+  card.shadowRoot.querySelectorAll(".date-tab")[1].click();
   render();
   const rules = card.shadowRoot.querySelector("style")?.sheet?.cssRules;
   check("bundled CSS module loads responsive rules", Boolean(rules?.length) && [...rules].some(rule => /max-width\s*:\s*28rem/.test(rule.conditionText || "")));
@@ -91,9 +159,76 @@ try {
   check("narrow table first-column rule parses correctly", [...(narrowRules || [])].some(rule => rule.selectorText === "th:first-child" && rule.style.width === "auto"));
   const panelStyle = getComputedStyle(card.shadowRoot.querySelector(".panel"));
   const gridStyle = getComputedStyle(card.shadowRoot.querySelector(".panels"));
-  check("theme panel layout and border radius survive CSS refactoring", panelStyle.display === "flex" && panelStyle.borderRadius === "16px" && gridStyle.display === "grid");
-  check("container layout uses one column on mobile and two on tablet", gridStyle.gridTemplateColumns.split(" ").length === (width <= 400 ? 1 : 2));
+  const sharedSummary = card.shadowRoot.querySelector(".summary-shell");
+  const summaryStyle = getComputedStyle(sharedSummary);
+  const timetableStyle = getComputedStyle(card.shadowRoot.querySelector(".timetable-shell"));
+  const timetable = card.shadowRoot.querySelector(".timetable-shell");
+  const glassHeader = getComputedStyle(timetable.querySelector("thead"));
+  const glassFooter = getComputedStyle(timetable.querySelector(".date-tabs"));
+  const isTransparent = style => style.backgroundColor === "rgba(0, 0, 0, 0)" &&
+    style.backgroundImage === "none";
+  check("summary and timetable retain the same stronger glass material",
+    summaryStyle.backgroundImage === timetableStyle.backgroundImage &&
+    summaryStyle.backdropFilter === timetableStyle.backdropFilter &&
+    summaryStyle.backdropFilter.includes("blur(20px)") &&
+    summaryStyle.borderRadius === timetableStyle.borderRadius &&
+    summaryStyle.borderColor === timetableStyle.borderColor &&
+    summaryStyle.boxShadow === timetableStyle.boxShadow &&
+    summaryStyle.boxShadow !== "none" &&
+    isTransparent(glassHeader) && isTransparent(glassFooter) &&
+    getComputedStyle(sharedSummary, "::before").backgroundImage ===
+      getComputedStyle(timetable, "::before").backgroundImage);
+  check("glass foreground inherits readable Home Assistant text colours",
+    summaryStyle.color === timetableStyle.color &&
+    getComputedStyle(sharedSummary.querySelector(".hijri")).color !== "rgba(0, 0, 0, 0)" &&
+    getComputedStyle(timetable.querySelector("tbody td")).color !== "rgba(0, 0, 0, 0)");
+  check("outer background does not apply a configurable opacity overlay",
+    !photoCard.style.getPropertyValue("--mosque-overlay") &&
+    !Object.prototype.hasOwnProperty.call(card._config, "mosque_background_opacity"));
+  const bothClocks = [...sharedSummary.querySelectorAll(".prayer-panel")];
+  check("single frosted glass surface holds mosque identity and both countdowns",
+    sharedSummary.querySelector(":scope > header") !== null &&
+    sharedSummary.querySelector(":scope > .panels") !== null &&
+    bothClocks.length === 2 &&
+    summaryStyle.borderRadius === "18px" &&
+    summaryStyle.backdropFilter.includes("blur(20px)") &&
+    summaryStyle.marginBottom === "16px" &&
+    panelStyle.display === "flex" && panelStyle.borderWidth === "0px" &&
+    panelStyle.borderRadius === "0px" && gridStyle.display === "grid");
+  const [salahStyle, jamaatStyle] = bothClocks.map(panel => getComputedStyle(panel));
+  const [salahClockStyle, jamaatClockStyle] = bothClocks.map(panel => getComputedStyle(panel.querySelector(".count")));
+  const [salahEventStyle, jamaatEventStyle] = bothClocks.map(panel => getComputedStyle(panel.querySelector(".event")));
+  check("Salah and Jamaat use identical backgrounds, padding, countdown sizes and type hierarchy",
+    salahStyle.backgroundColor === jamaatStyle.backgroundColor &&
+    salahStyle.backgroundImage === jamaatStyle.backgroundImage &&
+    salahStyle.padding === jamaatStyle.padding &&
+    salahClockStyle.fontSize === jamaatClockStyle.fontSize &&
+    salahClockStyle.color === jamaatClockStyle.color &&
+    salahEventStyle.fontSize === jamaatEventStyle.fontSize);
+  check("countdown divider changes direction only on narrow cards",
+    width <= 336
+      ? jamaatStyle.borderBlockStartWidth === "1px" && jamaatStyle.borderInlineStartWidth === "0px"
+      : jamaatStyle.borderInlineStartWidth === "1px" && jamaatStyle.borderBlockStartWidth === "0px");
+  const summaryRect = sharedSummary.getBoundingClientRect();
+  check("both countdowns remain contained within the shared card",
+    [...sharedSummary.querySelectorAll(".prayer-panel")].every(panel => {
+      const rect = panel.getBoundingClientRect();
+      return rect.left >= summaryRect.left - 1 && rect.right <= summaryRect.right + 1 &&
+        rect.top >= summaryRect.top - 1 && rect.bottom <= summaryRect.bottom + 1;
+    }));
+  check("container layout uses one column on mobile and two on tablet", gridStyle.gridTemplateColumns.split(" ").length === (width <= 336 ? 1 : 2));
   check("card language and direction match configuration", card.getAttribute("lang") === language && card.getAttribute("dir") === ui.dir);
+  check("summary icon silhouettes are hidden from accessibility", card.shadowRoot.querySelectorAll(".panel-silhouette[aria-hidden=\"true\"] svg").length === 2);
+  check("day controls follow timetable, not countdowns", Boolean(card.shadowRoot.querySelector(".timetable-shell > .date-tabs")));
+  check("Hijri month subtext follows header dates without duplicate month panel", Boolean(card.shadowRoot.querySelector("header > .month-description")) && !card.shadowRoot.querySelector(".hijri-month-info"));
+  const heading = card.shadowRoot.querySelector(".header");
+  const hijriBounds = heading.querySelector(".hijri").getBoundingClientRect();
+  const gregorianBounds = heading.querySelector(".gregorian").getBoundingClientRect();
+  const descriptionBounds = heading.querySelector(".month-description").getBoundingClientRect();
+  check("month description occupies its own full header row at every viewport",
+    getComputedStyle(heading).display === "grid" &&
+    descriptionBounds.top >= Math.max(hijriBounds.bottom, gregorianBounds.bottom) - 1 &&
+    descriptionBounds.width >= heading.getBoundingClientRect().width - 1);
   check("mosque timezone used for absolute times", card.shadowRoot.querySelector('[data-panel="salah"] .absolute').textContent === `${digits(5)}:${digits(45)}`);
   check("local beginning countdown", card.shadowRoot.querySelector('[data-panel="salah"] .count').textContent === `${digits(0)}:${digits(5)}:${digits(0)}`);
   check("Ramadan has textual Taraweeh fallback", card.shadowRoot.textContent.includes("After Isha Jamaat"));
@@ -120,10 +255,10 @@ try {
   render({show_gregorian_date: false});
   check("Gregorian can be hidden while Hijri remains visible", !card.shadowRoot.querySelector(".gregorian") && Boolean(card.shadowRoot.querySelector(".hijri")));
   render({show_hijri_date: false});
-  check("Hijri can be hidden while Gregorian remains visible", !card.shadowRoot.querySelector(".hijri") && Boolean(card.shadowRoot.querySelector(".gregorian")));
+  check("Hijri can be hidden while Gregorian remains visible", !card.shadowRoot.querySelector(".hijri") && Boolean(card.shadowRoot.querySelector(".gregorian")) && !card.shadowRoot.querySelector(".month-description"));
   render();
   card.hass = {...hass, states: {...hass.states, [config.entity]: {state: data.date, attributes: {...data, show_hijri_date: false}}}};
-  check("mosque-configured Hijri visibility remains authoritative", !card.shadowRoot.querySelector(".hijri") && Boolean(card.shadowRoot.querySelector(".gregorian")));
+  check("mosque-configured Hijri visibility remains authoritative", !card.shadowRoot.querySelector(".hijri") && Boolean(card.shadowRoot.querySelector(".gregorian")) && !card.shadowRoot.querySelector(".month-description"));
   card.hass = {...hass, states: {...hass.states, [config.entity]: {state: "2026-10-23", attributes: {...data, date: "2026-10-23", second_khutbah: "2026-10-23T12:20:00Z"}}}};
   check("Friday published second Khutbah remains isolated", Boolean(card.shadowRoot.querySelector('.khutbah bdi[dir="ltr"]')));
   card.hass = hass; card._render(Date.parse(time(4, 40)));
@@ -132,7 +267,7 @@ try {
   check("previous Jamaat follows completed Fajr", card.shadowRoot.querySelector('[data-panel="jamaat"] .label').textContent === tr(ui, "panel.previous_jamaat"));
   check("Next Salah countdown and Previous Jamaat elapsed clock are both visible", card.shadowRoot.querySelectorAll(".prayer-panel .count").length === 2 && Boolean(card.shadowRoot.querySelector('[data-panel="jamaat"] .count')));
   render({detail_level: "standard", time_format: "12h", show_salah_countdown: false});
-  check("single visible panel fills width", card.shadowRoot.querySelectorAll(".prayer-panel").length === 1 && Boolean(card.shadowRoot.querySelector(".hijri-month-info")));
+  check("single visible panel fills width", card.shadowRoot.querySelectorAll(".prayer-panel").length === 1 && Boolean(card.shadowRoot.querySelector("header .month-description")));
   check("12-hour absolute times", /(?:am|pm|ص|م)\s*$/i.test(card.shadowRoot.querySelector("tbody td > bdi").textContent));
   render({}, time(4, 41));
   const scrollRegion = card.shadowRoot.querySelector(".table-scroll"); scrollRegion.focus();
@@ -147,7 +282,7 @@ try {
   check("countdown tick preserves table keyboard focus", card.shadowRoot.activeElement === card.shadowRoot.querySelector(".table-scroll"));
   check("card fits its viewport", fits(card));
   document.documentElement.style.fontSize = "200%";
-  const fitsScaledText = card.getBoundingClientRect().width <= width + 1 && document.documentElement.scrollWidth <= width + 1 && card.shadowRoot.querySelector(".content").clientWidth > 0 && [...card.shadowRoot.querySelectorAll(".panel, h2")].every(element => element.getBoundingClientRect().width <= card.shadowRoot.querySelector(".content").clientWidth + 1);
+  const fitsScaledText = card.getBoundingClientRect().width <= width + 1 && document.documentElement.scrollWidth <= width + 1 && card.shadowRoot.querySelector(".content").scrollWidth <= card.shadowRoot.querySelector(".content").clientWidth + 1 && card.shadowRoot.querySelector(".content").clientWidth > 0 && [...card.shadowRoot.querySelectorAll(".panel, h2")].every(element => element.getBoundingClientRect().width <= card.shadowRoot.querySelector(".content").clientWidth + 1);
   const scaledRegion = card.shadowRoot.querySelector(".table-scroll");
   const overflowing = scaledRegion.scrollWidth > scaledRegion.clientWidth + 1;
   check("overflow has visible scrolling guidance", !overflowing || getComputedStyle(card.shadowRoot.querySelector(".scroll-help")).display !== "none");

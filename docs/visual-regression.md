@@ -18,19 +18,33 @@ On a **pull request**, the Validate workflow:
    channel differs by more than 16 (out of 255); greater than **0.5%**
    changed pixels in any one fixture fails the frontend job.
 5. On failure, uploads the candidate and baseline PNGs in a
-   `frontend-visual-diff-<PR number>` artifact for human review.
+   `frontend-visual-diff-<PR number>` artifact for human review. Approved
+   visual redesigns upload the same artifact even when comparison succeeds,
+   so reviewers can inspect the before/after evidence.
 
 PNG files are local CI evidence, not source-controlled brand or mosque
 fixtures. The decoder is dependency-free and accepts only bounded,
 8-bit RGB/RGBA, noninterlaced PNGs from the local Chromium capture.
 
-For deliberate visual changes, inspect the artifact and document which
-fixtures should change. Don't simply raise the tolerance or disable the
-comparison: baseline changes follow the branch under review, and existing
-structural/accessibility checks are independent of pixel matching. If the
-base branch changes while a review is in progress, rerun CI and record the
-resolved base SHA. Pushes to `main` still run the browser smoke tests but
-cannot compare against a pull-request base branch.
+For deliberate visual redesigns (including changed card heights), inspect
+the screenshot artifact, document the expected changes in the PR and have a
+repository maintainer apply the `visual-change-approved` PR label. **Do not
+apply this label to ordinary CSS/behavior fixes or unrelated feature PRs.**
+The comparer still captures and decodes all 16 current/base screenshots,
+checks their presence and filenames, prints dimension/pixel changes and emits
+a GitHub Actions notice. Only an explicitly labelled PR may accept differences
+beyond 0.5% or intentionally changed dimensions. Without that label, the
+strict 0.5% threshold and dimension checks continue to fail unexpected changes.
+
+The label represents manual design approval, **not proof of accessibility or
+real-device acceptance**. Chromium overflow/RTL tests, frontend unit tests and
+Home Assistant acceptance still run and must pass. The label only approves
+the screenshot delta from the PR base. After merging the redesigned card, its
+images become the normal baseline for later PRs; remove or avoid the approval
+label on new unrelated changes. This does not raise the tolerance or disable
+comparisons. If the base branch changes while a review is in progress, rerun
+CI and record the resolved base SHA. Pushes to `main` still run browser smoke
+tests but cannot compare against a pull-request base branch.
 
 Run locally:
 

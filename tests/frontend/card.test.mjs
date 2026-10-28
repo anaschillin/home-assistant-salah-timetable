@@ -15,10 +15,11 @@ class Element {
 const registry = new Map(); const timers = new Map(); let timerId = 0;
 globalThis.HTMLElement = Element;
 globalThis.customElements = {get: name => registry.get(name), define: (name, type) => registry.set(name, type)};
-globalThis.document = {createElement: name => registry.has(name) ? new (registry.get(name))() : new Element(name)};
+globalThis.document = {createElement: name => registry.has(name) ? new (registry.get(name))() : new Element(name), createElementNS: (_ns, name) => new Element(name)};
 globalThis.window = {setInterval: callback => { timers.set(++timerId, callback); return timerId; }, clearInterval: id => timers.delete(id), customCards: []};
 const {SalahTimetableCard, SalahTimetableCardEditor} = await import("../../custom_components/salah_timetable/frontend/salah-timetable-card.js");
 const {tr} = await import("../../custom_components/salah_timetable/frontend/card-i18n.js");
+const {formatDate, formatHijriDate, hijriMonthInfo} = await import("../../custom_components/salah_timetable/frontend/card-utils.js");
 function find(root, tag) { return [root, ...root.children.flatMap(child => find(child, tag))].filter(node => node.tagName === tag); }
 const attributes = {
   mosque_name: "Example Mosque", date: "2026-10-21", time_zone: "Europe/London",
@@ -36,6 +37,35 @@ test("bundled card and graphical editor register once", () => {
   assert.equal(window.customCards.length, 1);
   assert.equal(SalahTimetableCard.getConfigElement() instanceof SalahTimetableCardEditor, true);
   assert.equal(SalahTimetableCard.getStubConfig(hass()).entity, "sensor.mosque_prayer_timetable");
+});
+
+test("mosque header and both live countdowns share one summary card", () => {
+  const config = {entity: "sensor.mosque_prayer_timetable"};
+  const card = new SalahTimetableCard();
+  card.setConfig(config); card.hass = hass();
+  const shell = () => find(card.shadowRoot, "div").find(element => element.className === "summary-shell");
+  const contents = () => shell().children;
+  assert.ok(shell(), "Shared card must exist");
+  assert.equal(contents()[0].tagName, "header");
+  assert.equal(contents()[1].className, "panels");
+  assert.equal(contents()[1].children.length, 2);
+  assert.equal(contents()[1].children[0].attributes["data-panel"], "salah");
+  assert.equal(contents()[1].children[1].attributes["data-panel"], "jamaat");
+  assert.match(contents()[0].textContent, /Example Mosque/);
+  assert.equal(find(card.shadowRoot, "table").length, 1);
+  assert.ok(!contents().includes(find(card.shadowRoot, "table")[0]), "Timetable stays outside the summary");
+
+  for (const [salah, jamaat] of [[true, false], [false, true], [false, false]]) {
+    card.setConfig({...config, show_salah_countdown: salah, show_jamaat_countdown: jamaat});
+    assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "summary-shell").length, 1);
+    const groups = contents().filter(element => element.className === "panels");
+    assert.equal(groups.length, salah || jamaat ? 1 : 0);
+    if (groups.length) assert.equal(groups[0].children.length, Number(salah) + Number(jamaat));
+  }
+  card.setConfig(config);
+  const footer = find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
+  footer.children[0].dispatchEvent(new Event("click"));
+  assert.equal(contents().length, 1, "Browsing an adjacent date keeps the mosque heading, not live countdowns");
 });
 
 test("card renders local times, missing states and theme-responsive layout", () => {
@@ -88,12 +118,15 @@ for (const [language, locale, month, gregorianMonth] of [["en", "en-GB", "Ramada
   assert.ok(header.children[1].textContent.includes(tr(language, "card.hijri_calculated")));
   assert.equal(header.children[2].className, "date gregorian");
   assert.ok(header.children[2].textContent.includes(gregorianMonth));
+  assert.equal(header.children[3].className, "month-description");
+  assert.ok(header.children[3].textContent.length > 0);
   for (const show_hijri_date of [true, false]) for (const show_gregorian_date of [true, false]) {
     card.setConfig({entity: "sensor.mosque_prayer_timetable", language, show_hijri_date, show_gregorian_date});
     const currentHeader = find(card.shadowRoot, "header")[0];
-    assert.equal(currentHeader.children.length, 1 + Number(show_hijri_date) + Number(show_gregorian_date));
+    assert.equal(currentHeader.children.length, 1 + Number(show_hijri_date) * 2 + Number(show_gregorian_date));
     assert.equal(currentHeader.children.some(element => element.className === "date hijri"), show_hijri_date);
     assert.equal(currentHeader.children.some(element => element.className === "date gregorian"), show_gregorian_date);
+    assert.equal(currentHeader.children.some(element => element.className === "month-description"), show_hijri_date);
     assert.equal(find(card.shadowRoot, "table").length, 1);
   }
   card.setConfig({entity: "sensor.mosque_prayer_timetable", language, show_hijri_date: true, show_gregorian_date: false});
@@ -232,22 +265,35 @@ test("dashboard controls hide panels and details without hiding published prayer
   const card = new SalahTimetableCard();
   card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "standard", show_salah_countdown: false, show_jamaat_countdown: false, show_hijri_date: false, show_timezone_note: false, show_ramadan_details: false, time_format: "12h"});
   card.hass = hass({...attributes, ramadan: {active: true}}); card._render(Date.parse("2026-10-21T04:40:00Z"));
-  assert.equal(find(card.shadowRoot, "section").filter(element => element.className !== "panel hijri-month-info").length, 0);
-  assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 1);
+  assert.equal(find(card.shadowRoot, "section").length, 0);
+  assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "month-description").length, 0);
   assert.equal(find(card.shadowRoot, "table").length, 1);
   assert.match(find(card.shadowRoot, "table")[0].textContent, /05:45\s*am/i);
   assert.equal(find(card.shadowRoot, "header")[0].textContent.includes("Hijri"), false);
-  assert.equal(find(card.shadowRoot, "p").filter(element => element.className !== "note scroll-help").length, 0);
+  assert.equal(find(card.shadowRoot, "p").filter(element => !["note scroll-help", "note"].includes(element.className)).length, 0);
   assert.equal(find(card.shadowRoot, "tr")[1].attributes["aria-current"], "true");
 });
 
-test("Hijri month information defaults on and can be disabled per card", () => {
+test("Hijri month explanation is a single subtitle beneath the date, with visibility controls", () => {
   const card = new SalahTimetableCard();
-  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  const config = {entity: "sensor.mosque_prayer_timetable"};
+  card.setConfig(config);
   card.hass = hass();
-  assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 1);
-  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_hijri_month_info: false});
+  const subtitle = () => find(card.shadowRoot, "div").filter(element => element.className === "month-description");
+  const header = () => find(card.shadowRoot, "header")[0];
+  assert.equal(subtitle().length, 1);
+  assert.equal(header().children.at(-1), subtitle()[0]);
+  assert.match(subtitle()[0].textContent, /fifth month/i);
   assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 0);
+  card.setConfig({...config, show_hijri_month_info: false});
+  assert.equal(subtitle().length, 0);
+  card.setConfig({...config, show_hijri_date: false});
+  assert.equal(subtitle().length, 0, "Do not show an orphan month description when Hijri date is hidden");
+  card.setConfig({...config, detail_level: "compact"});
+  assert.equal(subtitle().length, 0, "Compact mode also hides the Hijri heading");
+  card.setConfig(config);
+  card.hass = hass({...attributes, show_hijri_date: false});
+  assert.equal(subtitle().length, 0, "Mosque-wide Hijri preference remains authoritative");
   assert.equal(find(card.shadowRoot, "table").length, 1);
 });
 
@@ -262,16 +308,32 @@ test("Ramadan countdown switches retain published times and Taraweeh", () => {
   assert.equal(find(section, "div").filter(element => element.className === "count").length, 0);
 });
 
+test("retired background opacity is discarded from old Lovelace configs without affecting mosque choice", () => {
+  const old = {entity: "sensor.mosque_prayer_timetable", mosque_background_opacity: 17, mosque_background: "masjid-al-haram"};
+  const card = new SalahTimetableCard();
+  card.setConfig(old);
+  card.hass = hass();
+  assert.equal(Object.hasOwn(card._config, "mosque_background_opacity"), false);
+  assert.equal(card._config.mosque_background, "masjid-al-haram");
+  assert.equal(find(card.shadowRoot, "ha-card")[0].style.values["--mosque-overlay"], undefined);
+  const editor = new SalahTimetableCardEditor();
+  editor.setConfig(old);
+  editor.hass = hass();
+  assert.equal(Object.hasOwn(editor._extraControls, "mosque_background_opacity"), false);
+  assert.equal(editor._config.mosque_background, "masjid-al-haram");
+  assert.equal(editor._config.mosque_background_opacity, undefined);
+});
+
 test("new editor controls round trip and retain nodes through HA config echoes", () => {
   const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "sensor.mosque_prayer_timetable"}); editor.hass = hass();
   const changes = []; editor.addEventListener("config-changed", event => { changes.push(event.detail.config); editor.setConfig(event.detail.config); });
   for (const [key, entry] of Object.entries(editor._extraControls)) {
     const control = entry.control;
     if (entry.checkbox) control.checked = false;
-    else control.value = ({language: "ar", detail_level: "compact", time_format: "12h", hijri_adjustment: "-2", mosque_background: "masjid-al-haram", mosque_background_opacity: "12"})[key];
+    else control.value = ({language: "ar", detail_level: "compact", time_format: "12h", hijri_adjustment: "-2", mosque_background: "masjid-al-haram"})[key];
     control.dispatchEvent(new Event("change")); editor.hass = hass();
     assert.equal(editor._extraControls[key].control, control);
-    assert.equal(changes.at(-1)[key], entry.checkbox ? false : ["hijri_adjustment", "mosque_background_opacity"].includes(key) ? Number(control.value) : control.value);
+    assert.equal(changes.at(-1)[key], entry.checkbox ? false : key === "hijri_adjustment" ? Number(control.value) : control.value);
   }
 });
 
@@ -280,8 +342,8 @@ test("all main countdown visibility combinations keep the timetable and both dat
     const card = new SalahTimetableCard();
     card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level, show_salah_countdown: salah, show_jamaat_countdown: jamaat});
     card.hass = hass(); card._render(Date.parse("2026-10-21T04:40:00Z"));
-    assert.equal(find(card.shadowRoot, "section").filter(element => element.className !== "panel hijri-month-info").length, Number(salah) + Number(jamaat));
-    assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 1);
+    assert.equal(find(card.shadowRoot, "section").length, Number(salah) + Number(jamaat));
+    assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "month-description").length, 1);
     assert.equal(find(card.shadowRoot, "table").length, 1);
     assert.match(find(card.shadowRoot, "header")[0].textContent, /Hijri \(calculated\)/);
   }
@@ -385,7 +447,8 @@ test("availability recovery and entity configuration changes invalidate the rend
   assert.equal(find(card.shadowRoot, "table").length, 1);
   current.states["sensor.other_mosque"] = {...state, attributes: {...state.attributes, mosque_name: "Other Mosque"}};
   card.setConfig({entity: "sensor.other_mosque", title: "Selected Mosque"});
-  assert.equal(find(card.shadowRoot, "h2")[0].textContent, "Selected Mosque");
+  assert.equal(find(card.shadowRoot, "select").find(element => element.className === "mosque-select").value, "sensor.other_mosque");
+  assert.ok(find(card.shadowRoot, "h2")[0].textContent.includes("Selected Mosque"));
   const table = find(card.shadowRoot, "table")[0]; card.hass = current;
   assert.equal(find(card.shadowRoot, "table")[0], table);
   current.states["sensor.other_mosque"].attributes.prayers = []; card.hass = current;
@@ -622,21 +685,115 @@ test("card filter allows separate fixed mosque cards and a selectable multi-mosq
   assert.deepEqual(changes.at(-1).mosque_entities, [a]);
   assert.equal(choices()[0].disabled, true, "The last enabled mosque cannot be unchecked");
   const fixed = new SalahTimetableCard(); fixed.setConfig(changes.at(-1)); fixed.hass = multi;
-  assert.equal(find(fixed.shadowRoot, "nav").some(nav => nav.className === "mosque-tabs"), false);
+  assert.equal(classNodes(fixed.shadowRoot, "mosque-select").length, 0);
   assert.match(find(fixed.shadowRoot, "h2")[0].textContent, /Example Mosque/);
 
   choices()[1].checked = true; choices()[1].dispatchEvent(new Event("change"));
   assert.deepEqual(changes.at(-1).mosque_entities, [a, b]);
   const switching = new SalahTimetableCard(); switching.setConfig(changes.at(-1)); switching.hass = multi;
-  const tabs = find(switching.shadowRoot, "nav").find(nav => nav.className === "mosque-tabs");
-  assert.equal(tabs.children.length, 2);
-  tabs.children[1].dispatchEvent(new Event("click"));
+  const chooser = find(switching.shadowRoot, "select").find(select => select.className === "mosque-select");
+  assert.equal(chooser.children.length, 2);
+  assert.equal(chooser.value, a);
+  chooser.value = b;
+  chooser.dispatchEvent(new Event("change"));
   assert.match(find(switching.shadowRoot, "h2")[0].textContent, /Second Mosque/);
   assert.equal(switching._activeEntity(), b);
   const secondFixed = new SalahTimetableCard(); secondFixed.setConfig({entity: b, mosque_entities: [b]}); secondFixed.hass = multi;
-  assert.equal(find(secondFixed.shadowRoot, "nav").some(nav => nav.className === "mosque-tabs"), false);
+  assert.equal(classNodes(secondFixed.shadowRoot, "mosque-select").length, 0);
   assert.match(find(secondFixed.shadowRoot, "h2")[0].textContent, /Second Mosque/);
   assert.equal(fixed._activeEntity(), a, "Switching one card must not affect another");
+});
+
+test("day navigation updates Hijri, Gregorian and month information without duplicate selected date", () => {
+  const card = new SalahTimetableCard();
+  const base = "2026-10-28";
+  const data = {...attributes, date: base, day_prayers: {"2026-10-27": attributes.prayers, "2026-10-29": attributes.prayers}};
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass(data);
+  const dateTabs = () => find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
+  const header = () => find(card.shadowRoot, "header")[0];
+  for (const [offset, expected] of [[-1, "2026-10-27"], [1, "2026-10-29"], [0, base]]) {
+    dateTabs().children[offset + 1].dispatchEvent(new Event("click"));
+    const parts = header().children;
+    assert.equal(parts[1].textContent, `${formatHijriDate(expected, 0, "en")} · Hijri (calculated)`);
+    assert.equal(parts[2].textContent, formatDate(expected, {locale: "en-GB"}));
+    assert.equal(parts[3].textContent, hijriMonthInfo(expected, 0).summary_en);
+    assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "selected-date").length, 0);
+    assert.equal(card._selectedDay, offset);
+    assert.equal(find(card.shadowRoot, "table").length, 1);
+  }
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_gregorian_date: false});
+  dateTabs().children[2].dispatchEvent(new Event("click"));
+  assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "selected-date").length, 1,
+    "Adjacent-day timetable retains its date when Gregorian header is disabled");
+});
+
+test("mosque photo retains Today's canvas across tabs and invalidates on width change", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass();
+  card.shadowRoot.querySelector = selector => selector === "ha-card" ? find(card.shadowRoot, "ha-card")[0] : null;
+  const first = find(card.shadowRoot, "ha-card")[0];
+  first.getBoundingClientRect = () => ({width: 900, height: 720});
+  const tabs = () => find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
+  tabs().children[2].dispatchEvent(new Event("click"));
+  assert.equal(card._selectedDay, 1);
+  assert.deepEqual(card._backgroundFrame, {entity: "sensor.mosque_prayer_timetable", width: 900, height: 720});
+  const tomorrow = find(card.shadowRoot, "ha-card")[0];
+  assert.equal(tomorrow.style.values["--mosque-photo-frame-height"], "716px");
+  assert.equal(tomorrow.style.values["--mosque-photo-frame-width"], "898px");
+  // A small dashboard width change (e.g. disappearing scrollbar) is not a
+  // meaningful device resize and must not re-crop the image.
+  tomorrow.getBoundingClientRect = () => ({width: 886, height: 550});
+  tabs().children[0].dispatchEvent(new Event("click"));
+  const yesterday = find(card.shadowRoot, "ha-card")[0];
+  assert.equal(yesterday.style.values["--mosque-photo-frame-height"], "716px");
+  assert.equal(yesterday.style.values["--mosque-photo-frame-width"], "898px");
+  // Conversely a substantial change should invalidate both photo dimensions.
+  yesterday.getBoundingClientRect = () => ({width: 800, height: 550});
+  tabs().children[1].dispatchEvent(new Event("click"));
+  const resized = find(card.shadowRoot, "ha-card")[0];
+  assert.equal(resized.style.values["--mosque-photo-frame-height"], undefined,
+    "A genuinely resized card must not reuse an obsolete photo height");
+  assert.equal(resized.style.values["--mosque-photo-frame-width"], undefined,
+    "A genuinely resized card must not reuse an obsolete photo width");
+});
+
+test("compact timetable puts date controls after the table and preserves adjacent-date access", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: false});
+  card.hass = hass();
+  const shell = classNodes(card.shadowRoot, "timetable-shell")[0];
+  assert.ok(shell);
+  assert.equal(shell.children[0].className, "table-scroll");
+  assert.equal(shell.children.at(-1).className, "date-tabs");
+  const [yesterday, today] = shell.children.at(-1).children;
+  assert.equal(today.attributes["aria-pressed"], "true");
+  yesterday.dispatchEvent(new Event("click"));
+  assert.equal(card._selectedDay, -1);
+  assert.equal(find(card.shadowRoot, "table").length, 0, "Missing dates do not borrow today's timetable");
+  assert.match(card.shadowRoot.textContent, /No approved timetable/);
+  assert.equal(find(card.shadowRoot, "nav").filter(element => element.className === "date-tabs").length, 1, "Day controls survive an unavailable date");
+  const nextToday = find(card.shadowRoot, "nav").find(element => element.className === "date-tabs").children[1];
+  nextToday.dispatchEvent(new Event("click"));
+  assert.equal(card._selectedDay, 0);
+  assert.equal(find(card.shadowRoot, "table").length, 1);
+  assert.equal(find(card.shadowRoot, "nav").find(element => element.className === "date-tabs").children[1].attributes["aria-pressed"], "true");
+});
+
+test("minaret and dome silhouettes are decorative, month subtitle does not duplicate the heading", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass();
+  const icons = find(card.shadowRoot, "span").filter(element => element.className === "panel-silhouette");
+  assert.equal(icons.length, 2);
+  assert.deepEqual(icons.map(icon => icon.attributes["aria-hidden"]), ["true", "true"]);
+  assert.equal(find(card.shadowRoot, "svg").length, 2);
+  const month = find(card.shadowRoot, "div").find(element => element.className === "month-description");
+  assert.ok(month);
+  assert.match(month.textContent, /fifth month/i);
+  assert.equal(find(card.shadowRoot, "details").length, 0);
+  assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "panel hijri-month-info").length, 0);
 });
 
 test("mosque selection preserves missing sensors, automatically includes new primary and validates filters", () => {

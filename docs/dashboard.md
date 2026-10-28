@@ -33,21 +33,30 @@ for backwards compatibility. Uncheck mosques to exclude them from this card;
 at least one mosque must remain enabled. The primary **Prayer timetable** selection
 controls which mosque appears first, and is kept within the enabled set.
 
-When multiple mosques are enabled, tabs let users switch between those mosques
-without changing Home Assistant entity states. With just one enabled mosque,
-the card has no mosque tabs. Each card has independent selections: add multiple
-cards to the same dashboard, restrict each to one mosque, or use separate
-dashboards for each mosque. Existing cards without `mosque_entities` continue to
-show all discovered mosques, including new ones.
+When multiple mosques are enabled, a native selector in the header replaces
+the duplicated mosque name and wide tab strip. With one enabled mosque, the
+header displays a plain title. An optional custom title replaces the primary
+mosque's selector label. Switching mosques resets day navigation to Today without
+changing Home Assistant entity states. Each card has independent selections:
+add multiple cards to one dashboard, restrict each to one mosque, or use separate
+dashboards. Existing cards without `mosque_entities` continue to show all
+discovered mosques, including newly added ones.
 
 ## Day navigation
 
-The date tabs are **Yesterday / Today / Tomorrow**. Today is selected initially.
+The **Yesterday / Today / Tomorrow** controls sit in a slim footer inside the
+timetable frame, rather than above the prayer summaries. Today is selected initially.
+The header's Gregorian **and calculated Hijri dates**, plus the contextual Hijri
+month description, update with the selected day. The timetable does not repeat
+the Gregorian date when it is already in the header; a date label remains if
+the Gregorian header is disabled or the card is in Compact mode.
 All three views share the same table styling, labels, time formatting and responsive
 layout. Yesterday and Tomorrow hide **both** prayer summary cards, live countdowns,
 current-prayer highlighting, and today's Ramadan/status sections. They show only
 the selected day's actual approved beginning and Jamaat timetable. This also
 applies when Compact is selected: its adjacent-day views show the full table.
+On a date with no approved times, the footer stays visible beneath an unavailable
+message so users can return to Today.
 
 The backend supplies independent published rows for the three local dates using
 its already-resolved effective timetables. Missing approved rows display
@@ -67,9 +76,25 @@ prayer's Jamaat is still upcoming. The countdown and published times from that
 event's actual date appear together. **Next Jamaat** counts down while the
 current prayer's congregation is still approaching; at its exact instant the
 same panel becomes **Previous Jamaat** and shows elapsed time.
-The two panels share the same component, dimensions, typography, time grid,
-theme-aware surfaces and responsive behaviour. The old context/upcoming/previous
-Jamaat panel selector has been removed.
+The mosque title, Hijri date/description, Gregorian date and both countdown
+sections now live inside **one CSS-first liquid-glass summary card**. The
+timetable has the **same balanced, readable glass material**: an 84–88%
+theme-aware surface with a restrained gradient, frosted blur and small
+specular edge highlights. This restores some visibility of the mosque photo
+through both cards without returning to the earlier washed-out glass effect.
+Table headings and day navigation do not add a second tint. The background photograph remains
+unobscured outside the panels. There is no WebGL runtime, animated
+distortion or remote dependency. Both countdown halves share **identical
+transparent surfaces, padding, label typography, countdown sizing and
+time-grid formatting**, separated by a fine divider. Each countdown still has its own published
+beginning/Jamaat values, label and live timer. A faint **minaret silhouette** decorates Next Salah and a faint
+**dome silhouette** decorates the contextual Next/Previous Jamaat countdown.
+Both are inline local SVG with `aria-hidden`, carry no data and do not
+represent the selected mosque. The two summaries sit side by side on most
+phones/tablets, stack on very narrow cards, and collapse independently through
+the card's existing visibility options. On Yesterday/Tomorrow, the shared
+surface retains the mosque/date heading but hides the live countdowns.
+The old context/upcoming/previous Jamaat panel selector has been removed.
 
 Fajr end is the *published sunrise*, never a calculated estimate. Published
 Jumu’ah congregations remain in Dhuhr's Jamaat row, and the separately published
@@ -149,12 +174,14 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_jamaat_countdown` | `true` |
 | `show_hijri_date` | `true`; further hides the mosque-enabled full Hijri date on this card |
 | `show_gregorian_date` | `true`; independently displays the secondary Gregorian date |
-| `show_hijri_month_info` | `true`; displays the offline description for the selected Hijri month |
+| `show_hijri_month_info` | `true`; shows a short, non-repeating description directly beneath the visible Hijri date in the header; hidden when the Hijri date is hidden |
 | `hijri_adjustment` | Whole days −3 through +3; default `0` |
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
 | `show_iftar_countdown` | `true`; hiding retains the displayed absolute time |
-| `show_timezone_note` | `true`; controls the timezone and missing-time note |\n| `show_mosque_background` | `true`; display a subtle bundled mosque photograph; `false` disables the image |\n| `mosque_background` | `daily` (default); `none`, or a bundled mosque ID for a fixed photo |\n| `mosque_background_opacity` | Whole number from `0` to `20`; default `7` (%) |
+| `show_timezone_note` | `true`; controls the timezone and missing-time note |
+| `show_mosque_background` | `true`; enables the full-strength bundled mosque photograph; `false` disables the image |
+| `mosque_background` | `daily` (default); `none`, or a bundled mosque ID for a fixed photo |
 
 Hiding either main panel removes it; the remaining panel fills the width.
 Hiding both leaves the header and timetable. Connection warnings and narrow-card
@@ -168,9 +195,65 @@ The four **coming soon** Islamic-history settings for day events, monthly
 highlights, visible sources and disputed dates are disabled in the editor until
 those features are implemented. Previously saved values remain inert. The Hijri
 month description is implemented separately and can be hidden with
-`show_hijri_month_info: false`.
+`show_hijri_month_info: false`. The description appears only as smaller text
+beneath the full Hijri date, without a duplicate heading, separate panel or
+footer disclosure. It follows the mosque's current header date when browsing
+yesterday or tomorrow, and hides when the Hijri date is hidden.
 
-## Optional mosque photograph backgrounds\n\nThe card bundles 20 WebP photographs from free Unsplash photo pages. They\nare served from the integration itself, without remote requests or an Unsplash\naccount. Photo backgrounds rotate once per mosque-local published date by\ndefault and do not repeat until all 20 have appeared. Choose a fixed mosque\nfrom **Mosque background** in the card editor, set **Background opacity (%)**\n(0–20), or switch off **Show mosque background** entirely.\n\nA dark/light-theme-aware colour overlay keeps images very faint behind the\nprayer timetable and countdowns. Increased-contrast or reduced-transparency\naccessibility preferences hide the image; the content remains readable without\nit. Photographer credit appears below the card content with a link to the\noriginal photo. See [image credits and source links](mosque-background-credits.md).\n\nThese decorative backgrounds do not represent the currently configured mosque\nand cannot influence prayers, mosque identity, calculations, or data imports.\n\n## Ramadan controls
+## Optional mosque photograph backgrounds
+
+The card bundles 20 WebP photographs from free Unsplash photo pages. They
+are served from the integration itself, without remote requests or an Unsplash
+account. Photo backgrounds rotate once per mosque-local published date by
+default and do not repeat until all 20 have appeared. Choose a fixed mosque
+from **Mosque background** in the card editor, or switch off
+**Show mosque background** entirely. The old background-opacity overlay and
+editor option have been removed. Saved cards containing
+`mosque_background_opacity` are accepted, but that obsolete value is ignored
+and stripped when the configuration is normalised.
+
+The mosque photograph fills the **available dashboard viewport height as well
+as the full card width**, rather than cutting off where the Today, Yesterday or
+Tomorrow timetable ends. The summary and timetable remain compact and anchored
+at the top; the remaining area shows the photograph instead of a blank black
+dashboard background. A short day view no longer causes the background canvas
+itself to disappear halfway down the screen. On cards with content taller than
+the viewport, the canvas grows naturally with the content.
+
+The image layer also retains Today's photographic framing when switching to
+adjacent-day views. Small Home Assistant width changes, such as scrollbars
+appearing and disappearing, preserve its measured dimensions. Genuine device
+resizes (for example tablet rotation) can reframe the image. Because this mode
+uses a viewport-height **card**, placing it among other stacked dashboard cards
+will reserve that vertical space in the Home Assistant layout. Use a dedicated
+full-width view for the best photographic presentation. The timetable,
+header and countdowns remain in an independently centred content column
+(up to 1160px wide). On narrow cards and mobile screens, the content naturally
+fills the available width. This creates wider photographic wings on landscape
+tablets and desktops without stretching the prayer table excessively.
+
+The photograph is shown without a global opacity tint. Liquid-glass styling
+now applies only to the **summary and timetable surfaces**, with matching
+backdrop blur, layered translucent gradients, subtle specular edge lighting and
+a calm inset shadow. The photograph remains visible around them. The full-width
+outer card has **no drop shadow**, avoiding a dark halo. Text remains crisp.
+High-contrast/reduced-transparency preferences show opaque panel surfaces
+and hide the photo; browsers without backdrop filtering also use opaque panels.
+The Hijri date, Gregorian date and month explanation occupy separate header
+rows on mobile, tablet and desktop. Photo visibility remains controlled by `show_mosque_background`.
+Increased-contrast and reduced-transparency preferences hide the image and
+disable glass effects.
+
+Home Assistant determines each card's **parent column width**, and the card
+cannot paint outside that column or across a sidebar. To fill a wider dashboard
+canvas, place the card in a full-width section or panel view. Photographer
+credit stays with the centred content and links to the original photo. See
+[image credits and source links](mosque-background-credits.md).
+
+These decorative backgrounds do not represent the currently configured mosque
+and cannot influence prayers, mosque identity, calculations or data imports.
+
+## Ramadan controls
 
 Use the mosque integration's **Configure → Ramadan settings**; the card reflects
 these settings automatically.
@@ -205,7 +288,7 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.9.3
+/salah_timetable/salah-timetable-card.js?v=0.9.18
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an

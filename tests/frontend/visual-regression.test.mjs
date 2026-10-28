@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {deflateSync} from "node:zlib";
-import {decodePng, pixelDifference} from "../../scripts/compare_screenshots.mjs";
+import {decodePng, pixelDifference, visualDiffDecision} from "../../scripts/compare_screenshots.mjs";
 
 // The decoder intentionally ignores checksums: screenshots come only from the
 // locally launched Chromium, not user-supplied images.
@@ -41,4 +41,16 @@ test("pixel comparison catches real differences, allows channel antialiasing", (
 test("rejects malformed and unsupported PNG data without allocating huge images", () => {
   assert.throws(() => decodePng(Buffer.from("invalid image")));
   assert.throws(() => decodePng(png(1, 1, Buffer.alloc(4), 5)), /Unsupported PNG filter/);
+});
+
+test("0.5% visual threshold stays enforced without an explicit approval", () => {
+  const under = [{mismatchedSize: false, mismatchPercent: 0.5}];
+  const over = [{mismatchedSize: false, mismatchPercent: 0.5001}];
+  const resized = [{mismatchedSize: true, mismatchPercent: 0}];
+  assert.deepEqual(visualDiffDecision(under), {changed: false, accepted: true});
+  assert.deepEqual(visualDiffDecision(over), {changed: true, accepted: false});
+  assert.deepEqual(visualDiffDecision(resized), {changed: true, accepted: false});
+  assert.deepEqual(visualDiffDecision(over, true), {changed: true, accepted: true});
+  assert.deepEqual(visualDiffDecision(resized, true), {changed: true, accepted: true});
+  assert.deepEqual(visualDiffDecision(under, true), {changed: false, accepted: true});
 });

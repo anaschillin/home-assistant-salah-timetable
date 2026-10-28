@@ -137,10 +137,10 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await until(expression("return deep().filter(element=>element.localName==='salah-timetable-card').some(card=>card.shadowRoot.textContent.includes('Keyboard smoke title'))"), "Saved edited card did not appear on dashboard");
     await call("Page.reload", {ignoreCache: true});
     await until(expression("return deep().filter(element=>element.localName==='salah-timetable-card').some(card=>card.shadowRoot?.textContent.includes('Keyboard smoke title'))"), "Saved card missing after page reload");
-    const restored = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.title==='Keyboard smoke title');return card?{config:card._config,panels:card.shadowRoot.querySelectorAll('.panel:not(.hijri-month-info)').length,monthPanel:!!card.shadowRoot.querySelector('.hijri-month-info'),compact:!!card.shadowRoot.querySelector('.content.compact'),hijri:card.shadowRoot.querySelector('.hijri')?.textContent,gregorian:!!card.shadowRoot.querySelector('.gregorian'),data:{prayers:card._hass.states[card._config.entity].attributes.prayers,active:card._hass.states[card._config.entity].attributes.ramadan.active},times:[...card.shadowRoot.querySelectorAll('tbody td')].map(cell=>cell.textContent)}:null"));
+    const restored = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.title==='Keyboard smoke title');return card?{config:card._config,panels:card.shadowRoot.querySelectorAll('.panel:not(.hijri-month-info)').length,monthSubtitle:!!card.shadowRoot.querySelector('header .month-description'),duplicateMonthPanel:!!card.shadowRoot.querySelector('.hijri-month-info'),compact:!!card.shadowRoot.querySelector('.content.compact'),hijri:card.shadowRoot.querySelector('.hijri')?.textContent,gregorian:!!card.shadowRoot.querySelector('.gregorian'),data:{prayers:card._hass.states[card._config.entity].attributes.prayers,active:card._hass.states[card._config.entity].attributes.ramadan.active},times:[...card.shadowRoot.querySelectorAll('tbody td')].map(cell=>cell.textContent)}:null"));
     for (const [key, value] of Object.entries(selected)) assert.equal(restored.config[key], value, `Saved option did not survive reload: ${key}`);
     assert.deepEqual(restored.data, originalData, "Display controls changed prayer data or Ramadan activation");
-    assert.equal(restored.panels, 1); assert.equal(restored.monthPanel, true); assert.equal(restored.compact, false); assert.equal(restored.gregorian, false);
+    assert.equal(restored.panels, 1); assert.equal(restored.monthSubtitle, true); assert.equal(restored.duplicateMonthPanel, false); assert.equal(restored.compact, false); assert.equal(restored.gregorian, false);
     assert.match(restored.hijri, /هجري \(محسوب\)/);
     assert.ok(restored.times.some(value => /(?:am|pm|ص|م)\s*$/i.test(value)), "Reloaded card does not use 12-hour times");
     await evaluate(expression("window.salahAutoCard=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.entity&&element._config.title!=='Keyboard smoke title');if(!window.salahAutoCard)throw new Error('Original smoke card missing');window.salahAutoCard.setConfig({...window.salahAutoCard._config,language:'auto'});return true"));
@@ -162,6 +162,84 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
         }
       }
     }
+    // PR #88 regression: real landscape tablet / desktop once put the long
+    // month description on the same line as the Gregorian date.
+    for (const width of [900, 1280, 1536]) {
+      await call("Emulation.setDeviceMetricsOverride", {width, height: 1100, deviceScaleFactor: 1, mobile: false});
+      await pause(100);
+      assert.equal(await evaluate(`(()=>{
+        const card=window.salahAutoCard, root=card.shadowRoot;
+        const header=root.querySelector(".header"), hijri=root.querySelector(".hijri");
+        const gregorian=root.querySelector(".gregorian"), month=root.querySelector(".month-description");
+        if(!header||!hijri||!gregorian||!month) return false;
+        const h=header.getBoundingClientRect(), d=month.getBoundingClientRect();
+        const canvas=root.querySelector("ha-card"), content=root.querySelector(".content");
+        const hostWidth=card.getBoundingClientRect().width;
+        return getComputedStyle(header).display==="grid" &&
+          d.top>=Math.max(hijri.getBoundingClientRect().bottom,gregorian.getBoundingClientRect().bottom)-1 &&
+          d.width>=h.width-1 &&
+          getComputedStyle(canvas).maxWidth==="none" &&
+          Math.abs(canvas.getBoundingClientRect().width-hostWidth)<=2 &&
+          getComputedStyle(content).maxWidth==="1160px" &&
+          content.getBoundingClientRect().width<=1161 &&
+          Math.abs(content.getBoundingClientRect().left+content.getBoundingClientRect().right-
+            canvas.getBoundingClientRect().left-canvas.getBoundingClientRect().right)<=2 &&
+          header.scrollWidth<=header.clientWidth+1;
+      })()`), true, `Real HA header description shares date row or overflows at ${width}px`);
+    }
+    // The full-bleed photograph should reach the dashboard viewport bottom
+    // even when Yesterday/Tomorrow omit both live countdowns. The timetable
+    // itself stays compact at the top; only the photo canvas fills the view.
+    assert.equal(await evaluate(`(()=>{
+      const card=window.salahAutoCard;
+      card.setConfig({...card._config,show_mosque_background:true,show_salah_countdown:true,show_jamaat_countdown:true});
+      card._selectedDay=0;card._render();
+      const today=card.shadowRoot.querySelector("ha-card");
+      const todayPhoto=getComputedStyle(today,"::before");
+      const before={width:parseFloat(todayPhoto.width),height:parseFloat(todayPhoto.height)};
+      let ok=true;
+      for(const index of [0,2,1]){
+        card.shadowRoot.querySelectorAll(".date-tab")[index].click();
+        const next=card.shadowRoot.querySelector("ha-card");
+        const min=parseFloat(getComputedStyle(next).minHeight);
+        const img=getComputedStyle(next,"::before");
+        const table=next.querySelector(".timetable-shell").getBoundingClientRect();
+        ok &&= min>0 && next.getBoundingClientRect().height>=min-1 &&
+          Math.abs(parseFloat(img.width)-before.width)<2 &&
+          Math.abs(parseFloat(img.height)-before.height)<2 &&
+          table.bottom<=next.getBoundingClientRect().bottom+1 &&
+          (index===1||!next.querySelector(".prayer-panel"));
+      }
+      return ok && card._selectedDay===0;
+    })()`),true,"Real HA photo canvas cropped below short Yesterday/Tomorrow contents");
+    // Real Home Assistant cards can change width slightly as the dashboard's
+    // vertical scrollbar appears/disappears between Today and adjacent days.
+    // Assert that neither pseudo-image layer scales in that situation.
+    assert.equal(await evaluate(`(()=>{
+      const card=window.salahAutoCard;
+      card.setConfig({...card._config,show_mosque_background:true,show_salah_countdown:true,show_jamaat_countdown:true});
+      card._selectedDay=0;
+      card._render();
+      const originalCanvas=card.shadowRoot.querySelector("ha-card");
+      const baseImage=getComputedStyle(originalCanvas,"::before");
+      const before={height:parseFloat(baseImage.height),width:parseFloat(baseImage.width)};
+      const hostWidth=card.getBoundingClientRect().width;
+      if(!Number.isFinite(before.width)||!Number.isFinite(before.height)||!hostWidth)return false;
+      card.shadowRoot.querySelectorAll(".date-tab")[0].click();
+      const yesterday=card.shadowRoot.querySelector("ha-card");
+      const photoFrame=yesterday.style.getPropertyValue("--mosque-photo-frame-width");
+      card.style.width=(hostWidth-12)+"px";
+      card.shadowRoot.querySelectorAll(".date-tab")[2].click();
+      const tomorrow=card.shadowRoot.querySelector("ha-card");
+      const resizedImage=getComputedStyle(tomorrow,"::before");
+      const retained=Boolean(photoFrame) &&
+        tomorrow.style.getPropertyValue("--mosque-photo-frame-width")===photoFrame &&
+        Math.abs(parseFloat(resizedImage.height)-before.height)<2 &&
+        Math.abs(parseFloat(resizedImage.width)-before.width)<2;
+      card.style.width="";
+      card.shadowRoot.querySelectorAll(".date-tab")[1].click();
+      return retained && card._selectedDay===0;
+    })()`),true,"Real HA day navigation changed mosque photo crop after a scrollbar-sized width change");
     console.log("Real card picker, all graphical options, language/bilingual reload, Arabic/English HA locale, keyboard focus, themes and 200% text passed");
     return {viewports: [320, 360, 400, 900], languages: ["en", "ar"], bilingual_modes: [false, true], automatic_locale: ["en", "ar", "en"], configuration_reload: true, picker: true, editor: true, keyboard: true, themes: ["light", "dark"], root_text_scale: "200%"};
   } finally {
