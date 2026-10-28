@@ -257,29 +257,51 @@ countdown. The backend and card behavior have separate boundary tests.
 `frontend.py` registers the bundled directory at `/salah_timetable` through HA's
 asynchronous static-path API. For storage-mode Lovelace resources it creates or
 updates the integration's relative module URL, removes duplicate registrations and
-uses `?v=0.8.0` for cache changes. For YAML resources it uses HA's extra-JavaScript
+uses the `frontend.py` `CARD_VERSION` cache key (currently
+`?v=0.9.18`) for cache changes. For YAML resources it uses HA's extra-JavaScript
 helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
 a resource-registration failure is logged without disabling valid prayer entities.
 
-The `custom:salah-timetable-card` custom element and graphical editor use the mosque's
-Prayer timetable entity. The card computes countdowns/elapsed time locally from
-absolute timestamps and updates countdown/progress nodes in place once per second.
-Changes to the selected sensor's state or consumed attributes, HA locale, effective
-timezone, connection status or card configuration rebuild the card, as do event-boundary
-transitions. Equivalent sensor replacements, unrelated HA updates and ordinary ticks
-preserve its static table, focus and text selection. It stops its timer
-when disconnected from the DOM. Imported/user text is assigned through `textContent`.
-Time labels follow the mosque timezone and HA locale; responsive CSS uses HA theme
-variables without Card Mod. The editor emits standard `config-changed` events and
-supports upcoming (default), context and previous modes, optional title, compact/expanded
-layout, countdown/detail visibility and 12/24-hour times. The calculated Umm al-Qura
-header has a per-card day adjustment and never participates in Ramadan activation.
-Config-entry data/options expose `show_hijri_date`, defaulting to `true` for
-existing entries; the dashboard includes the full calculated Hijri date only
-when both mosque-wide and per-card visibility permit it. The presentation
-payload includes separately published Fajr sunrise-end and optional Friday
-second-khutbah values. These are display properties, **not** changes to the
-event stream or stored approved prayer times.
+The `custom:salah-timetable-card` custom element and graphical editor consume
+each mosque's Prayer timetable entity. Multiple enabled entities are selected
+through a **single header dropdown**; each card instance maintains its own
+selected mosque and day. Its **unified summary** contains the mosque heading,
+calculated Hijri/Gregorian dates, a short optional month description and
+contextual Next Salah / Next-or-Previous Jamaat countdown halves. A separate
+timetable surface includes the three-day selector in its footer. Yesterday
+and Tomorrow follow their own approved rows and update both calendars while
+suppressing live countdowns and Ramadan details.
+
+The card computes countdowns/elapsed time locally from absolute timestamps
+and updates the clock nodes once per second. Changes to the selected sensor's
+consumed state/attributes, HA locale, effective timezone, connection status
+or configuration rebuild the card, as do event-boundary transitions.
+Equivalent sensor replacements, unrelated HA updates and ordinary ticks
+preserve static table content, focus and text selection. It stops its timer
+when detached from the DOM. Imported/user text uses `textContent`.
+
+The graphical editor emits `config-changed` events for card-level mosque
+filtering, optional title, `compact`/`standard`/`detailed` detail levels,
+countdown and date visibility, language, bilingual labels and 12/24-hour
+format. The old Jamaat `mode` is accepted but ignored; the panel is always
+contextual. Legacy `layout` remains readable for migration. The calculated
+Umm al-Qura header has an independent −3 to +3 day adjustment and never
+changes Ramadan activation. The full Hijri date is displayed only when both
+mosque-wide and per-card visibility permit it. The presentation payload
+includes the separately published Fajr sunrise/end and optional Friday
+second-khutbah values, which are display metadata, **not** event or stored
+prayer-time modifications.
+
+The CSS-first photo and **matching liquid-glass summary/timetable** are
+theme-aware: 84–88% translucent surfaces, a reduced-transparency/contrast
+fallback, local attribution links and no global background-opacity layer.
+When enabled, the photo canvas spans its allocated dashboard width and at
+least its available viewport height, which intentionally occupies space
+in stacked dashboards. The retired `mosque_background_opacity` property is
+stripped during card normalisation. The photo may reframe for genuine
+viewport/column changes, but not ordinary day-tab changes or small
+scrollbar-width differences. No remote image request, WebGL renderer or Card
+Mod is needed.
 
 Node tests cover helpers, rendering, safe text and editor round trips. An isolated
 headless Chromium harness checks real custom-element rendering with HA element
