@@ -4,20 +4,23 @@ The **Salah Timetable** card is bundled with the integration. It uses the mosque
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
 template sensors or YAML configuration.
 
-## Preview
+## Preview — archived screenshots
 
-These candidate 0.6.1 screenshots show synthetic data in the isolated Chromium
-fixture with Home Assistant control stand-ins. They cover phone/tablet card layout;
-they are not screenshots of a HACS installation or physical-device certification.
-Real Home Assistant runtime/editor acceptance is recorded separately in
-[validation](validation.md).
+**These are historical 0.6.1 screenshots, not the current 0.9.18 design.**
+They show synthetic data from an isolated Chromium fixture with Home Assistant
+control stand-ins; they do **not** illustrate the new unified liquid-glass
+summary, mosque selector, full-height photograph or footer day navigation.
 
-<img src="images/card-mobile-0.6.1.png" alt="Candidate Salah Timetable at phone width, showing dual countdowns, Hijri date and accessible table scrolling" width="260">
+<img src="images/card-mobile-0.6.1.png" alt="Archived candidate 0.6.1 mobile card, predating the 0.9.18 liquid-glass redesign" width="260">
 
-[Tablet-width screenshot](images/card-tablet-0.6.1.png)
+[Archived 0.6.1 tablet screenshot](images/card-tablet-0.6.1.png) ·
+[0.5.1 mobile](images/card-mobile.png) ·
+[0.5.1 tablet](images/card-tablet.png)
 
-The older [0.5.1 phone](images/card-mobile.png) and
-[tablet](images/card-tablet.png) screenshots are retained as historical references.
+For current behavior, see the description below and
+[PR #88's validation](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961).
+Current-design screenshots should be added only after being reviewed against
+the exact committed version.
 
 ## Add the card
 
@@ -144,7 +147,7 @@ older device confirmations do not establish Arabic/RTL acceptance.
 The **primary Hijri header** uses the browser's **Umm al-Qura** calendar to
 convert the mosque's Gregorian timetable date, displaying its Islamic day,
 **named Hijri month** and year. The Gregorian date is a separate secondary
-line; hide it via the card's `show_gregorian_date: false` switch without
+header field; hide it via the card's `show_gregorian_date: false` switch without
 hiding Hijri. Both default to visible for existing cards.
 It advances at mosque-local midnight, not sunset. The default is visible; choose
 **Show full calculated Hijri date on dashboards** during initial mosque setup,
@@ -197,8 +200,8 @@ those features are implemented. Previously saved values remain inert. The Hijri
 month description is implemented separately and can be hidden with
 `show_hijri_month_info: false`. The description appears only as smaller text
 beneath the full Hijri date, without a duplicate heading, separate panel or
-footer disclosure. It follows the mosque's current header date when browsing
-yesterday or tomorrow, and hides when the Hijri date is hidden.
+footer disclosure. It follows the **selected** Gregorian/Hijri day when browsing
+Yesterday or Tomorrow, and hides when the Hijri date is hidden.
 
 ## Optional mosque photograph backgrounds
 
@@ -306,18 +309,24 @@ For reference, the card's optional YAML representation is:
 ```yaml
 type: custom:salah-timetable-card
 entity: sensor.example_mosque_prayer_timetable
+detail_level: standard
 language: auto
 bilingual_prayer_labels: false
-layout: expanded
 time_format: 24h
 show_hijri_date: true
 show_gregorian_date: true
+show_hijri_month_info: true
+show_mosque_background: true
+mosque_background: daily
 hijri_adjustment: 0
 ```
 
-The graphical editor produces this configuration. The legacy `mode` property
-is ignored if present; `title` is optional. The example entity ID must be replaced
-with the selected mosque's actual entity ID.
+The graphical editor can produce equivalent configuration; omitted fields use
+their defaults. The legacy `mode` property is ignored and legacy `layout`
+values are normalised. The retired `mosque_background_opacity` value is ignored.
+`title` is optional. For multi-mosque filtering, add a nonempty `mosque_entities`
+list of Prayer timetable sensor IDs. Replace the example entity ID with the
+actual timetable sensor.
 
 ## Validation limits
 
@@ -336,6 +345,12 @@ Fajr-end, Friday-khutbah, Hijri setup/options controls or Arabic/RTL presentatio
 HACS installation, restart and updates are also user-confirmed. Removal/reinstall
 was user-confirmed on 25 October, with environment and individual cleanup checks
 unrecorded; the full [HACS UI acceptance gate](hacs-removal-acceptance.md) remains
-release work. The pushed 0.6.2 commit passed its hosted
-checks; later release commits require their own checks. See the [validation record](validation.md) and
+release work. Those earlier validations are historical. The merged 0.9.18 redesign in
+[PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88)
+passed [frontend, compatibility and live Home Assistant acceptance](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
+and [CodeQL](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733)
+before squash merge to `main` at `80b8017`. The maintainer approved the
+visual design; that does not replace a full version-specific physical-device,
+HACS removal/reinstallation or release acceptance record. See the
+[validation record](validation.md) and
 [Milestone 6](milestones.md#milestone-6--release-hardening-partially-implemented).
