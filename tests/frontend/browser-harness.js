@@ -155,7 +155,12 @@ try {
   const sharedSummary = card.shadowRoot.querySelector(".summary-shell");
   const summaryStyle = getComputedStyle(sharedSummary);
   const timetableStyle = getComputedStyle(card.shadowRoot.querySelector(".timetable-shell"));
-  check("both glass cards have identical optical material",
+  const timetable = card.shadowRoot.querySelector(".timetable-shell");
+  const glassHeader = getComputedStyle(timetable.querySelector("thead"));
+  const glassFooter = getComputedStyle(timetable.querySelector(".date-tabs"));
+  const isTransparent = style => style.backgroundColor === "rgba(0, 0, 0, 0)" &&
+    style.backgroundImage === "none";
+  check("summary and timetable retain the same stronger glass material",
     summaryStyle.backgroundImage === timetableStyle.backgroundImage &&
     summaryStyle.backdropFilter === timetableStyle.backdropFilter &&
     summaryStyle.backdropFilter.includes("blur(20px)") &&
@@ -163,8 +168,13 @@ try {
     summaryStyle.borderColor === timetableStyle.borderColor &&
     summaryStyle.boxShadow === timetableStyle.boxShadow &&
     summaryStyle.boxShadow !== "none" &&
+    isTransparent(glassHeader) && isTransparent(glassFooter) &&
     getComputedStyle(sharedSummary, "::before").backgroundImage ===
-      getComputedStyle(card.shadowRoot.querySelector(".timetable-shell"), "::before").backgroundImage);
+      getComputedStyle(timetable, "::before").backgroundImage);
+  check("glass foreground inherits readable Home Assistant text colours",
+    summaryStyle.color === timetableStyle.color &&
+    getComputedStyle(sharedSummary.querySelector(".hijri")).color !== "rgba(0, 0, 0, 0)" &&
+    getComputedStyle(timetable.querySelector("tbody td")).color !== "rgba(0, 0, 0, 0)");
   check("outer background does not apply a configurable opacity overlay",
     !photoCard.style.getPropertyValue("--mosque-overlay") &&
     !Object.prototype.hasOwnProperty.call(card._config, "mosque_background_opacity"));
