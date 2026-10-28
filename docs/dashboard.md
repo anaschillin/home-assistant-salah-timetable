@@ -249,7 +249,7 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.9.8
+/salah_timetable/salah-timetable-card.js?v=0.9.9
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an
