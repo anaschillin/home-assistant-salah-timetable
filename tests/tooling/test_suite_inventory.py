@@ -35,7 +35,9 @@ def _section(content: str, start: str, end: str) -> str:
 
 
 def _python_inventory(content: str) -> list[str]:
-    section = _section(content, "## Python test modules", "## JavaScript and browser tests")
+    section = _section(
+        content, "## Python test modules", "## JavaScript and browser tests"
+    )
     result = []
     area = None
     for line in section.splitlines():
@@ -56,10 +58,8 @@ def _python_inventory(content: str) -> list[str]:
 def test_all_python_test_modules_are_documented_once():
     content = GUIDE.read_text(encoding="utf-8")
     documented = _python_inventory(content)
-    actual = sorted(
-        path.relative_to(TEST_ROOT).as_posix()
-        for path in TEST_ROOT.rglob("test_*.py")
-    )
+    paths = TEST_ROOT.rglob("test_*.py")
+    actual = sorted(path.relative_to(TEST_ROOT).as_posix() for path in paths)
     assert len(documented) == len(set(documented)), "Duplicate Python inventory entries"
     assert sorted(documented) == actual
     heading = re.search(r"## Python test modules \((\d+)\)", content)
@@ -75,15 +75,11 @@ def test_all_node_unit_test_modules_are_documented_once():
         "## Fixtures, helpers and test data",
     )
     documented = re.findall(r"(?m)^\|\s*`([^\`]+\.test\.mjs)`\s*\|", section)
-    actual = sorted(
-        path.name for path in TEST_ROOT.rglob("*.test.mjs")
-    )
+    node_paths = list(TEST_ROOT.rglob("*.test.mjs"))
+    actual = sorted(path.name for path in node_paths)
     assert len(documented) == len(set(documented)), "Duplicate Node inventory entries"
     assert sorted(documented) == actual
-    assert all(
-        path.parent == TEST_ROOT / "frontend"
-        for path in TEST_ROOT.rglob("*.test.mjs")
-    )
+    assert all(path.parent == TEST_ROOT / "frontend" for path in node_paths)
     count = re.search(r"The following (\d+) Node unit modules", section)
     assert count is not None
     assert int(count.group(1)) == len(actual)
