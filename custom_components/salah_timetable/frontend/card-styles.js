@@ -727,13 +727,11 @@ tbody tr th,tbody tr td {
    horizontal space. Use container width, not overall device viewport. */
 @container(max-width:23rem) {
   .header { grid-template-columns: minmax(0,1fr); }
-  .header .hijri { grid-column: 1; grid-row: 2; }
-  .header .gregorian {
+  .header .hijri,.header .gregorian,.header .month-description {
     grid-column: 1;
-    grid-row: 3;
-    text-align: start;
+    grid-row: auto;
   }
-  .header .month-description { grid-row: 4; }
+  .header .gregorian { text-align: start; }
 }
 /* Keep a framed, centred presentation, but allow tablet and desktop cards
    to use the available landscape width instead of a narrow 1000px strip. */
