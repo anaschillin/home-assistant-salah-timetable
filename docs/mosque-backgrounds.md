@@ -28,3 +28,10 @@ Status: implementation in progress; no image is approved for redistribution unti
 ## Wikimedia metadata
 Use MediaWiki `action=query&prop=imageinfo&iiprop=url|extmetadata` and inspect each file page.
 See https://commons.wikimedia.org/wiki/Commons:Machine-readable_data .
+
+## Pixabay eligibility filter
+- Accept only images demonstrably **first published on Pixabay before 2019-01-09** (strictly earlier than 9 January 2019).
+- Require a verifiable original publication timestamp and evidence that the particular photograph was released under CC0; a current page label of “free” is insufficient.
+- Reject images dated 2019-01-09 or later, missing publication timestamps, reuploads with uncertain provenance, and images with unclear third-party rights.
+- Record original Pixabay image ID, source URL, timestamp, CC0 evidence URL, author and verification date in the manifest.
+- Pixabay's current Content License alone is not treated as permission to redistribute standalone assets in this repository.
