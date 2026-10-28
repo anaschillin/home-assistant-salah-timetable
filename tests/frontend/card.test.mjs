@@ -700,7 +700,7 @@ test("day navigation updates Hijri, Gregorian and month information without dupl
     dateTabs().children[offset + 1].dispatchEvent(new Event("click"));
     const parts = header().children;
     assert.equal(parts[1].textContent, `${formatHijriDate(expected, 0, "en")} · Hijri (calculated)`);
-    assert.equal(parts[2].textContent, formatDate(expected, "en"));
+    assert.equal(parts[2].textContent, formatDate(expected, {locale: "en-GB"}));
     assert.equal(parts[3].textContent, hijriMonthInfo(expected, 0).summary_en);
     assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "selected-date").length, 0);
     assert.equal(card._selectedDay, offset);
