@@ -693,6 +693,7 @@ tbody tr th,tbody tr td {
   gap: 10px;
   justify-content: space-between;
   align-items: baseline;
+  flex-wrap: wrap;
   padding: 10px 12px;
   font-size: .83rem;
   font-weight: 650;
@@ -702,7 +703,8 @@ tbody tr th,tbody tr td {
   color: var(--secondary-text-color);
   font-weight: 400;
   font-size: .76rem;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .month-summary:focus-visible {
   outline: 2px solid var(--primary-color);
