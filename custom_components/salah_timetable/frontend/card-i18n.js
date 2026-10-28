@@ -91,6 +91,8 @@ export const CATALOGS = Object.freeze({
     "config.hijri_adjustment": "Hijri adjustment must be a whole day from −3 to +3",
     "config.language": "Choose auto, en or ar language",
     "config.boolean": "{option} must be true or false",
+    "config.background_opacity": "Background opacity must be a whole number between 0 and 20",
+    "config.background_selection": "Choose daily, none, or a bundled mosque background",
   }),
   ar: Object.freeze({
     "card.name": "مواقيت الصلاة",
@@ -183,6 +185,8 @@ export const CATALOGS = Object.freeze({
     "config.hijri_adjustment": "يجب أن يكون تعديل التاريخ الهجري عدد أيام صحيحًا من −٣ إلى +٣",
     "config.language": "اختر اللغة auto أو en أو ar",
     "config.boolean": "يجب أن تكون قيمة {option} إما true أو false",
+    "config.background_opacity": "يجب أن تكون شفافية الخلفية عددًا صحيحًا بين ٠ و٢٠",
+    "config.background_selection": "اختر التبديل اليومي أو بدون خلفية أو مسجدًا من الخلفيات المتاحة",
   }),
 });
 
