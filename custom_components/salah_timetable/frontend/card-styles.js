@@ -801,9 +801,9 @@ ha-card.has-mosque-background::after {
     background: transparent;
   }
 }
-/* CSS-first liquid glass: one reusable optical treatment for the heading/
-   countdown summary and timetable. No WebGL, CDN, SVG content capture or
-   continually running effects: the live DOM stays accessible and selectable. */
+/* Legible CSS-first liquid glass: both panels use the same high-contrast
+   glass substrate. The full-canvas photograph remains entirely untinted.
+   Text stays DOM based; no shader, network request or animation required. */
 .summary-shell,
 .timetable-shell {
   position: relative;
@@ -812,16 +812,20 @@ ha-card.has-mosque-background::after {
   overflow: hidden;
   border: 1px solid color-mix(in srgb,var(--primary-text-color) 20%,transparent);
   border-radius: 18px;
+  /* The previous 59%-72% surface let the underlying bright photograph
+     overwhelm the text. Use one largely opaque HA theme colour in BOTH
+     panels; a slight gradient and lens blur retain the glass appearance. */
   background: linear-gradient(135deg,
-    color-mix(in srgb,var(--secondary-background-color) 72%,transparent),
-    color-mix(in srgb,var(--secondary-background-color) 59%,transparent) 48%,
-    color-mix(in srgb,var(--secondary-background-color) 70%,transparent));
+    color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 92%,transparent),
+    color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 95%,transparent) 50%,
+    color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 92%,transparent));
+  color: var(--primary-text-color);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.22),
-    inset 0 -1px 0 rgba(255,255,255,.07),
-    0 8px 20px rgba(0,0,0,.11);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+    inset 0 1px 0 rgba(255,255,255,.13),
+    inset 0 -1px 0 rgba(255,255,255,.05),
+    0 6px 18px rgba(0,0,0,.10);
+  backdrop-filter: blur(20px) saturate(115%);
+  -webkit-backdrop-filter: blur(20px) saturate(115%);
 }
 /* Edge lighting and a delicate curved highlight simulate the thickness of
    refractive glass; keep highlight behind text, table and interactive tabs. */
@@ -834,8 +838,8 @@ ha-card.has-mosque-background::after {
   border-radius: inherit;
   pointer-events: none;
   background:
-    linear-gradient(118deg,rgba(255,255,255,.15),transparent 22%,transparent 78%,rgba(255,255,255,.06)),
-    radial-gradient(ellipse at 8% 0%,rgba(255,255,255,.11),transparent 40%);
+    linear-gradient(118deg,rgba(255,255,255,.055),transparent 22%,transparent 78%,rgba(255,255,255,.025)),
+    radial-gradient(ellipse at 8% 0%,rgba(255,255,255,.045),transparent 40%);
 }
 .summary-shell > *,
 .timetable-shell > * {
@@ -875,13 +879,29 @@ ha-card.has-mosque-background::after {
   border-top-color: color-mix(in srgb,var(--primary-text-color) 14%,transparent);
 }
 .summary-shell .prayer-panel .panel-silhouette { opacity: .08; }
-/* The timetable headings and date navigation live in the SAME glass material. */
+/* Do not add an extra translucent layer on top of the timetable glass:
+   its header, rows and footer all see the same substrate as the summary. */
 .timetable-shell thead,
-.timetable-shell .date-tabs {
-  background: color-mix(in srgb,var(--secondary-background-color) 38%,transparent);
+.timetable-shell .date-tabs,
+.timetable-shell .table-scroll {
+  background: transparent;
 }
-.timetable-shell .table-scroll { background: transparent; }
-.timetable-shell .date-tabs { border-top-color: color-mix(in srgb,var(--primary-text-color) 14%,transparent); }
+.timetable-shell .date-tabs {
+  border-top-color: color-mix(in srgb,var(--primary-text-color) 18%,transparent);
+}
+.summary-shell .date,
+.summary-shell .month-description,
+.summary-shell .label,
+.timetable-shell thead th,
+.timetable-shell tbody th,
+.timetable-shell .fajr-end,
+.timetable-shell .date-tab:not([aria-pressed="true"]) {
+  color: color-mix(in srgb,var(--primary-text-color) 85%,var(--ha-card-background,var(--card-background-color)));
+}
+.summary-shell .prayer-time .label,
+.timetable-shell .selected-date {
+  color: color-mix(in srgb,var(--primary-text-color) 85%,var(--ha-card-background,var(--card-background-color)));
+}
 @container(max-width:21rem) {
   .summary-shell .panels { grid-template-columns: 1fr; }
   .summary-shell .prayer-panel + .prayer-panel {
