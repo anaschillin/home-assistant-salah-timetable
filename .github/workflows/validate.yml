@@ -56,12 +56,45 @@ jobs:
           node-version: '24'
       - run: python3 scripts/sync_frontend_version.py
       - run: npm test
-      - name: Run browser smoke tests
+      - name: Run browser smoke tests and capture candidate visual snapshots
         run: npm run test:browser
         env:
           REQUIRE_BROWSER_TESTS: "1"
           CHROME_BIN: /usr/bin/google-chrome
           DBUS_SESSION_BUS_ADDRESS: /dev/null
+          BROWSER_SCREENSHOT_DIR: ${{ runner.temp }}/salah-visual-current
+      - name: Check out exact pull request base for visual comparison
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: visual-baseline
+          persist-credentials: false
+      - name: Record visual baseline commit
+        if: github.event_name == 'pull_request'
+        run: git -C visual-baseline rev-parse HEAD
+      - name: Capture baseline screenshots in the same runner
+        if: github.event_name == 'pull_request'
+        working-directory: visual-baseline
+        run: npm run test:browser
+        env:
+          REQUIRE_BROWSER_TESTS: "1"
+          CHROME_BIN: /usr/bin/google-chrome
+          DBUS_SESSION_BUS_ADDRESS: /dev/null
+          BROWSER_SCREENSHOT_DIR: ${{ runner.temp }}/salah-visual-baseline
+      - name: Compare rendered card pixels with pull request base
+        if: github.event_name == 'pull_request'
+        run: node scripts/compare_screenshots.mjs "${{ runner.temp }}/salah-visual-baseline" "${{ runner.temp }}/salah-visual-current"
+      - name: Upload screenshots when a visual check fails
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: frontend-visual-diff-${{ github.event.pull_request.number }}
+          path: |
+            ${{ runner.temp }}/salah-visual-current/
+            ${{ runner.temp }}/salah-visual-baseline/
+          if-no-files-found: warn
+          retention-days: 7
 
   hassfest:
     runs-on: ubuntu-latest
