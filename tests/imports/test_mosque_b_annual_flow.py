@@ -13,9 +13,9 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.sources.download import DownloadResult
-from custom_components.salah_timetable.imports.import_flow import IGNORE_COLUMN
 from custom_components.salah_timetable.domain.model import PrayerField
+from custom_components.salah_timetable.imports.import_flow import IGNORE_COLUMN
+from custom_components.salah_timetable.sources.download import DownloadResult
 from custom_components.salah_timetable.sources.source_model import RemoteSource
 
 FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/mosque_b_2026.pdf"

@@ -12,12 +12,15 @@ from zoneinfo import ZoneInfo
 import pytest
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
-from custom_components.salah_timetable.sources.download import DownloadError, DownloadResult
+from custom_components.salah_timetable.persistence.storage import TimetableStorage
+from custom_components.salah_timetable.sources.download import (
+    DownloadError,
+    DownloadResult,
+)
 from custom_components.salah_timetable.sources.source_model import RemoteSource
 from custom_components.salah_timetable.sources.source_updates import (
     SourceUpdateManager,
 )
-from custom_components.salah_timetable.persistence.storage import TimetableStorage
 
 CSV = b"Date,Fajr Begin\n2026-10-21,05:45\n"
 UPDATED = b"Date,Fajr Begin\n2026-10-21,05:55\n"

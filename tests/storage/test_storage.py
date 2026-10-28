@@ -4,7 +4,11 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from custom_components.salah_timetable.domain.model import DailyPrayers, PrayerField, Timetable
+from custom_components.salah_timetable.domain.model import (
+    DailyPrayers,
+    PrayerField,
+    Timetable,
+)
 from custom_components.salah_timetable.persistence.storage import TimetableStorage
 
 

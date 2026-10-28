@@ -6,13 +6,17 @@ from datetime import date, time
 from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
-from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 from custom_components.salah_timetable.diagnostics import (
     async_get_config_entry_diagnostics,
 )
-from custom_components.salah_timetable.domain.model import DailyPrayers, PrayerField, Timetable
-from custom_components.salah_timetable.sources.source_model import RemoteSource
+from custom_components.salah_timetable.domain.model import (
+    DailyPrayers,
+    PrayerField,
+    Timetable,
+)
+from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 from custom_components.salah_timetable.persistence.storage import TimetableStorage
+from custom_components.salah_timetable.sources.source_model import RemoteSource
 
 
 async def test_diagnostics_exclude_identity_urls_validators_and_source(hass, entry):

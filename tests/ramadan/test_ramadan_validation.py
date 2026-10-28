@@ -4,7 +4,11 @@ from datetime import date, time, timedelta
 
 import pytest
 
-from custom_components.salah_timetable.domain.model import DailyPrayers, PrayerField, Timetable
+from custom_components.salah_timetable.domain.model import (
+    DailyPrayers,
+    PrayerField,
+    Timetable,
+)
 from custom_components.salah_timetable.domain.ramadan import RamadanSettings
 from custom_components.salah_timetable.domain.ramadan_validation import (
     ramadan_review,

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from custom_components.salah_timetable.domain.model import PrayerField
 from custom_components.salah_timetable.parsers.csv_parser import (
     MAX_CELL_LENGTH,
     MAX_COLUMNS,
@@ -17,7 +18,6 @@ from custom_components.salah_timetable.parsers.import_model import (
     ImportCandidate,
     ImportValidationError,
 )
-from custom_components.salah_timetable.domain.model import PrayerField
 
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "csv"
 

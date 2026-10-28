@@ -13,8 +13,8 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.sources.download import DownloadResult
 from custom_components.salah_timetable.domain.model import PrayerField
+from custom_components.salah_timetable.sources.download import DownloadResult
 
 FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/mosque_a_synthetic_2026.pdf"
 SOURCE_URL = "https://mosque-a.example.org/timetables/time-table.pdf"

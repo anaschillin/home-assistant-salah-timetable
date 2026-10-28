@@ -7,7 +7,11 @@ from datetime import date, time, timedelta
 
 import pytest
 
-from custom_components.salah_timetable.parsers.csv_parser import CsvParser
+from custom_components.salah_timetable.domain.model import (
+    DailyPrayers,
+    PrayerField,
+    Timetable,
+)
 from custom_components.salah_timetable.imports.import_comparison import (
     DEFAULT_PAGE_SIZE,
     DIFF_PAGE_SIZE,
@@ -19,7 +23,7 @@ from custom_components.salah_timetable.imports.import_comparison import (
     comparison_overview,
     render_comparison_page,
 )
-from custom_components.salah_timetable.domain.model import DailyPrayers, PrayerField, Timetable
+from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 
 
 def source(

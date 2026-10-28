@@ -16,11 +16,11 @@ import pytest
 from pypdf import PdfReader, PdfWriter
 from pypdf.generic import DecodedStreamObject, NameObject
 
+from custom_components.salah_timetable.domain.model import PrayerField
 from custom_components.salah_timetable.parsers.import_model import (
     ImportCandidate,
     ImportValidationError,
 )
-from custom_components.salah_timetable.domain.model import PrayerField
 from custom_components.salah_timetable.parsers.pdf_parser import (
     MAX_PDF_BYTES,
     MAX_PDF_PAGES,

@@ -9,9 +9,13 @@ from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.salah_timetable.const import DOMAIN
 from custom_components.salah_timetable.domain.coverage import calculate_coverage
-from custom_components.salah_timetable.parsers.csv_parser import CsvParser
-from custom_components.salah_timetable.domain.model import DailyPrayers, PrayerField, Timetable
+from custom_components.salah_timetable.domain.model import (
+    DailyPrayers,
+    PrayerField,
+    Timetable,
+)
 from custom_components.salah_timetable.domain.ramadan import RamadanSettings
+from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 from custom_components.salah_timetable.persistence.storage import TimetableStorage
 
 TODAY = date(2026, 10, 21)

@@ -4,8 +4,8 @@ from collections.abc import Mapping
 
 import pytest
 
-from custom_components.salah_timetable.sources.download import DownloadError
 from custom_components.salah_timetable.parsers.import_model import ImportValidationError
+from custom_components.salah_timetable.sources.download import DownloadError
 from custom_components.salah_timetable.sources.source_model import (
     RemoteSource,
     validate_check,

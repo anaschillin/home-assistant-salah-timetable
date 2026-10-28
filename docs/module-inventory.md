@@ -47,7 +47,7 @@ Each implementation directory has an `__init__.py`. Other production Python modu
 
 ### Single canonical location
 
-No duplicate Python modules or compatibility aliases are retained at the package root. The 21 relocated modules live **only** in their listed subfolders; old imports such as `custom_components.salah_timetable.domain.model` must be replaced by `custom_components.salah_timetable.domain.model`. All tests and mocks use these canonical locations. A packaging test rejects extra root Python files or missing grouped modules.
+No duplicate Python modules or compatibility aliases are retained at the package root. The 21 relocated modules live **only** in their listed subfolders; former root imports such as `custom_components.salah_timetable.model` must be changed to `custom_components.salah_timetable.domain.model`. All tests and mocks use these canonical locations. A packaging test rejects extra root Python files or missing grouped modules.
 
 The standalone `pdf_worker.py` deliberately remains at root. The relocated `parsers/pdf_parser.py` resolves that worker's absolute path; its `python -I` subprocess boundary and resource limits are unchanged.
 

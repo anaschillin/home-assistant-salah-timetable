@@ -19,10 +19,13 @@ from custom_components.salah_timetable.parsers.import_model import (
     ImportCandidate,
     ImportValidationError,
 )
-from custom_components.salah_timetable.sources.source_model import RemoteSource, validate_check
 from custom_components.salah_timetable.persistence.storage import (
     PendingImportError,
     TimetableStorage,
+)
+from custom_components.salah_timetable.sources.source_model import (
+    RemoteSource,
+    validate_check,
 )
 
 

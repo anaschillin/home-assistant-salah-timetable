@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 
+from custom_components.salah_timetable.domain.model import PrayerField
 from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 from custom_components.salah_timetable.parsers.import_model import ImportValidationError
-from custom_components.salah_timetable.domain.model import PrayerField
 from custom_components.salah_timetable.parsers.mosque_a_layout import (
     MOSQUE_A_COLUMNS,
     MosqueALayout,

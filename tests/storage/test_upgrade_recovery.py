@@ -14,8 +14,8 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.util.file import WriteError
 
 from custom_components.salah_timetable.const import DOMAIN, STORAGE_VERSION
-from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 from custom_components.salah_timetable.domain.model import PrayerField
+from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 from custom_components.salah_timetable.persistence.storage import TimetableStorage
 
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "storage"

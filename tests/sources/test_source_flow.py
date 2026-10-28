@@ -12,8 +12,11 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.sources.download import DownloadError, DownloadResult
 from custom_components.salah_timetable.parsers.import_model import MAX_PDF_BYTES
+from custom_components.salah_timetable.sources.download import (
+    DownloadError,
+    DownloadResult,
+)
 
 PDF_FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/sample_table.pdf"
 CSV = b"Date,Fajr Start,Fajr Jamaat\n2026-01-01,05:45,06:15\n2026-01-02,05:47,06:15\n"
