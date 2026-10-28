@@ -117,10 +117,10 @@ try {
     const candidateImage = getComputedStyle(current, "::before");
     const originalPixels = parseFloat(originalPhotoHeight);
     const candidatePixels = parseFloat(candidateImage.height);
-    check(`image crop survives ${key}: original=${originalPhotoHeight}, next=${candidateImage.height}, photoFrame=${current.style.getPropertyValue("--mosque-photo-frame-height")}, stored=${JSON.stringify(card._backgroundFrame)}, url=${current.style.getPropertyValue("--mosque-background-image") === originalPhotoUrl}, position=${candidateImage.backgroundPosition} vs ${imageStyle.backgroundPosition}`,
+    check(`image crop survives ${key}: original=${originalPhotoHeight}, next=${candidateImage.height}, photoFrame=${current.style.getPropertyValue("--mosque-photo-frame-height")}, stored=${JSON.stringify(card._backgroundFrame)}, url=${current.style.getPropertyValue("--mosque-background-image") === originalPhotoUrl}, position=${candidateImage.backgroundPosition} vs ${originalPhotoPosition}`,
       Number.isFinite(candidatePixels) && Math.abs(candidatePixels - originalPixels) < 2 &&
       current.style.getPropertyValue("--mosque-background-image") === originalPhotoUrl &&
-      candidateImage.backgroundPosition === imageStyle.backgroundPosition);
+      candidateImage.backgroundPosition === originalPhotoPosition);
     check(`shorter date tabs do not leave empty card space for ${key}`,
       offset === 0 || current.getBoundingClientRect().height < fullTodayHeight);
   }
