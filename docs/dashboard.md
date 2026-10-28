@@ -192,9 +192,11 @@ from **Mosque background** in the card editor, set **Background opacity (%)**
 (0–20), or switch off **Show mosque background** entirely.
 
 A centred glass surface keeps the card within the width allocated by the Home
-Assistant dashboard (up to 1000px; full width on narrow cards/phones). A
-softly blurred photographic rim, translucent glass overlay and theme-aware
-shadow evoke the visual mockup without blurring text or prayer times. The
+Assistant dashboard (up to 1280px; full width on narrow cards/phones). A
+softly blurred photographic rim, subtle translucent glass overlay and theme-aware
+shadow evoke the visual mockup without blurring text or prayer times. The Hijri
+date, Gregorian date and month explanation occupy deliberate header rows even
+on tablet and desktop layouts. The
 configured background opacity continues to control the base photo's visibility.
 Increased-contrast and reduced-transparency accessibility preferences hide
 the image and disable glass effects.
