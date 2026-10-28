@@ -135,6 +135,7 @@ async def test_unchanged_data_does_not_write_states(hass, populated, freezer):
     await hass.async_block_till_done()
     assert hass.states.get(entity_id) is previous
 
+
 def test_legacy_module_paths_reference_grouped_implementations():
     """Previously documented imports must preserve their module identity for mocks."""
     import importlib
@@ -167,16 +168,14 @@ def test_legacy_module_paths_reference_grouped_implementations():
             "source_flow",
             "source_updates",
         ),
-        "persistence": (
-            "storage",
-        ),
-        "runtime": (
-            "coordinator",
-        ),
+        "persistence": ("storage",),
+        "runtime": ("coordinator",)
     }
     for group, names in groups.items():
         for name in names:
-            legacy = importlib.import_module(f"custom_components.salah_timetable.{name}")
+            legacy = importlib.import_module(
+                f"custom_components.salah_timetable.{name}"
+            )
             current = importlib.import_module(
                 f"custom_components.salah_timetable.{group}.{name}"
             )
