@@ -5,21 +5,16 @@ and manual acceptance gates. The [remaining-work backlog](remaining-work.md)
 owns subsequent feature priorities. This document records implemented and
 proposed milestone scope, not another current-release checklist.
 
-The current integration candidate is **0.9.0**. Minimum HA 2026.10.0 and
-supported-current 2026.10.3 unit and live validation have now passed on
-the [26 October 2026 main commit `b6dbe14`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/b6dbe14bb75b791fbb1171e981494d2a21dbe07e):
-[Validate 40337238065](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238065)
-passed all **12 jobs**, with [CodeQL 40337238192](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40337238192)
-passing separately. The historical calendar timing issue
-[#13](https://github.com/anaschillin/home-assistant-salah-timetable/issues/13)
-and minimum-HA cancellation issue
-[#24](https://github.com/anaschillin/home-assistant-salah-timetable/issues/24)
-are closed; the five-group minimum-HA approach remains required.
-
-The dated evidence for earlier 0.7.0–0.9.0 candidates remains in
-[validation.md](validation.md). The latest green CI establishes code validation,
-**not** redistribution rights, full HAOS/Supervisor restoration, authenticated
-HACS UI removal/re-addition or the required manual release sign-offs.
+The current merged integration/card version is **0.9.18** (28 October
+2026), including the compact multi-mosque liquid-glass redesign in
+[PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88).
+The final PR head passed [Validate 40744012961](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
+and [CodeQL 40744012733](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733),
+and was squash-merged at [`80b8017`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/80b80173bc45257cc46fd31e81dcbaff87ab97ed).
+Earlier 0.7.0–0.9.0 and 12-job CI evidence remains in
+[validation.md](validation.md) as history. These results are code acceptance,
+**not** release-tag publication, asset-rights clearance or complete HACS /
+HAOS/manual physical-device sign-off.
 
 ## Next increments
 
@@ -167,8 +162,10 @@ event and midnight callbacks with a one-minute fallback.
 
 ## Milestone 5 — bundled Lovelace card (implemented)
 
-1. Bundle versioned JS assets and register them through supported HA APIs. Provide
-   a graphical editor selecting a mosque and context/previous/upcoming mode.
+1. Bundle versioned JS assets and register them through supported HA APIs.
+   Provide a graphical editor selecting one or more mosque timetable sensors.
+   The initial context/previous/upcoming selector was **retired**; current
+   Jamaat display switches context automatically.
 2. Render date/name, next beginning, contextual Jamaat, five daily prayers and Ramadan
    details. Use absolute backend timestamps and browser-local ticking countdowns;
    do not write sensor states every second.
@@ -178,12 +175,16 @@ event and midnight callbacks with a one-minute fallback.
 4. Add frontend unit and browser tests for editor round trips, all event contexts,
    disconnections, countdown boundaries, theme switching and narrow screens.
 
-Implemented as `custom:salah-timetable-card`, bundled with the integration, with a
-graphical editor for the mosque's Prayer timetable entity, context/previous/upcoming
-mode and optional title. Resource setup uses supported HA APIs for storage and YAML
-resource modes. The card renders absolute timestamps and browser-local countdowns,
-five daily prayers, Ramadan details, missing/disconnected states, responsive layouts
-and HA theme variables. No separate card download or Card Mod is required.
+Implemented as `custom:salah-timetable-card`, bundled with the integration,
+with a graphical editor for enabled mosque Prayer timetable entities and an
+optional title. Resource setup supports storage and YAML resource modes. The
+current card has one mosque/Next Salah/contextual Jamaat summary, a matching
+liquid-glass timetable, a header mosque selector when needed, calculated
+Hijri/Gregorian dates that follow day navigation, and local decorative photos
+that span the available dashboard viewport. Absolute prayer timestamps,
+browser-local countdowns, Ramadan details, responsive layout and HA theme
+variables remain. The earlier mode selector and photo opacity slider are
+removed; no separate card download or Card Mod is required.
 
 Node tests and an isolated headless Chromium harness cover event contexts, editor
 round trips, local ticking/timer cleanup, safe text, disconnections, theme changes
@@ -207,8 +208,9 @@ per-card Hijri toggle and ±3-day display adjustment remain available. Candidate
 0.8.1 places the full Hijri date first and adds an independent Gregorian switch;
 0.9.0 retains these controls in English and Arabic. Imported times and Ramadan
 activation stay unchanged; see [dashboard](dashboard.md).
-Real-device sign-off for these refinements remains part of release acceptance.
-Current validation limits are recorded in [validation](validation.md).
+The maintainer approved PR #88's final visual layout before its 0.9.18 merge.
+Version-specific release and broader device/HACS acceptance remain separate;
+see [validation](validation.md) and [releasing](releasing.md).
 
 ## Milestone 6 — release hardening (partially implemented)
 
