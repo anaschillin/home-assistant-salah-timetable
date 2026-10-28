@@ -124,6 +124,25 @@ try {
     check(`shorter date tabs do not leave empty card space for ${key}`,
       offset === 0 || current.getBoundingClientRect().height < fullTodayHeight);
   }
+  // Reproduce a disappearing browser/dashboard scrollbar: a small width
+  // change after Today is selected must NOT discard the original photo frame.
+  const widthBeforeScrollbar = card.getBoundingClientRect().width;
+  card.shadowRoot.querySelectorAll(".date-tab")[2].click();
+  const initialFrame = card._backgroundFrame;
+  const initiallyLockedWidth = card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-photo-frame-width");
+  const initiallyLockedHeight = card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-photo-frame-height");
+  card.style.width = `${Math.max(250, widthBeforeScrollbar - 12)}px`;
+  card.shadowRoot.querySelectorAll(".date-tab")[0].click();
+  const narrowed = card.shadowRoot.querySelector("ha-card");
+  const narrowedImageStyle = getComputedStyle(narrowed, "::before");
+  check("scrollbar-width changes do not reset background photo width or height",
+    Boolean(initialFrame) &&
+    narrowed.style.getPropertyValue("--mosque-photo-frame-width") === initiallyLockedWidth &&
+    narrowed.style.getPropertyValue("--mosque-photo-frame-height") === initiallyLockedHeight &&
+    Math.abs(parseFloat(narrowedImageStyle.width) - (initialFrame.width - 2)) < 2 &&
+    Math.abs(parseFloat(narrowedImageStyle.height) - (initialFrame.height - 4)) < 2);
+  card.style.width = "";
+  card.shadowRoot.querySelectorAll(".date-tab")[1].click();
   render();
   const rules = card.shadowRoot.querySelector("style")?.sheet?.cssRules;
   check("bundled CSS module loads responsive rules", Boolean(rules?.length) && [...rules].some(rule => /max-width\s*:\s*28rem/.test(rule.conditionText || "")));
