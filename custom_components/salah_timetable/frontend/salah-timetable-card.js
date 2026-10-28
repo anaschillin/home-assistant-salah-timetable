@@ -388,10 +388,10 @@ export class SalahTimetableCardEditor extends HTMLElement {
       label.textContent = text; control.setAttribute("aria-label", text);
       for (const {option, value} of options || []) option.textContent = key === "hijri_adjustment" ? localizedNumber(value, ui, {signDisplay: "exceptZero"}) : key === "mosque_background_opacity" ? `${value}%` : key === "mosque_background" ? (MOSQUE_BACKGROUNDS.find(item => item.id === value)?.name || (value === "daily" ? "Rotate daily" : "None")) : tr(ui, `editor.${key}.${value}`);
       if (checkbox) control.checked = this._config[key];
+      else if (control.value !== String(this._config[key])) control.value = String(this._config[key]);
       // These settings have no implemented behaviour yet; do not allow users
       // to enable an option that cannot display any history data.
       control.disabled = ["show_historical_day_events", "show_historical_month_highlights", "show_historical_sources", "show_disputed_historical_dates"].includes(key);
-      else if (control.value !== String(this._config[key])) control.value = String(this._config[key]);
     }
     const {entity, title, titleLabel, error, help, mosqueGroup, mosqueHeading, mosqueList} = this._controls;
     entity.hass = this._hass; entity.label = tr(ui, "editor.entity");
