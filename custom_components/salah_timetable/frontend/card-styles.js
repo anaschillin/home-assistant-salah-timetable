@@ -4,11 +4,15 @@ export const CARD_CSS = `
 .background-credit a { color: var(--secondary-text-color); text-decoration: underline; text-underline-offset: 2px; }
 .background-credit a:focus-visible { outline: 2px solid var(--primary-color); }
 
-/* The background has its own photo canvas. Its height is anchored to the
-   full Today card so hiding countdowns does not re-zoom/re-centre the image.
-   Clip the extended photo layer inside the card without changing card height. */
+/* Fill the available dashboard viewport with the mosque photograph.
+   On Yesterday/Tomorrow the content can be shorter, but the background
+   canvas must not end halfway down the dashboard and expose a black area.
+   Any contents taller than the viewport still expand the card naturally.
+   The theme header variable is respected when Home Assistant provides it. */
 ha-card.has-mosque-background {
   background: var(--ha-card-background,var(--card-background-color));
+  min-height: calc(100vh - var(--header-height, 0px));
+  min-height: calc(100dvh - var(--header-height, 0px));
 }
 ha-card.has-mosque-background::before {
   content: "";
