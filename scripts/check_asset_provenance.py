@@ -122,7 +122,8 @@ def audit(root: Path, *, require_cleared: bool = False) -> list[str]:
             raise ValueError(f"Invalid asset file: {name}")
         rights = item.get("rights")
         if (
-            rights not in KNOWN
+            not isinstance(rights, str)
+            or rights not in KNOWN
             or not isinstance(item.get("owner"), str)
             or not item["owner"].strip()
             or not isinstance(item.get("basis"), str)
