@@ -268,10 +268,10 @@ test("new editor controls round trip and retain nodes through HA config echoes",
   for (const [key, entry] of Object.entries(editor._extraControls)) {
     const control = entry.control;
     if (entry.checkbox) control.checked = false;
-    else control.value = key === "language" ? "ar" : key === "detail_level" ? "compact" : key === "time_format" ? "12h" : "-2";
+    else control.value = ({language: "ar", detail_level: "compact", time_format: "12h", hijri_adjustment: "-2", mosque_background: "masjid-al-haram", mosque_background_opacity: "12"})[key];
     control.dispatchEvent(new Event("change")); editor.hass = hass();
     assert.equal(editor._extraControls[key].control, control);
-    assert.equal(changes.at(-1)[key], entry.checkbox ? false : key === "hijri_adjustment" ? -2 : control.value);
+    assert.equal(changes.at(-1)[key], entry.checkbox ? false : ["hijri_adjustment", "mosque_background_opacity"].includes(key) ? Number(control.value) : control.value);
   }
 });
 
