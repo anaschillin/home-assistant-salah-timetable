@@ -14,7 +14,7 @@ from homeassistant.util import yaml as yaml_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 BLUEPRINT = (
-    Path(__file__).parents[1]s[2]
+    Path(__file__).parents[2]
     / "blueprints/automation/salah_timetable/pause_resume_media.yaml"
 )
 TIMESTAMP = {"device_class": "timestamp"}

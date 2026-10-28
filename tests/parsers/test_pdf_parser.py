@@ -124,7 +124,7 @@ def test_parent_and_actual_worker_share_the_four_mib_boundary():
     assert len(extract_pdf_pages(content)) == 2
     # Bypass the parent check to exercise the isolated worker's own stdin bound.
     worker = (
-        Path(__file__).parents[1]s[2] / "custom_components/salah_timetable/pdf_worker.py"
+        Path(__file__).parents[2] / "custom_components/salah_timetable/pdf_worker.py"
     )
     result = subprocess.run(
         [sys.executable, "-I", str(worker)],
