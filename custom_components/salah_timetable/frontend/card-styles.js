@@ -812,13 +812,13 @@ ha-card.has-mosque-background::after {
   overflow: hidden;
   border: 1px solid color-mix(in srgb,var(--primary-text-color) 20%,transparent);
   border-radius: 18px;
-  /* The previous 59%-72% surface let the underlying bright photograph
-     overwhelm the text. Use one largely opaque HA theme colour in BOTH
-     panels; a slight gradient and lens blur retain the glass appearance. */
+  /* Balanced 84%-88% photo-through glass: more of the mosque is visible
+     than the previous 92%-95% charcoal surface, while still materially
+     stronger than the washed-out 59%-72% version. Both cards share it. */
   background: linear-gradient(135deg,
-    color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 92%,transparent),
-    color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 95%,transparent) 50%,
-    color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 92%,transparent));
+    color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 84%,transparent),
+    color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 88%,transparent) 50%,
+    color-mix(in srgb,var(--ha-card-background,var(--card-background-color)) 84%,transparent));
   color: var(--primary-text-color);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.13),
