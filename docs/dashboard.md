@@ -212,15 +212,21 @@ editor option have been removed. Saved cards containing
 `mosque_background_opacity` are accepted, but that obsolete value is ignored
 and stripped when the configuration is normalised.
 
-The mosque photograph now covers the **full width of the canvas allotted
-to this card** by Home Assistant, without a hard 1280px limit. Its image layer
-retains the full Today-height composition while switching to shorter Yesterday
-or Tomorrow views, so hiding the countdowns **does not re-zoom or re-centre
-the photo**. The card itself still shrinks to its contents without an empty
-reserved space. The captured image width and height stay fixed across
-small Home Assistant canvas changes, including scrollbars appearing or
-disappearing when countdowns are hidden. The cache is discarded for substantial
-width changes (such as tablet rotation or a dashboard column resize). The timetable,
+The mosque photograph fills the **available dashboard viewport height as well
+as the full card width**, rather than cutting off where the Today, Yesterday or
+Tomorrow timetable ends. The summary and timetable remain compact and anchored
+at the top; the remaining area shows the photograph instead of a blank black
+dashboard background. A short day view no longer causes the background canvas
+itself to disappear halfway down the screen. On cards with content taller than
+the viewport, the canvas grows naturally with the content.
+
+The image layer also retains Today's photographic framing when switching to
+adjacent-day views. Small Home Assistant width changes, such as scrollbars
+appearing and disappearing, preserve its measured dimensions. Genuine device
+resizes (for example tablet rotation) can reframe the image. Because this mode
+uses a viewport-height **card**, placing it among other stacked dashboard cards
+will reserve that vertical space in the Home Assistant layout. Use a dedicated
+full-width view for the best photographic presentation. The timetable,
 header and countdowns remain in an independently centred content column
 (up to 1160px wide). On narrow cards and mobile screens, the content naturally
 fills the available width. This creates wider photographic wings on landscape
