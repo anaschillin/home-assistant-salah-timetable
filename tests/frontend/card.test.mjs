@@ -19,6 +19,7 @@ globalThis.document = {createElement: name => registry.has(name) ? new (registry
 globalThis.window = {setInterval: callback => { timers.set(++timerId, callback); return timerId; }, clearInterval: id => timers.delete(id), customCards: []};
 const {SalahTimetableCard, SalahTimetableCardEditor} = await import("../../custom_components/salah_timetable/frontend/salah-timetable-card.js");
 const {tr} = await import("../../custom_components/salah_timetable/frontend/card-i18n.js");
+const {formatDate, formatHijriDate, hijriMonthInfo} = await import("../../custom_components/salah_timetable/frontend/card-utils.js");
 function find(root, tag) { return [root, ...root.children.flatMap(child => find(child, tag))].filter(node => node.tagName === tag); }
 const attributes = {
   mosque_name: "Example Mosque", date: "2026-10-21", time_zone: "Europe/London",
@@ -685,6 +686,49 @@ test("card filter allows separate fixed mosque cards and a selectable multi-mosq
   assert.equal(classNodes(secondFixed.shadowRoot, "mosque-select").length, 0);
   assert.match(find(secondFixed.shadowRoot, "h2")[0].textContent, /Second Mosque/);
   assert.equal(fixed._activeEntity(), a, "Switching one card must not affect another");
+});
+
+test("day navigation updates Hijri, Gregorian and month information without duplicate selected date", () => {
+  const card = new SalahTimetableCard();
+  const base = "2026-10-28";
+  const data = {...attributes, date: base, day_prayers: {"2026-10-27": attributes.prayers, "2026-10-29": attributes.prayers}};
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass(data);
+  const dateTabs = () => find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
+  const header = () => find(card.shadowRoot, "header")[0];
+  for (const [offset, expected] of [[-1, "2026-10-27"], [1, "2026-10-29"], [0, base]]) {
+    dateTabs().children[offset + 1].dispatchEvent(new Event("click"));
+    const parts = header().children;
+    assert.equal(parts[1].textContent, `${formatHijriDate(expected, 0, "en")} · Hijri (calculated)`);
+    assert.equal(parts[2].textContent, formatDate(expected, "en"));
+    assert.equal(parts[3].textContent, hijriMonthInfo(expected, 0).summary_en);
+    assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "selected-date").length, 0);
+    assert.equal(card._selectedDay, offset);
+    assert.equal(find(card.shadowRoot, "table").length, 1);
+  }
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_gregorian_date: false});
+  dateTabs().children[2].dispatchEvent(new Event("click"));
+  assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "selected-date").length, 1,
+    "Adjacent-day timetable retains its date when Gregorian header is disabled");
+});
+
+test("mosque photo retains Today's canvas across tabs and invalidates on width change", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = hass();
+  card.shadowRoot.querySelector = selector => selector === "ha-card" ? find(card.shadowRoot, "ha-card")[0] : null;
+  const first = find(card.shadowRoot, "ha-card")[0];
+  first.getBoundingClientRect = () => ({width: 900, height: 720});
+  const tabs = () => find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
+  tabs().children[2].dispatchEvent(new Event("click"));
+  assert.equal(card._selectedDay, 1);
+  assert.deepEqual(card._backgroundFrame, {entity: "sensor.mosque_prayer_timetable", width: 900, height: 720});
+  const tomorrow = find(card.shadowRoot, "ha-card")[0];
+  assert.equal(tomorrow.style.values["--mosque-photo-frame-height"], "720px");
+  tomorrow.getBoundingClientRect = () => ({width: 800, height: 550});
+  tabs().children[0].dispatchEvent(new Event("click"));
+  assert.equal(find(card.shadowRoot, "ha-card")[0].style.values["--mosque-photo-frame-height"], undefined,
+    "A resized card must not reuse an obsolete photo height");
 });
 
 test("compact timetable puts date controls after the table and preserves adjacent-date access", () => {
