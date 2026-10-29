@@ -133,6 +133,15 @@ try {
       current.querySelector(".timetable-shell").getBoundingClientRect().bottom <=
         current.getBoundingClientRect().bottom + 1);
   }
+  // Date navigation re-creates its buttons; keyboard focus must follow the selected day.
+  for (const index of [2, 0, 1]) {
+    const button = card.shadowRoot.querySelectorAll(".date-tab")[index];
+    button.focus();
+    button.click();
+    const replacement = card.shadowRoot.querySelectorAll(".date-tab")[index];
+    check(`date navigation retains keyboard focus on tab ${index}`, card.shadowRoot.activeElement === replacement && replacement.getAttribute("aria-pressed") === "true");
+  }
+  card.shadowRoot.activeElement?.blur();
   // Reproduce a disappearing browser/dashboard scrollbar: a small width
   // change after Today is selected must NOT discard the original photo frame.
   const widthBeforeScrollbar = card.getBoundingClientRect().width;
