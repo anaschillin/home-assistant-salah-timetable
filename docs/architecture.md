@@ -263,8 +263,7 @@ countdown. The backend and card behavior have separate boundary tests.
 `frontend.py` registers the bundled directory at `/salah_timetable` through HA's
 asynchronous static-path API. For storage-mode Lovelace resources it creates or
 updates the integration's relative module URL, removes duplicate registrations and
-uses the `frontend.py` `CARD_VERSION` cache key (currently
-`?v=0.9.19`) for cache changes. For YAML resources it uses HA's extra-JavaScript
+uses the `frontend.py` `CARD_VERSION` cache key for cache changes. For YAML resources it uses HA's extra-JavaScript
 helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
 a resource-registration failure is logged without disabling valid prayer entities.
 
@@ -314,17 +313,11 @@ Node tests cover helpers, rendering, safe text and editor round trips. An isolat
 headless Chromium harness checks real custom-element rendering with HA element
 stand-ins, narrow layouts, theme changes and editor interactions. These checks do not
 prove installation in a live HA frontend or visual behavior on real phones/tablets.
-An earlier disposable HA 2026.10.2 manual-install smoke verified the actual frontend
-and editor, including a 0.5.0-to-0.5.1 resource upgrade. Candidate 0.6.1 also passed a
-manual-install smoke on the minimum HA 2026.10.0 version, including the actual card
-picker/editor and saved display options after page reload. That run explicitly
-preloaded the locked PDF dependency. The subsequent 0.6.2 minimum-version run passed
-20 checks, with before/after proof of fresh pinned dependency installation and no
-package preload. Physical-device checks were user-confirmed on 24 October 2026 for
-an installation whose version was not recorded, before 0.7.0. They do not establish
-physical acceptance of the later calendar, profiles, speaker controls, import review
-or dashboard additions. See the
-[validation record](releasing.md#validation-and-acceptance-scope) and [dashboard setup](dashboard.md).
+The real Home Assistant Container smoke job tests an installed integration, while
+Chromium tests also cover isolated card interactions. Neither replaces manual
+release acceptance on the exact version and relevant physical devices. See the
+[release checklist](releasing.md) and [dashboard guidance](dashboard.md).
+
 
 ## Remaining limitations
 
@@ -334,18 +327,18 @@ The live MOSQUE_A HTTPS source is unverified. DST gaps and ambiguous folds are r
 rather than guessed; explicit fold handling needs a separately reviewed source model.
 The calculated Hijri header is display-only; users explicitly confirm Ramadan.
 
-HACS installation, restart and updates are user-confirmed. Automated two-mosque
-config-entry removal/re-addition and real Home Assistant Container backup restoration
-have recorded coverage. Full HAOS/Supervisor restoration, actual HACS UI
-uninstall/reinstallation, asset redistribution rights and exact release-commit
-validation remain gates in the [single release checklist](releasing.md).
+HACS installation, restart and updates have been user-confirmed. Automated
+two-mosque config-entry removal/re-addition and Home Assistant Container backup
+restoration have coverage. Review the exact release commit, HACS UI scenarios
+and asset redistribution evidence before publication; full HAOS/Supervisor
+restoration remains optional and deferred as documented in the [release checklist](releasing.md).
 Invalid stored records already have actionable Repair guidance. Reproducible install
 archives and synchronized metadata/cache versions are checked by release tooling. Hosted GitHub validation must be checked before release; local
 tests and workflow definitions alone do not establish that it passed.
 
 ## Production module inventory
 
-This is the file-by-file map of the code shipped under `custom_components/salah_timetable/`. It complements the [architecture guide](architecture.md) and the [test suite guide](testing.md).
+The inventory below maps the shipped `custom_components/salah_timetable/` modules to their responsibilities. For test ownership see [testing](testing.md).
 
 ### Home Assistant and executable entry points (package root)
 

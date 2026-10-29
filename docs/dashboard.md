@@ -125,11 +125,9 @@ to known prayer names in the timetable and event panels. Custom mosque titles
 remain user-supplied text. Language changes affect presentation only: prayer
 keys, entity IDs, stored values and event identities stay unchanged.
 
-This is Milestone **10A**, covering the bundled card and editor. Arabic wording
-is a draft awaiting fluent-language review. Integration settings/forms, entity
-translations and translated setup guidance remain Milestone **10B** work.
-Automated browser checks and physical-device acceptance are recorded separately;
-older device confirmations do not establish Arabic/RTL acceptance.
+The bundled card/editor supports the described language and direction options.
+Additional integration translations and reviewed Arabic wording are deferred.
+Automated browser checks do not establish full Arabic/RTL acceptance on physical devices.
 
 ## Dates and customization
 
@@ -321,30 +319,11 @@ actual timetable sensor.
 
 ## Validation limits
 
-Backend event/flow tests, Node frontend tests and an isolated headless Chromium
-harness cover the implemented behavior, including every visibility switch off and
-on independently. That harness uses stand-ins for HA elements. Separate disposable
-manual-install checks used HA 2026.10.2 and HA 2026.10.0; the latter exercised the
-actual card picker, editor controls, keyboard title/focus, saved configuration after
-page reload, themes and phone/tablet viewports for candidate 0.6.1. These checks used
-an explicitly preloaded PDF dependency. The later local 0.6.2 HA 2026.10.0 run
-passed 20 checks, including fresh dependency installation without a package preload,
-per-toggle visible previews and saved settings after reload. Physical-device checks
-were user-confirmed on 24 October 2026, before 0.7.0; device/version details were
-not recorded. That confirmation does not establish physical acceptance of the newer
-Fajr-end, Friday-khutbah, Hijri setup/options controls or Arabic/RTL presentation.
-HACS installation, restart and updates are also user-confirmed. Removal/reinstall
-was user-confirmed on 25 October, with environment and individual cleanup checks
-unrecorded; the full [HACS UI acceptance gate](releasing.md) remains
-release work. Those earlier validations are historical. The merged 0.9.19 redesign in
-earlier change
-passed [frontend, compatibility and live Home Assistant acceptance](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
-and [CodeQL](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733)
-before squash merge to `main` at `80b8017`. The maintainer approved the
-visual design; that does not replace a full version-specific physical-device,
-HACS removal/reinstallation or release acceptance record. See the
-[validation record](releasing.md#validation-and-acceptance-scope) and
-[prior development](roadmap.md).
+Automated Python, frontend and Chromium tests check the documented card behaviour,
+including keyboard navigation and responsive layouts. Chromium uses Home Assistant
+element stand-ins and is not a substitute for testing an installed card on a phone
+or tablet. Verify the exact candidate version during real Home Assistant/HACS
+release acceptance; see [releasing](releasing.md).
 
 ## Mosque photograph implementation and maintenance
 
@@ -411,11 +390,10 @@ times.
 
 ### Validation
 
-The 0.9.18 card and its photo-framing/accessibility tests passed
-[earlier change Validate](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
-and [CodeQL](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733).
-These are code and live Home Assistant acceptance checks, not an independent
-legal opinion or certification of every physical device.
+The frontend visual checks verify photo layout and accessibility behaviour.
+Photograph licensing and physical-device acceptance require separate review.
+See [asset provenance](asset-provenance.md) and [release acceptance](releasing.md).
+
 
 ## Hijri month information and future history options
 
