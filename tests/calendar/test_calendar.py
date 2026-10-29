@@ -158,26 +158,35 @@ def test_next_event_remains_current_until_display_interval_ends():
 
 
 @pytest.mark.parametrize(
-    ("start", "end"),
+    ("start", "end", "translation_key"),
     [
-        (datetime(2026, 1, 1), datetime(2026, 1, 2, tzinfo=timezone.utc)),
+        (
+            datetime(2026, 1, 1),
+            datetime(2026, 1, 2, tzinfo=timezone.utc),
+            "calendar_timezone_required",
+        ),
         (
             datetime(2026, 1, 2, tzinfo=timezone.utc),
             datetime(2026, 1, 1, tzinfo=timezone.utc),
+            "calendar_end_before_start",
         ),
         (
             datetime(2026, 1, 1, tzinfo=timezone.utc),
             datetime(2026, 1, 1, tzinfo=timezone.utc),
+            "calendar_end_before_start",
         ),
         (
             datetime(2026, 1, 1, tzinfo=timezone.utc),
             datetime(2027, 1, 3, tzinfo=timezone.utc),
+            "calendar_date_range_exceeded",
         ),
     ],
 )
-def test_invalid_or_unbounded_queries_fail_explicitly(start, end):
-    with pytest.raises(HomeAssistantError):
+def test_invalid_or_unbounded_queries_fail_explicitly(start, end, translation_key):
+    with pytest.raises(HomeAssistantError) as exc:
         calendar_events("example", (), RamadanSettings(), UTC, start, end)
+    assert exc.value.translation_domain == DOMAIN
+    assert exc.value.translation_key == translation_key
 
 
 def test_leap_year_and_future_sources_do_not_assume_current_year():
@@ -212,8 +221,10 @@ def test_timestamp_instants_follow_mosque_dst(day, expected):
 @pytest.mark.parametrize("day", ["2026-03-29", "2026-10-25"])
 def test_nonexistent_or_ambiguous_dst_events_fail_without_guessing(day):
     tables = (table(row(day, fajr_begin=["01:30"])),)
-    with pytest.raises(HomeAssistantError, match="unresolved timetable data"):
+    with pytest.raises(HomeAssistantError) as exc:
         query(tables, day + "T00:00Z", day + "T23:00Z", zone=LONDON)
+    assert exc.value.translation_domain == DOMAIN
+    assert exc.value.translation_key == "calendar_unresolved_data"
 
 
 def test_conflicting_sources_fail_only_when_requested_and_do_not_choose_a_source():
@@ -225,8 +236,10 @@ def test_conflicting_sources_fail_only_when_requested_and_do_not_choose_a_source
         table(row("2026-10-25", fajr_begin=["06:00"]), source="other-annual"),
     )
     assert len(query(tables, "2026-10-23T00:00Z", "2026-10-24T00:00Z")) == 1
-    with pytest.raises(HomeAssistantError, match="unresolved timetable data"):
+    with pytest.raises(HomeAssistantError) as exc:
         query(tables, "2026-10-25T00:00Z", "2026-10-26T00:00Z")
+    assert exc.value.translation_domain == DOMAIN
+    assert exc.value.translation_key == "calendar_unresolved_data"
 
 
 def test_next_event_keeps_exact_start_then_skips_unresolvable_future_date():
