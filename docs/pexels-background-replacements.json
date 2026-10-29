@@ -1,5 +1,5 @@
 {
-  "description": "Approved source-page selections for replacement mosque background images. Not yet downloaded or bundled; existing images and credits remain unchanged until conversion and SHA-256 provenance update.",
+  "description": "User-selected Pexels source pages for 20 existing mosque background replacements and two new entries. Photos have not yet been downloaded, bundled, or verified; original binary images and credits remain unchanged.",
   "license_url": "https://www.pexels.com/license/",
   "status": "pending_binary_import",
   "replacements": [
@@ -53,6 +53,68 @@
       "id": "wazir-khan-mosque",
       "source_url": "https://www.pexels.com/photo/exquisite-mughal-architecture-with-ornate-details-35743843/",
       "status": "pending_download_and_verification"
+    },
+    {
+      "id": "suleymaniye-mosque",
+      "source_url": "https://www.pexels.com/photo/suleymaniye-mosque-at-sunset-in-istanbul-37075910/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "hagia-sophia-grand-mosque",
+      "source_url": "https://www.pexels.com/photo/medieval-mosque-in-istanbul-city-6152260/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "al-azhar-mosque",
+      "source_url": "https://www.pexels.com/photo/al-azhar-mosque-in-cairo-18991579/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "muhammad-ali-mosque",
+      "source_url": "https://www.pexels.com/photo/mosque-with-dome-roof-10559165/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "koutoubia-mosque",
+      "source_url": "https://www.pexels.com/photo/beige-concrete-building-under-blue-sky-5823788/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "mosque-cathedral-cordoba",
+      "source_url": "https://www.pexels.com/photo/roman-bridge-over-guadalquivir-river-in-cordoba-7556483/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "jama-masjid-delhi",
+      "source_url": "https://www.pexels.com/photo/a-mosque-in-delhi-16068377/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "omar-ali-saifuddien-mosque",
+      "source_url": "https://www.pexels.com/photo/omar-ali-saifuddien-mosque-at-sunrise-reflection-34787043/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "national-mosque-malaysia",
+      "source_url": "https://www.pexels.com/photo/picturesque-sunset-over-lake-with-mosque-on-shore-4315621/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "al-qibli-mosque",
+      "source_url": "https://www.pexels.com/photo/the-al-aqsa-mosque-in-jerusalem-11566548/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "al-jabbar-grand-mosque",
+      "source_url": "https://www.pexels.com/photo/modern-islamic-mosque-interior-with-geometric-patterns-40410052/",
+      "status": "pending_download_and_verification",
+      "addition": true
+    },
+    {
+      "id": "camlica-mosque",
+      "source_url": "https://www.pexels.com/photo/camlica-mosque-in-turkey-12651496/",
+      "status": "pending_download_and_verification",
+      "addition": true
     }
   ]
 }
