@@ -1,0 +1,58 @@
+{
+  "description": "Approved source-page selections for replacement mosque background images. Not yet downloaded or bundled; existing images and credits remain unchanged until conversion and SHA-256 provenance update.",
+  "license_url": "https://www.pexels.com/license/",
+  "status": "pending_binary_import",
+  "replacements": [
+    {
+      "id": "masjid-al-haram",
+      "source_url": "https://www.pexels.com/photo/al-kaba-mosque-in-mecca-26436662/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "masjid-an-nabawi",
+      "source_url": "https://www.pexels.com/photo/aerial-view-of-city-buildings-4321694/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "sheikh-zayed-grand-mosque",
+      "source_url": "https://www.pexels.com/photo/the-sheikh-zayed-grand-mosque-at-night-13299493/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "sultan-ahmed-mosque",
+      "source_url": "https://www.pexels.com/photo/the-blue-mosque-at-night-with-lights-on-28141981/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "badshahi-mosque",
+      "source_url": "https://www.pexels.com/photo/badshahi-mosque-in-lahore-in-pakistan-12912453/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "hassan-ii-mosque",
+      "source_url": "https://www.pexels.com/photo/hassan-ii-mosque-in-casablanca-morocco-19615125/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "great-mosque-of-kairouan",
+      "source_url": "https://www.pexels.com/photo/ancient-fortress-walls-in-historic-kairouan-38583623/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "baiturrahman-grand-mosque",
+      "source_url": "https://www.pexels.com/photo/baiturrahman-grand-mosque-in-banda-aceh-36771959/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "shah-faisal-mosque",
+      "previous_id": "faisal-mosque",
+      "source_url": "https://www.pexels.com/photo/shah-faisal-mosque-in-pakistan-15817294/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "wazir-khan-mosque",
+      "source_url": "https://www.pexels.com/photo/exquisite-mughal-architecture-with-ornate-details-35743843/",
+      "status": "pending_download_and_verification"
+    }
+  ]
+}
