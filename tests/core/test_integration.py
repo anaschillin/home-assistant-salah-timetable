@@ -174,16 +174,19 @@ async def test_removing_one_mosque_cleans_its_device_and_entities_only(
 
     assert await hass.config_entries.async_remove(populated.entry_id)
     await hass.async_block_till_done()
-    assert devices.async_get_device_by_identifier(
-        (DOMAIN, "example"), populated.entry_id
-    ) is None
-    assert devices.async_get_device_by_identifier(
-        (DOMAIN, "other"), other.entry_id
-    ) is not None
+    assert (
+        devices.async_get_device_by_identifier((DOMAIN, "example"), populated.entry_id)
+        is None
+    )
+    assert (
+        devices.async_get_device_by_identifier((DOMAIN, "other"), other.entry_id)
+        is not None
+    )
     assert entities.async_get_entity_id("sensor", DOMAIN, "example_fajr_begin") is None
-    assert entities.async_get_entity_id(
-        "calendar", DOMAIN, "example_prayer_calendar"
-    ) is None
+    assert (
+        entities.async_get_entity_id("calendar", DOMAIN, "example_prayer_calendar")
+        is None
+    )
     assert hass.states.get(first_sensor) is None
     assert hass.states.get(first_calendar) is None
     assert hass.states.get(second_sensor) is not None
