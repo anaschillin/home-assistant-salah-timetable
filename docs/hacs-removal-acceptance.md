@@ -1,9 +1,10 @@
 # REV-06 — HACS removal/re-addition and two-mosque acceptance
 
-**Release gate:** Not complete until the **HACS custom-repository UI install, remove
-and re-add** steps below are performed on a disposable Home Assistant instance
-and their results are recorded. HACS repository validation is *not* proof of
-install/uninstall UI behaviour.
+**Scope:** HACS repository validation and real Home Assistant Container lifecycle
+checks run in CI for pull requests. The maintainer also reports HACS/HAOS checks
+after completed PRs. The longer HACS UI remove/re-add procedure below remains an
+optional *release-level* acceptance checklist; passing CI does not prove that UI
+sequence occurred. Record versions and outcomes if that sequence is used.
 
 ## Reported HACS remove/reinstall outcome — 25 October 2026
 
@@ -86,6 +87,6 @@ proposal isolation, frontend resource uniqueness, old-release upgrade (if
 applicable), and restart. Include failures and exact reproducible steps;
 only redact private information from any saved evidence.
 
-**Completion rule:** Full REV-06 remains pending until **both** the automated
-preflight and the actual HACS UI sequence pass. The preflight is useful partial
-evidence, not a replacement for the HACS-specific gate.
+**Evidence rule:** Mark the HACS UI lifecycle as passed only when the full sequence
+is actually observed and recorded. Routine PR CI proves HACS repository validity
+and Container config-entry lifecycle, not authenticated HACS uninstall/reinstall.

@@ -5,14 +5,14 @@ redistribution classification and **SHA-256 checksum of every tracked asset** in
 the audited directories. The check is intentionally separate from a legal
 determination that each rightsholder has granted the necessary permissions.
 
-## Inventory scope (28 October 2026)
+## Inventory scope (29 October 2026)
 
 | Classification | Count | Notes |
 | --- | ---: | --- |
-| Original MIT-licensed, independently authored fixtures | 12 | Synthetic PDF, CSV and historical storage JSON used only for tests |
+| Original independently produced assets (`original_mit`) | 17 | 12 fictional fixtures, the AI-generated brand icon and four generated synthetic-card screenshots |
 | Unsplash License photographs (`permission_documented`) | 20 | Resized WebP mosque backgrounds with source/photographer links |
-| Rights review pending | 5 | Brand `icon.png` and four `docs/images` screenshots |
-| **Total** | **37** | All 37 files have checksums; five are **not cleared** |
+| Rights review pending | 0 | No known outstanding entries in this inventory |
+| **Total** | **37** | All 37 files have checksums and recorded provenance |
 
 The auditor scans test data under `tests/fixtures/` (including CSV and JSON),
 documentation images under `docs/images/`, brand assets under
@@ -27,6 +27,8 @@ A matching checksum establishes asset identity, **not** ownership or licence
 validity. The maintainer must independently verify source pages, grant scope,
 photographer attribution and (where relevant) rights in depicted people, marks
 or other works before setting or retaining a cleared status.
+
+**Maintainer origin attestation (29 October 2026):** The brand icon was generated with AI for this project. The four tracked `docs/images/card-*.png` illustrations were captured from synthetic test rendering, not from the original publishers' PDF files. The current tracked PDF/CSV/JSON fixtures are independently generated fictional data. These statements are maintainer-supplied provenance, recorded here for auditability; the checker can verify checksums and the presence of this record but cannot independently prove authorship, image-generation provenance, exclusive rights or absence of third-party rights. Reassess an asset if its origin changes or contrary evidence appears.
 
 The 20 mosque photographs were reviewed against the free-photo listings on
 Unsplash; see [photographer credits](mosque-background-credits.md). They are
@@ -50,12 +52,13 @@ The first command runs in ordinary PR CI and checks **inventory integrity**.
 It can exit successfully **while listing unresolved assets**. This is not
 permission to publish.
 
-The second command is used by the draft-release workflow and **must fail**
-until all five pending entries have been resolved with evidence, or the
-assets have been replaced/removed and the inventory updated. The release
-policy deliberately includes public-repository documentation screenshots,
-even though the runtime ZIP excludes `docs/`. The current asset status is
-therefore: **normal CI can pass; the strict release gate remains blocked**.
+The second command is used by draft-release preparation and **must fail**
+whenever an inventory entry is unresolved. Following the maintainer's
+29 October origin attestation, no currently tracked entry is pending.
+The strict audit should therefore pass on this branch once CI checks it;
+public-repository documentation screenshots remain in scope even though
+the runtime ZIP excludes `docs/`. Neither the normal nor strict audit is
+a substitute for independently verifying external-photo licence terms.
 
 When replacing an image or fixture, update the checksum and verify licensing
 separately. Never mark an asset `original_mit` just because the hosting

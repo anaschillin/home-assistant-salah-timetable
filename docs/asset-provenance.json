@@ -10,10 +10,10 @@
   "assets": [
     {
       "path": "custom_components/salah_timetable/brand/icon.png",
-      "rights": "review_pending",
-      "owner": "Unverified",
-      "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null,
+      "rights": "original_mit",
+      "owner": "Repository maintainer (origin attested 29 October 2026)",
+      "basis": "AI-generated brand icon, as attested by the maintainer; no third-party PDF artwork copied",
+      "evidence": "docs/asset-provenance.md",
       "sha256": "49380782a6b987b91cf3cbbef4a4145ee4cc031403c752211ebaaffe9bed0b1d"
     },
     {
@@ -178,34 +178,34 @@
     },
     {
       "path": "docs/images/card-mobile-0.6.1.png",
-      "rights": "review_pending",
-      "owner": "Unverified",
-      "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null,
+      "rights": "original_mit",
+      "owner": "Repository maintainer (origin attested 29 October 2026)",
+      "basis": "Screenshot generated from synthetic browser test fixture, as attested by the maintainer; no real mosque data included",
+      "evidence": "docs/asset-provenance.md",
       "sha256": "289b2916deaa65140734328f3df1881534f2fd03138ab7ff62081ae77f2873d9"
     },
     {
       "path": "docs/images/card-mobile.png",
-      "rights": "review_pending",
-      "owner": "Unverified",
-      "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null,
+      "rights": "original_mit",
+      "owner": "Repository maintainer (origin attested 29 October 2026)",
+      "basis": "Screenshot generated from synthetic browser test fixture, as attested by the maintainer; no real mosque data included",
+      "evidence": "docs/asset-provenance.md",
       "sha256": "ff45114265348ca3fdc4874e36d21cf819a7a76c0ebccd4e0d3a4a8e87e3d1c2"
     },
     {
       "path": "docs/images/card-tablet-0.6.1.png",
-      "rights": "review_pending",
-      "owner": "Unverified",
-      "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null,
+      "rights": "original_mit",
+      "owner": "Repository maintainer (origin attested 29 October 2026)",
+      "basis": "Screenshot generated from synthetic browser test fixture, as attested by the maintainer; no real mosque data included",
+      "evidence": "docs/asset-provenance.md",
       "sha256": "7c4665fa9faafa784ec8efead2a2832cbddfcfb08f4adf0c421b70b60366445c"
     },
     {
       "path": "docs/images/card-tablet.png",
-      "rights": "review_pending",
-      "owner": "Unverified",
-      "basis": "Original artist / screenshot rights need evidence",
-      "evidence": null,
+      "rights": "original_mit",
+      "owner": "Repository maintainer (origin attested 29 October 2026)",
+      "basis": "Screenshot generated from synthetic browser test fixture, as attested by the maintainer; no real mosque data included",
+      "evidence": "docs/asset-provenance.md",
       "sha256": "14edc29c8c28a6aef91e36b19974856c14728dc2ae879013f3738ca9fc1c6a24"
     },
     {
