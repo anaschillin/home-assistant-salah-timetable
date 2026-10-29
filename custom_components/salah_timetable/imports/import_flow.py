@@ -192,13 +192,6 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             return None
         return self.config_entry.runtime_data
 
-    async def async_step_init(self, user_input=None):
-        menu = ["settings", "import_csv"]
-        coordinator = self._coordinator()
-        if coordinator is not None and coordinator.storage.staged is not None:
-            menu.append("review")
-        return self.async_show_menu(step_id="init", menu_options=menu)
-
     async def async_step_import_csv(self, user_input=None):
         coordinator = self._coordinator()
         if coordinator is None:

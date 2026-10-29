@@ -99,3 +99,58 @@ def test_reject_incomplete_and_reordered_publications(pages):
     changed[1], changed[2] = changed[2], changed[1]
     with pytest.raises(ImportValidationError):
         MosqueBAnnualLayout().to_csv(tuple(changed))
+
+
+@pytest.mark.parametrize(
+    ("token", "month", "position"),
+    [
+        ("May ...", 4, 1),
+        ("May ...", 5, 2),
+        ("1", 5, 1),
+        ("Feb 2,...", 2, 2),
+        ("Apr 1,...", 2, 1),
+        ("Unrecognised", 1, 1),
+    ],
+)
+def test_annual_date_labels_reject_unsupported_placement(token, month, position):
+    """Only the printed month heading and the one known clipping are allowed."""
+    from custom_components.salah_timetable.parsers.mosque_b_annual_layout import (
+        _day_number,
+    )
+
+    with pytest.raises(ImportValidationError):
+        _day_number(token, month, position)
+
+
+def test_annual_date_labels_accept_explicit_first_row():
+    from custom_components.salah_timetable.parsers.mosque_b_annual_layout import (
+        _day_number,
+    )
+
+    assert _day_number("Jan 1,...", 1, 1) == (1, "")
+    assert _day_number("2", 1, 2) == (2, "")
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "message"),
+    [
+        ("Contact Number:", "Invalid Contact:", "footer"),
+        ("Jan 1,...", "Unknown 1,...", "dated row"),
+    ],
+)
+def test_annual_rejects_invalid_footer_or_row_shape(pages, old, new, message):
+    assert old in pages[1]
+    changed = list(pages)
+    changed[1] = changed[1].replace(old, new, 1)
+    with pytest.raises(ImportValidationError, match=message):
+        MosqueBAnnualLayout().to_csv(tuple(changed))
+
+
+def test_annual_rejects_unpublished_extra_time_cell(pages):
+    changed = list(pages)
+    lines = changed[1].splitlines()
+    index = next(i for i, line in enumerate(lines) if line.startswith("Jan 1,"))
+    lines[index] += " 4:00"
+    changed[1] = "\n".join(lines)
+    with pytest.raises(ImportValidationError, match="wrong number"):
+        MosqueBAnnualLayout().to_csv(tuple(changed))

@@ -21,7 +21,7 @@ REQUIRE_BROWSER_TESTS=1 npm run test:browser
 ```
 <!-- /docs:excerpt development-checks -->
 
-Pytest discovers all nested `test_*.py` modules through `testpaths = ["tests"]`. The complete Python run enforces the existing integration line-coverage gate (94.5%). This **aggregate** threshold is not equivalent to the Home Assistant Integration Quality Scale's Silver requirement of more than 95% coverage **per integration module**; the [rule audit and remaining gaps](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit) track that separately. For fast investigation of an area or a single test, **turn off whole-project coverage**; a focused run cannot be expected to reach that global threshold:
+Pytest discovers all nested `test_*.py` modules through `testpaths = ["tests"]`. The complete Python run enforces the existing integration line-coverage gate (94.5%). This **aggregate** threshold is not equivalent to the Home Assistant Integration Quality Scale's Silver requirement of more than 95% coverage **per integration module**. The latest [quality-scale audit](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit) records a successful per-module branch-coverage measurement, but the CI gate still enforces only the aggregate line floor; inspect the per-module report after code changes. For fast investigation of an area or a single test, **turn off whole-project coverage**; a focused run cannot be expected to reach that global threshold:
 
 ```sh
 uv run --frozen pytest --no-cov tests/parsers/ -q

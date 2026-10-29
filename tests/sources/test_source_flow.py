@@ -604,3 +604,148 @@ async def test_reject_changed_source_preserves_live_sensor_after_reload(hass, en
     assert entry.runtime_data.storage.timetables == original_timetables
     assert hass.states.get(entity_id).state == original_state
     assert_source_status(hass, entry, "rejected_version")
+
+
+@pytest.mark.parametrize("year", [True, "2026", float("nan"), 2026.5, 1899, 2200])
+def test_source_year_requires_a_bounded_integer(year):
+    from custom_components.salah_timetable.parsers.import_model import (
+        ImportValidationError,
+    )
+    from custom_components.salah_timetable.sources.source_flow import _year
+
+    with pytest.raises(ImportValidationError, match="whole number"):
+        _year(year)
+
+
+def test_source_year_and_kind_preserve_declared_values():
+    from custom_components.salah_timetable.parsers.import_model import (
+        ImportValidationError,
+    )
+    from custom_components.salah_timetable.sources.source_flow import (
+        _year,
+        canonical_kind,
+    )
+
+    assert _year(2026.0) == 2026
+    assert canonical_kind("annual") == "annual"
+    assert canonical_kind("monthly") == "annual"
+    assert canonical_kind("ramadan") == "ramadan"
+    with pytest.raises(ImportValidationError, match="Annual, Monthly or Ramadan"):
+        canonical_kind("unknown")
+
+
+async def test_empty_download_does_not_stage_any_source(hass, entry):
+    await setup_mosque(hass, entry)
+    form = await open_step(hass, entry, "import_url")
+    with patch(
+        "custom_components.salah_timetable.sources.source_flow.async_download",
+        AsyncMock(return_value=DownloadResult(None, "csv", None, None, None)),
+    ):
+        result = await hass.config_entries.options.async_configure(
+            form["flow_id"],
+            {
+                "url": PUBLIC_URL,
+                "media_type": "csv",
+                "kind": "annual",
+                "year": 2026,
+            },
+        )
+    assert result["step_id"] == "import_url"
+    assert result["errors"] == {"base": "source_failed"}
+    assert entry.runtime_data.storage.staged is None
+    assert entry.runtime_data.storage.remote_sources == {}
+
+
+async def test_unexpected_download_validation_error_is_generic_and_safe(hass, entry):
+    await setup_mosque(hass, entry)
+    form = await open_step(hass, entry, "import_url")
+    with patch(
+        "custom_components.salah_timetable.sources.source_flow.async_download",
+        AsyncMock(side_effect=OSError("upstream path /private/config")),
+    ):
+        result = await hass.config_entries.options.async_configure(
+            form["flow_id"],
+            {
+                "url": PUBLIC_URL,
+                "media_type": "csv",
+                "kind": "annual",
+                "year": 2026,
+            },
+        )
+    assert result["errors"] == {"base": "source_failed"}
+    assert "/private/config" not in str(result["description_placeholders"])
+    assert entry.runtime_data.storage.remote_sources == {}
+
+
+async def test_remote_source_removal_failure_preserves_stored_profile(hass, entry):
+    await setup_mosque(hass, entry)
+    staged = await stage_url(hass, entry)
+    await approve(hass, staged)
+    existing = dict(entry.runtime_data.storage.remote_sources)
+    form = await open_step(hass, entry, "manage_sources")
+    with patch.object(
+        entry.runtime_data.storage,
+        "async_remove_remote_source",
+        AsyncMock(side_effect=OSError("disk full")),
+    ):
+        result = await hass.config_entries.options.async_configure(
+            form["flow_id"], {"source_id": "annual-2026", "action": "remove"}
+        )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "source_save_failed"
+    assert entry.runtime_data.storage.remote_sources == existing
+
+
+async def test_unloaded_entry_hides_source_check_action(hass, entry):
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] == FlowResultType.MENU
+    assert "check_updates" not in result["menu_options"]
+    assert "manage_sources" not in result["menu_options"]
+
+
+async def test_pending_approval_blocks_another_url_import_form(hass, entry):
+    await setup_mosque(hass, entry)
+    existing_form = await open_step(hass, entry, "import_url")
+    staged = await stage_url(hass, entry)
+    assert staged["step_id"] == "review"
+    result = await hass.config_entries.options.async_configure(
+        existing_form["flow_id"],
+        {
+            "url": PUBLIC_URL,
+            "media_type": "csv",
+            "kind": "annual",
+            "year": 2026,
+        },
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "pending_import_exists"
+    assert entry.runtime_data.storage.staged is not None
+
+
+async def test_remove_source_during_manage_dialog_aborts_without_recreating(
+    hass, entry
+):
+    await setup_mosque(hass, entry)
+    result = await stage_url(hass, entry)
+    await approve(hass, result)
+    form = await open_step(hass, entry, "manage_sources")
+    assert form["step_id"] == "manage_sources"
+    await entry.runtime_data.storage.async_remove_remote_source("annual-2026")
+    result = await hass.config_entries.options.async_configure(
+        form["flow_id"], {"source_id": "annual-2026", "action": "remove"}
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "no_remote_sources"
+    assert entry.runtime_data.storage.remote_sources == {}
+
+
+async def test_unloaded_entry_cannot_run_previously_opened_source_check(hass, entry):
+    await setup_mosque(hass, entry)
+    staged = await stage_url(hass, entry)
+    await approve(hass, staged)
+    form = await open_step(hass, entry, "check_updates")
+    assert form["step_id"] == "check_updates"
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(form["flow_id"], {})
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "integration_not_loaded"
