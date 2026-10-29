@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.19 — maintenance candidate (29 October 2026, unmerged)
+## 0.9.19 — maintenance (29 October 2026)
 
 - Preserve the focused day-navigation button and multi-mosque header selector after the card refreshes its Shadow DOM, with Chromium keyboard-focus regressions.
 - Remove styles belonging to the retired wide mosque tab strip.
@@ -10,7 +10,7 @@
 - Clarify per-PR HACS/Container validation, manual HACS/HAOS acceptance and optional full HAOS restoration; add a user-facing quickstart.
 - Arabic implementation is intentionally deferred.
 
-## 0.9.18 — merged into main (28 October 2026)
+## 0.9.18 — 28 October 2026
 
 - Redesign the dashboard as one compact mosque/Next Salah/contextual Jamaat
   summary and a matching prayer timetable. Put Yesterday/Today/Tomorrow in the
@@ -32,7 +32,7 @@
   disable photography.
 - Refresh frontend resource/cache version, current dashboard documentation
   and responsive/browser/live Home Assistant tests.
-- Squash-merged [PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88)
+- Squash-merged earlier change
   into `main` at [`80b8017`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/80b80173bc45257cc46fd31e81dcbaff87ab97ed).
   [Validate](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
   and [CodeQL](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733)
@@ -98,7 +98,7 @@
 - Add separately locked minimum/current HA unit-suite environments, strict
   version checks and scheduled compatibility validation without changing the
   reproducible development/release lock.
-- Dashboard localization is the first part of Milestone 10. Integration-flow
+- Dashboard localization is the first part of prior development. Integration-flow
   translations, reviewed Arabic wording and physical-device acceptance remain separate.
 
 ## 0.8.1 — unreleased

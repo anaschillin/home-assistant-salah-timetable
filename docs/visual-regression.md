@@ -55,5 +55,5 @@ node scripts/compare_screenshots.mjs /tmp/salah-base /tmp/salah-current
 ```
 
 The images use synthetic fixture data. Physical Home Assistant acceptance
-on a phone/tablet, as described in [CSS acceptance](css-acceptance.md),
+on a phone/tablet, as described in [CSS acceptance](dashboard.md),
 remains a separate release gate.

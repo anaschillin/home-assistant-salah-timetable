@@ -1,6 +1,6 @@
 # Production code inventory and ownership
 
-This is the file-by-file map of the code shipped under `custom_components/salah_timetable/`. It complements [architecture](architecture.md), [integration contracts](integration-architecture.md) and the [test suite guide](testing.md).
+This is the file-by-file map of the code shipped under `custom_components/salah_timetable/`. It complements [architecture](architecture.md), [integration contracts](architecture.md) and the [test suite guide](testing.md).
 
 ## Home Assistant and executable entry points (package root)
 

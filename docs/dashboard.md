@@ -4,28 +4,9 @@ The **Salah Timetable** card is bundled with the integration. It uses the mosque
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
 template sensors or YAML configuration.
 
-## Preview
+## Current layout
 
-**Archived screenshot gallery:** These are historical 0.6.1 screenshots, not the current 0.9.19 design.
-They show synthetic data from an isolated Chromium fixture with Home Assistant
-control stand-ins; they do **not** illustrate the new unified liquid-glass
-summary, mosque selector, full-height photograph or footer day navigation.
-
-Archived fixture images: [0.6.1 mobile](images/card-mobile-0.6.1.png) ·
-[0.6.1 tablet](images/card-tablet-0.6.1.png) ·
-[0.5.1 mobile](images/card-mobile.png) ·
-[0.5.1 tablet](images/card-tablet.png)
-
-For current behavior, see the description below and
-[PR #88's validation](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961).
-Current-design screenshots should be added only after being reviewed against
-the exact committed version. PR visual-diff artifacts and locally captured
-Chromium screenshots provide reproducible visual evidence; screenshots in this
-archive are not a substitute for checking the installed card.
-
-The keyboard-operated Yesterday/Today/Tomorrow buttons and mosque selector
-restore focus after their display is rebuilt, so navigation does not unexpectedly
-return to the top of the dashboard.
+The card provides current-day and adjacent-day views, a multi-mosque header selector and keyboard-focus restoration after refreshes. Inspect the installed card or the frontend visual checks for its current appearance.
 
 ## Add the card
 
@@ -352,13 +333,13 @@ not recorded. That confirmation does not establish physical acceptance of the ne
 Fajr-end, Friday-khutbah, Hijri setup/options controls or Arabic/RTL presentation.
 HACS installation, restart and updates are also user-confirmed. Removal/reinstall
 was user-confirmed on 25 October, with environment and individual cleanup checks
-unrecorded; the full [HACS UI acceptance gate](hacs-removal-acceptance.md) remains
+unrecorded; the full [HACS UI acceptance gate](releasing.md) remains
 release work. Those earlier validations are historical. The merged 0.9.19 redesign in
-[PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88)
+earlier change
 passed [frontend, compatibility and live Home Assistant acceptance](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
 and [CodeQL](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733)
 before squash merge to `main` at `80b8017`. The maintainer approved the
 visual design; that does not replace a full version-specific physical-device,
 HACS removal/reinstallation or release acceptance record. See the
 [validation record](validation.md) and
-[Milestone 6](milestones.md#milestone-6--release-hardening-partially-implemented).
+[prior development](roadmap.md).

@@ -64,7 +64,7 @@ times.
 ## Validation
 
 The 0.9.18 card and its photo-framing/accessibility tests passed
-[PR #88 Validate](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
+[earlier change Validate](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
 and [CodeQL](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733).
 These are code and live Home Assistant acceptance checks, not an independent
 legal opinion or certification of every physical device.

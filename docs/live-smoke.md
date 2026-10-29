@@ -30,26 +30,6 @@ When a test environment uses a private outbound proxy CA, pass
 selected with `SSL_CERT_FILE`/`PIP_CERT`; normal TLS verification stays enabled.
 This opt-in trust setup is separate from preloading and supplies no package files.
 
-## Observed acceptance — 24 October 2026
-
-An earlier local 0.6.1 candidate passed 19 checks against HA 2026.10.0, with explicit
-locked-dependency preloading. Approved and pending imports, Ramadan options,
-entity IDs and resource registration survived restart. The actual card picker,
-keyboard title/focus, themes and phone/tablet viewports passed. Every display
-control was exercised; saved settings survived page reload, changed the rendered
-card, and preserved prayer data and Ramadan activation. See
-[validation](validation.md#peer-review-follow-up--candidate-061).
-The subsequent hosted live run
-[40131759984](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40131759984)
-passed HA 2026.10.0 and 2026.10.3, including per-toggle visible preview checks, on
-source tree `27aa4b9348bed4160550106c37919fe86f9c3bb3` (the same tree as main
-`c9b42f3`). It did not preload pypdf, but did not yet record before/after package
-provenance. The local 0.6.2 candidate then passed 20 checks on HA 2026.10.0 with strict fresh
-installation: metadata/import were absent in the base image and both matched
-`6.21.1` after setup. No package was preloaded. A combined CA bundle was mounted
-read-only for this environment's proxy, with TLS verification enabled. The new
-required hosted matrix still needs its own run for the final candidate commit.
-
 ## Readiness and reporting
 
 Wait for HA `RUNNING` before configuration and shutdown. After restart, wait for

@@ -1,4 +1,4 @@
-# REV-05 — Real Home Assistant backup-archive restore acceptance
+# Optional Home Assistant backup/restore acceptance
 
 **Status: optional full HAOS restore exercise, deferred (29 October 2026).** Reproducible
 tooling and passing disposable Home Assistant Container archive/restore checks

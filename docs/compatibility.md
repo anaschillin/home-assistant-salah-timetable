@@ -77,17 +77,3 @@ configuration, reload, and frontend behavior. These are complementary checks,
 not duplicates. Both reusable workflows can also run manually and on their
 existing weekly schedules.
 
-## Historical minimum-version CI hangs
-
-On 26 October 2026, some single-process minimum-version runs hung on hosted
-runners (see [issue #24](https://github.com/anaschillin/home-assistant-salah-timetable/issues/24)).
-[PR #23](https://github.com/anaschillin/home-assistant-salah-timetable/pull/23)
-fixed a frozen aiohttp-router fixture used by upload tests. Subsequent CI
-diagnostics also revealed multi-megabyte pytest parameter IDs that overwhelmed
-verbose GitHub Actions logging. The tests now use concise IDs without relaxing
-their large-payload assertions.
-
-The former four core shards plus dedicated source-flow shard were a temporary
-isolation strategy. The October 27 CI simplification returns to two complete
-suites, preserving version pins, runtime checks, coverage and watchdogs.
-Confirm the exact commit's hosted validation before merging or releasing.
