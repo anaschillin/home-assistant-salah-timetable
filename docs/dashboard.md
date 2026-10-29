@@ -240,7 +240,7 @@ Home Assistant determines each card's **parent column width**, and the card
 cannot paint outside that column or across a sidebar. To fill a wider dashboard
 canvas, place the card in a full-width section or panel view. Photographer
 credit stays with the centred content and links to the original photo. See
-[image credits and source links](mosque-background-credits.md).
+[image credits and source links](asset-provenance.json).
 
 These decorative backgrounds do not represent the currently configured mosque
 and cannot influence prayers, mosque identity, calculations or data imports.
@@ -328,9 +328,9 @@ release acceptance; see [releasing](releasing.md).
 ## Mosque photograph implementation and maintenance
 
 **Current behaviour:** The 20 locally bundled WebP
-photographs and their verified credits were reviewed during development and
-are included in the integration. See [the source and photographer credits](mosque-background-credits.md)
-and the [dashboard guide](dashboard.md#optional-mosque-photograph-backgrounds).
+photographs and their sources are catalogued in the integration and the
+machine-readable asset inventory. See the [asset provenance inventory](asset-provenance.json) and
+[display options](#optional-mosque-photograph-backgrounds).
 
 ### What the card does
 
@@ -366,7 +366,7 @@ and the [dashboard guide](dashboard.md#optional-mosque-photograph-backgrounds).
 The bundled images were sourced from reviewed **free Unsplash** photographs
 under the applicable Unsplash License. The card does not download images or
 fetch licensing metadata while running. See
-[credits and source pages](mosque-background-credits.md) and the
+[credits and source pages](asset-provenance.json) and the
 [machine-readable provenance inventory](asset-provenance.json). Additional
 photographs require individual attribution, source and redistribution-rights
 review before bundling; a search-result licence label is insufficient.

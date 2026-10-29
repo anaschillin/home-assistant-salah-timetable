@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "scope": "Repository test fixtures (PDF/CSV/JSON), tracked images, brand graphics, and bundled photo backgrounds; source code and generated distributions excluded.",
+  "scope": "Repository test fixtures (PDF/CSV/JSON), brand graphics and bundled photo backgrounds; source code, retired screenshots and generated distributions excluded.",
   "states": {
     "original_mit": "Original independently generated content under MIT",
     "permission_documented": "Permission evidenced",
@@ -175,38 +175,6 @@
       "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
       "evidence": "https://unsplash.com/photos/a-view-of-a-building-through-an-archway-LbRCic9i5JY",
       "sha256": "800ab5e6f641a43fa841026435307819d4396405cdbe2539f08bbd277af8d070"
-    },
-    {
-      "path": "docs/images/card-mobile-0.6.1.png",
-      "rights": "original_mit",
-      "owner": "Repository maintainer (origin attested 29 October 2026)",
-      "basis": "Screenshot generated from synthetic browser test fixture, as attested by the maintainer; no real mosque data included",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "289b2916deaa65140734328f3df1881534f2fd03138ab7ff62081ae77f2873d9"
-    },
-    {
-      "path": "docs/images/card-mobile.png",
-      "rights": "original_mit",
-      "owner": "Repository maintainer (origin attested 29 October 2026)",
-      "basis": "Screenshot generated from synthetic browser test fixture, as attested by the maintainer; no real mosque data included",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "ff45114265348ca3fdc4874e36d21cf819a7a76c0ebccd4e0d3a4a8e87e3d1c2"
-    },
-    {
-      "path": "docs/images/card-tablet-0.6.1.png",
-      "rights": "original_mit",
-      "owner": "Repository maintainer (origin attested 29 October 2026)",
-      "basis": "Screenshot generated from synthetic browser test fixture, as attested by the maintainer; no real mosque data included",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "7c4665fa9faafa784ec8efead2a2832cbddfcfb08f4adf0c421b70b60366445c"
-    },
-    {
-      "path": "docs/images/card-tablet.png",
-      "rights": "original_mit",
-      "owner": "Repository maintainer (origin attested 29 October 2026)",
-      "basis": "Screenshot generated from synthetic browser test fixture, as attested by the maintainer; no real mosque data included",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "14edc29c8c28a6aef91e36b19974856c14728dc2ae879013f3738ca9fc1c6a24"
     },
     {
       "path": "tests/fixtures/csv/annual.csv",

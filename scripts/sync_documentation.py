@@ -19,6 +19,7 @@ GUIDE_ROUTES = {
     "docs/calendar.md": "docs/automations.md#prayer-calendar",
     "docs/pdf_layouts.md": "docs/import_review.md#supported-pdf-layouts",
     "docs/ramadan_validation.md": "docs/import_review.md#ramadan-timetable-validation",
+    "docs/mosque-background-credits.md": "docs/asset-provenance.json",
     "docs/mosque-backgrounds.md": "docs/dashboard.md#mosque-photograph-implementation-and-maintenance",
     "docs/support.md": "docs/getting-started.md#support-and-compatibility-policy",
     "docs/module-inventory.md": "docs/architecture.md#production-module-inventory",

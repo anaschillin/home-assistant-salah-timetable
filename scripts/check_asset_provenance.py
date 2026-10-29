@@ -17,7 +17,6 @@ ROOT = Path(__file__).resolve().parents[1]
 INVENTORY = Path("docs/asset-provenance.json")
 ASSET_DIRS = (
     Path("tests/fixtures"),
-    Path("docs/images"),
     Path("custom_components/salah_timetable/brand"),
     Path("custom_components/salah_timetable/frontend"),
 )

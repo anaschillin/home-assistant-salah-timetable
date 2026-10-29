@@ -17,7 +17,6 @@ FRONTEND = ROOT / "custom_components/salah_timetable/frontend"
 TARGET = FRONTEND / "backgrounds"
 INVENTORY = ROOT / "docs/asset-provenance.json"
 MANIFEST = FRONTEND / "mosque-backgrounds.js"
-CREDITS = ROOT / "docs/mosque-background-credits.md"
 LICENSE_URL = "https://unsplash.com/license"
 MAX_DOWNLOAD_BYTES = 15_000_000
 MAX_WEBP_BYTES = 250_000
@@ -312,21 +311,7 @@ def main() -> None:
         print(f"{file.relative_to(ROOT)}: {len(webp)} bytes")
     update_manifest(items)
     update_provenance(items, checksums)
-    rows = [
-        "# Mosque photograph credits",
-        "",
-        "Photographs resized and converted to WebP for offline Home Assistant use.",
-        "All photographs were marked 'Free to use under the Unsplash License' on their source pages.",
-        f"License: {LICENSE_URL}",
-        "",
-        "| Mosque | Photographer | Original photograph |",
-        "|---|---|---|",
-    ]
-    for photo in PHOTOS:
-        rows.append(
-            f"| {photo['name']} ({photo['country']}) | {photo['photographer']} | [Unsplash]({photo['page']}) |"
-        )
-    CREDITS.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
 
 
 if __name__ == "__main__":
