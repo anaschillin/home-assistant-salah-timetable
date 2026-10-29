@@ -48,7 +48,9 @@ def test_repository_asset_inventory_is_complete():
     assert "tests/fixtures/csv/annual.csv" in paths
     assert "tests/fixtures/storage/v2_approved_pending.json" in paths
     assert all(asset.get("sha256") for asset in data["assets"])
-    originals = {asset["path"] for asset in data["assets"] if asset["rights"] == "original_mit"}
+    originals = {
+        asset["path"] for asset in data["assets"] if asset["rights"] == "original_mit"
+    }
     assert "custom_components/salah_timetable/brand/icon.png" in originals
     assert len(originals) == 17
 
