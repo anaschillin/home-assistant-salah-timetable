@@ -14,8 +14,38 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  changes:
+    name: Classify changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Detect Markdown-only pull request
+        id: classify
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            python3 scripts/ci_changed_files.py --base "$BASE_SHA" --head "$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo 'docs_only=false' >> "$GITHUB_OUTPUT"
+          fi
+
   analyze:
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     timeout-minutes: 30

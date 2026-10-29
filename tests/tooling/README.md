@@ -1,6 +1,6 @@
 # Quality, release, and inventory tests
 
-Protect distribution packaging, asset provenance, pinned compatibility checks, release preparation, and the test-suite inventory itself.
+Protect distribution packaging, asset provenance, pinned compatibility checks, release preparation, the test-suite inventory itself, and conservative CI change classification.
 
 ## Run just this area
 

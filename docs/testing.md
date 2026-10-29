@@ -4,7 +4,7 @@ Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.2<!-- /docs:pypdf --> (fro
 
 Validated against Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> (pinned current).
 
-This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 51 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
+This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 52 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
 
@@ -53,7 +53,7 @@ The suite is intentionally grouped at one domain level rather than making single
 
 `tests/tooling/test_suite_inventory.py` runs in normal pytest CI and fails if a Python/Node test module is missing from this inventory, a module is listed twice, the count is stale, or a category guide is absent. Whenever a module is added, moved, or removed, update the inventory table and relevant guide in the same PR.
 
-## Python test modules (51)
+## Python test modules (52)
 
 The files below are the complete set of pytest test modules. When adding a regression, extend the relevant existing module before introducing a second module for the same responsibility.
 
@@ -106,6 +106,7 @@ The files below are the complete set of pytest test modules. When adding a regre
 | | `test_storage_repairs.py` | Storage corruption and repair paths |
 | | `test_upgrade_recovery.py` | Older storage schemas and migration/recovery |
 | **tooling** | `test_asset_provenance.py` | Licensed asset metadata and release gate |
+| | `test_ci_changed_files.py` | Conservative Markdown-only CI classification and rename safety |
 | | `test_compatibility_environment.py` | Pinned HA/Python environment assertions |
 | | `test_packaging.py` | Release file inclusion/exclusion and version integrity |
 | | `test_release_preparation.py` | Release archive and notes preparation |
@@ -152,10 +153,15 @@ When computing a fixture path from a Python test inside a domain folder, use `Pa
 
 | CI entry | What is verified |
 | --- | --- |
-| `.github/workflows/validate.yml` | Full Python pytest suite with branch coverage reported, existing line-coverage gate, Ruff, Node frontend unit suite, Chromium screenshots, HACS/hassfest and packaging |
+| `.github/workflows/validate.yml` | Documentation integrity on every run; full Python pytest, coverage, Ruff, Node/Chromium, HACS/hassfest, packaging and HA checks for code PRs and all pushes to `main` |
+| `.github/workflows/codeql.yml` | Python/JavaScript security analysis on code PRs, all `main` pushes and weekly; superseded PR scans cancel |
 | `.github/workflows/unit-compatibility.yml` | **All recursively discovered Python test files**, in one pytest run on each pinned Home Assistant compatibility lane |
 | `.github/workflows/live-smoke.yml` | Real disposable HA Container onboarding/browser smoke (manual and weekly; reusable workflow) |
 | `.github/workflows/release.yml` | Tag, checksums, assets and release eligibility; not an alternative to functional testing |
+
+Pull requests changing **only Markdown files** (including shared excerpts) run the documentation integrity check but skip heavyweight Python/Node, HACS/hassfest, HA integration/compatibility and CodeQL analysis jobs. Any non-Markdown file—including code, configuration, workflow definitions or asset metadata—activates full validation. Every push to `main`, manual run and scheduled security/compatibility check retains the full checks; the draft-release requirement for a successful full `Validate` push run on the tagged commit is preserved.
+
+Workflow triggers are deliberately not filtered by `paths-ignore`: required checks could remain pending. Job-level skipping retains existing check names. The classifier uses a merge-base diff and includes the original path of renamed files to avoid bypassing code checks.
 
 Keep `pytest` discovery recursive and the Node glob aligned with file locations. Update any literal file references in workflows and documentation when renaming or moving tests. Run Ruff formatting after Python edits and retain the full-suite coverage gate: focused subsets are for diagnosis, not release evidence.
 
