@@ -1,6 +1,6 @@
 # Mosque photograph backgrounds
 
-**Current implementation: 0.9.18 on `main`.** The 20 locally bundled WebP
+**Current behaviour:** The 20 locally bundled WebP
 photographs and their verified credits were reviewed during development and
 are included in the integration. See [the source and photographer credits](mosque-background-credits.md)
 and the [dashboard guide](dashboard.md#optional-mosque-photograph-backgrounds).

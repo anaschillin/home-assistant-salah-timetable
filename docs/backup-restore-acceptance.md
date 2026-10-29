@@ -7,7 +7,7 @@ instance** has not been performed; the existing migration/per-entry storage
 checks are narrower and must not be represented as a full HAOS restore.
 The maintainer reports routine HAOS/HACS testing after PRs; this does not
 by itself establish that the particular full-backup restore below has passed. See the
-[release sign-off list](releasing.md#next-priorities-and-final-sign-off)
+[release sign-off list](releasing.md#current-release-readiness)
 for the current separation between required PR checks and this optional
 resilience check.
 
