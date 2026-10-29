@@ -72,6 +72,44 @@ class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    async def async_step_reconfigure(self, user_input=None):
+        """Reconfigure a mosque without changing its storage identity."""
+        entry = self._get_reconfigure_entry()
+        errors = {}
+        if user_input is not None:
+            name = user_input[CONF_NAME].strip()
+            zone = user_input[CONF_TIME_ZONE]
+            if not name or len(name) > 100:
+                errors[CONF_NAME] = "invalid_name"
+            if not valid_zone(zone):
+                errors[CONF_TIME_ZONE] = "invalid_time_zone"
+            if not errors:
+                # The stable mosque ID identifies stored timetables and entities.
+                await self.async_set_unique_id(entry.unique_id)
+                self._abort_if_unique_id_mismatch()
+                # The update listener handles reloading; avoid a second reload.
+                return self.async_update_and_abort(
+                    entry,
+                    title=name,
+                    data_updates={CONF_NAME: name, CONF_TIME_ZONE: zone},
+                    options={**entry.options, CONF_TIME_ZONE: zone},
+                )
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_NAME, default=entry.title): selector.TextSelector(),
+                    vol.Required(
+                        CONF_TIME_ZONE,
+                        default=entry.options.get(
+                            CONF_TIME_ZONE, entry.data[CONF_TIME_ZONE]
+                        ),
+                    ): selector.TextSelector(),
+                }
+            ),
+            errors=errors,
+        )
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
