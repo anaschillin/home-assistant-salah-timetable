@@ -696,10 +696,8 @@ async def test_remote_source_removal_failure_preserves_stored_profile(hass, entr
     assert entry.runtime_data.storage.remote_sources == existing
 
 
-async def test_unloaded_entry_cannot_initiate_source_checks(hass, entry):
+async def test_unloaded_entry_hides_source_check_action(hass, entry):
     result = await hass.config_entries.options.async_init(entry.entry_id)
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "check_updates"}
-    )
-    assert result["type"] == FlowResultType.ABORT
-    assert result["reason"] == "integration_not_loaded"
+    assert result["type"] == FlowResultType.MENU
+    assert "check_updates" not in result["menu_options"]
+    assert "manage_sources" not in result["menu_options"]
