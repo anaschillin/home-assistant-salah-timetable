@@ -3,6 +3,7 @@
 [![Validate](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml)
 [![Code coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fanaschillin%2Fhome-assistant-salah-timetable%2Fbadges%2Fcoverage.json)](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml)
 [![HACS validation](https://img.shields.io/github/check-runs/anaschillin/home-assistant-salah-timetable/main?nameFilter=hacs&label=HACS)](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml)
+[![Open Salah Timetable in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=anaschillin&repository=home-assistant-salah-timetable&category=integration)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Current integration version: **<!-- docs:version -->0.9.19<!-- /docs:version -->**.
