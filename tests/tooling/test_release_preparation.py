@@ -8,7 +8,7 @@ from zipfile import ZipFile
 import pytest
 
 from scripts.build_release import INTEGRATION, PROJECT_ROOT
-from scripts.prepare_release import prepare_release
+from scripts.prepare_release import prepare_release, release_notes
 
 
 @pytest.fixture
@@ -68,3 +68,11 @@ def test_missing_or_empty_notes_create_no_output(source, tmp_path, notes):
     with pytest.raises(ValueError, match="changelog section"):
         prepare_release(source, f"v{current}", output)
     assert not output.exists()
+
+
+def test_repository_changelog_current_version_has_release_notes():
+    """Catch version headings annotated with dates/status in the real changelog."""
+    current = version(PROJECT_ROOT)
+    notes = release_notes(PROJECT_ROOT, current)
+    assert notes.startswith(f"# Salah Timetable {current}\n")
+    assert len(notes.splitlines()) > 2

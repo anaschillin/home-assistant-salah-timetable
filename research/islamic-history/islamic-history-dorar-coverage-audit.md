@@ -8,7 +8,7 @@
 - We have **not** harvested the site's dataset. The presence of an official API is **not** permission to mirror the source database into this public open-source repository.
 - https://dorar.net/history/event/289: death of al-Husayn (RA) at Karbala, 10 Muharram 61 AH; day appears in event narrative.
 - https://dorar.net/history/event/122: Mu'tah, Jumada al-Ula 8 AH; source does **not** establish a particular day.
-- Original existing research candidates remain in `docs/islamic-history-candidates.json`, with no production approval implied.
+- Original existing research candidates remain in `research/islamic-history/islamic-history-candidates.json`, with no production approval implied.
 
 ## Important calendar correction
 365 is the count for a normal **Gregorian** year, not a Hijri year. A Hijri year has 354 or 355 days, while the calendar has 12 nominal months of up to 30 days (360 possible month-day keys). Each month has 29 or 30 actual days; whether day 30 exists depends on the calendar/year. The separate `islamic-history-day-coverage.json` enumerates all **360 possible Hijri month/day keys**, marking day 30 conditional. It is a research tracker, not an invented 365-event catalogue.
@@ -23,11 +23,11 @@
 - Focus the research first on Prophetic life, Sahabah through ~110 AH, and notable Sunni hadith transmitters and scholars thereafter.
 
 ## Roadmap
-1. Obtain **written permission** from Dorar for any bulk extraction, long-lived caching, redistribution or derivative event compilation; otherwise do not bulk fetch.
-2. Grow an **independently written**, manually verified event dataset from permitted historical factual references with pinpoint citations, preserving uncertainty.
-3. Audit exact-day and month-only records independently; each source claim needs per-entry editorial approval before runtime.
-4. Do not introduce network calls into the Home Assistant card or prayer engines.
-5. Track total researched dates, supported day-events, month-only entries, disputes, and unknown dates. **Never** use 365/365 as a misleading authenticity target.
+- Obtain **written permission** from Dorar for any bulk extraction, long-lived caching, redistribution or derivative event compilation; otherwise do not bulk fetch.
+- Grow an **independently written**, manually verified event dataset from permitted historical factual references with pinpoint citations, preserving uncertainty.
+- Audit exact-day and month-only records independently; each source claim needs per-entry editorial approval before runtime.
+- Do not introduce network calls into the Home Assistant card or prayer engines.
+- Track total researched dates, supported day-events, month-only entries, disputes, and unknown dates. **Never** use 365/365 as a misleading authenticity target.
 
 ## Coverage at creation
 - 360 possible Hijri date keys (12 × 30), day 30 in each month is conditional.

@@ -44,7 +44,7 @@ def test_repository_asset_inventory_is_complete():
     assert provenance.audit(provenance.ROOT, require_cleared=True) == []
     data = json.loads((provenance.ROOT / provenance.INVENTORY).read_text())
     paths = {asset["path"] for asset in data["assets"]}
-    assert len(paths) == 37
+    assert len(paths) == 33
     assert "tests/fixtures/csv/annual.csv" in paths
     assert "tests/fixtures/storage/v2_approved_pending.json" in paths
     assert all(asset.get("sha256") for asset in data["assets"])
@@ -52,7 +52,8 @@ def test_repository_asset_inventory_is_complete():
         asset["path"] for asset in data["assets"] if asset["rights"] == "original_mit"
     }
     assert "custom_components/salah_timetable/brand/icon.png" in originals
-    assert len(originals) == 17
+    assert len(originals) == 13
+    assert not any(path.startswith("docs/images/") for path in paths)
 
 
 def test_original_evidence_and_checksum_allow_strict_audit(sample_repo):

@@ -1,5 +1,9 @@
 # Test suite guide
 
+Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.2<!-- /docs:pypdf --> (from the integration manifest).
+
+Validated against Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> (pinned current).
+
 This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 51 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
@@ -127,9 +131,9 @@ The following 13 Node unit modules are discovered by `npm test` (`node --test te
 | `mosque-backgrounds.test.mjs` | Mosque background catalogue and metadata |
 | `visual-regression.test.mjs` | Screenshot comparison behaviour |
 
-`tests/frontend/browser-smoke.mjs` is a separately executed Chromium smoke test via `npm run test:browser` (it intentionally has no `.test.mjs` suffix). `tests/frontend/browser-harness.js` supplies the synthetic HA card environment used by that smoke test. The comparator is `scripts/compare_screenshots.mjs`; pull-request CI compares the base and candidate screenshots, and requires explicit approval for intentional pixel differences. See [visual regression](visual-regression.md).
+`tests/frontend/browser-smoke.mjs` is a separately executed Chromium smoke test via `npm run test:browser` (it intentionally has no `.test.mjs` suffix). `tests/frontend/browser-harness.js` supplies the synthetic HA card environment used by that smoke test. The comparator is `scripts/compare_screenshots.mjs`; pull-request CI compares the base and candidate screenshots, and requires explicit approval for intentional pixel differences. See [visual regression](testing.md#frontend-visual-regression).
 
-The separate, network-enabled `scripts/live_smoke.mjs` creates a **disposable real Home Assistant Container**, verifies onboarding, config entry and browser behaviour, and cleans up the environment. It is not an ordinary local Node unit test. See [live smoke](live-smoke.md). Real-device/HACS acceptance and full HAOS backup restoration remain separate release checks.
+The separate, network-enabled `scripts/live_smoke.mjs` creates a **disposable real Home Assistant Container**, verifies onboarding, config entry and browser behaviour, and cleans up the environment. It is not an ordinary local Node unit test. See [live smoke](testing.md#disposable-home-assistant-live-testing). Real-device/HACS acceptance and full HAOS backup restoration remain separate release checks.
 
 ## Fixtures, helpers and test data
 
@@ -161,3 +165,208 @@ Keep `pytest` discovery recursive and the Node glob aligned with file locations.
 4. A parser bug should normally receive a bounded fixture plus a parser regression; a config-flow bug should also prove review/approval where applicable. Add frontend unit and browser coverage for visible UI regressions.
 5. Prefer test doubles for external services; maintain at least the existing real-HA and Chromium smoke paths. Do not add network dependence to normal unit runs.
 6. Before proposing a merge, run focused tests, the full suites, Ruff and the relevant CI jobs, and update this inventory when creating/removing test modules.
+
+PDF worker white-box coverage supplements, but does not replace, real isolated-subprocess tests. Focused tests are not expected to meet full-suite coverage thresholds.
+
+## Compatibility test environments
+
+The root test lock and supported-current compatibility lane target Home Assistant
+**<!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->** in the root `pyproject.toml` and `uv.lock`. Two independent
+projects run the same complete Python suite against supported releases:
+
+| Lane | Home Assistant | Test plugin | Separate project |
+| --- | --- | --- | --- |
+| Minimum | <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> | <!-- docs:test_plugin_min -->0.13.371<!-- /docs:test_plugin_min --> | `compatibility/minimum` |
+| Supported current | <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> | <!-- docs:test_plugin_tested -->0.13.374<!-- /docs:test_plugin_tested --> | `compatibility/supported-current` |
+
+Each `pytest-homeassistant-custom-component` release requires its exact HA
+version. The compatibility projects preserve those requirements and resolve
+their own committed locks. They do not override dependencies or replace the
+root development environment. Python must be **<!-- docs:python_min -->3.14.2<!-- /docs:python_min --> or later in 3.14**.
+
+“Supported current” means the reviewed support target rather than the latest
+release available on PyPI. Promoting a newer Home Assistant/plugin pair
+requires an explicit support update and verification.
+
+### Run a lane locally
+
+Run these commands from the repository root, with uv 0.12.23 and Python 3.14
+available. `uv sync --project` creates the lane's own `.venv`; it leaves the
+repository's root `.venv` and lock unchanged. The explicit environment setting
+below also takes precedence over an inherited `UV_PROJECT_ENVIRONMENT`.
+The version variables come from the pinned compatibility project files.
+
+```sh
+source <(python3 scripts/sync_documentation.py --shell)
+COMPAT_ENV="$PWD/compatibility/minimum/.venv"
+COMPAT_TMPDIR="$(mktemp -d /tmp/salah-unit-minimum.XXXXXX)"
+UV_PROJECT_ENVIRONMENT="$COMPAT_ENV" TMPDIR="$COMPAT_TMPDIR" \
+  uv sync --project compatibility/minimum --frozen --python python3.14 --no-python-downloads
+TMPDIR="$COMPAT_TMPDIR" uv pip check --python "$COMPAT_ENV/bin/python"
+TMPDIR="$COMPAT_TMPDIR" "$COMPAT_ENV/bin/python" scripts/check_compatibility_environment.py \
+  --ha-version "$HA_MIN_VERSION" --plugin-version "$PLUGIN_MIN_VERSION" \
+  --environment "$COMPAT_ENV"
+TMPDIR="$COMPAT_TMPDIR" COVERAGE_FILE="$COMPAT_TMPDIR/.coverage" \
+  "$COMPAT_ENV/bin/python" -m pytest -c pyproject.toml --timeout=30
+```
+
+For the supported-current lane, use `compatibility/supported-current`,
+`--ha-version "$HA_TESTED_VERSION"` and `--plugin-version "$PLUGIN_TESTED_VERSION"`; use
+`salah-unit-supported-current.XXXXXX` in the temporary-directory command.
+Run concurrent lanes in separate shells with their own environment, temporary
+directory and coverage file. Home Assistant's file-upload tests use a directory
+under Python's system temporary directory, so sharing `/tmp` directly can cause
+collisions even when the virtual environments differ. The commands create a
+fresh temporary directory before starting Python. Do not reuse the root
+development environment for compatibility testing.
+
+The environment check fails unless the distribution metadata, imported HA
+version, plugin version, Python version and interpreter environment all match.
+Use the checked environment's explicit Python path for pytest. The root pytest
+configuration keeps imports and fixtures consistent while the tests exercise
+configuration, real storage migrations and recovery, imports, entities,
+automations, calendar behavior and frontend resource registration.
+
+### Continuous validation
+
+`Validate` calls the reusable `unit-compatibility.yml` workflow for **two
+jobs**, one per pinned Home Assistant release. Each job runs **all** `test_*.py`
+modules in a single pytest process, including the HTTP upload and source-flow
+tests; there are no four-way core shards or dedicated source-flow shard.
+Both jobs run even if the other fails.
+
+The runner discovers tests directly from `tests/` and records the exact module
+list, installed versions, installed packages, JUnit results, coverage XML and
+verbose pytest output. Version assertions, frozen dependency locks, per-test
+`--timeout=30`, the 12-minute process watchdog, the 15-minute job ceiling,
+and failure evidence collection are retained.
+
+The separately locked root development suite provides another layer of
+validation. The **one** real Home Assistant Container live-acceptance job runs
+on supported-current **<!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->**. Unit compatibility uses Home Assistant
+test fixtures; live acceptance checks real installation, dependencies,
+configuration, reload, and frontend behavior. These are complementary checks,
+not duplicates. Both reusable workflows can also run manually and on their
+existing weekly schedules.
+
+## Disposable Home Assistant live testing
+
+The runner is used by the required **supported-current HA <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->** live job
+in Validate and can also run manually. The reusable live workflow runs weekly as a
+compatibility check. It creates a
+disposable official HA container and synthetic timetable, runs authenticated APIs
+and the real frontend, and removes its container and private configuration afterward.
+No user configuration or credentials are checked into the repository.
+
+Requirements: Docker, Node.js 24 and Chromium/Chrome. Example:
+
+```sh
+source <(python3 scripts/sync_documentation.py --shell)
+node scripts/live_smoke.mjs --ha-version "$HA_TESTED_VERSION" --output-dir /tmp/salah-live-results
+```
+
+The optional `--preload-pypdf` supplies the exact manifest-pinned pure-Python
+package and metadata from the repository's development venv. It is an explicit
+workaround for the test environment's proxy CA, not proof that fresh dependency
+installation works. TLS verification remains enabled.
+The default omits this preload and lets HA resolve the manifest requirement.
+`--require-fresh-dependency` verifies that both pypdf metadata and import are absent
+in the base image and match the manifest pin after the mosque has loaded. It fails
+rather than treating a pre-existing/preloaded package as fresh-install evidence.
+CI uses this flag. The runner verifies before/after dependency versions, but
+public `results.json` records only boolean outcomes, including
+`dependency.fresh_install_verified`, to avoid copying raw API or process data.
+
+When a test environment uses a private outbound proxy CA, pass
+`--ca-bundle /path/to/combined-ca-bundle.pem`. The bundle is mounted read-only and
+selected with `SSL_CERT_FILE`/`PIP_CERT`; normal TLS verification stays enabled.
+This opt-in trust setup is separate from preloading and supplies no package files.
+
+### Readiness and reporting
+
+Wait for HA `RUNNING` before configuration and shutdown. After restart, wait for
+`RUNNING` and the specific mosque entry before checking timetable values. Terminal
+setup/migration errors fail separately. Polling retries refused/reset connections,
+transport timeouts and HTTP 502/503/504; authentication failures, incompatible APIs,
+invalid JSON and assertions fail immediately. A fixed loopback host port preserves
+the origin across restart. Browser startup uses bounded debugger discovery.
+
+`results.json` contains fixed acceptance check names, boolean dependency,
+restart and browser outcomes, the validated local source commit, and a generic
+failure marker directing reviewers to the job log. It deliberately does not
+persist raw HTTP responses, process output, image IDs, startup diagnostics,
+or untrusted exception messages. Runtime diagnostics remain visible in the runner
+logs, while screenshots can contain synthetic fixture values. Private
+configuration files and authenticated-session logs are not exported. The
+ten-minute run deadline and scoped cleanup remain mandatory. Docker creates/copies
+can take several minutes in this environment.
+
+The current runner supersedes an earlier unsuccessful attempt. Its restart timeout
+was unresolved then; it is not proof of a storage bug.
+Authenticated HACS installation remains outside this manual-install result.
+Physical-device completion is recorded separately as user-confirmed acceptance. Fresh dependency installation is now explicitly verified
+within the local 0.6.2 minimum-version run described above.
+
+### UTC midnight stability
+
+The disposable live-acceptance smoke creates synthetic annual records and confirms Ramadan for the current UTC day **and the following day**. Otherwise a real Home Assistant date rollover can deactivate a one-day Ramadan fixture while the card editor is being tested, making a valid preview falsely fail its visibility assertion. The December 31 boundary uses separate annual CSV imports for each year. The browser permits approved prayer timestamps to advance exactly one day while still checking Ramadan activation and the published prayer fields. See `scripts/live_dates.mjs` and `tests/frontend/live-dates.test.mjs`.
+
+## Frontend visual regression
+
+The Chromium smoke suite exercises 16 combinations: widths 320, 360, 400 and
+900 px; English and Arabic; single-language and bilingual prayer labels.
+It checks accessible semantics, overflow, RTL, calendar text, the editor,
+keyboard focus, styles, and theme variables before capturing each screenshot.
+
+On a **pull request**, the Validate workflow:
+
+1. Runs the candidate card in Chromium and captures 16 PNG screenshots.
+2. Checks out the **current base branch HEAD** in a separate directory.
+   The workflow logs the resolved baseline commit SHA for reproducibility.
+3. Runs the same browser smoke test on the base branch on the same CI runner,
+   ensuring the same installed Chrome and system fonts.
+4. Compares each candidate/base screenshot with
+   `node scripts/compare_screenshots.mjs BASE_DIR CURRENT_DIR`.
+   Dimensions must match. A pixel counts as changed only if one RGBA
+   channel differs by more than 16 (out of 255); greater than **0.5%**
+   changed pixels in any one fixture fails the frontend job.
+5. On failure, uploads the candidate and baseline PNGs in a
+   `frontend-visual-diff-<PR number>` artifact for human review. Approved
+   visual redesigns upload the same artifact even when comparison succeeds,
+   so reviewers can inspect the before/after evidence.
+
+PNG files are local CI evidence, not source-controlled brand or mosque
+fixtures. The decoder is dependency-free and accepts only bounded,
+8-bit RGB/RGBA, noninterlaced PNGs from the local Chromium capture.
+
+For deliberate visual redesigns (including changed card heights), inspect
+the screenshot artifact, document the expected changes in the PR and have a
+repository maintainer apply the `visual-change-approved` PR label. **Do not
+apply this label to ordinary CSS/behavior fixes or unrelated feature PRs.**
+The comparer still captures and decodes all 16 current/base screenshots,
+checks their presence and filenames, prints dimension/pixel changes and emits
+a GitHub Actions notice. Only an explicitly labelled PR may accept differences
+beyond 0.5% or intentionally changed dimensions. Without that label, the
+strict 0.5% threshold and dimension checks continue to fail unexpected changes.
+
+The label represents manual design approval, **not proof of accessibility or
+real-device acceptance**. Chromium overflow/RTL tests, frontend unit tests and
+Home Assistant acceptance still run and must pass. The label only approves
+the screenshot delta from the PR base. After merging the redesigned card, its
+images become the normal baseline for later PRs; remove or avoid the approval
+label on new unrelated changes. This does not raise the tolerance or disable
+comparisons. If the base branch changes while a review is in progress, rerun
+CI and record the resolved base SHA. Pushes to `main` still run browser smoke
+tests but cannot compare against a pull-request base branch.
+
+Run locally:
+
+```bash
+BROWSER_SCREENSHOT_DIR=/tmp/salah-current npm run test:browser
+# Run the same command with a second checkout and a different output directory.
+node scripts/compare_screenshots.mjs /tmp/salah-base /tmp/salah-current
+```
+
+The images use synthetic fixture data. Physical Home Assistant acceptance
+on a phone/tablet, as described in [CSS acceptance](dashboard.md),
+remains a separate release gate.

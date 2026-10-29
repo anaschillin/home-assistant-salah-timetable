@@ -1,8 +1,10 @@
 # Architecture
 
+Current integration version: <!-- docs:version -->0.9.19<!-- /docs:version -->.
+
 ## Boundaries
 
-The authoritative [production module inventory](module-inventory.md) lists every grouped Python module, stable Home Assistant entrypoint and frontend helper. There are no duplicate root modules or legacy import aliases.
+The authoritative [production module inventory](architecture.md#production-module-inventory) lists every grouped Python module, stable Home Assistant entrypoint and frontend helper. There are no duplicate root modules or legacy import aliases.
 
 - `config_flow.py`: mosque identity, UI creation, timezone/Ramadan options and import
   flow entry. Options updates preserve unrelated settings and reload the entry.
@@ -144,7 +146,7 @@ It records an explicitly recognized second-Jumu’ah khutbah footer separately i
 per-row original source metadata for Fridays; the footer **never** becomes a
 congregation event or changes the published Dhuhr beginning. The inspected
 MOSQUE_A monthly adapter applies the same separation. Printed Hijri cells never
-confirm Ramadan. See [PDF layouts](pdf_layouts.md).
+confirm Ramadan. See [PDF layouts](import_review.md#supported-pdf-layouts).
 
 `sources/source_model.py` holds immutable URL/parser profiles and allowlisted check metadata.
 `sources/source_updates.py` serializes manual and scheduled checks. A source comparison inside
@@ -237,7 +239,7 @@ on while a published instant is displayed. Start triggers retain the exact
 published timestamps; end triggers are calendar-only (not prayer duration).
 Queries include event-range overlaps, including across local midnight. The unique ID is
 `{mosque_id}_prayer_calendar`, linked to the existing mosque device. See
-[calendar behavior](calendar.md).
+[calendar behavior](automations.md#prayer-calendar).
 
 Optional blueprint policies remain separate from prayer calculations. Adhan controls
 choose user-owned media, volume and quiet hours. Volume restoration checks playback
@@ -261,8 +263,7 @@ countdown. The backend and card behavior have separate boundary tests.
 `frontend.py` registers the bundled directory at `/salah_timetable` through HA's
 asynchronous static-path API. For storage-mode Lovelace resources it creates or
 updates the integration's relative module URL, removes duplicate registrations and
-uses the `frontend.py` `CARD_VERSION` cache key (currently
-`?v=0.9.19`) for cache changes. For YAML resources it uses HA's extra-JavaScript
+uses the `frontend.py` `CARD_VERSION` cache key for cache changes. For YAML resources it uses HA's extra-JavaScript
 helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
 a resource-registration failure is logged without disabling valid prayer entities.
 
@@ -312,17 +313,11 @@ Node tests cover helpers, rendering, safe text and editor round trips. An isolat
 headless Chromium harness checks real custom-element rendering with HA element
 stand-ins, narrow layouts, theme changes and editor interactions. These checks do not
 prove installation in a live HA frontend or visual behavior on real phones/tablets.
-An earlier disposable HA 2026.10.2 manual-install smoke verified the actual frontend
-and editor, including a 0.5.0-to-0.5.1 resource upgrade. Candidate 0.6.1 also passed a
-manual-install smoke on the minimum HA 2026.10.0 version, including the actual card
-picker/editor and saved display options after page reload. That run explicitly
-preloaded the locked PDF dependency. The subsequent 0.6.2 minimum-version run passed
-20 checks, with before/after proof of fresh pinned dependency installation and no
-package preload. Physical-device checks were user-confirmed on 24 October 2026 for
-an installation whose version was not recorded, before 0.7.0. They do not establish
-physical acceptance of the later calendar, profiles, speaker controls, import review
-or dashboard additions. See the
-[validation record](validation.md) and [dashboard setup](dashboard.md).
+The real Home Assistant Container smoke job tests an installed integration, while
+Chromium tests also cover isolated card interactions. Neither replaces manual
+release acceptance on the exact version and relevant physical devices. See the
+[release checklist](releasing.md) and [dashboard guidance](dashboard.md).
+
 
 ## Remaining limitations
 
@@ -332,11 +327,91 @@ The live MOSQUE_A HTTPS source is unverified. DST gaps and ambiguous folds are r
 rather than guessed; explicit fold handling needs a separately reviewed source model.
 The calculated Hijri header is display-only; users explicitly confirm Ramadan.
 
-HACS installation, restart and updates are user-confirmed. Automated two-mosque
-config-entry removal/re-addition and real Home Assistant Container backup restoration
-have recorded coverage. Full HAOS/Supervisor restoration, actual HACS UI
-uninstall/reinstallation, asset redistribution rights and exact release-commit
-validation remain gates in the [single release checklist](releasing.md).
+HACS installation, restart and updates have been user-confirmed. Automated
+two-mosque config-entry removal/re-addition and Home Assistant Container backup
+restoration have coverage. Review the exact release commit, HACS UI scenarios
+and asset redistribution evidence before publication; full HAOS/Supervisor
+restoration remains optional and deferred as documented in the [release checklist](releasing.md).
 Invalid stored records already have actionable Repair guidance. Reproducible install
 archives and synchronized metadata/cache versions are checked by release tooling. Hosted GitHub validation must be checked before release; local
 tests and workflow definitions alone do not establish that it passed.
+
+## Production module inventory
+
+The inventory below maps the shipped `custom_components/salah_timetable/` modules to their responsibilities. For test ownership see [testing](testing.md).
+
+### Home Assistant and executable entry points (package root)
+
+These files stay at the package root because Home Assistant discovers them there, they contain public integration wiring, or (for `pdf_worker.py`) a direct subprocess invocation depends on that entry path.
+
+| File | Responsibility |
+| --- | --- |
+| `__init__.py` | Config-entry setup/unload, runtime data and device lifecycle |
+| `calendar.py` | Read-only calendar entities built from approved dates |
+| `config_flow.py` | HA configuration and options entrypoint |
+| `const.py` | Domain, storage version and configuration keys |
+| `diagnostics.py` | Privacy-conscious diagnostics export |
+| `frontend.py` | Serve the versioned dashboard resource and register it in HA |
+| `sensor.py` | Read-only sensor entities and dashboard attributes |
+| `pdf_worker.py` | Standalone bounded PDF extraction subprocess; invoked by absolute file path |
+
+### Grouped Python implementation
+
+| Directory | File | Responsibility |
+| --- | --- | --- |
+| `domain/` | `model.py` | Immutable prayer data, field enumeration and time parsing |
+| `domain/` | `ramadan.py` | Effective timetable and confirmed-date Ramadan overrides |
+| `domain/` | `ramadan_validation.py` | Validate Ramadan selections and review content |
+| `domain/` | `coverage.py` | Calculate supported approved date coverage |
+| `domain/` | `events.py` | Determine prayer and Jamaat events over time |
+| `domain/` | `presentation.py` | Serialize events for dashboard display |
+| `parsers/` | `import_model.py` | Import candidates, parser contracts and validation bounds |
+| `parsers/` | `csv_parser.py` | Bounded CSV parsing, date and column mapping |
+| `parsers/` | `pdf_parser.py` | PDF inspection, layout selection and sandboxed worker launch |
+| `parsers/` | `mosque_a_layout.py` | Mosque A annual publication adapter |
+| `parsers/` | `mosque_a_monthly_layout.py` | Mosque A monthly publication adapter |
+| `parsers/` | `mosque_b_annual_layout.py` | Mosque B annual publication adapter |
+| `parsers/` | `mosque_b_ramadan_layout.py` | Mosque B Ramadan publication adapter |
+| `imports/` | `import_flow.py` | Upload, mapping and approve/reject options flow |
+| `imports/` | `import_comparison.py` | Compare approved and staged canonical values |
+| `sources/` | `download.py` | Secure, bounded remote HTTPS fetch |
+| `sources/` | `source_model.py` | Remote publication URL/profile validation and metadata |
+| `sources/` | `source_flow.py` | Source configuration, inspection and management UI |
+| `sources/` | `source_updates.py` | Periodic and manual URL update checks, staging only |
+| `persistence/` | `storage.py` | Versioned per-entry approved/staged records and atomic writes |
+| `runtime/` | `coordinator.py` | HA snapshot refresh, current dates, events and timers |
+
+Each implementation directory has an `__init__.py`. Other production Python modules should import **the new grouped path** (for example, `from .domain.model import PrayerField` at root, or `from ..domain.model import PrayerField` from inside a sibling package). Use relative paths within the same directory.
+
+#### Single canonical location
+
+No duplicate Python modules or compatibility aliases are retained at the package root. The 21 relocated modules live **only** in their listed subfolders; former root imports such as `custom_components.salah_timetable.model` must be changed to `custom_components.salah_timetable.domain.model`. All tests and mocks use these canonical locations. A packaging test rejects extra root Python files or missing grouped modules.
+
+The standalone `pdf_worker.py` deliberately remains at root. The relocated `parsers/pdf_parser.py` resolves that worker's absolute path; its `python -I` subprocess boundary and resource limits are unchanged.
+
+### Bundled frontend, metadata and assets
+
+| Path | Responsibility |
+| --- | --- |
+| `frontend/salah-timetable-card.js` | Custom card and editor entrypoint, registered at its existing public URL |
+| `frontend/card-utils.js` | Pure timestamp, time formatting and card model helpers |
+| `frontend/history-utils.js` | Islamic history/date helper functions |
+| `frontend/card-i18n.js` | Localized client-side labels |
+| `frontend/card-styles.js` | Dashboard CSS and layout tokens |
+| `frontend/mosque-backgrounds.js` | Background catalog and selection logic |
+| `frontend/backgrounds/*.webp` | Attributed bundled mosque images; see [provenance inventory](asset-provenance.json) |
+| `brand/icon.png` | Integration icon |
+| `manifest.json` | HACS and HA integration metadata/dependencies |
+| `strings.json`, `translations/en.json` | HA config and options UI localization |
+
+The card's JavaScript imports remain in their existing relative locations to preserve the versioned static asset URL, browser cache behaviour, HACS packaging and frontend tests. Do not move these files without updating JS imports, frontend resource registration, release validation and browser tests together.
+
+### Dependency and maintenance rules
+
+- **Domain** code should remain independent of Home Assistant, downloads and persistent storage; write deterministic unit tests in `tests/core/`, `tests/calendar/` or `tests/ramadan/`.
+- **Parsers** convert bounded PDFs/CSVs into immutable candidates; add layout tests in `tests/parsers/` and staged import scenarios in `tests/imports/`.
+- **Imports and sources** own user approval and URL management, respectively. A remote check may only stage changes; it must not silently activate them. Tests belong in `tests/imports/` and `tests/sources/`.
+- **Persistence** alone updates approved/staged records and enforces revision checks. Test in `tests/storage/`.
+- **Runtime and entry points** translate approved data into HA state, entities and refresh schedules; test in `tests/core/`, `tests/calendar/` and `tests/frontend/`.
+- **Frontend** UI assets stay under `frontend/`. Preserve module import query versions and run Node tests, browser tests, packaging tests and asset provenance validation when changing them.
+- Add any new implementation to the appropriate folder and this inventory. Keep public Home Assistant entrypoints at the root; do not add another root implementation module by default.

@@ -11,5 +11,5 @@ will assess reports on a best-effort basis; no response-time guarantee is offere
 
 The current candidate is the maintained development version. Older snapshots do
 not have a separate long-term security maintenance commitment. See
-[compatibility and support](docs/support.md) for the tested platforms and source
+[compatibility and support](docs/getting-started.md#support-and-compatibility-policy) for the tested platforms and source
 limitations.

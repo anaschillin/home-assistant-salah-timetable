@@ -15,14 +15,19 @@ concurrency:
 
 jobs:
   live-smoke:
-    name: Home Assistant 2026.10.3
+    name: Home Assistant supported-current
     runs-on: ubuntu-24.04
     timeout-minutes: 25
-    env:
-      HA_VERSION: '2026.10.3'
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Derive supported-current version from compatibility project
+        id: versions
+        shell: bash
+        run: |
+          source <(python3 scripts/sync_documentation.py --shell)
+          echo "HA_VERSION=$HA_TESTED_VERSION" >> "$GITHUB_ENV"
+          echo "version=$HA_TESTED_VERSION" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -58,7 +63,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: ha-live-smoke-2026.10.3
+          name: ha-live-smoke-${{ steps.versions.outputs.version }}
           path: ${{ runner.temp }}/salah-live-results/
           if-no-files-found: ignore
           retention-days: 7

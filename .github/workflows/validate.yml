@@ -27,6 +27,7 @@ jobs:
         with:
           version: '0.12.23'
       - run: uv sync --frozen --group dev
+      - run: python scripts/sync_documentation.py --check
       - run: python scripts/check_asset_provenance.py
       - name: Run Ruff formatter on modified Python files
         run: uv run --frozen ruff format scripts/check_coverage.py tests/parsers/test_pdf_worker_unit.py

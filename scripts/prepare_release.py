@@ -24,7 +24,7 @@ def release_notes(root: Path, version: str) -> str:
     """Read only the requested changelog section, excluding older versions."""
     content = (root / "CHANGELOG.md").read_text(encoding="utf-8")
     lines = content.splitlines()
-    heading = re.compile(rf"## {re.escape(version)}(?:\s+—\s+unreleased)?\s*")
+    heading = re.compile(rf"## {re.escape(version)}(?:\s+—[^\n]*)?\s*")
     start = next(
         (index + 1 for index, line in enumerate(lines) if heading.fullmatch(line)),
         None,
