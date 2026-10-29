@@ -15,7 +15,41 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  changes:
+    name: Classify changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Detect Markdown-only pull request
+        id: classify
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            python3 scripts/ci_changed_files.py --base "$BASE_SHA" --head "$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo 'docs_only=false' >> "$GITHUB_OUTPUT"
+          fi
+
+  docs:
+    name: Documentation integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: python3 scripts/sync_documentation.py --check
+
   tests:
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -27,7 +61,6 @@ jobs:
         with:
           version: '0.12.23'
       - run: uv sync --frozen --group dev
-      - run: python scripts/sync_documentation.py --check
       - run: python scripts/check_asset_provenance.py
       - name: Run Ruff formatter on modified Python files
         run: uv run --frozen ruff format scripts/check_coverage.py tests/parsers/test_pdf_worker_unit.py
@@ -48,6 +81,8 @@ jobs:
           retention-days: 14
 
   frontend:
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -106,6 +141,8 @@ jobs:
           retention-days: 7
 
   hassfest:
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -113,6 +150,8 @@ jobs:
       - uses: home-assistant/actions/hassfest@86d4564712fa02543c808e3a693dd04f9d3f8361
 
   hacs:
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -123,12 +162,16 @@ jobs:
           comment: false
 
   homeassistant-integration:
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     name: Home Assistant live acceptance
     uses: ./.github/workflows/live-smoke.yml
     permissions:
       contents: read
 
   homeassistant-unit-compatibility:
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     name: Home Assistant unit compatibility
     uses: ./.github/workflows/unit-compatibility.yml
     permissions:
