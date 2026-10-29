@@ -872,3 +872,74 @@ async def test_staged_download_storage_failure_never_changes_approved_data(manag
     assert manager._runtime_error == "storage_failed"
     assert manager.storage.staged is None
     assert manager.storage.timetables == ()
+
+
+async def test_stopped_manager_ignores_profile_notifications(manager):
+    await manager.async_stop()
+    manager.source_profiles_changed()
+    manager.coordinator.async_update_listeners.assert_not_called()
+    assert manager._scheduled_for is None
+
+
+async def test_source_manager_stopping_during_storage_load_skips_download(manager):
+    async def stop_during_load():
+        manager._stopped = True
+
+    with (
+        patch.object(manager.storage, "async_load", AsyncMock(side_effect=stop_during_load)),
+        patch(
+            "custom_components.salah_timetable.sources.source_updates.download.async_download",
+            AsyncMock(),
+        ) as fetch,
+    ):
+        await manager._async_run_checks(None)
+    fetch.assert_not_awaited()
+    assert manager.storage.staged is None
+
+
+async def test_source_manager_stopping_during_download_discards_result(manager):
+    async def stop_during_download(*_args, **_kwargs):
+        manager._stopped = True
+        return response()
+
+    with patch(
+        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        stop_during_download,
+    ):
+        await manager.async_check_all()
+    assert manager.storage.staged is None
+    assert manager.storage.timetables == ()
+
+
+async def test_source_manager_handles_storage_failure_after_download(manager):
+    with (
+        patch.object(
+            manager.storage,
+            "async_load",
+            AsyncMock(side_effect=[None, OSError("storage failed")]),
+        ),
+        patch(
+            "custom_components.salah_timetable.sources.source_updates.download.async_download",
+            AsyncMock(return_value=response()),
+        ),
+    ):
+        await manager.async_check_all()
+    assert manager._runtime_error == "storage_failed"
+    assert manager.status["status"] == "error"
+    assert manager.storage.staged is None
+
+
+async def test_pending_staging_collision_does_not_replace_approval(manager):
+    from custom_components.salah_timetable.persistence.storage import PendingImportError
+
+    with patch.object(
+        manager.storage,
+        "async_stage",
+        AsyncMock(side_effect=PendingImportError("another import is being reviewed")),
+    ):
+        await manager._async_stage_downloaded_source(
+            source(), response(), "2026-10-21T12:00:00+00:00"
+        )
+    assert manager.storage.staged is None
+    assert manager.storage.remote_checks[source().source_id]["status"] == "pending"
+    assert manager.storage.timetables == ()
