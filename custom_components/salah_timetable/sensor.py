@@ -12,6 +12,9 @@ from .const import CONF_SHOW_HIJRI_DATE, DOMAIN
 from .domain.model import PrayerField
 from .domain.presentation import dashboard_attributes
 
+# Sensors use coordinator snapshots; no per-entity I/O needs throttling.
+PARALLEL_UPDATES = 0
+
 DESCRIPTIONS = tuple(
     SensorEntityDescription(
         key=field.value,
