@@ -468,3 +468,42 @@ def test_review_summary_handles_optional_publication_context():
     assert "Verified publication" not in plain
     assert prefixed.startswith("Verified publication")
     assert plain in prefixed
+
+
+async def test_source_specific_review_error_prevents_approval(hass, entry):
+    from custom_components.salah_timetable.imports.import_flow import (
+        CsvImportOptionsFlow,
+    )
+
+    storage = await loaded(hass, entry)
+    await storage.async_stage(candidate())
+    form = await open_review(hass, entry)
+    with patch.object(
+        CsvImportOptionsFlow,
+        "_review_source_context",
+        return_value=("", "invalid_csv"),
+    ):
+        result = await choose(hass, form, "approve")
+    assert result["step_id"] == "review"
+    assert result["errors"] == {"base": "invalid_csv"}
+    assert storage.timetables == ()
+    assert storage.staged is not None
+
+
+async def test_comparison_warns_when_source_specific_review_changes(hass, entry):
+    from custom_components.salah_timetable.imports.import_flow import (
+        CsvImportOptionsFlow,
+    )
+
+    storage = await loaded(hass, entry)
+    await storage.async_stage(candidate())
+    form = await open_review(hass, entry)
+    with patch.object(
+        CsvImportOptionsFlow,
+        "_review_source_context",
+        return_value=("", "invalid_csv"),
+    ):
+        result = await compare(hass, form)
+    assert result["step_id"] == "compare"
+    assert result["errors"] == {"base": "invalid_csv"}
+    assert storage.staged is not None
