@@ -17,6 +17,7 @@ REQUIRED_FILES = {
     "manifest.json",
     "config_flow.py",
     "strings.json",
+    "icons.json",
     "translations/en.json",
     "frontend.py",
     "frontend/salah-timetable-card.js",
@@ -109,6 +110,7 @@ def release_files(root: Path) -> list[tuple[str, Path]]:
             include = path.suffix == ".py" or relative.name in {
                 "manifest.json",
                 "strings.json",
+                "icons.json",
             }
         else:
             include = path.suffix in ASSET_SUFFIXES.get(relative.parts[0], set())
