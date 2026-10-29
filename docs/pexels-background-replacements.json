@@ -1,0 +1,129 @@
+{
+  "description": "User-selected Pexels source pages for 20 existing mosque background replacements and two new entries. Photos have not yet been downloaded, bundled, or verified; original binary images and credits remain unchanged.",
+  "license_url": "https://www.pexels.com/license/",
+  "status": "pending_binary_import",
+  "replacements": [
+    {
+      "id": "masjid-al-haram",
+      "source_url": "https://www.pexels.com/photo/al-kaba-mosque-in-mecca-26436662/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "masjid-an-nabawi",
+      "source_url": "https://www.pexels.com/photo/aerial-view-of-city-buildings-4321694/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "sheikh-zayed-grand-mosque",
+      "source_url": "https://www.pexels.com/photo/the-sheikh-zayed-grand-mosque-at-night-13299493/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "sultan-ahmed-mosque",
+      "source_url": "https://www.pexels.com/photo/the-blue-mosque-at-night-with-lights-on-28141981/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "badshahi-mosque",
+      "source_url": "https://www.pexels.com/photo/badshahi-mosque-in-lahore-in-pakistan-12912453/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "hassan-ii-mosque",
+      "source_url": "https://www.pexels.com/photo/hassan-ii-mosque-in-casablanca-morocco-19615125/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "great-mosque-of-kairouan",
+      "source_url": "https://www.pexels.com/photo/ancient-fortress-walls-in-historic-kairouan-38583623/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "baiturrahman-grand-mosque",
+      "source_url": "https://www.pexels.com/photo/baiturrahman-grand-mosque-in-banda-aceh-36771959/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "shah-faisal-mosque",
+      "previous_id": "faisal-mosque",
+      "source_url": "https://www.pexels.com/photo/shah-faisal-mosque-in-pakistan-15817294/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "wazir-khan-mosque",
+      "source_url": "https://www.pexels.com/photo/exquisite-mughal-architecture-with-ornate-details-35743843/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "suleymaniye-mosque",
+      "source_url": "https://www.pexels.com/photo/suleymaniye-mosque-at-sunset-in-istanbul-37075910/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "hagia-sophia-grand-mosque",
+      "source_url": "https://www.pexels.com/photo/medieval-mosque-in-istanbul-city-6152260/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "al-azhar-mosque",
+      "source_url": "https://www.pexels.com/photo/al-azhar-mosque-in-cairo-18991579/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "muhammad-ali-mosque",
+      "source_url": "https://www.pexels.com/photo/mosque-with-dome-roof-10559165/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "koutoubia-mosque",
+      "source_url": "https://www.pexels.com/photo/beige-concrete-building-under-blue-sky-5823788/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "mosque-cathedral-cordoba",
+      "source_url": "https://www.pexels.com/photo/roman-bridge-over-guadalquivir-river-in-cordoba-7556483/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "jama-masjid-delhi",
+      "source_url": "https://www.pexels.com/photo/a-mosque-in-delhi-16068377/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "omar-ali-saifuddien-mosque",
+      "source_url": "https://www.pexels.com/photo/omar-ali-saifuddien-mosque-at-sunrise-reflection-34787043/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "national-mosque-malaysia",
+      "source_url": "https://www.pexels.com/photo/picturesque-sunset-over-lake-with-mosque-on-shore-4315621/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "al-qibli-mosque",
+      "source_url": "https://www.pexels.com/photo/the-al-aqsa-mosque-in-jerusalem-11566548/",
+      "status": "pending_download_and_verification"
+    },
+    {
+      "id": "al-jabbar-grand-mosque",
+      "source_url": "https://www.pexels.com/photo/modern-islamic-mosque-interior-with-geometric-patterns-40410052/",
+      "status": "pending_download_and_verification",
+      "addition": true
+    },
+    {
+      "id": "camlica-mosque",
+      "source_url": "https://www.pexels.com/photo/camlica-mosque-in-turkey-12651496/",
+      "status": "pending_download_and_verification",
+      "addition": true
+    }
+  ],
+  "encoding": {
+    "format": "WebP",
+    "lossless": true,
+    "encoder_method": 6,
+    "resize": "none",
+    "output_size_limit": "none",
+    "source_resolution": "preserve original dimensions",
+    "note": "Use the highest-resolution source available. Lossless WebP preserves decoded source pixels without additional lossy compression. Existing bundled images are not yet replaced."
+  }
+}
