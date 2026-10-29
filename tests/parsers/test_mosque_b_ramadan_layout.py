@@ -134,8 +134,11 @@ def test_ramadan_rejects_missing_footer_and_extra_dated_row(pages):
     changed = list(pages)
     lines = changed[-1].splitlines()
     footer = next(i for i, line in enumerate(lines) if line.startswith(_SITE))
-    incomplete = lines[:footer]
-    incomplete[0] = "www.synthetic.example"  # Satisfy page identity, not footer.
+    # Preserve the separately printed year and heading, while removing the
+    # structural website footer after the dated rows.
+    incomplete = lines.copy()
+    incomplete[0] = "www.synthetic.example"
+    incomplete[footer] = "Missing structural website footer"
     changed[-1] = "\n".join(incomplete)
     with pytest.raises(ImportValidationError, match="footer is missing"):
         MosqueBRamadanLayout().to_csv(tuple(changed))
