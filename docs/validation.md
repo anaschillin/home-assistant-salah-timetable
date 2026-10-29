@@ -5,6 +5,16 @@ acceptance checklist. See [remaining work](remaining-work.md) for engineering
 priorities and [release readiness](releasing.md#current-release-readiness) for
 blocking manual sign-offs.
 
+## 29 October 2026 review and maintainer-provenance update (pending PR validation)
+
+At `main` commit `6d052a8`, [Validate 40829918627](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40829918627) passed 996 Python tests (96.86% line and 92.15% diagnostic branch coverage), 154 Node unit tests and 17 Chromium checks, along with HACS repository validation, Hassfest, HA 2026.10.0/2026.10.3 full compatibility suites and a HA 2026.10.3 live Container acceptance run. These figures describe the **pre-change baseline**, not this PR's yet-to-run checks.
+
+The maintainer confirmed on 29 October that the current PDF test fixtures do not contain original redistributed publisher PDFs, the bundled brand icon was AI-generated for the project, and the four checked-in documentation screenshots came from synthetic test runs. The inventory records this **maintainer attestation** without removing SHA-256 verification or the strict draft-release gate. It does not establish rights for historical Git commits or independently authenticate any image-origin claim.
+
+The maintainer also reports checking HACS and HAOS after completed PRs. Those manual practices are separate from the automated HACS repository validator and Home Assistant Container live smoke run; a full HAOS/Supervisor backup restore has **not** been independently confirmed here and remains an optional separate resilience exercise. Arabic localization work is intentionally deferred.
+
+This follow-up branch introduces keyboard-focus restoration, a browser regression, dependency pin consistency, obsolete CSS selector removal and clearer setup/support documentation. The change's exact-commit test results will be recorded once hosted CI completes.
+
 ## 0.9.18 dashboard redesign — 28 October 2026 (merged)
 
 The maintainer reviewed the revised liquid-glass timetable and photo

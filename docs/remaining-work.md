@@ -63,6 +63,17 @@ Baseline: [main at 7913789](https://github.com/anaschillin/home-assistant-salah-
 
 **First implementation batch:** CR27-01, CR27-02 and CR27-03 implemented in [PR #66](https://github.com/anaschillin/home-assistant-salah-timetable/pull/66). Source removal now explicitly recalculates the check timer, with a regression test. Calendar cache behaviour was verified by existing tests and an added replacement/year-rollover regression test; no production cache change was needed. Frontend component-loaded listener now unregisters on Home Assistant shutdown, covered by a lifecycle regression test. Maintainer reports CI passed after Ruff formatting correction. This does not replace manual HA acceptance.
 
+## 29 October review follow-up (implementation branch)
+
+- [x] Retain canonical grouped modules and remove unused CSS for retired mosque tab strip
+- [x] Preserve focused date-navigation buttons and the mosque selector after Shadow DOM replacement; add native Chromium regression checks
+- [x] Align the Home Assistant manifest's `pypdf` runtime dependency with the pinned test environments (6.21.2)
+- [x] Record maintainer origin attestation for the AI-generated brand icon and synthetic test screenshots; preserve checksums and the strict provenance gate
+- [x] Refresh current HA compatibility statements and provide a short public quickstart/troubleshooting guide
+- [x] Distinguish per-PR HACS repository/HA Container CI from maintainer HACS/HAOS manual checks; keep full HAOS restore optional and separately documented
+- [ ] Confirm this branch's hosted CI and PR review before merging
+- **Deferred by maintainer:** additional Arabic localization and Milestone 10B are not part of this review-fix branch
+
 ## Next development priorities
 
 1. **Milestone 10B — Home Assistant integration translations.**
