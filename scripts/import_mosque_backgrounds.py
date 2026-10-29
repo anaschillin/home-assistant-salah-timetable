@@ -268,10 +268,7 @@ def main() -> None:
         if file.is_file():
             # Preserve previously bundled assets until their sources are replaced.
             webp = file.read_bytes()
-            if (
-                webp[:4] != b"RIFF"
-                or webp[8:12] != b"WEBP"
-            ):
+            if webp[:4] != b"RIFF" or webp[8:12] != b"WEBP":
                 raise ValueError(f"Invalid existing background: {photo['id']}")
         else:
             webp = optimise(fetch_image(photo))
