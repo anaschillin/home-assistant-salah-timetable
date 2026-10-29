@@ -45,7 +45,7 @@ ha-card.has-mosque-background .content { position: relative; z-index: 1; }
   border-radius: 12px;
   margin: 0 0 16px;
 }
-.date-tab,.mosque-tab {
+.date-tab {
   border: 0;
   border-radius: 9px;
   font: inherit;
@@ -57,11 +57,11 @@ ha-card.has-mosque-background .content { position: relative; z-index: 1; }
 .date-tab {
   padding: 10px 5px;
 }
-.date-tab[aria-pressed="true"],.mosque-tab[aria-pressed="true"] {
+.date-tab[aria-pressed="true"] {
   background: var(--primary-color);
   color: var(--text-primary-color,#fff);
 }
-.date-tab:focus-visible,.mosque-tab:focus-visible {
+.date-tab:focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
@@ -70,19 +70,6 @@ ha-card.has-mosque-background .content { position: relative; z-index: 1; }
   font-weight: 600;
   color: var(--secondary-text-color);
   margin-bottom: 12px;
-}
-.mosque-tabs {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  margin: 0 0 16px;
-  padding: 4px;
-  border-radius: 12px;
-  background: var(--secondary-background-color);
-}
-.mosque-tab {
-  flex: 1 0 auto;
-  padding: 10px 14px;
 }
 .prayer-panel {
   gap: 8px;

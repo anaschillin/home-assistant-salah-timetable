@@ -1,7 +1,7 @@
 # Home Assistant compatibility unit tests
 
 The development and release environment stays locked to Home Assistant
-**2026.10.2** in the root `pyproject.toml` and `uv.lock`. Two independent
+**2026.10.3** in the root `pyproject.toml` and `uv.lock`. Two independent
 projects run the same complete Python suite against supported releases:
 
 | Lane | Home Assistant | Test plugin | Separate project |

@@ -1,7 +1,7 @@
 /** Real-browser fixture: native shadow DOM/CSS with small HA control stand-ins. */
-import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.18";
-import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.18";
-import {formatDate, formatHijriDate, hijriMonthInfo} from "/custom_components/salah_timetable/frontend/card-utils.js?v=0.9.18";
+import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.19";
+import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.19";
+import {formatDate, formatHijriDate, hijriMonthInfo} from "/custom_components/salah_timetable/frontend/card-utils.js?v=0.9.19";
 
 class Selector extends HTMLElement {
   constructor() {
@@ -133,6 +133,15 @@ try {
       current.querySelector(".timetable-shell").getBoundingClientRect().bottom <=
         current.getBoundingClientRect().bottom + 1);
   }
+  // Date navigation re-creates its buttons; keyboard focus must follow the selected day.
+  for (const index of [2, 0, 1]) {
+    const button = card.shadowRoot.querySelectorAll(".date-tab")[index];
+    button.focus();
+    button.click();
+    const replacement = card.shadowRoot.querySelectorAll(".date-tab")[index];
+    check(`date navigation retains keyboard focus on tab ${index}`, card.shadowRoot.activeElement === replacement && replacement.getAttribute("aria-pressed") === "true");
+  }
+  card.shadowRoot.activeElement?.blur();
   // Reproduce a disappearing browser/dashboard scrollbar: a small width
   // change after Today is selected must NOT discard the original photo frame.
   const widthBeforeScrollbar = card.getBoundingClientRect().width;

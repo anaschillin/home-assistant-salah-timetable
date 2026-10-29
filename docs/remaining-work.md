@@ -1,9 +1,10 @@
 # Remaining development work
 
 This is the **feature and engineering backlog**, not a release checklist.
-The current merged card/integration version on `main` is **0.9.18** (squash
+The last merged dashboard redesign was **0.9.18** (squash
 merge of [PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88),
 commit [`80b8017`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/80b80173bc45257cc46fd31e81dcbaff87ab97ed)).
+The 29 October maintenance/focus changes target **0.9.19** on a review branch.
 For release-blocking and version-specific acceptance, use
 [releasing.md](releasing.md#current-release-readiness).
 
@@ -62,6 +63,17 @@ Baseline: [main at 7913789](https://github.com/anaschillin/home-assistant-salah-
 **CR27-04 review (27 October):** Scheduling design audited; no performance benchmark was collected, so optimisation remains a separate potential task. Keep both scheduling mechanisms. Event-boundary callbacks provide timely transitions, while the one-minute coordinator fallback recovers from clock changes, delayed callbacks and other timing drift. Coverage is cached by day, approved tables and Ramadan settings. No cadence change without performance measurements and boundary/DST regression evidence; the audit is complete, but optimisation remains conditional.
 
 **First implementation batch:** CR27-01, CR27-02 and CR27-03 implemented in [PR #66](https://github.com/anaschillin/home-assistant-salah-timetable/pull/66). Source removal now explicitly recalculates the check timer, with a regression test. Calendar cache behaviour was verified by existing tests and an added replacement/year-rollover regression test; no production cache change was needed. Frontend component-loaded listener now unregisters on Home Assistant shutdown, covered by a lifecycle regression test. Maintainer reports CI passed after Ruff formatting correction. This does not replace manual HA acceptance.
+
+## 29 October review follow-up (implementation branch)
+
+- [x] Retain canonical grouped modules and remove unused CSS for retired mosque tab strip
+- [x] Preserve focused date-navigation buttons and the mosque selector after Shadow DOM replacement; add native Chromium regression checks
+- [x] Align the Home Assistant manifest's `pypdf` runtime dependency with the pinned test environments (6.21.2)
+- [x] Record maintainer origin attestation for the AI-generated brand icon and synthetic test screenshots; preserve checksums and the strict provenance gate
+- [x] Refresh current HA compatibility statements and provide a short public quickstart/troubleshooting guide
+- [x] Distinguish per-PR HACS repository/HA Container CI from maintainer HACS/HAOS manual checks; keep full HAOS restore optional and separately documented
+- [ ] Confirm this branch's hosted CI and PR review before merging
+- **Deferred by maintainer:** additional Arabic localization and Milestone 10B are not part of this review-fix branch
 
 ## Next development priorities
 

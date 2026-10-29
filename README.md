@@ -30,12 +30,14 @@ and [candidate dataset](docs/islamic-history-candidates.json) inform proposed
 This optional offline history companion remains research only; no historical
 panel, event feed or candidate catalogue is included in the running integration.
 
+For a shorter first-install walkthrough and common fixes, see the [quickstart and troubleshooting guide](docs/getting-started.md).
+
 For contributor navigation, see the [production module inventory](docs/module-inventory.md), [module contracts](docs/integration-architecture.md), and [architecture guide](docs/architecture.md).
 
 ## Requirements and installation
 
-Home Assistant **2026.10.0 or newer**. Development uses Python **3.14.2+** and is
-tested against Home Assistant 2026.10.2. The integration requires no API keys;
+Home Assistant **2026.10.0 or newer**. Development uses Python **3.14.2+** and the current development lock
+tests Home Assistant 2026.10.3; dedicated compatibility jobs test 2026.10.0 and 2026.10.3. The integration requires no API keys;
 setting up HACS requires its separate GitHub authorization. URL sources require
 HTTPS Internet access. PDF extraction
 requires Linux/POSIX process resource limits (as provided by supported HA systems).
@@ -400,7 +402,7 @@ For the folder layout, all Python/Node test files, fixture conventions and focus
 commands, see the [test suite guide](docs/testing.md).
 
 `uv.lock` fixes development dependencies. The integration uses HA's bundled
-`file_upload` component and pins `pypdf==6.21.1` in its runtime manifest.
+`file_upload` component and pins `pypdf==6.21.2` in its runtime manifest.
 The separately locked development environment currently uses `pypdf==6.21.2`;
 its pin is not the Home Assistant runtime requirement. Tests use actual config
 flows, registries, platforms, authenticated local HTTP uploads and atomic storage in

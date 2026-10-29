@@ -40,22 +40,33 @@ def test_repository_asset_inventory_is_complete():
     unresolved = provenance.audit(provenance.ROOT)
     assert "tests/fixtures/pdf/mosque_a_monthly_2022.pdf" not in unresolved
     assert "tests/fixtures/pdf/mosque_b_2026.pdf" not in unresolved
-    assert "custom_components/salah_timetable/brand/icon.png" in unresolved
-    assert len(unresolved) == 5
+    assert unresolved == []
+    assert provenance.audit(provenance.ROOT, require_cleared=True) == []
     data = json.loads((provenance.ROOT / provenance.INVENTORY).read_text())
     paths = {asset["path"] for asset in data["assets"]}
     assert len(paths) == 37
     assert "tests/fixtures/csv/annual.csv" in paths
     assert "tests/fixtures/storage/v2_approved_pending.json" in paths
     assert all(asset.get("sha256") for asset in data["assets"])
-    with pytest.raises(ValueError, match="Redistribution unresolved"):
-        provenance.audit(provenance.ROOT, require_cleared=True)
+    originals = {
+        asset["path"] for asset in data["assets"] if asset["rights"] == "original_mit"
+    }
+    assert "custom_components/salah_timetable/brand/icon.png" in originals
+    assert len(originals) == 17
 
 
 def test_original_evidence_and_checksum_allow_strict_audit(sample_repo):
     root, _ = sample_repo
     assert provenance.audit(root) == []
     assert provenance.audit(root, require_cleared=True) == []
+
+
+def test_pending_asset_still_blocks_strict_release_audit(sample_repo):
+    root, asset = sample_repo
+    _inventory(root, [{**asset, "rights": "review_pending", "evidence": None}])
+    assert provenance.audit(root) == ["assets/sample.png"]
+    with pytest.raises(ValueError, match="Redistribution unresolved"):
+        provenance.audit(root, require_cleared=True)
 
 
 def test_unlisted_asset_blocks_inventory_validation(sample_repo):

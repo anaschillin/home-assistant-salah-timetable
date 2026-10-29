@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.19 — maintenance candidate (29 October 2026, unmerged)
+
+- Preserve the focused day-navigation button and multi-mosque header selector after the card refreshes its Shadow DOM, with Chromium keyboard-focus regressions.
+- Remove styles belonging to the retired wide mosque tab strip.
+- Bump frontend cache/import versions to load the updated card rather than retaining cached 0.9.18 JavaScript.
+- Align manifest-pinned pypdf with the 6.21.2 development and compatibility environments.
+- Record the maintainer's AI-generated brand icon and synthetic screenshot origin attestation and retain checksum-based asset auditing.
+- Clarify per-PR HACS/Container validation, manual HACS/HAOS acceptance and optional full HAOS restoration; add a user-facing quickstart.
+- Arabic implementation is intentionally deferred.
+
 ## 0.9.18 — merged into main (28 October 2026)
 
 - Redesign the dashboard as one compact mosque/Next Salah/contextual Jamaat

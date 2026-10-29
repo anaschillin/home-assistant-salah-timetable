@@ -1,7 +1,7 @@
-import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=0.9.18";
-import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=0.9.18";
-import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.18";
-import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9.18";
+import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=0.9.19";
+import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=0.9.19";
+import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.19";
+import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9.19";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
 const RENDER_ATTRIBUTES = [
@@ -272,7 +272,10 @@ export class SalahTimetableCard extends HTMLElement {
         if (chooser.value === this._activeEntity()) return;
         this._selectedMosque = chooser.value;
         this._selectedDay = 0;
+        // Replacing the Shadow DOM must not strand keyboard focus on a removed select.
+        const wasFocused = this.shadowRoot.activeElement === chooser;
         this._render();
+        if (wasFocused) this.shadowRoot.querySelector(".mosque-select")?.focus({preventScroll: true});
       });
       title.append(chooser);
     } else {
@@ -302,7 +305,10 @@ export class SalahTimetableCard extends HTMLElement {
         if (this._selectedDay === offset) return;
         if (this._selectedDay === 0) this._rememberBackgroundFrame();
         this._selectedDay = offset;
+        const wasFocused = this.shadowRoot.activeElement === button;
         this._render();
+        // Focus the same day in the new DOM, without scrolling the dashboard.
+        if (wasFocused) this.shadowRoot.querySelectorAll(".date-tab")[offset + 1]?.focus({preventScroll: true});
       });
       dateTabs.append(button);
     }
