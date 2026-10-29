@@ -19,7 +19,13 @@ Archived fixture images: [0.6.1 mobile](images/card-mobile-0.6.1.png) ·
 For current behavior, see the description below and
 [PR #88's validation](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961).
 Current-design screenshots should be added only after being reviewed against
-the exact committed version.
+the exact committed version. PR visual-diff artifacts and locally captured
+Chromium screenshots provide reproducible visual evidence; screenshots in this
+archive are not a substitute for checking the installed card.
+
+The keyboard-operated Yesterday/Today/Tomorrow buttons and mosque selector
+restore focus after their display is rebuilt, so navigation does not unexpectedly
+return to the top of the dashboard.
 
 ## Add the card
 

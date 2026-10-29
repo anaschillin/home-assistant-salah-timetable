@@ -6,7 +6,7 @@ import {CARD_CSS, EDITOR_CSS} from "../../custom_components/salah_timetable/fron
 test("theme, accessibility and responsive styles remain bundled", () => {
   for (const token of [
     ":host", "ha-card", "--primary-color", "--secondary-background-color",
-    ".date-tab,.mosque-tab", ".panel[data-panel=\"salah\"]",
+    ".date-tab", ".panel[data-panel=\"salah\"]",
     ".next-prayer", ".scroll-help", ".sr-only", "unicode-bidi: isolate",
     "@container(max-width:26rem)", "@container(max-width:28rem)",
     "@media(max-width:420px)", "@media(prefers-contrast:more)",
@@ -15,10 +15,11 @@ test("theme, accessibility and responsive styles remain bundled", () => {
   ]) assert.ok(CARD_CSS.includes(token), `Missing CSS safeguard: ${token}`);
 });
 
-test("shared tab controls retain active and keyboard-focus treatments", () => {
-  assert.match(CARD_CSS, /\.date-tab\[aria-pressed="true"\],\.mosque-tab\[aria-pressed="true"\]/);
-  assert.match(CARD_CSS, /\.date-tab:focus-visible,\.mosque-tab:focus-visible/);
-  assert.match(CARD_CSS, /\.date-tab,\.mosque-tab\s*\{/);
+test("day navigation retains active and keyboard-focus treatments without obsolete mosque tabs", () => {
+  assert.match(CARD_CSS, /\.date-tab\[aria-pressed="true"\]/);
+  assert.match(CARD_CSS, /\.date-tab:focus-visible/);
+  assert.match(CARD_CSS, /\.date-tab\s*\{/);
+  assert.doesNotMatch(CARD_CSS, /\.mosque-tabs?\b/);
 });
 
 test("graphical editor retains focus, layout, theme and narrow-screen styles", () => {

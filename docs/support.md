@@ -4,7 +4,8 @@ Salah Timetable is a community-maintained, MIT-licensed Home Assistant custom
 integration. There is no guaranteed response time or paid support service.
 
 The declared minimum Home Assistant version is 2026.10.0. Automated Python tests
-use Home Assistant 2026.10.2; the [validation record](validation.md) identifies live
+use Home Assistant 2026.10.3 in the root lock, plus full pinned 2026.10.0
+and 2026.10.3 compatibility lanes; the [validation record](validation.md) identifies live
 versions and the scope of each check. Supported Home Assistant OS/Container systems
 provide the Linux/POSIX process resource limits required for isolated PDF extraction.
 Other installation methods are not part of the recorded acceptance matrix.
@@ -21,6 +22,8 @@ or per card. Confirm Ramadan dates explicitly: Hijri display never activates
 Ramadan. See
 [PDF layouts](pdf_layouts.md) and the README for file, timezone, network and parsing
 limits.
+
+For installation and import problems, start with the [quickstart and troubleshooting guide](getting-started.md).
 
 For bugs, open a GitHub issue with integration/HA versions, installation method,
 mosque timezone, relevant source layout, expected behavior and redacted logs or
