@@ -202,9 +202,12 @@ def test_excerpt_rendering_preserves_links_for_each_consumer(tmp_path):
     assert "[testing](testing.md#compatibility-test-environments)" in nested_rendered
     assert "docs:homeassistant_min -->2026.10.0" in nested_rendered
     assert "stale content" not in nested_rendered
-    assert render_excerpts(
-        tmp_path, Path("docs/getting-started.md"), nested_rendered, values
-    ) == nested_rendered
+    assert (
+        render_excerpts(
+            tmp_path, Path("docs/getting-started.md"), nested_rendered, values
+        )
+        == nested_rendered
+    )
 
 
 def test_excerpt_rendering_rejects_missing_or_unbalanced_sources(tmp_path):
