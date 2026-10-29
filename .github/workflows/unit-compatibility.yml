@@ -14,17 +14,26 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  resolve_versions:
+    name: Read pinned compatibility versions
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pins.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Derive matrix from pinned compatibility projects
+        id: pins
+        shell: bash
+        run: echo "matrix=$(python3 scripts/sync_documentation.py --matrix)" >> "$GITHUB_OUTPUT"
+
   compatibility:
+    needs: resolve_versions
     name: HA ${{ matrix.ha-version }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          # Run the complete suite on both pinned Home Assistant versions.
-          - {lane: minimum, ha-version: '2026.10.0', plugin-version: '0.13.371'}
-          - {lane: supported-current, ha-version: '2026.10.3', plugin-version: '0.13.374'}
+      matrix: ${{ fromJSON(needs.resolve_versions.outputs.matrix) }}
     env:
       COMPAT_PROJECT: compatibility/${{ matrix.lane }}
     steps:
