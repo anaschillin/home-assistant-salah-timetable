@@ -722,7 +722,9 @@ async def test_pending_approval_blocks_another_url_import_form(hass, entry):
     assert entry.runtime_data.storage.staged is not None
 
 
-async def test_remove_source_during_manage_dialog_aborts_without_recreating(hass, entry):
+async def test_remove_source_during_manage_dialog_aborts_without_recreating(
+    hass, entry
+):
     await setup_mosque(hass, entry)
     result = await stage_url(hass, entry)
     await approve(hass, result)
