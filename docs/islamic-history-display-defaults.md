@@ -1,6 +1,6 @@
 # Islamic history display defaults — shipped behavior and future specification
 
-**Current status (0.9.18, 28 October 2026):** The card shows an optional,
+**Current behaviour:** The card shows an optional,
 short, offline description of the **selected day's Hijri month** directly
 beneath the calculated Hijri date in the mosque header. It does not repeat
 the month name or create a separate history panel. The explanation updates

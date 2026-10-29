@@ -161,3 +161,5 @@ Keep `pytest` discovery recursive and the Node glob aligned with file locations.
 4. A parser bug should normally receive a bounded fixture plus a parser regression; a config-flow bug should also prove review/approval where applicable. Add frontend unit and browser coverage for visible UI regressions.
 5. Prefer test doubles for external services; maintain at least the existing real-HA and Chromium smoke paths. Do not add network dependence to normal unit runs.
 6. Before proposing a merge, run focused tests, the full suites, Ruff and the relevant CI jobs, and update this inventory when creating/removing test modules.
+
+PDF worker white-box coverage supplements, but does not replace, real isolated-subprocess tests. Focused tests are not expected to meet full-suite coverage thresholds.
