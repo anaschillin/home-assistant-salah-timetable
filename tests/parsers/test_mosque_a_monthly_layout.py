@@ -115,3 +115,45 @@ def test_monthly_layout_does_not_depend_on_a_specific_publisher_url(pages):
     assert MosqueAMonthlyLayout().to_csv(changed) == MosqueAMonthlyLayout().to_csv(
         pages
     )
+
+@pytest.mark.parametrize(
+    ("replacement", "message"),
+    [
+        ("May 1800", "supported range"),
+        ("May 2022\nJune 2022", "one explicit month"),
+    ],
+)
+def test_monthly_rejects_invalid_year_and_ambiguous_headings(
+    pages, replacement, message
+):
+    assert "May 2022" in pages[0]
+    changed = (pages[0].replace("May 2022", replacement, 1), pages[1])
+    with pytest.raises(ImportValidationError, match=message):
+        MosqueAMonthlyLayout().to_csv(changed)
+
+
+def test_monthly_pages_must_be_consecutive_and_nonempty(pages):
+    with pytest.raises(ImportValidationError, match="consecutive"):
+        MosqueAMonthlyLayout().to_csv((pages[1], pages[0]))
+    with pytest.raises(ImportValidationError, match="text pages"):
+        MosqueAMonthlyLayout().to_csv(("",))
+    with pytest.raises(ImportValidationError, match="text pages"):
+        MosqueAMonthlyLayout().to_csv(())
+
+
+def test_monthly_rejects_extra_time_cell_and_invalid_separator(pages):
+    changed = list(pages)
+    lines = changed[0].splitlines()
+    index = next(i for i, line in enumerate(lines) if line.startswith("1 Sun"))
+    lines[index] += " 1:00"
+    changed[0] = "\n".join(lines)
+    with pytest.raises(ImportValidationError, match="thirteen published time cells"):
+        MosqueAMonthlyLayout().to_csv(tuple(changed))
+
+    changed = list(pages)
+    lines = changed[0].splitlines()
+    index = next(i for i, line in enumerate(lines) if line.startswith("1 Sun"))
+    lines[index] = lines[index].replace(" x ", " bad ", 1)
+    changed[0] = "\n".join(lines)
+    with pytest.raises(ImportValidationError, match="x separator"):
+        MosqueAMonthlyLayout().to_csv(tuple(changed))
