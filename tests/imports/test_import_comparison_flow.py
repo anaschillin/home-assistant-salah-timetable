@@ -394,3 +394,77 @@ async def test_storage_guard_is_checked_after_loading_current_disk_snapshot(
         await storage.async_approve(stage_id, expected_baseline=baseline)
     assert storage.timetables == (changed.timetable,)
     assert storage.staged.stage_id == stage_id
+
+
+async def test_review_does_not_approve_a_proposal_removed_while_form_is_open(
+    hass, entry
+):
+    storage = await loaded(hass, entry)
+    stage_id = await storage.async_stage(candidate())
+    form = await open_review(hass, entry)
+    await storage.async_reject(stage_id)
+    result = await choose(hass, form, "approve")
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "no_pending_import"
+    assert storage.timetables == ()
+
+
+async def test_review_aborts_when_runtime_unloads_while_form_is_open(hass, entry):
+    storage = await loaded(hass, entry)
+    await storage.async_stage(candidate())
+    form = await open_review(hass, entry)
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    result = await choose(hass, form, "approve")
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "integration_not_loaded"
+    assert storage.timetables == ()
+
+
+async def test_comparison_aborts_if_runtime_reloads_during_review(hass, entry):
+    storage = await loaded(hass, entry)
+    await storage.async_stage(candidate())
+    form = await open_review(hass, entry)
+    comparison = await compare(hass, form)
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await act(hass, comparison, "review")
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "integration_reloaded"
+    assert entry.runtime_data.storage.timetables == ()
+
+
+async def test_comparison_aborts_when_pending_review_was_removed(hass, entry):
+    storage = await loaded(hass, entry)
+    stage_id = await storage.async_stage(candidate())
+    form = await open_review(hass, entry)
+    comparison = await compare(hass, form)
+    await storage.async_reject(stage_id)
+    result = await act(hass, comparison, "review")
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "stale_import"
+    assert storage.timetables == ()
+
+
+async def test_review_decision_rejects_approval_without_visible_comparison():
+    from unittest.mock import MagicMock
+
+    flow = SalahOptionsFlow()
+    with pytest.raises(ReviewChangedError, match="comparison must be shown"):
+        await flow._async_apply_review_decision(MagicMock(), "approve")
+    assert await flow._async_apply_review_decision(MagicMock(), "unsupported") is False
+
+
+def test_review_summary_handles_optional_publication_context():
+    from custom_components.salah_timetable.domain.ramadan import RamadanSettings
+
+    proposal = candidate()
+    baseline = ImportReviewBaseline(None, None)
+    plain = SalahOptionsFlow._render_review_details(
+        proposal, (), RamadanSettings(), baseline, ""
+    )
+    prefixed = SalahOptionsFlow._render_review_details(
+        proposal, (), RamadanSettings(), baseline, "Verified publication"
+    )
+    assert "Verified publication" not in plain
+    assert prefixed.startswith("Verified publication")
+    assert plain in prefixed
