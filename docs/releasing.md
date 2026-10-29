@@ -8,6 +8,8 @@ Check the **exact candidate commit and version**; do not reuse validation claims
 
 **Required:** passing Validate and CodeQL on the candidate commit, package/version checks, checksum review and documented relevant manual HACS/Home Assistant acceptance.
 
+**Quality-scale reference:** the [internal 54-rule audit](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit) records implemented, outstanding, unverified and not-applicable rules. It is not an official Home Assistant quality tier.
+
 **Optional/deferred:** complete HAOS/Supervisor restore on a separate test instance. Automated Home Assistant Container backup/restore is narrower; neither is a per-PR requirement. See [Backup restore acceptance](releasing.md#optional-full-backup-and-restore-acceptance).
 
 ## Build and verify
@@ -25,7 +27,7 @@ uv run --frozen python scripts/build_release.py --check
 uv run --frozen python scripts/build_release.py
 ```
 
-The build produces a deterministic `dist/salah_timetable-VERSION.zip` and SHA-256 sidecar. The archive includes installable integration source and required frontend/brand assets and license, **not** tests, fixtures or original mosque timetables.
+The build produces a deterministic `dist/salah_timetable-VERSION.zip` and SHA-256 sidecar. The archive includes installable integration source, `icons.json`, translations, required frontend/brand assets and license, **not** tests, fixtures or original mosque timetables.
 
 Confirm the hosted workflow checks on the actual release commit: locked Python tests and coverage, separate HA version suites, Chromium, hassfest, HACS validation, supported-current live Container smoke and release archive consistency. [Testing](testing.md), [Compatibility](testing.md#compatibility-test-environments) and [Live smoke](testing.md#disposable-home-assistant-live-testing) explain these checks.
 
@@ -35,10 +37,11 @@ Use disposable configurations and synthetic timetables; note the installed HA/in
 
 1. Install/update through the custom HACS repository and restart; confirm the integration and graphical card load.
 2. Configure two different mosques; confirm their sensors, dashboards, selectors and source data remain isolated.
-3. Test supported annual/monthly/Ramadan PDF/CSV and HTTPS imports, layout detection, date mapping, comparison, explicit approval/rejection and safe handling of unsupported input.
-4. Verify pending-versus-approved state, updates, restart/upgrade persistence and safe removal/re-addition without affecting another mosque.
-5. Test next Salah/Jamaat events, calendar, Friday entries, missing dates and DST/year boundaries.
-6. Verify mobile/tablet readability, Yesterday/Today/Tomorrow dates, keyboard navigation and relevant optional blueprints.
+3. Reconfigure one mosque's name and timezone; verify its mosque ID, existing entities, approved timetable and the other mosque remain intact. Check timezone interpretation and that Configure → Mosque settings retains the updated timezone.
+4. Test supported annual/monthly/Ramadan PDF/CSV and HTTPS imports, layout detection, date mapping, comparison, explicit approval/rejection and safe handling of unsupported input.
+5. Verify pending-versus-approved state, updates, restart/upgrade persistence and safe removal/re-addition without affecting another mosque.
+6. Test next Salah/Jamaat events, translated calendar name/icon, Friday entries, missing dates and DST/year boundaries.
+7. Verify mobile/tablet readability, Yesterday/Today/Tomorrow dates, keyboard navigation and relevant optional blueprints.
 
 Full HAOS/Supervisor restore is an **optional** additional test, documented in [Backup and restore](releasing.md#optional-full-backup-and-restore-acceptance). Do not describe Container tests as completing it.
 

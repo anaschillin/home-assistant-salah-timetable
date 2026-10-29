@@ -1,6 +1,6 @@
 # Test directory
 
-Tests are grouped by the **behavior they protect**, with one folder for each production area. See [docs/testing.md](../docs/testing.md) for the complete, file-by-file inventory of 51 Python and 13 Node unit modules, shared fixture guidance, and CI responsibilities.
+Tests are grouped by the **behavior they protect**, with one folder for each production area. See [docs/testing.md](../docs/testing.md) for the authoritative, maintained file-by-file inventory of Python and Node unit modules, shared fixture guidance, and CI responsibilities.
 
 ## Choose the right area
 
