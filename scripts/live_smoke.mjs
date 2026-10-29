@@ -10,6 +10,7 @@ import {fileURLToPath} from "node:url";
 import {waitForRunning, waitForEntry, pollUntil} from "./live_readiness.mjs";
 import {dependencyEvidence, dependencyProbe} from "./live_dependency.mjs";
 import {runBrowserSmoke} from "./live_browser.mjs";
+import {smokeDateWindow} from "./live_dates.mjs";
 import {publicSmokeReport} from "./live_report.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -186,10 +187,10 @@ try {
   const installed = JSON.parse(await command("docker", ["exec", container, "python", "-I", "-c", dependencyProbe]));
   report.dependency = dependencyEvidence(baseline, installed, expected, {preloaded: options.preload, requireFresh: options.requireFresh});
   if (report.dependency.fresh_install_verified) report.checks.push("fresh_manifest_dependency_installation");
-  const today = new Date().toISOString().slice(0, 10);
-  // Keep annual sources within their explicit year, including a December 31 run.
-  const next = new Date(Date.parse(`${today}T12:00:00Z`) + 86400000).toISOString().slice(0, 10);
-  const days = next.slice(0, 4) === today.slice(0, 4) ? [today, next] : [today];
+  // Cover the next UTC day because HA can roll over during browser checks.
+  // Annual CSV sources must stay within their declared Gregorian year.
+  const {today, next, days, nextYearDays} = smokeDateWindow();
+  const approvedTime = (value, time) => [today, next].some(day => value?.state === `${day}T${time}+00:00`);
   let flow = await stage(entry, days);
   flow = await request(`/api/config/config_entries/options/flow/${flow.flow_id}`, {decision: "compare"});
   assert.equal(flow.step_id, "compare");
@@ -203,8 +204,13 @@ try {
   assert.equal(flow.step_id, "review");
   report.checks.push("paged_import_comparison_preserves_pending_data");
   await request(`/api/config/config_entries/options/flow/${flow.flow_id}`, {decision: "approve"});
+  if (nextYearDays.length) {
+    // Preserve next-day coverage when the smoke runs on December 31.
+    const future = await stage(entry, nextYearDays);
+    await request(`/api/config/config_entries/options/flow/${future.flow_id}`, {decision: "approve"});
+  }
   const state = async key => (await request("/api/states")).find(item => item.entity_id === `sensor.smoke_mosque_${key}`);
-  await until(() => state("fajr_beginning"), value => value?.state === `${today}T06:00:00+00:00`, "Approved Fajr missing");
+  await until(() => state("fajr_beginning"), value => approvedTime(value, "06:00:00"), "Approved Fajr missing");
   let states = await request("/api/states");
   const ids = states.filter(item => item.entity_id.startsWith("sensor.smoke_mosque_")).map(item => item.entity_id).sort();
   assert.equal(ids.length, 26); report.checks.push("mosque_config_flow", "authenticated_csv_upload_mapping_review_approval", "26_sensors");
@@ -226,9 +232,9 @@ try {
   await ws("lovelace/config/save", {url_path: "salah-smoke", config: {views: [{title: "Salah Smoke", path: "smoke", cards: [{type: "custom:salah-timetable-card", entity: "sensor.smoke_mosque_prayer_timetable"}]}]}});
   report.checks.push("automatic_resource_registration", "dashboard_configuration");
   flow = await optionsFlow(entry, "ramadan");
-  await request(`/api/config/config_entries/options/flow/${flow.flow_id}`, {ramadan_mode: "auto", ramadan_start: today, ramadan_end: today, ramadan_adjustment: 0, ramadan_source_id: "__auto__"});
+  await request(`/api/config/config_entries/options/flow/${flow.flow_id}`, {ramadan_mode: "auto", ramadan_start: today, ramadan_end: next, ramadan_adjustment: 0, ramadan_source_id: "__auto__"});
   await until(() => state("ramadan_status"), value => value?.state === "active", "Ramadan activation failed");
-  assert.equal((await state("iftar")).state, `${today}T17:30:00+00:00`);
+  assert.ok(approvedTime(await state("iftar"), "17:30:00"), "Effective Iftar should follow the active day");
   assert.equal((await state("taraweeh")).state, "unavailable");
   assert.equal((await state("taraweeh_status")).state, "after_isha_jamaat");
   report.checks.push("confirmed_ramadan", "iftar_fallback", "taraweeh_text_without_timestamp");
@@ -236,8 +242,12 @@ try {
   await until(() => request("/api/states"), value => value.filter(item => item.entity_id.startsWith("sensor.second_mosque_")).length === ids.length, "Second mosque sensors missing");
   let secondFlow = await stage(second, days, "06:22");
   await request(`/api/config/config_entries/options/flow/${secondFlow.flow_id}`, {decision: "approve"});
-  await until(() => request("/api/states"), value => value.find(item => item.entity_id === "sensor.second_mosque_fajr_beginning")?.state === `${today}T06:22:00+00:00`, "Independent second mosque approval missing");
-  assert.equal((await state("fajr_beginning")).state, `${today}T06:00:00+00:00`);
+  if (nextYearDays.length) {
+    const future = await stage(second, nextYearDays, "06:22");
+    await request(`/api/config/config_entries/options/flow/${future.flow_id}`, {decision: "approve"});
+  }
+  await until(() => request("/api/states"), value => approvedTime(value.find(item => item.entity_id === "sensor.second_mosque_fajr_beginning"), "06:22:00"), "Independent second mosque approval missing");
+  assert.ok(approvedTime(await state("fajr_beginning"), "06:00:00"));
   const secondIds = (await request("/api/states")).filter(item => item.entity_id.startsWith("sensor.second_mosque_")).map(item => item.entity_id).sort();
   assert.equal(secondIds.length, ids.length);
   // A single custom card type can be used repeatedly; each instance must
@@ -256,7 +266,7 @@ try {
   await request(`/api/config/config_entries/entry/${second}`, undefined, {method: "DELETE"});
   await until(() => request("/api/states"), value => !value.some(item => item.entity_id.startsWith("sensor.second_mosque_")), "Deleted mosque retained live sensors");
   assert.deepEqual((await request("/api/states")).filter(item => item.entity_id.startsWith("sensor.smoke_mosque_")).map(item => item.entity_id).sort(), ids);
-  assert.equal((await state("fajr_beginning")).state, `${today}T06:00:00+00:00`);
+  assert.ok(approvedTime(await state("fajr_beginning"), "06:00:00"));
   const readded = await addMosque("second", "Second Mosque");
   await until(() => request("/api/states"), value => value.filter(item => item.entity_id.startsWith("sensor.second_mosque_")).length === ids.length, "Re-added mosque sensors missing");
   assert.equal((await request("/api/states")).find(item => item.entity_id === "sensor.second_mosque_fajr_beginning")?.state, "unavailable", "Removing a config entry must delete that mosque's storage");
@@ -311,13 +321,13 @@ try {
   await waitForEntry(request, until, entry);
   await until(async () => {
     const value = await state("fajr_beginning");
-    report.restart_fajr = {present: Boolean(value), available: Boolean(value && !["unavailable", "unknown"].includes(value.state)), matches_approved: value?.state === `${today}T06:00:00+00:00`};
+    report.restart_fajr = {present: Boolean(value), available: Boolean(value && !["unavailable", "unknown"].includes(value.state)), matches_approved: approvedTime(value, "06:00:00")};
     return report.restart_fajr;
   }, value => value.matches_approved, "Approved Fajr mismatch after HA RUNNING and mosque loaded", 120);
   assert.equal((await state("ramadan_status")).state, "active");
   flow = await optionsFlow(entry, "review"); assert.equal(flow.step_id, "review");
   await request(`/api/config/config_entries/options/flow/${flow.flow_id}`, {decision: "reject"});
-  assert.equal((await state("fajr_beginning")).state, `${today}T06:00:00+00:00`);
+  assert.ok(approvedTime(await state("fajr_beginning"), "06:00:00"));
   assert.equal((await calendarEvents()).find(event => event.summary === "Fajr beginning").uid, calendarFajr.uid);
   report.checks.push("calendar_ids_survive_restart_and_rejection");
   ws = await websocket();
@@ -329,7 +339,7 @@ try {
   for (const item of await request("/api/config/config_entries/entry")) if (["radio_browser", "met"].includes(item.domain)) await request(`/api/config/config_entries/entry/${item.entry_id}`, undefined, {method: "DELETE"});
   const runtime = await request("/api/config"); assert.equal(runtime.version, options.version);
   await request(`/api/config/config_entries/entry/${entry}/reload`, {});
-  await until(() => state("prayer_timetable"), value => value?.state === today, "Dashboard data missing after reload");
+  await until(() => state("prayer_timetable"), value => [today, next].includes(value?.state), "Dashboard data missing after reload");
   report.integration_version = version;
   report.source_commit = await command("git", ["-C", root, "rev-parse", "HEAD"]);
   report.working_tree_dirty = Boolean(await command("git", ["-C", root, "status", "--porcelain"]));

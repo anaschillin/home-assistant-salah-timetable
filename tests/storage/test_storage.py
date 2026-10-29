@@ -4,12 +4,8 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from custom_components.salah_timetable.domain.model import (
-    DailyPrayers,
-    PrayerField,
-    Timetable,
-)
-from custom_components.salah_timetable.persistence.storage import TimetableStorage
+from custom_components.salah_timetable.model import DailyPrayers, PrayerField, Timetable
+from custom_components.salah_timetable.storage import TimetableStorage
 
 
 async def test_round_trip(hass, entry, timetable):

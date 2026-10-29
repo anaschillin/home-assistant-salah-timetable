@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from custom_components.salah_timetable.domain.model import (
+from custom_components.salah_timetable.model import (
     DailyPrayers,
     PrayerField,
     Timetable,

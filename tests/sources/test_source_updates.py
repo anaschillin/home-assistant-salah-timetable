@@ -12,15 +12,12 @@ from zoneinfo import ZoneInfo
 import pytest
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
-from custom_components.salah_timetable.persistence.storage import TimetableStorage
-from custom_components.salah_timetable.sources.download import (
-    DownloadError,
-    DownloadResult,
-)
-from custom_components.salah_timetable.sources.source_model import RemoteSource
-from custom_components.salah_timetable.sources.source_updates import (
+from custom_components.salah_timetable.download import DownloadError, DownloadResult
+from custom_components.salah_timetable.source_model import RemoteSource
+from custom_components.salah_timetable.source_updates import (
     SourceUpdateManager,
 )
+from custom_components.salah_timetable.storage import TimetableStorage
 
 CSV = b"Date,Fajr Begin\n2026-10-21,05:45\n"
 UPDATED = b"Date,Fajr Begin\n2026-10-21,05:55\n"
@@ -85,7 +82,7 @@ async def manager(hass, entry):
 
 async def test_changed_download_stages_without_activation(manager):
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ) as fetch:
         await manager.async_check_all()
@@ -107,14 +104,14 @@ async def test_changed_download_stages_without_activation(manager):
 
 async def test_changed_update_keeps_last_approved(manager):
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ):
         await manager.async_check_all()
     await manager.storage.async_approve(manager.storage.staged.stage_id)
     previous = manager.storage.timetables
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response(UPDATED, '"v2"')),
     ):
         await manager.async_check_all()
@@ -155,7 +152,7 @@ async def test_monthly_url_update_preserves_original_date_window(
 
     initial = content(1, 40)
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=replace(response(initial), media_type=media_type)),
     ):
         await manager.async_check(monthly.source_id)
@@ -165,7 +162,7 @@ async def test_monthly_url_update_preserves_original_date_window(
     previous_checks = manager.storage.remote_checks[monthly.source_id]
     changed = content(1 if same_window else 2, 45)
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=replace(response(changed), media_type=media_type)),
     ):
         await manager.async_check(monthly.source_id)
@@ -193,7 +190,7 @@ async def test_monthly_url_update_preserves_original_date_window(
 
 async def test_rejected_unchanged_content_is_not_restaged(manager):
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ):
         await manager.async_check_all()
@@ -210,7 +207,7 @@ async def test_rejected_unchanged_content_is_not_restaged(manager):
 async def test_approved_source_is_up_to_date_only_for_matching_publication(manager):
     assert manager.status["status"] == "configured"
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ):
         await manager.async_check_all()
@@ -219,7 +216,7 @@ async def test_approved_source_is_up_to_date_only_for_matching_publication(manag
     assert manager.status["status"] == "up_to_date"
     assert manager.storage.remote_checks[source().source_id]["rejected_sha256"] is None
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=DownloadResult(None, "csv", '"v1"', None, None, True)),
     ):
         await manager.async_check_all()
@@ -250,7 +247,7 @@ async def test_unapproved_successful_check_never_claims_up_to_date(manager):
 
 async def test_rejected_http_304_survives_restart_without_reprompt(manager):
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ):
         await manager.async_check_all()
@@ -263,7 +260,7 @@ async def test_rejected_http_304_survives_restart_without_reprompt(manager):
     restarted = SourceUpdateManager(manager.hass, manager.entry, restored, MagicMock())
     assert restarted.status["status"] == "rejected_version"
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=DownloadResult(None, "csv", '"v1"', None, None, True)),
     ) as fetch:
         await restarted.async_check_all()
@@ -291,7 +288,7 @@ async def test_legacy_rejected_check_is_upgraded_on_unchanged_check(manager):
     )
     assert manager.status["status"] == "rejected_version"
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=DownloadResult(None, "csv", '"v1"', None, None, True)),
     ):
         await manager.async_check_all()
@@ -303,7 +300,7 @@ async def test_legacy_rejected_check_is_upgraded_on_unchanged_check(manager):
 
 async def test_rejected_change_retains_approval_and_stages_only_new_digest(manager):
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ):
         await manager.async_check_all()
@@ -311,7 +308,7 @@ async def test_rejected_change_retains_approval_and_stages_only_new_digest(manag
     previous = manager.storage.timetables
 
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response(UPDATED, '"v2"')),
     ):
         await manager.async_check_all()
@@ -321,7 +318,7 @@ async def test_rejected_change_retains_approval_and_stages_only_new_digest(manag
     assert manager.storage.timetables == previous
 
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response(UPDATED, '"v2"')),
     ):
         await manager.async_check_all()
@@ -330,7 +327,7 @@ async def test_rejected_change_retains_approval_and_stages_only_new_digest(manag
 
     changed = b"Date,Fajr Begin\n2026-10-21,06:05\n"
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response(changed, '"v3"')),
     ):
         await manager.async_check_all()
@@ -344,20 +341,20 @@ async def test_rejected_change_retains_approval_and_stages_only_new_digest(manag
 
 async def test_source_error_has_precedence_over_last_rejection(manager):
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ):
         await manager.async_check_all()
     await manager.storage.async_reject(manager.storage.staged.stage_id)
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(side_effect=DownloadError("request_failed", "safe")),
     ):
         await manager.async_check_all()
     assert manager.status["status"] == "error"
     assert manager.storage.remote_checks[source().source_id]["rejected_sha256"]
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ):
         await manager.async_check_all()
@@ -366,14 +363,14 @@ async def test_source_error_has_precedence_over_last_rejection(manager):
 
 async def test_not_modified_uses_only_saved_validators(manager):
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ):
         await manager.async_check_all()
     await manager.storage.async_approve(manager.storage.staged.stage_id)
     result = DownloadResult(None, "csv", '"v1"', None, None, True)
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=result),
     ) as fetch:
         await manager.async_check_all()
@@ -389,14 +386,14 @@ async def test_not_modified_uses_only_saved_validators(manager):
 
 async def test_invalid_change_does_not_replace_digest_or_active(manager):
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ):
         await manager.async_check_all()
     await manager.storage.async_approve(manager.storage.staged.stage_id)
     previous = manager.storage.timetables
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(
             return_value=response(b"Date,Fajr Begin\n2026-10-21,unknown\n", '"invalid"')
         ),
@@ -414,13 +411,13 @@ async def test_invalid_change_does_not_replace_digest_or_active(manager):
 
 async def test_pending_review_defers_all_new_downloads(manager):
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ):
         await manager.async_check_all()
     before = manager.storage.staged
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(),
     ) as fetch:
         await manager.async_check_all()
@@ -443,7 +440,7 @@ async def test_pending_review_defers_all_new_downloads(manager):
     )
 
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(),
     ) as fetch:
         await restarted.async_check_all()
@@ -464,7 +461,7 @@ async def test_pending_review_defers_all_new_downloads(manager):
 )
 async def test_network_failure_redacts_errors_and_preserves_data(manager, error):
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(side_effect=error),
     ):
         await manager.async_check_all()
@@ -488,7 +485,7 @@ async def test_profile_change_while_downloading_cannot_stage_stale_data(
         return response()
 
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         fetch,
     ):
         task = asyncio.create_task(manager.async_check_all())
@@ -518,7 +515,7 @@ async def test_stop_cancels_owned_download_and_prevents_future_work(manager):
         await asyncio.Event().wait()
 
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         fetch,
     ):
         task = asyncio.create_task(manager.async_check_all())
@@ -529,7 +526,7 @@ async def test_stop_cancels_owned_download_and_prevents_future_work(manager):
     assert not manager._tasks
     assert manager.storage.staged is None
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(),
     ) as fetch:
         await manager.async_check_all()
@@ -545,7 +542,7 @@ async def test_manual_and_scheduled_checks_share_lock(manager):
         return response()
 
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(side_effect=fetch),
     ) as mocked:
         first = asyncio.create_task(manager.async_check(source().source_id))
@@ -568,11 +565,11 @@ async def test_recent_profile_waits_only_remaining_day_after_restart(manager, fr
     unsubscribe = MagicMock()
     with (
         patch(
-            "custom_components.salah_timetable.sources.source_updates.async_track_point_in_utc_time",
+            "custom_components.salah_timetable.source_updates.async_track_point_in_utc_time",
             return_value=unsubscribe,
         ) as track,
         patch(
-            "custom_components.salah_timetable.sources.source_updates.download.async_download",
+            "custom_components.salah_timetable.source_updates.download.async_download",
             AsyncMock(),
         ) as fetch,
     ):
@@ -597,7 +594,7 @@ async def test_storage_failure_is_visible_without_replacing_active(manager):
             AsyncMock(side_effect=OSError("disk full")),
         ),
         patch(
-            "custom_components.salah_timetable.sources.source_updates.download.async_download",
+            "custom_components.salah_timetable.source_updates.download.async_download",
             AsyncMock(side_effect=DownloadError("timeout", "safe")),
         ),
     ):
@@ -611,7 +608,7 @@ async def test_no_profiles_no_download(hass, entry):
     storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("UTC"))
     manager = SourceUpdateManager(hass, entry, storage, MagicMock())
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(),
     ) as fetch:
         await manager.async_check_all()
@@ -633,7 +630,7 @@ async def test_pdf_check_uses_isolated_parser_and_retains_binary_provenance(mana
     await manager.storage.async_set_remote_source(profile)
     result = DownloadResult(pdf, "pdf", '"pdf-v1"', None, sha256(pdf).hexdigest())
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=result),
     ):
         await manager.async_check_all()
@@ -649,7 +646,7 @@ async def test_failed_snapshot_refresh_does_not_fetch_or_clear_active(manager):
             manager.storage, "async_load", AsyncMock(side_effect=OSError("disk failed"))
         ),
         patch(
-            "custom_components.salah_timetable.sources.source_updates.download.async_download",
+            "custom_components.salah_timetable.source_updates.download.async_download",
             AsyncMock(),
         ) as fetch,
     ):
@@ -661,7 +658,7 @@ async def test_failed_snapshot_refresh_does_not_fetch_or_clear_active(manager):
 
 async def test_pending_created_during_download_is_not_overwritten(manager):
     started, resume = asyncio.Event(), asyncio.Event()
-    from custom_components.salah_timetable.parsers.csv_parser import CsvParser
+    from custom_components.salah_timetable.csv_parser import CsvParser
 
     async def fetch(*args, **kwargs):
         started.set()
@@ -677,7 +674,7 @@ async def test_pending_created_during_download_is_not_overwritten(manager):
         columns={"Fajr Begin": "fajr_begin"},
     )
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         fetch,
     ):
         task = asyncio.create_task(manager.async_check_all())
@@ -703,7 +700,7 @@ async def test_stop_joins_in_progress_storage_transaction(manager):
 
     with (
         patch(
-            "custom_components.salah_timetable.sources.source_updates.download.async_download",
+            "custom_components.salah_timetable.source_updates.download.async_download",
             AsyncMock(return_value=response()),
         ),
         patch.object(manager.storage, "async_stage", delayed_stage),
@@ -734,7 +731,7 @@ async def test_overdue_profile_is_checked_once_after_restart(manager, freezer):
     await restored.async_load()
     restarted = SourceUpdateManager(manager.hass, manager.entry, restored, MagicMock())
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ) as fetch:
         await restarted.async_start()
@@ -760,7 +757,7 @@ async def test_scheduler_only_checks_due_sources(manager, freezer):
         source().source_id, {"last_checked": "2026-10-19T12:00:00+00:00"}
     )
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        "custom_components.salah_timetable.source_updates.download.async_download",
         AsyncMock(return_value=response()),
     ) as fetch:
         await manager.async_start()
@@ -781,10 +778,10 @@ async def test_no_profiles_start_has_no_timer_or_network(hass, entry):
     empty = SourceUpdateManager(hass, entry, storage, MagicMock())
     with (
         patch(
-            "custom_components.salah_timetable.sources.source_updates.async_track_point_in_utc_time"
+            "custom_components.salah_timetable.source_updates.async_track_point_in_utc_time"
         ) as track,
         patch(
-            "custom_components.salah_timetable.sources.source_updates.download.async_download",
+            "custom_components.salah_timetable.source_updates.download.async_download",
             AsyncMock(),
         ) as fetch,
     ):
@@ -803,7 +800,7 @@ async def test_clock_correction_rebases_future_check_time(manager, freezer):
         source().source_id, {"last_checked": "2026-11-21T12:00:00+00:00"}
     )
     with patch(
-        "custom_components.salah_timetable.sources.source_updates.async_track_point_in_utc_time",
+        "custom_components.salah_timetable.source_updates.async_track_point_in_utc_time",
         return_value=MagicMock(),
     ) as track:
         await manager.async_start()
