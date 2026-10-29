@@ -96,7 +96,7 @@ PHOTOS = [
     },
     {
         "id": "faisal-mosque",
-        "name": "Faisal Mosque",
+        "name": "Shah Faisal Mosque",
         "country": "Pakistan",
         "photographer": "Faisal Mehmood",
         "page": "https://unsplash.com/photos/a-building-with-a-tower-OgP5pfVRdhk",
