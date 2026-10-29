@@ -241,11 +241,11 @@ Do not set `manifest.json` to a claimed Core quality tier solely on this audit. 
 | [`entity-device-class`](https://contributors.home-assistant.io/core/quality-scale/entity-device-class/) | Implemented | Prayer events are timestamp sensors; status sensors use enum device class |
 | [`entity-disabled-by-default`](https://contributors.home-assistant.io/core/quality-scale/entity-disabled-by-default/) | Verify | Audit low-use sensors against dashboard dependencies before disabling anything |
 | [`entity-translations`](https://contributors.home-assistant.io/core/quality-scale/entity-translations/) | Implemented | Sensor names and prayer calendar use translations |
-| [`exception-translations`](https://contributors.home-assistant.io/core/quality-scale/exception-translations/) | Gap | Audit calendar and import UI exception paths for translatable messages |
+| [`exception-translations`](https://contributors.home-assistant.io/core/quality-scale/exception-translations/) | Implemented (targeted) | Calendar query and invalid-storage `HomeAssistantError` subclasses use `translation_domain`/`translation_key`; option forms already use translated error keys. Review any newly introduced HA exception paths |
 | [`icon-translations`](https://contributors.home-assistant.io/core/quality-scale/icon-translations/) | Implemented | Calendar icon now declared via icons.json; device class supplies standard sensor icons |
 | [`reconfiguration-flow`](https://contributors.home-assistant.io/core/quality-scale/reconfiguration-flow/) | Implemented | Name and timezone editable without changing mosque identity or storage |
 | [`repair-issues`](https://contributors.home-assistant.io/core/quality-scale/repair-issues/) | Implemented | Corrupt or invalid timetable storage raises a persistent Repairs issue |
-| [`stale-devices`](https://contributors.home-assistant.io/core/quality-scale/stale-devices/) | Verify | Confirm per-entry device cleanup and registry behaviour on removal/re-add |
+| [`stale-devices`](https://contributors.home-assistant.io/core/quality-scale/stale-devices/) | N/A (official exemption) | Exactly one fixed logical mosque device belongs to each configuration entry and is removed with it; separate two-mosque removal regression protects devices, entities and storage |
 
 ### Platinum
 
@@ -259,6 +259,6 @@ Do not set `manifest.json` to a claimed Core quality tier solely on this audit. 
 
 1. **Validate candidate CI:** run `uv run --frozen ruff check .`, `uv run --frozen ruff format --check .`, all Python tests, frontend tests, hassfest and HACS validation; inspect actual run results for this exact commit.
 2. **Silver coverage:** produce a per-module coverage report; add genuine behaviour tests for every module at or below 95%. Retain the existing aggregate gate until every module is demonstrably above the official threshold.
-3. **Gold usability:** review user-facing exception translations and low-use entity defaults, then verify deletion and entity-registry behaviour with a disposable two-mosque Home Assistant installation.
+3. **Gold usability:** translated Home Assistant calendar/setup exceptions and fixed-device removal regression are covered; inspect any other user-facing exception when extending the integration. Review low-use entity defaults before making them disabled by default.
 4. **Bronze structure:** document why the coordinator lives in the organized runtime package or migrate it cleanly to the conventional top-level module in a separate refactor; never duplicate implementations.
 5. **Platinum:** treat strict mypy and an asynchronous dependency design review as optional later work; keep the explicit HTTPS security boundary.
