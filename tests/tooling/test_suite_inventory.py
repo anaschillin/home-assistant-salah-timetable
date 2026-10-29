@@ -119,7 +119,8 @@ def test_documentation_sync_updates_metadata_and_renamed_links(tmp_path):
         path.parent.mkdir(parents=True)
         path.write_text(
             '[project]\ndependencies = ['
-            f'"homeassistant=={ha}", "pytest-homeassistant-custom-component=={plugin}"]\n'
+            f'"homeassistant=={ha}", '
+            f'"pytest-homeassistant-custom-component=={plugin}"]\n'
         )
     guide = tmp_path / "docs" / "automations.md"
     guide.parent.mkdir()
