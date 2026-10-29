@@ -14,6 +14,9 @@ from .const import DOMAIN
 from .domain.model import PrayerField, Timetable
 from .domain.ramadan import RamadanSettings, resolve_day
 
+# Read-only calendar queries and coordinator snapshots need no throttling.
+PARALLEL_UPDATES = 0
+
 MAX_QUERY_DAYS = 366
 # Calendar interoperability only: prayer and Jamaat remain exact start instants.
 CALENDAR_PRESENTATION_INTERVAL = timedelta(minutes=1)
@@ -160,7 +163,7 @@ class PrayerCalendar(CoordinatorEntity, CalendarEntity):
     """One immutable prayer-event calendar per mosque."""
 
     _attr_has_entity_name = True
-    _attr_name = "Prayer calendar"
+    _attr_translation_key = "prayer_calendar"
     _attr_icon = "mdi:calendar-clock"
     _attr_supported_features = 0
 
