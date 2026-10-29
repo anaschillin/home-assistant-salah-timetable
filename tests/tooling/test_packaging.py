@@ -52,6 +52,7 @@ def test_archive_is_complete_and_excludes_nonruntime_data(release_source, tmp_pa
         for relative in (
             "__init__.py",
             "manifest.json",
+            "icons.json",
             "translations/en.json",
             "frontend/salah-timetable-card.js",
             "frontend/card-styles.js",
