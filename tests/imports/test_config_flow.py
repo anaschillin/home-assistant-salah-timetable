@@ -213,6 +213,7 @@ async def test_reconfigure_preserves_mosque_storage_and_entity_ids(
     assert populated.state == ConfigEntryState.LOADED
     assert populated.runtime_data is not old_runtime
     assert populated.runtime_data.storage.timetables == (timetable,)
-    assert er.async_get(hass).async_get_entity_id(
-        "sensor", DOMAIN, "example_fajr_begin"
-    ) is not None
+    assert (
+        er.async_get(hass).async_get_entity_id("sensor", DOMAIN, "example_fajr_begin")
+        is not None
+    )
