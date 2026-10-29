@@ -331,5 +331,22 @@
       "title": "Stored timetable for {mosque} could not be loaded",
       "description": "Salah Timetable found invalid stored data for {mosque} and stopped setup. The original stored timetable has not been replaced.\n\nRestore a known-working Home Assistant backup, then reload the mosque integration from Settings → Devices & services. Keep a backup of the affected storage before attempting recovery. Removing the integration deletes its timetable data and is not a recovery step.\n\nIf a backup cannot resolve the problem, report the Home Assistant and integration versions with redacted logs to the project issue tracker. Do not publish original storage, source URLs or imported timetable content. This issue clears automatically after valid storage loads successfully."
     }
+  },
+  "exceptions": {
+    "calendar_timezone_required": {
+      "message": "Calendar queries require timezone-aware start and end dates."
+    },
+    "calendar_end_before_start": {
+      "message": "The calendar query end must be after its start."
+    },
+    "calendar_date_range_exceeded": {
+      "message": "Calendar queries may cover at most {limit} local dates."
+    },
+    "calendar_unresolved_data": {
+      "message": "Calendar dates contain unresolved timetable data. Review the mosque's approved source and timezone settings."
+    },
+    "invalid_stored_timetable": {
+      "message": "The stored timetable is invalid. Its original data has been retained. Restore a working backup and reload the mosque integration."
+    }
   }
 }
