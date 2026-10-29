@@ -185,3 +185,34 @@ def test_contact_page_cannot_be_a_dated_table():
     pages[1] = "1 Thu 10 5:00"
     with pytest.raises(ImportValidationError, match="contact"):
         MosqueALayout().to_csv(tuple(pages))
+
+
+def test_unpublished_khutbah_note_is_not_invented():
+    from custom_components.salah_timetable.parsers.mosque_a_layout import (
+        published_second_khutbah,
+    )
+
+    assert published_second_khutbah("Unrelated Friday notice") is None
+    assert published_second_khutbah("Second Jumu'ah Khutbah will commence at 1:15 pm") == (
+        "13:15"
+    )
+
+
+def test_annual_rejects_out_of_range_year_and_header_after_rows():
+    pages = list(text_pages())
+    pages[0] = pages[0].replace("2026", "1800", 1)
+    with pytest.raises(ImportValidationError, match="supported range"):
+        MosqueALayout().to_csv(tuple(pages))
+
+    pages = list(text_pages())
+    lines = pages[2].splitlines()
+    marker = next(
+        index
+        for index, line in enumerate(lines)
+        if line.strip() == "Dates Beginning / End Times Jamaat Times"
+    )
+    heading = lines.pop(marker)
+    lines.append(heading)
+    pages[2] = "\n".join(lines)
+    with pytest.raises(ImportValidationError, match="before the table header"):
+        MosqueALayout().to_csv(tuple(pages))
