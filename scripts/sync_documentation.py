@@ -48,7 +48,9 @@ MARKER = re.compile(
 
 def metadata(root: Path) -> dict[str, str]:
     manifest = json.loads(
-        (root / "custom_components/salah_timetable/manifest.json").read_text(encoding="utf-8")
+        (root / "custom_components/salah_timetable/manifest.json").read_text(
+            encoding="utf-8"
+        )
     )
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
     values = {"version": manifest["version"]}
@@ -64,10 +66,14 @@ def metadata(root: Path) -> dict[str, str]:
         ("homeassistant_tested", "supported-current"),
     ):
         setting = tomllib.loads(
-            (root / "compatibility" / location / "pyproject.toml").read_text(encoding="utf-8")
+            (root / "compatibility" / location / "pyproject.toml").read_text(
+                encoding="utf-8"
+            )
         )
         requirement = next(
-            d for d in setting["project"]["dependencies"] if d.startswith("homeassistant==")
+            d
+            for d in setting["project"]["dependencies"]
+            if d.startswith("homeassistant==")
         )
         values[key] = requirement.split("==", 1)[1]
     return values
@@ -82,14 +88,22 @@ def rewrite_links(source_path: Path, text: str) -> str:
         if target.startswith(("https:", "http:", "mailto:", "#", "data:", "/", "//")):
             return m.group(0)
         bare, sep, fragment = target.partition("#")
-        normalized = posixpath.normpath(posixpath.join(posixpath.dirname(current), bare))
+        normalized = posixpath.normpath(
+            posixpath.join(posixpath.dirname(current), bare)
+        )
         route = GUIDE_ROUTES.get(normalized)
         if route is None:
             return m.group(0)
         destination, _, default_fragment = route.partition("#")
         relative = posixpath.relpath(destination, posixpath.dirname(current) or ".")
         anchor = fragment if sep else default_fragment
-        return "](" + relative + ("#" + anchor if anchor else "") + (m.group("suffix") or "") + ")"
+        return (
+            "]("
+            + relative
+            + ("#" + anchor if anchor else "")
+            + (m.group("suffix") or "")
+            + ")"
+        )
 
     return LINK.sub(replace, text)
 
@@ -99,7 +113,12 @@ def synchronise(root: Path = ROOT, write: bool = False) -> list[str]:
     values = metadata(root)
     differences = []
     for path in sorted(root.rglob("*.md")):
-        if set(path.relative_to(root).parts) & {".venv", ".git", "node_modules", "dist"}:
+        if set(path.relative_to(root).parts) & {
+            ".venv",
+            ".git",
+            "node_modules",
+            "dist",
+        }:
             continue
         relative = path.relative_to(root)
         original = path.read_text(encoding="utf-8")
@@ -121,8 +140,12 @@ def synchronise(root: Path = ROOT, write: bool = False) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--write", action="store_true", help="Update generated values and links")
-    parser.add_argument("--check", action="store_true", help="Check tracked documentation")
+    parser.add_argument(
+        "--write", action="store_true", help="Update generated values and links"
+    )
+    parser.add_argument(
+        "--check", action="store_true", help="Check tracked documentation"
+    )
     args = parser.parse_args()
     changed = synchronise(write=args.write)
     if changed:
