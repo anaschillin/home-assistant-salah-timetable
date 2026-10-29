@@ -105,9 +105,11 @@ def test_documentation_sync_updates_metadata_and_renamed_links(tmp_path):
     """Documentation is rendered from project metadata and canonical link routes."""
     manifest = tmp_path / "custom_components" / "salah_timetable" / "manifest.json"
     manifest.parent.mkdir(parents=True)
-    manifest.write_text('{"version":"9.8.7","requirements":["pypdf==6.21.2"]}')
+    manifest.write_text(
+        '{"version":"9.8.7","requirements":["pypdf==6.21.2"]}'
+    )
     (tmp_path / "pyproject.toml").write_text(
-        '[project]\\nrequires-python = ">=3.14.2"\\n'
+        '[project]\nrequires-python = ">=3.14.2"\n'
     )
     for lane, ha, plugin in (
         ("minimum", "2026.10.0", "0.13.371"),
@@ -116,12 +118,12 @@ def test_documentation_sync_updates_metadata_and_renamed_links(tmp_path):
         path = tmp_path / "compatibility" / lane / "pyproject.toml"
         path.parent.mkdir(parents=True)
         path.write_text(
-            '[project]\\ndependencies = ['
-            f'"homeassistant=={ha}", "pytest-homeassistant-custom-component=={plugin}"]\\n'
+            '[project]\ndependencies = ['
+            f'"homeassistant=={ha}", "pytest-homeassistant-custom-component=={plugin}"]\n'
         )
     guide = tmp_path / "docs" / "automations.md"
     guide.parent.mkdir()
-    guide.write_text("# Automations\\n\\n## Prayer calendar\\n")
+    guide.write_text("# Automations\n\n## Prayer calendar\n")
     index = tmp_path / "README.md"
     index.write_text(
         "See [calendar](docs/calendar.md). Version "
@@ -133,7 +135,10 @@ def test_documentation_sync_updates_metadata_and_renamed_links(tmp_path):
     written = index.read_text()
     assert "docs/automations.md#prayer-calendar" in written
     assert "<!-- docs:version -->9.8.7<!-- /docs:version -->" in written
-    assert "<!-- docs:test_plugin_min -->0.13.371<!-- /docs:test_plugin_min -->" in written
+    assert (
+        "<!-- docs:test_plugin_min -->0.13.371<!-- /docs:test_plugin_min -->"
+        in written
+    )
     assert synchronise(tmp_path) == []
 
 
@@ -143,4 +148,6 @@ def test_documentation_sync_rejects_missing_relative_destinations(tmp_path):
 
     (tmp_path / "README.md").write_text("# Documentation")
     with pytest.raises(ValueError, match="Missing link destination"):
-        check_local_links(tmp_path, Path("README.md"), "[missing](docs/no-such-guide.md)")
+        check_local_links(
+            tmp_path, Path("README.md"), "[missing](docs/no-such-guide.md)"
+        )
