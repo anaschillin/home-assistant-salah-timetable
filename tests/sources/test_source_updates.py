@@ -823,3 +823,49 @@ async def test_removing_last_source_cancels_pending_check(manager):
     assert manager.status["configured_sources"] == 0
     manager.coordinator.async_update_listeners.assert_called()
     await manager.async_stop()
+
+
+
+async def test_duplicate_start_keeps_one_source_check_listener(manager):
+    with patch(
+        "custom_components.salah_timetable.sources.source_updates.async_track_point_in_utc_time",
+        return_value=MagicMock(),
+    ) as scheduler:
+        await manager.async_start()
+        original_listener = manager._unsubscribe_coordinator
+        await manager.async_start()
+        assert manager._unsubscribe_coordinator is original_listener
+        scheduler.assert_called_once()
+        await manager.async_stop()
+
+
+async def test_failed_source_check_persistence_is_nonfatal_and_recoverable(manager):
+    with patch.object(
+        manager.storage, "async_record_check", AsyncMock(side_effect=OSError("disk full"))
+    ):
+        assert not await manager._record(source(), {"status": "error"})
+    assert manager._runtime_error == "storage_failed"
+    assert manager.status["status"] == "error"
+    assert await manager._record(source(), {"status": "configured"})
+    assert manager._runtime_error is None
+
+
+@pytest.mark.parametrize("failure", [ValueError("source changed"), KeyError("deleted")])
+async def test_stale_source_writes_are_discarded_without_runtime_error(manager, failure):
+    with patch.object(
+        manager.storage, "async_record_check", AsyncMock(side_effect=failure)
+    ):
+        assert not await manager._record(source(), {"status": "configured"})
+    assert manager._runtime_error is None
+
+
+async def test_staged_download_storage_failure_never_changes_approved_data(manager):
+    with patch.object(
+        manager.storage, "async_stage", AsyncMock(side_effect=OSError("disk full"))
+    ):
+        await manager._async_stage_downloaded_source(
+            source(), response(), "2026-10-21T12:00:00+00:00"
+        )
+    assert manager._runtime_error == "storage_failed"
+    assert manager.storage.staged is None
+    assert manager.storage.timetables == ()
