@@ -208,7 +208,9 @@ def main() -> int:
         "--check", action="store_true", help="Check tracked documentation"
     )
     parser.add_argument(
-        "--shell", action="store_true", help="Print current metadata as Bash assignments"
+        "--shell",
+        action="store_true",
+        help="Print current metadata as Bash assignments",
     )
     parser.add_argument(
         "--matrix", action="store_true", help="Print the pinned HA matrix as JSON"

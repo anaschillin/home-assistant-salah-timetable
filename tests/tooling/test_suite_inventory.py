@@ -155,7 +155,7 @@ def test_documentation_sync_rejects_missing_relative_destinations(tmp_path):
             tmp_path, Path("README.md"), "[missing](docs/no-such-guide.md)"
         )
 
- 
+
 def test_version_exports_match_pinned_metadata():
     """Executable examples and CI use one authority for their version values."""
     values = metadata(REPO_ROOT)

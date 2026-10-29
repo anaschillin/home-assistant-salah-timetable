@@ -313,6 +313,5 @@ def main() -> None:
     update_provenance(items, checksums)
 
 
-
 if __name__ == "__main__":
     main()
