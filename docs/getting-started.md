@@ -4,7 +4,7 @@ This quickstart is for Home Assistant users installing the integration for the f
 
 ## Install the integration
 
-Home Assistant 2026.10.0 or later is required.
+Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> or later is required.
 
 1. In HACS, choose **Custom repositories**, add `https://github.com/anaschillin/home-assistant-salah-timetable` and select **Integration**.
 2. Download **Salah Timetable** and restart Home Assistant.
@@ -21,7 +21,7 @@ HACS custom-repository installation is distinct from inclusion in HACS's default
 4. Review the detected layout, dates, warnings and prayer values. Use **Compare changes before approval** when replacing approved data.
 5. Choose **Approve and save timetable** to activate it, or reject it to retain existing approved data. If importing Ramadan times, confirm the Ramadan date window separately in mosque settings.
 
-PDF imports recognise **only** [documented layouts](pdf_layouts.md). Scanned pages and unknown layouts are unsupported; CSV may be a suitable alternative. Never invent missing times.
+PDF imports recognise **only** [documented layouts](import_review.md#supported-pdf-layouts). Scanned pages and unknown layouts are unsupported; CSV may be a suitable alternative. Never invent missing times.
 
 ## Add the dashboard card
 
@@ -39,7 +39,7 @@ For appearance, mobile layouts and language options see [Dashboard](dashboard.md
 | Symptom | Check |
 | --- | --- |
 | Salah Timetable not found in Add integration | Confirm HACS downloaded the integration to `custom_components/salah_timetable`, then restart HA |
-| PDF not recognised | Compare with [supported layouts](pdf_layouts.md). Scanned/encrypted/unknown layouts fail closed; convert a legitimate published timetable to CSV when appropriate |
+| PDF not recognised | Compare with [supported layouts](import_review.md#supported-pdf-layouts). Scanned/encrypted/unknown layouts fail closed; convert a legitimate published timetable to CSV when appropriate |
 | URL download fails | Use a publicly accessible HTTPS URL on port 443, without credentials or private-network destinations. HTTPS redirects, types and sizes are strictly checked |
 | No prayer times or countdown | Confirm import approval, correct mosque timezone and date coverage. Missing tomorrow means the next Fajr may be unavailable after Isha |
 | Card missing from dashboard picker | Confirm the integration is loaded; reload the HA frontend, inspect the bundled `/salah_timetable/salah-timetable-card.js` resource, and follow [resource troubleshooting](dashboard.md#resource-troubleshooting) |
@@ -50,7 +50,7 @@ For appearance, mobile layouts and language options see [Dashboard](dashboard.md
 
 ## When asking for support
 
-Include the Home Assistant version, integration version, whether you installed via HACS/manual method, the selected mosque timezone, a screenshot of the problem using synthetic or redacted data, and the expected versus actual date/time. The [support policy](support.md) explains safe diagnostic sharing. Do **not** post private source URLs, security tokens, full config backups or original non-redistributable PDFs.
+Include the Home Assistant version, integration version, whether you installed via HACS/manual method, the selected mosque timezone, a screenshot of the problem using synthetic or redacted data, and the expected versus actual date/time. The [support policy](getting-started.md#support-and-compatibility-policy) explains safe diagnostic sharing. Do **not** post private source URLs, security tokens, full config backups or original non-redistributable PDFs.
 
 [Back to main README](../README.md)
 
@@ -61,7 +61,7 @@ integration. There is no guaranteed response time or paid support service.
 
 The declared minimum Home Assistant version is 2026.10.0. Automated Python tests
 use Home Assistant 2026.10.3 in the root lock, plus full pinned 2026.10.0
-and 2026.10.3 compatibility lanes; the [validation record](validation.md) identifies live
+and 2026.10.3 compatibility lanes; the [validation record](releasing.md#validation-and-acceptance-scope) identifies live
 versions and the scope of each check. Supported Home Assistant OS/Container systems
 provide the Linux/POSIX process resource limits required for isolated PDF extraction.
 Other installation methods are not part of the recorded acceptance matrix.
@@ -76,7 +76,7 @@ notes; neither is an additional congregation. Full calculated Umm al-Qura Hijri
 dates can be hidden during mosque setup, later under Configure → Mosque settings,
 or per card. Confirm Ramadan dates explicitly: Hijri display never activates
 Ramadan. See
-[PDF layouts](pdf_layouts.md) and the README for file, timezone, network and parsing
+[PDF layouts](import_review.md#supported-pdf-layouts) and the README for file, timezone, network and parsing
 limits.
 
 For installation and import problems, start with the [quickstart and troubleshooting guide](getting-started.md).

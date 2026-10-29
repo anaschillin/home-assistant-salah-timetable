@@ -1,5 +1,7 @@
 # Dashboard card
 
+Current integration version: <!-- docs:version -->0.9.19<!-- /docs:version -->.
+
 The **Salah Timetable** card is bundled with the integration. It uses the mosque's
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
 template sensors or YAML configuration.
@@ -341,7 +343,7 @@ and [CodeQL](https://github.com/anaschillin/home-assistant-salah-timetable/actio
 before squash merge to `main` at `80b8017`. The maintainer approved the
 visual design; that does not replace a full version-specific physical-device,
 HACS removal/reinstallation or release acceptance record. See the
-[validation record](validation.md) and
+[validation record](releasing.md#validation-and-acceptance-scope) and
 [prior development](roadmap.md).
 
 ## Mosque photograph implementation and maintenance

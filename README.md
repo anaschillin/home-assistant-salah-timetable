@@ -3,6 +3,8 @@
 [![Validate](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+Current integration version: **<!-- docs:version -->0.9.19<!-- /docs:version -->**.
+
 A Home Assistant custom integration for importing **published mosque Salah and Jamaat timetables**. Configure one or more mosques, import a supported PDF/CSV or public HTTPS source, explicitly approve the timetable, and display it with a bundled Lovelace card.
 
 ## Features
@@ -12,11 +14,11 @@ A Home Assistant custom integration for importing **published mosque Salah and J
 - Compact, standard and detailed responsive cards with multiple mosque selection, Yesterday/Today/Tomorrow navigation, Gregorian/Hijri dates and optional mosque photography.
 - Optional prayer, media and timetable-coverage automation blueprints.
 
-**Important:** Values come from approved publications; this integration does not calculate authoritative prayer schedules or invent missing times. Only [documented PDF layouts](docs/pdf_layouts.md) are supported.
+**Important:** Values come from approved publications; this integration does not calculate authoritative prayer schedules or invent missing times. Only [documented PDF layouts](docs/import_review.md#supported-pdf-layouts) are supported.
 
 ## Install
 
-Home Assistant **2026.10.0 or newer** is required. The integration is available through a **HACS custom repository** (not claimed to be in the default catalogue).
+Home Assistant **<!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> or newer** is required. The integration is available through a **HACS custom repository** (not claimed to be in the default catalogue).
 
 1. In HACS choose **Custom repositories**, enter `https://github.com/anaschillin/home-assistant-salah-timetable` and select **Integration**.
 2. Download **Salah Timetable** and restart Home Assistant.
@@ -32,11 +34,8 @@ Manual installation: copy `custom_components/salah_timetable` into Home Assistan
 | --- | --- |
 | [Getting started](docs/getting-started.md) | Detailed setup, first import and troubleshooting |
 | [Dashboard](docs/dashboard.md) | Card options and multiple mosques |
-| [PDF formats](docs/pdf_layouts.md) | Supported layouts, limitations and fixture notes |
-| [Import review](docs/import_review.md) | Comparing, approving and rejecting changes |
-| [Ramadan](docs/ramadan_validation.md) | Date confirmation and validation |
+| [Importing and validation](docs/import_review.md) | PDF layouts, timetable review, Ramadan and source updates |
 | [Automations](docs/automations.md) | Blueprints and coverage alerts |
-| [Support](docs/support.md) | Compatibility and safe diagnostics |
 | [Architecture](docs/architecture.md) | Internal design for contributors |
 | [Testing](docs/testing.md) | Tests, coverage and development |
 | [Releasing](docs/releasing.md) | Release workflow and sign-off |
@@ -44,7 +43,7 @@ Manual installation: copy `custom_components/salah_timetable` into Home Assistan
 
 ## Development
 
-Use Python 3.14.2+ and the locked project environment:
+Use Python <!-- docs:python_min -->3.14.2<!-- /docs:python_min -->+ and the locked project environment:
 
 ```sh
 uv sync --frozen --group dev

@@ -1,5 +1,7 @@
 # Test suite guide
 
+Validated against Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> (pinned current).
+
 This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 51 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
@@ -127,9 +129,9 @@ The following 13 Node unit modules are discovered by `npm test` (`node --test te
 | `mosque-backgrounds.test.mjs` | Mosque background catalogue and metadata |
 | `visual-regression.test.mjs` | Screenshot comparison behaviour |
 
-`tests/frontend/browser-smoke.mjs` is a separately executed Chromium smoke test via `npm run test:browser` (it intentionally has no `.test.mjs` suffix). `tests/frontend/browser-harness.js` supplies the synthetic HA card environment used by that smoke test. The comparator is `scripts/compare_screenshots.mjs`; pull-request CI compares the base and candidate screenshots, and requires explicit approval for intentional pixel differences. See [visual regression](visual-regression.md).
+`tests/frontend/browser-smoke.mjs` is a separately executed Chromium smoke test via `npm run test:browser` (it intentionally has no `.test.mjs` suffix). `tests/frontend/browser-harness.js` supplies the synthetic HA card environment used by that smoke test. The comparator is `scripts/compare_screenshots.mjs`; pull-request CI compares the base and candidate screenshots, and requires explicit approval for intentional pixel differences. See [visual regression](testing.md#frontend-visual-regression).
 
-The separate, network-enabled `scripts/live_smoke.mjs` creates a **disposable real Home Assistant Container**, verifies onboarding, config entry and browser behaviour, and cleans up the environment. It is not an ordinary local Node unit test. See [live smoke](live-smoke.md). Real-device/HACS acceptance and full HAOS backup restoration remain separate release checks.
+The separate, network-enabled `scripts/live_smoke.mjs` creates a **disposable real Home Assistant Container**, verifies onboarding, config entry and browser behaviour, and cleans up the environment. It is not an ordinary local Node unit test. See [live smoke](testing.md#disposable-home-assistant-live-testing). Real-device/HACS acceptance and full HAOS backup restoration remain separate release checks.
 
 ## Fixtures, helpers and test data
 

@@ -1,8 +1,10 @@
 # Architecture
 
+Current integration version: <!-- docs:version -->0.9.19<!-- /docs:version -->.
+
 ## Boundaries
 
-The authoritative [production module inventory](module-inventory.md) lists every grouped Python module, stable Home Assistant entrypoint and frontend helper. There are no duplicate root modules or legacy import aliases.
+The authoritative [production module inventory](architecture.md#production-module-inventory) lists every grouped Python module, stable Home Assistant entrypoint and frontend helper. There are no duplicate root modules or legacy import aliases.
 
 - `config_flow.py`: mosque identity, UI creation, timezone/Ramadan options and import
   flow entry. Options updates preserve unrelated settings and reload the entry.
@@ -144,7 +146,7 @@ It records an explicitly recognized second-Jumu’ah khutbah footer separately i
 per-row original source metadata for Fridays; the footer **never** becomes a
 congregation event or changes the published Dhuhr beginning. The inspected
 MOSQUE_A monthly adapter applies the same separation. Printed Hijri cells never
-confirm Ramadan. See [PDF layouts](pdf_layouts.md).
+confirm Ramadan. See [PDF layouts](import_review.md#supported-pdf-layouts).
 
 `sources/source_model.py` holds immutable URL/parser profiles and allowlisted check metadata.
 `sources/source_updates.py` serializes manual and scheduled checks. A source comparison inside
@@ -237,7 +239,7 @@ on while a published instant is displayed. Start triggers retain the exact
 published timestamps; end triggers are calendar-only (not prayer duration).
 Queries include event-range overlaps, including across local midnight. The unique ID is
 `{mosque_id}_prayer_calendar`, linked to the existing mosque device. See
-[calendar behavior](calendar.md).
+[calendar behavior](automations.md#prayer-calendar).
 
 Optional blueprint policies remain separate from prayer calculations. Adhan controls
 choose user-owned media, volume and quiet hours. Volume restoration checks playback
@@ -322,7 +324,7 @@ package preload. Physical-device checks were user-confirmed on 24 October 2026 f
 an installation whose version was not recorded, before 0.7.0. They do not establish
 physical acceptance of the later calendar, profiles, speaker controls, import review
 or dashboard additions. See the
-[validation record](validation.md) and [dashboard setup](dashboard.md).
+[validation record](releasing.md#validation-and-acceptance-scope) and [dashboard setup](dashboard.md).
 
 ## Remaining limitations
 

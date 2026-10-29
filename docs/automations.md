@@ -1,6 +1,6 @@
 # Prayer automations and coverage alerts
 
-The integration supplies timestamp sensors, a [prayer calendar](calendar.md) and
+The integration supplies timestamp sensors, a [prayer calendar](automations.md#prayer-calendar) and
 five optional Home Assistant blueprints. Import a blueprint, choose the mosque's sensors and your own actions,
 and save the resulting automation. No recording, notification service or speaker
 credentials are bundled with the integration.

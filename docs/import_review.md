@@ -339,7 +339,7 @@ of those confirms the mosque's observed Ramadan dates.
 The contributed MOSQUE_A file is May–June **2022**, not a complete current Ramadan
 timetable. The Mosque B 2026 publication has a separate Ramadan page containing
 thirty Ramadan rows plus a following Hijri-1 row. Both are useful regression cases
-against activating every imported date. See [PDF layouts](pdf_layouts.md).
+against activating every imported date. See [PDF layouts](import_review.md#supported-pdf-layouts).
 
 ### What is rejected
 

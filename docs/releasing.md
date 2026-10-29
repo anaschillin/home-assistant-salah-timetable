@@ -1,12 +1,14 @@
 # Building and accepting a release
 
+Current integration version: <!-- docs:version -->0.9.19<!-- /docs:version -->.
+
 ## Current release readiness
 
 Check the **exact candidate commit and version**; do not reuse validation claims from older changes. Manifest/project/frontend versions and release notes must agree. A successful CI run does not prove an authenticated HACS UI installation or every Home Assistant OS use case.
 
 **Required:** passing Validate and CodeQL on the candidate commit, package/version checks, checksum review and documented relevant manual HACS/Home Assistant acceptance.
 
-**Optional/deferred:** complete HAOS/Supervisor restore on a separate test instance. Automated Home Assistant Container backup/restore is narrower; neither is a per-PR requirement. See [Backup restore acceptance](backup-restore-acceptance.md).
+**Optional/deferred:** complete HAOS/Supervisor restore on a separate test instance. Automated Home Assistant Container backup/restore is narrower; neither is a per-PR requirement. See [Backup restore acceptance](releasing.md#optional-full-backup-and-restore-acceptance).
 
 ## Build and verify
 
@@ -25,7 +27,7 @@ uv run --frozen python scripts/build_release.py
 
 The build produces a deterministic `dist/salah_timetable-VERSION.zip` and SHA-256 sidecar. The archive includes installable integration source and required frontend/brand assets and license, **not** tests, fixtures or original mosque timetables.
 
-Confirm the hosted workflow checks on the actual release commit: locked Python tests and coverage, separate HA version suites, Chromium, hassfest, HACS validation, supported-current live Container smoke and release archive consistency. [Testing](testing.md), [Compatibility](compatibility.md) and [Live smoke](live-smoke.md) explain these checks.
+Confirm the hosted workflow checks on the actual release commit: locked Python tests and coverage, separate HA version suites, Chromium, hassfest, HACS validation, supported-current live Container smoke and release archive consistency. [Testing](testing.md), [Compatibility](testing.md#compatibility-test-environments) and [Live smoke](testing.md#disposable-home-assistant-live-testing) explain these checks.
 
 ## Manual HACS and Home Assistant acceptance
 
@@ -38,7 +40,7 @@ Use disposable configurations and synthetic timetables; note the installed HA/in
 5. Test next Salah/Jamaat events, calendar, Friday entries, missing dates and DST/year boundaries.
 6. Verify mobile/tablet readability, Yesterday/Today/Tomorrow dates, keyboard navigation and relevant optional blueprints.
 
-Full HAOS/Supervisor restore is an **optional** additional test, documented in [Backup and restore](backup-restore-acceptance.md). Do not describe Container tests as completing it.
+Full HAOS/Supervisor restore is an **optional** additional test, documented in [Backup and restore](releasing.md#optional-full-backup-and-restore-acceptance). Do not describe Container tests as completing it.
 
 ## Draft release
 
@@ -62,13 +64,13 @@ The validation workflow covers Python tests and coverage, Ruff, Node frontend te
 
 The Chromium harness uses test stand-ins for parts of Home Assistant. HACS repository validation is not a real HACS UI installation, and Container archive/restore testing is not a complete HAOS/Supervisor restoration.
 
-For reproducible commands and test boundaries see [Testing](testing.md), [Compatibility](compatibility.md), [Live smoke](live-smoke.md) and [Visual regression](visual-regression.md).
+For reproducible commands and test boundaries see [Testing](testing.md), [Compatibility](testing.md#compatibility-test-environments), [Live smoke](testing.md#disposable-home-assistant-live-testing) and [Visual regression](testing.md#frontend-visual-regression).
 
 ### Manual acceptance
 
 For a release candidate, record real HACS install/update and HAOS usage on the **exact version**; check import/approval, two-mosque isolation, dashboard rendering on mobile/tablet, date boundaries, storage after restart and relevant automation behaviour. Capture environment and results in the release review.
 
-A full HAOS/Supervisor backup restore is optional/deferred, not a prerequisite for every change or release. See [Backup and restore](backup-restore-acceptance.md).
+A full HAOS/Supervisor backup restore is optional/deferred, not a prerequisite for every change or release. See [Backup and restore](releasing.md#optional-full-backup-and-restore-acceptance).
 
 The authoritative sign-off procedure is [Releasing](releasing.md).
 
@@ -119,7 +121,7 @@ mosque times. Never target your existing Home Assistant installation.
    resources, no unexpected Repairs items and correct source isolation.
 7. Record supported Core version, backup archive format, restore mechanism,
    redacted counts, restart results and any limitations in
-   [validation.md](validation.md). Do not commit backups/auth tokens.
+   [validation.md](releasing.md#validation-and-acceptance-scope). Do not commit backups/auth tokens.
 
 ### Reproducible Home Assistant Container preflight
 
