@@ -48,6 +48,11 @@ def main() -> int:
             mismatches.append(str(path.relative_to(ROOT)))
             if args.write:
                 path.write_text(expected, encoding="utf-8")
+    from sync_documentation import synchronise
+
+    doc_changes = synchronise(ROOT, write=args.write)
+    if doc_changes:
+        mismatches.extend(f"docs: {name}" for name in doc_changes)
     if mismatches:
         print(
             ("Updated" if args.write else "Out-of-sync")

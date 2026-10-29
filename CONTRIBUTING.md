@@ -62,3 +62,16 @@ Use these Markdown conventions throughout the README, `docs/`, `examples/` and t
 - Preserve meaningful identifiers: semantic versions in `CHANGELOG.md`, Home Assistant versions, dates, parser IDs and technical constants are **not** document numbering.
 - Keep [the roadmap](docs/roadmap.md) free of completed milestone IDs, and do not add old PR numbers or dated acceptance diaries to active documentation. Git history and Actions retain that evidence.
 - Use descriptive headings so internal Markdown anchors remain stable; verify links when moving or renaming sections.
+
+## Keeping documentation variables current
+
+GitHub Markdown does not share variables between files. Visible values inside `<!-- docs:... -->` markers are generated from the integration manifest, project Python requirement and pinned Home Assistant compatibility environments. Guide redirects are centralised in `scripts/sync_documentation.py`.
+
+After changing the integration version, compatibility targets or documentation paths, run:
+
+```sh
+python scripts/sync_frontend_version.py --write
+python scripts/sync_documentation.py --check
+```
+
+The first command refreshes frontend cache identifiers **and** documentation values/links. The second is run in CI and fails if any rendered value or redirected link has gone stale. The Markdown pages always display real values, not raw template placeholders.
