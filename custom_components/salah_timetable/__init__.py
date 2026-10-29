@@ -37,7 +37,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> boo
             translation_placeholders={"mosque": entry.title},
         )
         raise ConfigEntryError(
-            "Stored timetable is invalid; original storage retained"
+            translation_domain=DOMAIN,
+            translation_key="invalid_stored_timetable",
         ) from err
     ir.async_delete_issue(hass, DOMAIN, f"invalid_storage_{entry.entry_id}")
     coordinator = SalahCoordinator(hass, entry, storage, zone)
