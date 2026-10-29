@@ -105,9 +105,7 @@ def test_documentation_sync_updates_metadata_and_renamed_links(tmp_path):
     """Documentation is rendered from project metadata and canonical link routes."""
     manifest = tmp_path / "custom_components" / "salah_timetable" / "manifest.json"
     manifest.parent.mkdir(parents=True)
-    manifest.write_text(
-        '{"version":"9.8.7","requirements":["pypdf==6.21.2"]}'
-    )
+    manifest.write_text('{"version":"9.8.7","requirements":["pypdf==6.21.2"]}')
     (tmp_path / "pyproject.toml").write_text(
         '[project]\nrequires-python = ">=3.14.2"\n'
     )
@@ -118,7 +116,7 @@ def test_documentation_sync_updates_metadata_and_renamed_links(tmp_path):
         path = tmp_path / "compatibility" / lane / "pyproject.toml"
         path.parent.mkdir(parents=True)
         path.write_text(
-            '[project]\ndependencies = ['
+            "[project]\ndependencies = ["
             f'"homeassistant=={ha}", '
             f'"pytest-homeassistant-custom-component=={plugin}"]\n'
         )
@@ -137,8 +135,7 @@ def test_documentation_sync_updates_metadata_and_renamed_links(tmp_path):
     assert "docs/automations.md#prayer-calendar" in written
     assert "<!-- docs:version -->9.8.7<!-- /docs:version -->" in written
     assert (
-        "<!-- docs:test_plugin_min -->0.13.371<!-- /docs:test_plugin_min -->"
-        in written
+        "<!-- docs:test_plugin_min -->0.13.371<!-- /docs:test_plugin_min -->" in written
     )
     assert synchronise(tmp_path) == []
 
