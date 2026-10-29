@@ -100,7 +100,6 @@ async def test_logged_write_error_does_not_promote(hass, entry, timetable):
     assert fresh.timetables == (timetable,)
 
 
-
 @pytest.mark.parametrize(
     "invalid_id",
     ["", "f" * 31, "g" * 32, "A" * 32, True, None, 123],
