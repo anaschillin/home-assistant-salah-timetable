@@ -108,6 +108,19 @@ def rewrite_links(source_path: Path, text: str) -> str:
     return LINK.sub(replace, text)
 
 
+def check_local_links(root: Path, source_path: Path, source: str) -> None:
+    """Reject broken relative Markdown paths after redirects are applied."""
+    current = source_path.as_posix()
+    for match in LINK.finditer(source):
+        target = match.group("target")
+        if target.startswith(("https:", "http:", "mailto:", "#", "data:", "/", "//")):
+            continue
+        bare = target.partition("#")[0].partition("?")[0]
+        candidate = posixpath.normpath(posixpath.join(posixpath.dirname(current), bare))
+        if not (root / candidate).exists():
+            raise ValueError(f"Missing link destination in {current}: {target}")
+
+
 def synchronise(root: Path = ROOT, write: bool = False) -> list[str]:
     """Return changed file names; write them only when explicitly requested."""
     values = metadata(root)
@@ -131,6 +144,7 @@ def synchronise(root: Path = ROOT, write: bool = False) -> list[str]:
             return f"<!-- docs:{key} -->{values[key]}<!-- /docs:{key} -->"
 
         expected = MARKER.sub(replace_marker, expected)
+        check_local_links(root, relative, expected)
         if expected != original:
             differences.append(relative.as_posix())
             if write:
