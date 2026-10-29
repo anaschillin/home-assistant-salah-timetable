@@ -399,7 +399,7 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 | `frontend/card-i18n.js` | Localized client-side labels |
 | `frontend/card-styles.js` | Dashboard CSS and layout tokens |
 | `frontend/mosque-backgrounds.js` | Background catalog and selection logic |
-| `frontend/backgrounds/*.webp` | Attributed bundled mosque images; see [credits](mosque-background-credits.md) |
+| `frontend/backgrounds/*.webp` | Attributed bundled mosque images; see [provenance inventory](asset-provenance.json) |
 | `brand/icon.png` | Integration icon |
 | `manifest.json` | HACS and HA integration metadata/dependencies |
 | `strings.json`, `translations/en.json` | HA config and options UI localization |
