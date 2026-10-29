@@ -118,3 +118,25 @@ def test_previous_publication_profile_metadata_loads_without_catalogue():
     restored = ImportCandidate.from_dict(saved)
     assert restored == original
     assert "publication_profile_id" not in restored.as_dict()
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda data: data.update(year=True),
+        lambda data: data.update(source_format="other"),
+        lambda data: data.update(source_format="pdf"),
+        lambda data: data.update(source_url="http://internal.invalid/timetable.csv"),
+        lambda data: data.update(time_format="unsupported"),
+        lambda data: data.update(source_text=""),
+        lambda data: data.update(
+            source_text="Date,Date\n2026-01-01,2026-01-01\n",
+            sha256="0" * 64,
+        ),
+    ],
+)
+def test_additional_invalid_import_provenance_does_not_load(mutation):
+    data = candidate().as_dict()
+    mutation(data)
+    with pytest.raises(ImportValidationError):
+        ImportCandidate.from_dict(data)
