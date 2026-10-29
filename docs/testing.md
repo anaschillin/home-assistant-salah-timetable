@@ -1,5 +1,7 @@
 # Test suite guide
 
+Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.2<!-- /docs:pypdf --> (from the integration manifest).
+
 Validated against Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> (pinned current).
 
 This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 51 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.

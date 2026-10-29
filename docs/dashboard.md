@@ -282,12 +282,12 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.9.19
+/salah_timetable/salah-timetable-card.js
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an
 old card version persists. The integration updates its own registration on upgrades;
-manual fallback URLs may need their version changed to the installed version.
+for manual fallback resources, add the installed version as a cache key only if required after an upgrade. The version is shown at the top of this guide.
 
 If the card reports a missing entity, choose the mosque's Prayer timetable sensor
 again. If prayer values are unavailable, check the approved source's date coverage,

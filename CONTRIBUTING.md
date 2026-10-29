@@ -74,4 +74,4 @@ python scripts/sync_frontend_version.py --write
 python scripts/sync_documentation.py --check
 ```
 
-The first command refreshes frontend cache identifiers **and** documentation values/links. The second is run in CI and fails if any rendered value or redirected link has gone stale. The Markdown pages always display real values, not raw template placeholders.
+The first command refreshes frontend cache identifiers **and** documentation values/links. The second is run in CI and fails if any rendered value or redirected link has gone stale. The Markdown pages always display real values, not raw template placeholders. Do not manually edit the generated values inside the markers.

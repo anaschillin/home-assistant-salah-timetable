@@ -40,6 +40,8 @@ Manual installation: copy `custom_components/salah_timetable` into Home Assistan
 | [Testing](docs/testing.md) | Tests, coverage and development |
 | [Releasing](docs/releasing.md) | Release workflow and sign-off |
 | [Roadmap](docs/roadmap.md) | Future plans only |
+| [Assets and credits](docs/asset-provenance.md) | Source checks, image licensing and fixture provenance |
+| [Islamic history research](research/islamic-history/islamic-history-source-audit.md) | Research proposals, not released features |
 
 ## Development
 
