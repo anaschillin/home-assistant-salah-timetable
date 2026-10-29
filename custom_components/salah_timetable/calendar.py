@@ -105,16 +105,20 @@ def calendar_events(mosque_id, tables, settings, zone, start, end):
             or value.utcoffset() is None
         ):
             raise HomeAssistantError(
-                "Calendar queries require timezone-aware datetimes"
+                translation_domain=DOMAIN, translation_key="calendar_timezone_required"
             )
     start_utc, end_utc = start.astimezone(timezone.utc), end.astimezone(timezone.utc)
     if end_utc <= start_utc:
-        raise HomeAssistantError("Calendar query end must be after its start")
+        raise HomeAssistantError(
+            translation_domain=DOMAIN, translation_key="calendar_end_before_start"
+        )
     first_query_day = start_utc.astimezone(zone).date()
     last = (end_utc - timedelta(microseconds=1)).astimezone(zone).date()
     if (last - first_query_day).days >= MAX_QUERY_DAYS:
         raise HomeAssistantError(
-            f"Calendar queries may cover at most {MAX_QUERY_DAYS} local dates"
+            translation_domain=DOMAIN,
+            translation_key="calendar_date_range_exceeded",
+            translation_placeholders={"limit": str(MAX_QUERY_DAYS)},
         )
     # An event just before local midnight can overlap a query starting tomorrow.
     first = (start_utc - CALENDAR_PRESENTATION_INTERVAL).astimezone(zone).date()
@@ -131,7 +135,8 @@ def calendar_events(mosque_id, tables, settings, zone, start, end):
             )
     except ValueError as err:
         raise HomeAssistantError(
-            "Calendar dates contain unresolved timetable data; review mosque source and timezone settings"
+            translation_domain=DOMAIN,
+            translation_key="calendar_unresolved_data",
         ) from err
     return events
 
