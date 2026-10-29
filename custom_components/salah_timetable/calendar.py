@@ -164,7 +164,6 @@ class PrayerCalendar(CoordinatorEntity, CalendarEntity):
 
     _attr_has_entity_name = True
     _attr_translation_key = "prayer_calendar"
-    _attr_icon = "mdi:calendar-clock"
     _attr_supported_features = 0
 
     def __init__(self, coordinator, entry):
