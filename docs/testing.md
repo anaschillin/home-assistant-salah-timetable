@@ -151,6 +151,10 @@ When computing a fixture path from a Python test inside a domain folder, use `Pa
 
 ## CI coverage and ownership
 
+The README **coverage** badge is generated from the *measured Python line-coverage ratio* in the successful `Validate` tests job on `main`; it is not a hard-coded percentage. The existing test job uploads the calculated Shields.io JSON endpoint, and a separate publish job with limited `contents: write` access stores only `coverage.json` on an automatically created orphan `badges` branch. The branch is deliberately retained as generated badge data; its pushes do not trigger main-branch test workflows. Badge updates occur on successful main-branch tests, not on pull requests, and can lag briefly due to image caching. The **HACS** badge queries the actual `hacs` check-run status on `main`, not the aggregate Validate workflow status. These badges do not prove HACS Store listing or replace release acceptance.
+
+
+
 | CI entry | What is verified |
 | --- | --- |
 | `.github/workflows/validate.yml` | Documentation integrity on every run; full Python pytest, coverage, Ruff, Node/Chromium, HACS/hassfest, packaging and HA checks for code PRs and all pushes to `main` |
