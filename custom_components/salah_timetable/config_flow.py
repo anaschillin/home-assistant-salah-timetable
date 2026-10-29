@@ -98,7 +98,9 @@ class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="reconfigure",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_NAME, default=entry.title): selector.TextSelector(),
+                    vol.Required(
+                        CONF_NAME, default=entry.title
+                    ): selector.TextSelector(),
                     vol.Required(
                         CONF_TIME_ZONE,
                         default=entry.options.get(
