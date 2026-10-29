@@ -8,8 +8,12 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.model import DailyPrayers, PrayerField, Timetable
-from custom_components.salah_timetable.storage import TimetableStorage
+from custom_components.salah_timetable.domain.model import (
+    DailyPrayers,
+    PrayerField,
+    Timetable,
+)
+from custom_components.salah_timetable.persistence.storage import TimetableStorage
 
 
 async def ramadan_flow(hass, entry):

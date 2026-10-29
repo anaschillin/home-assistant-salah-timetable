@@ -1,6 +1,6 @@
 # Integration module boundaries
 
-This document describes runtime ownership and the contracts between modules. See the [complete code inventory](module-inventory.md) for the folder layout, public entrypoints and legacy import aliases; this is not a replacement for the import review guide.
+This document describes runtime ownership and the contracts between modules. See the [complete code inventory](module-inventory.md) for the folder layout, public entrypoints and the canonical (non-duplicated) module paths; this is not a replacement for the import review guide.
 
 | Module | Responsibility | Contract |
 | --- | --- | --- |

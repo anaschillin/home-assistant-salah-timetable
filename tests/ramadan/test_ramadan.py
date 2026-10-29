@@ -5,8 +5,12 @@ from datetime import date, datetime, time
 
 import pytest
 
-from custom_components.salah_timetable.model import DailyPrayers, PrayerField, Timetable
-from custom_components.salah_timetable.ramadan import (
+from custom_components.salah_timetable.domain.model import (
+    DailyPrayers,
+    PrayerField,
+    Timetable,
+)
+from custom_components.salah_timetable.domain.ramadan import (
     TARAWEEH_AFTER_ISHA,
     RamadanSettings,
     resolve_day,

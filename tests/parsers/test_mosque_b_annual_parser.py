@@ -4,11 +4,11 @@ from pathlib import Path
 
 import pytest
 
-from custom_components.salah_timetable.import_model import ImportValidationError
-from custom_components.salah_timetable.mosque_b_annual_layout import (
+from custom_components.salah_timetable.parsers.import_model import ImportValidationError
+from custom_components.salah_timetable.parsers.mosque_b_annual_layout import (
     MOSQUE_B_ANNUAL_COLUMNS,
 )
-from custom_components.salah_timetable.pdf_parser import PdfParser
+from custom_components.salah_timetable.parsers.pdf_parser import PdfParser
 
 FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/mosque_b_2026.pdf"
 
