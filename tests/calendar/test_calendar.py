@@ -657,9 +657,7 @@ def test_calendar_icon_and_translation_resources_agree():
     from pathlib import Path
 
     directory = (
-        Path(__file__).resolve().parents[2]
-        / "custom_components"
-        / "salah_timetable"
+        Path(__file__).resolve().parents[2] / "custom_components" / "salah_timetable"
     )
     icons = json.loads((directory / "icons.json").read_text(encoding="utf-8"))
     strings = json.loads((directory / "strings.json").read_text(encoding="utf-8"))
