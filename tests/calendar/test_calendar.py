@@ -652,21 +652,20 @@ def test_read_only_platforms_have_explicit_parallel_update_policy():
     assert sensor.PARALLEL_UPDATES == 0
 
 
-def test_calendar_icon_uses_translation_key():
+def test_calendar_icon_and_translation_resources_agree():
     import json
     from pathlib import Path
 
-    from custom_components.salah_timetable.calendar import PrayerCalendar
-
-    path = (
+    directory = (
         Path(__file__).resolve().parents[2]
         / "custom_components"
         / "salah_timetable"
-        / "icons.json"
     )
-    icons = json.loads(path.read_text(encoding="utf-8"))
-    assert PrayerCalendar.__dict__["_attr_translation_key"] == "prayer_calendar"
-    assert "_attr_icon" not in PrayerCalendar.__dict__
+    icons = json.loads((directory / "icons.json").read_text(encoding="utf-8"))
+    strings = json.loads((directory / "strings.json").read_text(encoding="utf-8"))
     assert icons["entity"]["calendar"]["prayer_calendar"]["default"] == (
         "mdi:calendar-clock"
+    )
+    assert strings["entity"]["calendar"]["prayer_calendar"]["name"] == (
+        "Prayer calendar"
     )
