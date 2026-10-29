@@ -825,7 +825,6 @@ async def test_removing_last_source_cancels_pending_check(manager):
     await manager.async_stop()
 
 
-
 async def test_duplicate_start_keeps_one_source_check_listener(manager):
     with patch(
         "custom_components.salah_timetable.sources.source_updates.async_track_point_in_utc_time",
@@ -841,7 +840,9 @@ async def test_duplicate_start_keeps_one_source_check_listener(manager):
 
 async def test_failed_source_check_persistence_is_nonfatal_and_recoverable(manager):
     with patch.object(
-        manager.storage, "async_record_check", AsyncMock(side_effect=OSError("disk full"))
+        manager.storage,
+        "async_record_check",
+        AsyncMock(side_effect=OSError("disk full")),
     ):
         assert not await manager._record(source(), {"status": "error"})
     assert manager._runtime_error == "storage_failed"
@@ -851,7 +852,9 @@ async def test_failed_source_check_persistence_is_nonfatal_and_recoverable(manag
 
 
 @pytest.mark.parametrize("failure", [ValueError("source changed"), KeyError("deleted")])
-async def test_stale_source_writes_are_discarded_without_runtime_error(manager, failure):
+async def test_stale_source_writes_are_discarded_without_runtime_error(
+    manager, failure
+):
     with patch.object(
         manager.storage, "async_record_check", AsyncMock(side_effect=failure)
     ):
