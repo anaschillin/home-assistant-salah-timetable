@@ -171,22 +171,22 @@ PDF worker white-box coverage supplements, but does not replace, real isolated-s
 ## Compatibility test environments
 
 The development and release environment stays locked to Home Assistant
-**2026.10.3** in the root `pyproject.toml` and `uv.lock`. Two independent
+**<!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->** in the root `pyproject.toml` and `uv.lock`. Two independent
 projects run the same complete Python suite against supported releases:
 
 | Lane | Home Assistant | Test plugin | Separate project |
 | --- | --- | --- | --- |
-| Minimum | 2026.10.0 | 0.13.371 | `compatibility/minimum` |
-| Supported current | 2026.10.3 | 0.13.374 | `compatibility/supported-current` |
+| Minimum | <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> | <!-- docs:test_plugin_min -->0.13.371<!-- /docs:test_plugin_min --> | `compatibility/minimum` |
+| Supported current | <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> | <!-- docs:test_plugin_tested -->0.13.374<!-- /docs:test_plugin_tested --> | `compatibility/supported-current` |
 
 Each `pytest-homeassistant-custom-component` release requires its exact HA
 version. The compatibility projects preserve those requirements and resolve
 their own committed locks. They do not override dependencies or replace the
-root development environment. Python must be **3.14.2 or later in 3.14**.
+root development environment. Python must be **<!-- docs:python_min -->3.14.2<!-- /docs:python_min --> or later in 3.14**.
 
-“Supported current” means the reviewed support target, rather than the latest
-release available on PyPI. HA 2026.10.4 and plugin 0.13.375 are available;
-promoting that pair requires an explicit support update and validation.
+“Supported current” means the reviewed support target rather than the latest
+release available on PyPI. Promoting a newer Home Assistant/plugin pair
+requires an explicit support update and verification.
 
 ### Run a lane locally
 
@@ -241,7 +241,7 @@ and failure evidence collection are retained.
 
 The separately locked root development suite provides another layer of
 validation. The **one** real Home Assistant Container live-acceptance job runs
-on supported-current **2026.10.3**. Unit compatibility uses Home Assistant
+on supported-current **<!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->**. Unit compatibility uses Home Assistant
 test fixtures; live acceptance checks real installation, dependencies,
 configuration, reload, and frontend behavior. These are complementary checks,
 not duplicates. Both reusable workflows can also run manually and on their
@@ -249,7 +249,7 @@ existing weekly schedules.
 
 ## Disposable Home Assistant live testing
 
-The runner is used by the required **supported-current HA 2026.10.3** live job
+The runner is used by the required **supported-current HA <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->** live job
 in Validate and can also run manually. The reusable live workflow runs weekly as a
 compatibility check. It creates a
 disposable official HA container and synthetic timetable, runs authenticated APIs

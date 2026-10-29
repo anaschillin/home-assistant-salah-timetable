@@ -22,7 +22,7 @@ that setting the browser test is skipped when no executable is found. The harnes
 uses HA element stand-ins and does not replace a live HA/frontend installation check.
 
 Validate also runs full pinned Python compatibility suites on HA <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min -->
-and <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->, plus one real Docker-based live acceptance on HA 2026.10.3.
+and <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->, plus one real Docker-based live acceptance on HA <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->.
 The live job needs network access for official images and HA-managed dependencies,
 and real Chromium/Chrome for the frontend. The reusable workflow supports manual
 runs and weekly checks. To run the live acceptance locally:

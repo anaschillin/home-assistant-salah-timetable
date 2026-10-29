@@ -8,7 +8,7 @@
 - We have **not** harvested the site's dataset. The presence of an official API is **not** permission to mirror the source database into this public open-source repository.
 - https://dorar.net/history/event/289: death of al-Husayn (RA) at Karbala, 10 Muharram 61 AH; day appears in event narrative.
 - https://dorar.net/history/event/122: Mu'tah, Jumada al-Ula 8 AH; source does **not** establish a particular day.
-- Original existing research candidates remain in `docs/islamic-history-candidates.json`, with no production approval implied.
+- Original existing research candidates remain in `research/islamic-history/islamic-history-candidates.json`, with no production approval implied.
 
 ## Important calendar correction
 365 is the count for a normal **Gregorian** year, not a Hijri year. A Hijri year has 354 or 355 days, while the calendar has 12 nominal months of up to 30 days (360 possible month-day keys). Each month has 29 or 30 actual days; whether day 30 exists depends on the calendar/year. The separate `islamic-history-day-coverage.json` enumerates all **360 possible Hijri month/day keys**, marking day 30 conditional. It is a research tracker, not an invented 365-event catalogue.

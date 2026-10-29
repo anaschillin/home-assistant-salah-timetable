@@ -76,6 +76,14 @@ def metadata(root: Path) -> dict[str, str]:
             if d.startswith("homeassistant==")
         )
         values[key] = requirement.split("==", 1)[1]
+        plugin = next(
+            d
+            for d in setting["project"]["dependencies"]
+            if d.startswith("pytest-homeassistant-custom-component==")
+        )
+        values["test_plugin_min" if location == "minimum" else "test_plugin_tested"] = (
+            plugin.split("==", 1)[1]
+        )
     return values
 
 

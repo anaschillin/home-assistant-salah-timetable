@@ -7,6 +7,10 @@ inventory/area guide should fail the regular pytest CI job.
 import re
 from pathlib import Path
 
+import pytest
+
+from scripts.sync_documentation import synchronise
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TEST_ROOT = REPO_ROOT / "tests"
 GUIDE = REPO_ROOT / "docs" / "testing.md"
@@ -95,3 +99,48 @@ def test_every_test_area_has_a_maintenance_guide():
         guide = TEST_ROOT / area / "README.md"
         assert guide.is_file(), f"No maintenance guide for {area}"
         assert "../../docs/testing.md" in guide.read_text(encoding="utf-8")
+
+
+def test_documentation_sync_updates_metadata_and_renamed_links(tmp_path):
+    """Documentation is rendered from project metadata and canonical link routes."""
+    manifest = tmp_path / "custom_components" / "salah_timetable" / "manifest.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text('{"version":"9.8.7","requirements":["pypdf==6.21.2"]}')
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\\nrequires-python = ">=3.14.2"\\n'
+    )
+    for lane, ha, plugin in (
+        ("minimum", "2026.10.0", "0.13.371"),
+        ("supported-current", "2026.10.3", "0.13.374"),
+    ):
+        path = tmp_path / "compatibility" / lane / "pyproject.toml"
+        path.parent.mkdir(parents=True)
+        path.write_text(
+            '[project]\\ndependencies = ['
+            f'"homeassistant=={ha}", "pytest-homeassistant-custom-component=={plugin}"]\\n'
+        )
+    guide = tmp_path / "docs" / "automations.md"
+    guide.parent.mkdir()
+    guide.write_text("# Automations\\n\\n## Prayer calendar\\n")
+    index = tmp_path / "README.md"
+    index.write_text(
+        "See [calendar](docs/calendar.md). Version "
+        "<!-- docs:version -->0.0.1<!-- /docs:version -->, "
+        "plugin <!-- docs:test_plugin_min -->0.0.0<!-- /docs:test_plugin_min -->."
+    )
+    assert synchronise(tmp_path) == ["README.md"]
+    assert synchronise(tmp_path, write=True) == ["README.md"]
+    written = index.read_text()
+    assert "docs/automations.md#prayer-calendar" in written
+    assert "<!-- docs:version -->9.8.7<!-- /docs:version -->" in written
+    assert "<!-- docs:test_plugin_min -->0.13.371<!-- /docs:test_plugin_min -->" in written
+    assert synchronise(tmp_path) == []
+
+
+def test_documentation_sync_rejects_missing_relative_destinations(tmp_path):
+    """A local Markdown link must not become a silent 404."""
+    from scripts.sync_documentation import check_local_links
+
+    (tmp_path / "README.md").write_text("# Documentation")
+    with pytest.raises(ValueError, match="Missing link destination"):
+        check_local_links(tmp_path, Path("README.md"), "[missing](docs/no-such-guide.md)")
