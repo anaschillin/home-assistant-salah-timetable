@@ -175,7 +175,6 @@ def check_local_links(root: Path, source_path: Path, source: str) -> None:
             raise ValueError(f"Missing link destination in {current}: {target}")
 
 
-
 def render_excerpts(
     root: Path, destination: Path, text: str, values: dict[str, str]
 ) -> str:
@@ -208,7 +207,9 @@ def render_excerpts(
             if url.startswith(("https:", "http:", "mailto:", "#", "data:", "/", "//")):
                 return found.group(0)
             path, separator, fragment = url.partition("#")
-            canonical = posixpath.normpath(posixpath.join(source.parent.as_posix(), path))
+            canonical = posixpath.normpath(
+                posixpath.join(source.parent.as_posix(), path)
+            )
             relative = posixpath.relpath(
                 canonical, destination.parent.as_posix() or "."
             )
@@ -221,13 +222,10 @@ def render_excerpts(
             )
 
         content = LINK.sub(rewrite_relative_link, content)
-        return (
-            f"<!-- docs:excerpt {name} -->\n"
-            f"{content}\n"
-            f"<!-- /docs:excerpt {name} -->"
-        )
+        return f"<!-- docs:excerpt {name} -->\n{content}\n<!-- /docs:excerpt {name} -->"
 
     return EXCERPT.sub(replace_excerpt, text)
+
 
 def synchronise(root: Path = ROOT, write: bool = False) -> list[str]:
     """Return changed file names; write them only when explicitly requested."""
