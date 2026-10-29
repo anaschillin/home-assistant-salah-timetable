@@ -665,7 +665,8 @@ def test_calendar_icon_uses_translation_key():
         / "icons.json"
     )
     icons = json.loads(path.read_text(encoding="utf-8"))
-    assert PrayerCalendar._attr_translation_key == "prayer_calendar"
+    assert PrayerCalendar.__dict__["_attr_translation_key"] == "prayer_calendar"
+    assert "_attr_icon" not in PrayerCalendar.__dict__
     assert icons["entity"]["calendar"]["prayer_calendar"]["default"] == (
         "mdi:calendar-clock"
     )
