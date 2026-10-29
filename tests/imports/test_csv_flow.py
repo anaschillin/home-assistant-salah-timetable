@@ -545,3 +545,60 @@ async def test_large_comparison_paginates_without_approving(hass, entry, upload_
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert store.staged is None
     assert len(store.timetables[0].days) == 31
+
+
+async def _open_mapped_csv_form(hass, entry, client):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    form = await begin_import(hass, entry)
+    file_id, _ = await upload(hass, client)
+    form = await hass.config_entries.options.async_configure(
+        form["flow_id"], {"file": file_id, "kind": "annual", "year": 2026}
+    )
+    assert form["step_id"] == "map_columns"
+    return form
+
+
+async def test_mapping_does_not_accept_changes_after_entry_unloaded(
+    hass, entry, upload_client
+):
+    form = await _open_mapped_csv_form(hass, entry, upload_client)
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        form["flow_id"],
+        {"date_column": "Date", "time_format": "24h", "fajr_begin": "Fajr Start"},
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "integration_not_loaded"
+
+
+async def test_mapping_does_not_stage_when_runtime_changes_during_parse(
+    hass, entry, upload_client
+):
+    from custom_components.salah_timetable.imports.import_flow import (
+        CsvImportOptionsFlow,
+    )
+
+    form = await _open_mapped_csv_form(hass, entry, upload_client)
+    with patch.object(
+        CsvImportOptionsFlow,
+        "_stage_mapped_candidate",
+        AsyncMock(return_value=False),
+    ) as stage:
+        result = await hass.config_entries.options.async_configure(
+            form["flow_id"],
+            {"date_column": "Date", "time_format": "24h", "fajr_begin": "Fajr Start"},
+        )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "integration_reloaded"
+    stage.assert_awaited_once()
+    assert entry.runtime_data.storage.staged is None
+
+
+async def test_uninitialised_mapping_step_fails_without_upload():
+    from custom_components.salah_timetable.config_flow import SalahOptionsFlow
+
+    flow = SalahOptionsFlow()
+    result = await flow.async_step_map_columns()
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "upload_expired"
