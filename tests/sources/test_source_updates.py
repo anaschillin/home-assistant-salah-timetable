@@ -886,7 +886,9 @@ async def test_source_manager_stopping_during_storage_load_skips_download(manage
         manager._stopped = True
 
     with (
-        patch.object(manager.storage, "async_load", AsyncMock(side_effect=stop_during_load)),
+        patch.object(
+            manager.storage, "async_load", AsyncMock(side_effect=stop_during_load)
+        ),
         patch(
             "custom_components.salah_timetable.sources.source_updates.download.async_download",
             AsyncMock(),
@@ -930,7 +932,9 @@ async def test_source_manager_handles_storage_failure_after_download(manager):
 
 
 async def test_pending_staging_collision_does_not_replace_approval(manager):
-    from custom_components.salah_timetable.persistence.storage import PendingImportError
+    from custom_components.salah_timetable.persistence.storage import (
+        PendingImportError,
+    )
 
     with patch.object(
         manager.storage,
