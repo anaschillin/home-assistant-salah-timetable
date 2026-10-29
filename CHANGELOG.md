@@ -8,6 +8,8 @@
 - Align manifest-pinned pypdf with the 6.21.2 development and compatibility environments.
 - Record the maintainer's AI-generated brand icon and synthetic screenshot origin attestation and retain checksum-based asset auditing.
 - Clarify per-PR HACS/Container validation, manual HACS/HAOS acceptance and optional full HAOS restoration; add a user-facing quickstart.
+- Add mosque name/timezone reconfiguration without changing mosque identity or approved imports; declare read-only entity update policy and move calendar icon/name into Home Assistant translation resources.
+- Document the internal Home Assistant Integration Quality Scale audit, associated regression tests and release acceptance. Improve archive packaging checks for `icons.json`.
 - Arabic implementation is intentionally deferred.
 
 ## 0.9.18 — 28 October 2026

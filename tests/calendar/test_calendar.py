@@ -643,3 +643,27 @@ async def test_calendar_cache_recomputes_after_approved_replacement_and_rollover
     assert entity.event.start == instant("2027-01-01T07:00Z")
     freezer.move_to("2027-01-01T07:01:00Z")
     assert entity.event is None
+
+
+def test_read_only_platforms_have_explicit_parallel_update_policy():
+    from custom_components.salah_timetable import calendar, sensor
+
+    assert calendar.PARALLEL_UPDATES == 0
+    assert sensor.PARALLEL_UPDATES == 0
+
+
+def test_calendar_icon_and_translation_resources_agree():
+    import json
+    from pathlib import Path
+
+    directory = (
+        Path(__file__).resolve().parents[2] / "custom_components" / "salah_timetable"
+    )
+    icons = json.loads((directory / "icons.json").read_text(encoding="utf-8"))
+    strings = json.loads((directory / "strings.json").read_text(encoding="utf-8"))
+    assert icons["entity"]["calendar"]["prayer_calendar"]["default"] == (
+        "mdi:calendar-clock"
+    )
+    assert strings["entity"]["calendar"]["prayer_calendar"]["name"] == (
+        "Prayer calendar"
+    )

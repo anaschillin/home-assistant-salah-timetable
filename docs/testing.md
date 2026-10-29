@@ -21,7 +21,7 @@ REQUIRE_BROWSER_TESTS=1 npm run test:browser
 ```
 <!-- /docs:excerpt development-checks -->
 
-Pytest discovers all nested `test_*.py` modules through `testpaths = ["tests"]`. The complete Python run enforces the existing integration line-coverage gate (94.5%). For fast investigation of an area or a single test, **turn off whole-project coverage**; a focused run cannot be expected to reach that global threshold:
+Pytest discovers all nested `test_*.py` modules through `testpaths = ["tests"]`. The complete Python run enforces the existing integration line-coverage gate (94.5%). This **aggregate** threshold is not equivalent to the Home Assistant Integration Quality Scale's Silver requirement of more than 95% coverage **per integration module**; the [rule audit and remaining gaps](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit) track that separately. For fast investigation of an area or a single test, **turn off whole-project coverage**; a focused run cannot be expected to reach that global threshold:
 
 ```sh
 uv run --frozen pytest --no-cov tests/parsers/ -q
@@ -170,7 +170,7 @@ Keep `pytest` discovery recursive and the Node glob aligned with file locations.
 1. Choose the directory based on the *production behaviour* being tested (e.g. import workflow versus parser versus source update), not just a shared mock or helper.
 2. Extend an existing module when the case belongs to that module. Add another `test_*.py` or `*.test.mjs` only for a distinct responsibility.
 3. Put reusable HA pytest fixtures in `tests/conftest.py`. Keep single-test fixtures local; keep synthetic bytes and historical schemas under `tests/fixtures/`.
-4. A parser bug should normally receive a bounded fixture plus a parser regression; a config-flow bug should also prove review/approval where applicable. Add frontend unit and browser coverage for visible UI regressions.
+4. A parser bug should normally receive a bounded fixture plus a parser regression; a config-flow bug should also prove review/approval where applicable. For reconfiguration, verify invalid input, unchanged mosque identity, preserved storage and entities, and single-reload behaviour. Add frontend unit and browser coverage for visible UI regressions.
 5. Prefer test doubles for external services; maintain at least the existing real-HA and Chromium smoke paths. Do not add network dependence to normal unit runs.
 6. Before proposing a merge, run focused tests, the full suites, Ruff and the relevant CI jobs, and update this inventory when creating/removing test modules.
 

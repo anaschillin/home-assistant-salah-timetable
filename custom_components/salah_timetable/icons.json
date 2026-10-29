@@ -1,0 +1,9 @@
+{
+  "entity": {
+    "calendar": {
+      "prayer_calendar": {
+        "default": "mdi:calendar-clock"
+      }
+    }
+  }
+}

@@ -6,8 +6,9 @@ Current integration version: <!-- docs:version -->0.9.19<!-- /docs:version -->.
 
 The authoritative [production module inventory](architecture.md#production-module-inventory) lists every grouped Python module, stable Home Assistant entrypoint and frontend helper. There are no duplicate root modules or legacy import aliases.
 
-- `config_flow.py`: mosque identity, UI creation, timezone/Ramadan options and import
-  flow entry. Options updates preserve unrelated settings and reload the entry.
+- `config_flow.py`: mosque identity, UI setup, safe name/timezone reconfiguration,
+  Ramadan/options and import entry points. The stable mosque ID is immutable.
+  Entry updates preserve unrelated settings and reload through the update listener.
 - `imports/import_flow.py`: native HA file selector, bounded upload consumption, graphical
   column mapping and explicit approval/rejection of a durable proposal.
 - `parsers/csv_parser.py`: dependency-free bounded parser. Returns a candidate; never mutates
@@ -223,8 +224,11 @@ events are drawn only from active Ramadan dates.
 The coordinator returns an immutable snapshot and schedules a UTC callback for the
 next beginning, Jamaat, Sehri, Iftar or mosque-local midnight. A one-minute fallback
 handles missed scheduling. Equal snapshots do not produce repeated entity writes.
-Approval triggers a refresh; options changes reload the config entry. Unload cancels
-the boundary callback along with HA's coordinator timers.
+Approval triggers a refresh; options changes and successful name/timezone
+reconfiguration reload the existing entry through its update listener. The stable
+mosque ID, entity unique IDs and per-entry storage identity do not change.
+Unload cancels the boundary callback along with HA's coordinator timers.
+Both read-only entity platforms explicitly set `PARALLEL_UPDATES = 0`.
 
 The calendar uses the same Ramadan resolver across actual approved stored dates,
 including dates beyond the sensor event horizon and later years. Time-aware queries
@@ -336,8 +340,8 @@ These files stay at the package root because Home Assistant discovers them there
 | File | Responsibility |
 | --- | --- |
 | `__init__.py` | Config-entry setup/unload, runtime data and device lifecycle |
-| `calendar.py` | Read-only calendar entities built from approved dates |
-| `config_flow.py` | HA configuration and options entrypoint |
+| `calendar.py` | Read-only calendar entities built from approved dates; translated name and icon |
+| `config_flow.py` | HA setup, reconfiguration and options entrypoint |
 | `const.py` | Domain, storage version and configuration keys |
 | `diagnostics.py` | Privacy-conscious diagnostics export |
 | `frontend.py` | Serve the versioned dashboard resource and register it in HA |
@@ -391,7 +395,8 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 | `frontend/backgrounds/*.webp` | Attributed bundled mosque images; see [provenance inventory](asset-provenance.json) |
 | `brand/icon.png` | Integration icon |
 | `manifest.json` | HACS and HA integration metadata/dependencies |
-| `strings.json`, `translations/en.json` | HA config and options UI localization |
+| `strings.json`, `translations/en.json` | HA setup, options, reconfiguration and entity-name localization |
+| `icons.json` | Home Assistant entity icon translations (including the prayer calendar) |
 
 The card's JavaScript imports remain in their existing relative locations to preserve the versioned static asset URL, browser cache behaviour, HACS packaging and frontend tests. Do not move these files without updating JS imports, frontend resource registration, release validation and browser tests together.
 

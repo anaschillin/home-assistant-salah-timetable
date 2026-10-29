@@ -11,6 +11,14 @@
           "time_zone": "Mosque timezone (for example Europe/London)",
           "show_hijri_date": "Show full calculated Hijri date on dashboards"
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigure mosque",
+        "description": "Change the mosque name or timezone without deleting imported timetables, entities or dashboards. The stable mosque ID cannot be changed.",
+        "data": {
+          "name": "Mosque name",
+          "time_zone": "Mosque timezone (IANA)"
+        }
       }
     },
     "error": {
@@ -262,6 +270,11 @@
           "scheduled": "Published time",
           "after_isha_jamaat": "After Isha Jamaat"
         }
+      }
+    },
+    "calendar": {
+      "prayer_calendar": {
+        "name": "Prayer calendar"
       }
     }
   },
