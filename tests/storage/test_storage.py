@@ -136,3 +136,70 @@ def test_staged_import_identity_round_trips_valid_provenance():
     )
     staged = StagedImport("a" * 32, candidate)
     assert StagedImport.from_dict(staged.as_dict()) == staged
+
+
+def test_snapshot_validation_rejects_inconsistent_source_metadata(hass, entry):
+    """A corrupted record cannot silently become an approved mosque timetable."""
+    from dataclasses import replace
+
+    from custom_components.salah_timetable.parsers.csv_parser import CsvParser
+    from custom_components.salah_timetable.sources.source_model import RemoteSource
+
+    store = TimetableStorage(hass, entry.entry_id, ZoneInfo("UTC"))
+    candidate = CsvParser().parse(
+        b"Date,Fajr Begin\n2026-10-21,05:45\n",
+        timetable_id="annual-2026",
+        kind="annual",
+        year=2026,
+        date_column="Date",
+        columns={"Fajr Begin": "fajr_begin"},
+    )
+    source = RemoteSource(
+        "annual-2026",
+        "https://example.org/timetable.csv",
+        "csv",
+        "annual",
+        2026,
+        "Date",
+        {"Fajr Begin": "fajr_begin"},
+        parser_id="csv_v1",
+    )
+    invalid = (
+        (replace(store._snapshot, approved_sources={"annual-2026": candidate}), "Approved provenance"),
+        (replace(store._snapshot, remote_checks={"annual-2026": {"status": "configured"}}), "Source checks"),
+        (replace(store._snapshot, remote_sources={"mismatched": source}), "Remote source identity"),
+    )
+    for snapshot, message in invalid:
+        with pytest.raises(ValueError, match=message):
+            store._validate_snapshot(snapshot)
+    assert store.timetables == ()
+    assert store.approved_sources == {}
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid", "message"),
+    [
+        ("timetables", {}, "must be a list"),
+        ("approved_sources", [], "Invalid import storage"),
+        ("staged", [], "Invalid import storage"),
+        ("remote_sources", [], "Invalid remote source"),
+        ("remote_checks", [], "Invalid remote source"),
+    ],
+)
+def test_decoding_untrusted_storage_rejects_malformed_collections(
+    hass, entry, field, invalid, message
+):
+    store = TimetableStorage(hass, entry.entry_id, ZoneInfo("UTC"))
+    serialized = store._snapshot.as_dict()
+    serialized[field] = invalid
+    with pytest.raises(ValueError, match=message):
+        store._decode(serialized)
+
+
+async def test_duplicate_timetable_identity_is_rejected_before_persistence(
+    hass, entry, timetable
+):
+    store = TimetableStorage(hass, entry.entry_id, ZoneInfo("UTC"))
+    with pytest.raises(ValueError, match="Duplicate timetable ID"):
+        await store.async_replace((timetable, timetable))
+    assert store.timetables == ()
