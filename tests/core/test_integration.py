@@ -150,10 +150,15 @@ async def test_removing_one_mosque_cleans_its_device_and_entities_only(
         unique_id="other",
         data={"name": "Other Mosque", "mosque_id": "other", "time_zone": "UTC"},
     )
-    other.add_to_hass(hass)
     assert await hass.config_entries.async_setup(populated.entry_id)
-    assert await hass.config_entries.async_setup(other.entry_id)
     await hass.async_block_till_done()
+    other.add_to_hass(hass)
+    # Adding an entry while HA is running can initiate its setup automatically.
+    await hass.async_block_till_done()
+    if other.state == ConfigEntryState.NOT_LOADED:
+        assert await hass.config_entries.async_setup(other.entry_id)
+        await hass.async_block_till_done()
+    assert other.state == ConfigEntryState.LOADED
 
     devices = dr.async_get(hass)
     entities = er.async_get(hass)
