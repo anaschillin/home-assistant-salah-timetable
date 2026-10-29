@@ -165,9 +165,20 @@ def test_snapshot_validation_rejects_inconsistent_source_metadata(hass, entry):
         parser_id="csv_v1",
     )
     invalid = (
-        (replace(store._snapshot, approved_sources={"annual-2026": candidate}), "Approved provenance"),
-        (replace(store._snapshot, remote_checks={"annual-2026": {"status": "configured"}}), "Source checks"),
-        (replace(store._snapshot, remote_sources={"mismatched": source}), "Remote source identity"),
+        (
+            replace(store._snapshot, approved_sources={"annual-2026": candidate}),
+            "Approved provenance",
+        ),
+        (
+            replace(
+                store._snapshot, remote_checks={"annual-2026": {"status": "configured"}}
+            ),
+            "Source checks",
+        ),
+        (
+            replace(store._snapshot, remote_sources={"mismatched": source}),
+            "Remote source identity",
+        ),
     )
     for snapshot, message in invalid:
         with pytest.raises(ValueError, match=message):
