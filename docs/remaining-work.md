@@ -1,9 +1,10 @@
 # Remaining development work
 
 This is the **feature and engineering backlog**, not a release checklist.
-The current merged card/integration version on `main` is **0.9.18** (squash
+The last merged dashboard redesign was **0.9.18** (squash
 merge of [PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88),
 commit [`80b8017`](https://github.com/anaschillin/home-assistant-salah-timetable/commit/80b80173bc45257cc46fd31e81dcbaff87ab97ed)).
+The 29 October maintenance/focus changes target **0.9.19** on a review branch.
 For release-blocking and version-specific acceptance, use
 [releasing.md](releasing.md#current-release-readiness).
 

@@ -6,7 +6,7 @@ template sensors or YAML configuration.
 
 ## Preview
 
-**Archived screenshot gallery:** These are historical 0.6.1 screenshots, not the current 0.9.18 design.
+**Archived screenshot gallery:** These are historical 0.6.1 screenshots, not the current 0.9.19 design.
 They show synthetic data from an isolated Chromium fixture with Home Assistant
 control stand-ins; they do **not** illustrate the new unified liquid-glass
 summary, mosque selector, full-height photograph or footer day navigation.
@@ -299,7 +299,7 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 (enable Advanced Mode in your HA profile if the Resources option is hidden):
 
 ```text
-/salah_timetable/salah-timetable-card.js?v=0.9.18
+/salah_timetable/salah-timetable-card.js?v=0.9.19
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an
@@ -353,7 +353,7 @@ Fajr-end, Friday-khutbah, Hijri setup/options controls or Arabic/RTL presentatio
 HACS installation, restart and updates are also user-confirmed. Removal/reinstall
 was user-confirmed on 25 October, with environment and individual cleanup checks
 unrecorded; the full [HACS UI acceptance gate](hacs-removal-acceptance.md) remains
-release work. Those earlier validations are historical. The merged 0.9.18 redesign in
+release work. Those earlier validations are historical. The merged 0.9.19 redesign in
 [PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88)
 passed [frontend, compatibility and live Home Assistant acceptance](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
 and [CodeQL](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733)

@@ -262,7 +262,7 @@ countdown. The backend and card behavior have separate boundary tests.
 asynchronous static-path API. For storage-mode Lovelace resources it creates or
 updates the integration's relative module URL, removes duplicate registrations and
 uses the `frontend.py` `CARD_VERSION` cache key (currently
-`?v=0.9.18`) for cache changes. For YAML resources it uses HA's extra-JavaScript
+`?v=0.9.19`) for cache changes. For YAML resources it uses HA's extra-JavaScript
 helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
 a resource-registration failure is logged without disabling valid prayer entities.
 

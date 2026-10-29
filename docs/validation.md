@@ -13,7 +13,7 @@ The maintainer confirmed on 29 October that the current PDF test fixtures do not
 
 The maintainer also reports checking HACS and HAOS after completed PRs. Those manual practices are separate from the automated HACS repository validator and Home Assistant Container live smoke run; a full HAOS/Supervisor backup restore has **not** been independently confirmed here and remains an optional separate resilience exercise. Arabic localization work is intentionally deferred.
 
-This follow-up branch introduces keyboard-focus restoration, a browser regression, dependency pin consistency, obsolete CSS selector removal and clearer setup/support documentation. The change's exact-commit test results will be recorded once hosted CI completes.
+This follow-up candidate **0.9.19** introduces keyboard-focus restoration, a browser regression, dependency pin consistency, obsolete CSS selector removal and clearer setup/support documentation. The change's exact-commit test results will be recorded once hosted CI completes.
 
 ## 0.9.18 dashboard redesign — 28 October 2026 (merged)
 

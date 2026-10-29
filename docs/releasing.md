@@ -18,7 +18,7 @@ SHAs; a final release commit still needs its own successful required jobs.
 The CSS refactor in [PR #82](https://github.com/anaschillin/home-assistant-salah-timetable/pull/82)
 and the responsive liquid-glass card redesign in
 [PR #88](https://github.com/anaschillin/home-assistant-salah-timetable/pull/88)
-have **both been merged**. The current version on `main` is **0.9.18**.
+have **both been merged**. The redesign was merged as **0.9.18**; the follow-up maintenance candidate is **0.9.19**.
 The maintainer reviewed the revised dashboard and approved the PR #88 merge;
 [Validate 40744012961](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012961)
 and [CodeQL 40744012733](https://github.com/anaschillin/home-assistant-salah-timetable/actions/runs/40744012733)
