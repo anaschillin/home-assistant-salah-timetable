@@ -18,15 +18,18 @@ A Home Assistant custom integration for importing **published mosque Salah and J
 
 ## Install
 
-Home Assistant **<!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> or newer** is required. The integration is available through a **HACS custom repository** (not claimed to be in the default catalogue).
+Home Assistant **<!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> or newer** is required.
 
-1. In HACS choose **Custom repositories**, enter `https://github.com/anaschillin/home-assistant-salah-timetable` and select **Integration**.
+<!-- docs:excerpt installation -->
+1. In HACS, open **Custom repositories**, add `https://github.com/anaschillin/home-assistant-salah-timetable` and select **Integration**.
 2. Download **Salah Timetable** and restart Home Assistant.
-3. Choose **Settings → Devices & services → Add integration → Salah Timetable**, then add a mosque ID, name and IANA timezone.
-4. Use **Configure** to import a timetable, review its dates and mappings, and approve it.
-5. Choose **Edit dashboard → Add card → Salah Timetable** and select a Prayer timetable sensor.
+3. Open **Settings → Devices & services → Add integration → Salah Timetable**.
+4. Enter the mosque name, a stable mosque ID and its IANA timezone (for example, `Europe/London`). Use a different ID to add another mosque.
 
-Manual installation: copy `custom_components/salah_timetable` into Home Assistant's `config/custom_components/` folder and restart.
+This is a **HACS custom repository**, not a listing in the default HACS catalogue. For manual installation, copy `custom_components/salah_timetable` into Home Assistant's `config/custom_components/` directory and restart.
+<!-- /docs:excerpt installation -->
+
+After installation, follow [Getting started](docs/getting-started.md) to import and approve a timetable and add the dashboard card.
 
 ## Documentation
 
@@ -43,10 +46,19 @@ Manual installation: copy `custom_components/salah_timetable` into Home Assistan
 | [Assets and credits](docs/asset-provenance.md) | Source checks, image licensing and fixture provenance |
 | [Islamic history research](research/islamic-history/islamic-history-source-audit.md) | Research proposals, not released features |
 
+## Support and compatibility
+
+<!-- docs:excerpt support-summary -->
+Salah Timetable is a community-maintained, MIT-licensed integration without guaranteed response times or a paid support service. Compatibility is limited to the [pinned Home Assistant environments](docs/testing.md#compatibility-test-environments) and [documented timetable layouts](docs/import_review.md#supported-pdf-layouts).
+<!-- /docs:excerpt support-summary -->
+
+For safe bug reports and support requests, see the [support policy](docs/getting-started.md#support-and-compatibility-policy). Report vulnerabilities privately as described in [Security](SECURITY.md).
+
 ## Development
 
 Use Python <!-- docs:python_min -->3.14.2<!-- /docs:python_min -->+ and the locked project environment:
 
+<!-- docs:excerpt development-checks -->
 ```sh
 uv sync --frozen --group dev
 uv run --frozen pytest
@@ -55,5 +67,12 @@ uv run --frozen ruff format --check .
 npm test
 REQUIRE_BROWSER_TESTS=1 npm run test:browser
 ```
+<!-- /docs:excerpt development-checks -->
 
-GitHub Actions additionally performs HACS/hassfest and disposable Home Assistant checks. A CI pass does not replace real installation and release acceptance. See [Contributing](CONTRIBUTING.md), [Security](SECURITY.md) and [Release guidance](docs/releasing.md).
+GitHub Actions additionally performs HACS/hassfest and disposable Home Assistant checks.
+
+<!-- docs:excerpt validation-boundaries -->
+HACS repository validation does not prove installation through the authenticated HACS UI. Chromium tests use Home Assistant element stand-ins, and disposable Home Assistant Container checks do not establish physical-device behaviour or full Home Assistant OS/Supervisor restoration. Assess the **exact candidate version** through the manual [release acceptance checklist](docs/releasing.md#manual-hacs-and-home-assistant-acceptance).
+<!-- /docs:excerpt validation-boundaries -->
+
+See [Contributing](CONTRIBUTING.md), [Testing](docs/testing.md) and [Release guidance](docs/releasing.md).

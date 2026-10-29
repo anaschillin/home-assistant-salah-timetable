@@ -1,4 +1,4 @@
-"""Synchronise rendered documentation values and moved guide links.
+"""Synchronise rendered documentation values, shared excerpts and guide links.
 
 GitHub Markdown has no cross-file variables. Inline docs markers contain real,
 rendered text; this tool keeps those values synchronized with project metadata.
@@ -46,6 +46,13 @@ LINK = re.compile(r"(?<!!)\]\((?P<target>[^)\s]+)(?P<suffix>\s+\"[^\"]*\")?\)")
 MARKER = re.compile(
     r"<!-- docs:(?P<key>[a-z_]+) -->(?P<value>.*?)<!-- /docs:(?P=key) -->"
 )
+
+EXCERPT = re.compile(
+    r"<!-- docs:excerpt (?P<name>[a-z][a-z0-9-]*) -->\n"
+    r"(?P<value>.*?)\n<!-- /docs:excerpt (?P=name) -->",
+    re.DOTALL,
+)
+EXCERPT_OPEN = re.compile(r"<!-- docs:excerpt [a-z][a-z0-9-]* -->")
 
 
 def metadata(root: Path) -> dict[str, str]:
@@ -168,6 +175,60 @@ def check_local_links(root: Path, source_path: Path, source: str) -> None:
             raise ValueError(f"Missing link destination in {current}: {target}")
 
 
+
+def render_excerpts(
+    root: Path, destination: Path, text: str, values: dict[str, str]
+) -> str:
+    """Expand canonical snippets into GitHub-renderable, relative-link-safe Markdown."""
+    matches = list(EXCERPT.finditer(text))
+    if len(matches) != len(EXCERPT_OPEN.findall(text)):
+        raise ValueError(f"Unbalanced documentation excerpt in {destination}")
+
+    def replace_excerpt(match: re.Match[str]) -> str:
+        name = match.group("name")
+        source = Path("docs/_excerpts") / f"{name}.md"
+        absolute = root / source
+        if not absolute.is_file():
+            raise ValueError(f"Missing documentation excerpt {name} in {destination}")
+        content = absolute.read_text(encoding="utf-8").strip()
+        if EXCERPT_OPEN.search(content):
+            raise ValueError(f"Nested documentation excerpt in {source}")
+        content = rewrite_links(source, content)
+
+        def replace_marker(found: re.Match[str]) -> str:
+            key = found.group("key")
+            if key not in values:
+                raise ValueError(f"Unknown docs variable {key} in {source}")
+            return f"<!-- docs:{key} -->{values[key]}<!-- /docs:{key} -->"
+
+        content = MARKER.sub(replace_marker, content)
+
+        def rewrite_relative_link(found: re.Match[str]) -> str:
+            url = found.group("target")
+            if url.startswith(("https:", "http:", "mailto:", "#", "data:", "/", "//")):
+                return found.group(0)
+            path, separator, fragment = url.partition("#")
+            canonical = posixpath.normpath(posixpath.join(source.parent.as_posix(), path))
+            relative = posixpath.relpath(
+                canonical, destination.parent.as_posix() or "."
+            )
+            return (
+                "]("
+                + relative
+                + ("#" + fragment if separator else "")
+                + (found.group("suffix") or "")
+                + ")"
+            )
+
+        content = LINK.sub(rewrite_relative_link, content)
+        return (
+            f"<!-- docs:excerpt {name} -->\n"
+            f"{content}\n"
+            f"<!-- /docs:excerpt {name} -->"
+        )
+
+    return EXCERPT.sub(replace_excerpt, text)
+
 def synchronise(root: Path = ROOT, write: bool = False) -> list[str]:
     """Return changed file names; write them only when explicitly requested."""
     values = metadata(root)
@@ -191,6 +252,7 @@ def synchronise(root: Path = ROOT, write: bool = False) -> list[str]:
             return f"<!-- docs:{key} -->{values[key]}<!-- /docs:{key} -->"
 
         expected = MARKER.sub(replace_marker, expected)
+        expected = render_excerpts(root, relative, expected, values)
         check_local_links(root, relative, expected)
         if expected != original:
             differences.append(relative.as_posix())

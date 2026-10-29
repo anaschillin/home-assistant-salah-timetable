@@ -10,6 +10,7 @@ This is the authoritative inventory of automated tests and where to add new ones
 
 Install the locked Python dependencies and use Node.js 24:
 
+<!-- docs:excerpt development-checks -->
 ```sh
 uv sync --frozen --group dev
 uv run --frozen pytest
@@ -18,6 +19,7 @@ uv run --frozen ruff format --check .
 npm test
 REQUIRE_BROWSER_TESTS=1 npm run test:browser
 ```
+<!-- /docs:excerpt development-checks -->
 
 Pytest discovers all nested `test_*.py` modules through `testpaths = ["tests"]`. The complete Python run enforces the existing integration line-coverage gate (94.5%). For fast investigation of an area or a single test, **turn off whole-project coverage**; a focused run cannot be expected to reach that global threshold:
 

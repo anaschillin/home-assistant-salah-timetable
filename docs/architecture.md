@@ -321,20 +321,9 @@ release acceptance on the exact version and relevant physical devices. See the
 
 ## Remaining limitations
 
-Only the documented Mosque A annual/monthly, Mosque B 2026
-annual/Ramadan and synthetic sample layouts are supported. Other mosque layouts, OCR and scanned PDFs remain unsupported.
-The live MOSQUE_A HTTPS source is unverified. DST gaps and ambiguous folds are rejected
-rather than guessed; explicit fold handling needs a separately reviewed source model.
-The calculated Hijri header is display-only; users explicitly confirm Ramadan.
+PDF support is restricted to [inspected layouts](import_review.md#supported-pdf-layouts); scanned PDFs and OCR are unsupported. The live MOSQUE_A HTTPS source is unverified. DST gaps and ambiguous folds are rejected rather than guessed; fold support requires an explicitly reviewed source model. Hijri headers are display-only and cannot activate Ramadan.
 
-HACS installation, restart and updates have been user-confirmed. Automated
-two-mosque config-entry removal/re-addition and Home Assistant Container backup
-restoration have coverage. Review the exact release commit, HACS UI scenarios
-and asset redistribution evidence before publication; full HAOS/Supervisor
-restoration remains optional and deferred as documented in the [release checklist](releasing.md).
-Invalid stored records already have actionable Repair guidance. Reproducible install
-archives and synchronized metadata/cache versions are checked by release tooling. Hosted GitHub validation must be checked before release; local
-tests and workflow definitions alone do not establish that it passed.
+See [test compatibility and coverage](testing.md#compatibility-test-environments) and [release acceptance](releasing.md#validation-and-acceptance-scope) for current evidence; do not treat CI alone as proof of user-facing HACS or Home Assistant OS acceptance. Full Home Assistant OS/Supervisor restoration remains optional. Invalid stored records have Repairs guidance, and packaging and synchronised frontend versions are checked by release tooling.
 
 ## Production module inventory
 

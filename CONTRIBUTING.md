@@ -1,21 +1,28 @@
 # Contributing
 
-Use Python <!-- docs:python_min -->3.14.2<!-- /docs:python_min -->+ and `uv sync --frozen --group dev`. Run `uv run --frozen pytest`,
-`uv run --frozen ruff check .` and `uv run --frozen ruff format --check .` before
-opening a focused pull request. The locked Python and Node unit suites must not
+Use Python <!-- docs:python_min -->3.14.2<!-- /docs:python_min -->+, Node.js 24 and the locked project environment. Run these standard checks before opening a focused pull request:
+
+<!-- docs:excerpt development-checks -->
+```sh
+uv sync --frozen --group dev
+uv run --frozen pytest
+uv run --frozen ruff check .
+uv run --frozen ruff format --check .
+npm test
+REQUIRE_BROWSER_TESTS=1 npm run test:browser
+```
+<!-- /docs:excerpt development-checks -->
+
+The locked Python and Node unit suites must not
 require external network access or a separate live HA installation after dependencies
 are installed. Update the lockfile intentionally with dependency changes.
 Run the full suite on Linux/POSIX: the isolated PDF worker uses process resource
 limits that native Windows does not provide.
 
 The locked `pytest-homeassistant-custom-component` package supplies Home Assistant
-test fixtures. These tests and the HACS validation action do not establish an
-authenticated HACS installation; that remains a separate live acceptance check.
+test fixtures. The complete test-file inventory, ownership rules, fixtures and per-area commands are in [the testing guide](docs/testing.md). Keep new Python tests in the matching `tests/<area>/` folder, share reusable fixtures through `tests/conftest.py`, and do not use hard-coded file-relative paths that break when tests move.
 
-The complete test-file inventory, ownership rules, fixtures and per-area commands are in [the testing guide](docs/testing.md). Keep new Python tests in the matching `tests/<area>/` folder, share reusable fixtures through `tests/conftest.py`, and do not use hard-coded file-relative paths that break when tests move.
-
-Use Node.js 24 for frontend checks. Run `npm test` and `npm run test:browser`; there
-are no npm dependencies and no install step. The browser harness requires Chromium
+The frontend tests have no npm dependencies and no install step. The browser harness requires Chromium
 or Chrome. Set `CHROME_BIN` to its executable if it is not found on a standard path.
 Set `REQUIRE_BROWSER_TESTS=1` to fail when no browser is available, as CI does; without
 that setting the browser test is skipped when no executable is found. The harness
@@ -37,11 +44,14 @@ metadata/import after setup. Do not combine it with `--preload-pypdf`. If the te
 network uses a private proxy CA, use `--ca-bundle` with a trusted combined bundle;
 keep TLS verification enabled. See [runner details](docs/testing.md#disposable-home-assistant-live-testing).
 The runner uses synthetic data and removes its private configuration/containers.
-It does not establish authenticated HACS installation or full-backup acceptance.
 
 Run `uv run --frozen python scripts/build_release.py --check` to check runtime
 assets and synchronized integration/frontend cache versions. See
 [release preparation](docs/releasing.md) for archive builds and manual acceptance.
+
+<!-- docs:excerpt validation-boundaries -->
+HACS repository validation does not prove installation through the authenticated HACS UI. Chromium tests use Home Assistant element stand-ins, and disposable Home Assistant Container checks do not establish physical-device behaviour or full Home Assistant OS/Supervisor restoration. Assess the **exact candidate version** through the manual [release acceptance checklist](docs/releasing.md#manual-hacs-and-home-assistant-acceptance).
+<!-- /docs:excerpt validation-boundaries -->
 
 Keep data parsing and event calculation separate from HA lifecycle code. Preserve
 original source values and missing data; never invent a prayer time to make an import
@@ -66,7 +76,7 @@ Use these Markdown conventions throughout the README, `docs/`, `examples/` and t
 
 ## Keeping documentation variables current
 
-GitHub Markdown does not share variables between files. Visible values inside `<!-- docs:... -->` markers are generated from the integration manifest, project Python requirement and pinned Home Assistant compatibility environments. Guide redirects are centralised in `scripts/sync_documentation.py`.
+GitHub Markdown does not support native cross-file includes. Canonical excerpts in `docs/_excerpts/` are materialised inside `docs:excerpt NAME` blocks by `scripts/sync_documentation.py`, so GitHub renders complete prose and commands. Edit the excerpt source, never its generated copies. Visible values inside `<!-- docs:... -->` markers are generated from the integration manifest, project Python requirement and pinned Home Assistant compatibility environments. Guide redirects are centralised in `scripts/sync_documentation.py`.
 
 After changing the integration version, compatibility targets or documentation paths, run:
 
@@ -75,7 +85,7 @@ python scripts/sync_frontend_version.py --write
 python scripts/sync_documentation.py --check
 ```
 
-The first command refreshes frontend cache identifiers **and** documentation values/links. The second is run in CI and fails if any rendered value or redirected link has gone stale. The Markdown pages always display real values, not raw template placeholders. Do not manually edit the generated values inside the markers.
+The first command refreshes frontend cache identifiers **and** documentation values, guide links and shared excerpts. The second is run in CI and fails if any rendered value or redirected link has gone stale. The Markdown pages always display real values, not raw template placeholders. Do not manually edit the generated values inside the markers.
 
 The same command also exports source-derived variables for executable Bash examples:
 

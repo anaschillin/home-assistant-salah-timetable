@@ -63,7 +63,9 @@ Validation evidence is specific to an **exact commit**. The authoritative histor
 
 The validation workflow covers Python tests and coverage, Ruff, Node frontend tests, Chromium interaction/visual checks, minimum/current pinned Home Assistant compatibility, hassfest, HACS repository validation, package consistency and a disposable Home Assistant Container live smoke run.
 
-The Chromium harness uses test stand-ins for parts of Home Assistant. HACS repository validation is not a real HACS UI installation, and Container archive/restore testing is not a complete HAOS/Supervisor restoration.
+<!-- docs:excerpt validation-boundaries -->
+HACS repository validation does not prove installation through the authenticated HACS UI. Chromium tests use Home Assistant element stand-ins, and disposable Home Assistant Container checks do not establish physical-device behaviour or full Home Assistant OS/Supervisor restoration. Assess the **exact candidate version** through the manual [release acceptance checklist](releasing.md#manual-hacs-and-home-assistant-acceptance).
+<!-- /docs:excerpt validation-boundaries -->
 
 For reproducible commands and test boundaries see [Testing](testing.md), [Compatibility](testing.md#compatibility-test-environments), [Live smoke](testing.md#disposable-home-assistant-live-testing) and [Visual regression](testing.md#frontend-visual-regression).
 
