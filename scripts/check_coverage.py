@@ -16,7 +16,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("report", type=Path)
     parser.add_argument(
-        "--badge-output", type=Path, help="Write a Shields.io endpoint for measured line coverage"
+        "--badge-output",
+        type=Path,
+        help="Write a Shields.io endpoint for measured line coverage",
     )
     args = parser.parse_args()
     totals = json.loads(args.report.read_text(encoding="utf-8"))["totals"]
