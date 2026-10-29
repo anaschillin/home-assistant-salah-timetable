@@ -98,3 +98,42 @@ async def test_logged_write_error_does_not_promote(hass, entry, timetable):
     fresh = TimetableStorage(hass, entry.entry_id, ZoneInfo("UTC"))
     await fresh.async_load()
     assert fresh.timetables == (timetable,)
+
+
+
+@pytest.mark.parametrize(
+    "invalid_id",
+    ["", "f" * 31, "g" * 32, "A" * 32, True, None, 123],
+)
+def test_staged_import_identity_rejects_invalid_persisted_ids(invalid_id):
+    from custom_components.salah_timetable.parsers.csv_parser import CsvParser
+    from custom_components.salah_timetable.persistence.storage import StagedImport
+
+    candidate = CsvParser().parse(
+        b"Date,Fajr Begin\n2026-10-21,05:45\n",
+        timetable_id="annual-2026",
+        kind="annual",
+        year=2026,
+        date_column="Date",
+        columns={"Fajr Begin": "fajr_begin"},
+    )
+    with pytest.raises(ValueError, match="staged import identity"):
+        StagedImport.from_dict(
+            {"stage_id": invalid_id, "candidate": candidate.as_dict()}
+        )
+
+
+def test_staged_import_identity_round_trips_valid_provenance():
+    from custom_components.salah_timetable.parsers.csv_parser import CsvParser
+    from custom_components.salah_timetable.persistence.storage import StagedImport
+
+    candidate = CsvParser().parse(
+        b"Date,Fajr Begin\n2026-10-21,05:45\n",
+        timetable_id="annual-2026",
+        kind="annual",
+        year=2026,
+        date_column="Date",
+        columns={"Fajr Begin": "fajr_begin"},
+    )
+    staged = StagedImport("a" * 32, candidate)
+    assert StagedImport.from_dict(staged.as_dict()) == staged
