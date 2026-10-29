@@ -70,8 +70,16 @@ jobs:
       - run: uv run --frozen ruff format --check .
       - name: Run tests with branch coverage measurement
         run: uv run --frozen pytest --cov-branch --cov-fail-under=0 --cov-report=json:coverage-branch.json
-      - name: Enforce existing line coverage threshold and report branch coverage
-        run: uv run --frozen python scripts/check_coverage.py coverage-branch.json
+      - name: Enforce line coverage gate and generate measured badge data
+        run: uv run --frozen python scripts/check_coverage.py coverage-branch.json --badge-output coverage-badge.json
+      - name: Upload measured main-branch coverage for README
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: coverage-badge
+          path: coverage-badge.json
+          if-no-files-found: error
+          retention-days: 1
       - run: uv run --frozen python scripts/build_release.py
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
@@ -79,6 +87,55 @@ jobs:
           path: dist/*.zip*
           if-no-files-found: error
           retention-days: 14
+
+
+  coverage-badge:
+    name: Publish measured coverage badge
+    needs: tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    concurrency:
+      group: coverage-badge-main
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage-badge
+      - name: Publish coverage JSON without changing main or triggering CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Ignore an older run after a newer main commit has landed.
+          if [[ "$(git ls-remote origin refs/heads/main | cut -f1)" != "$GITHUB_SHA" ]]; then
+            echo "A newer main commit exists; skipping stale coverage results"
+            exit 0
+          fi
+
+          badge_dir="$RUNNER_TEMP/salah-coverage-badges"
+          if git ls-remote --exit-code --heads origin badges >/dev/null; then
+            git fetch --quiet origin badges
+            git worktree add --detach "$badge_dir" FETCH_HEAD
+          else
+            git worktree add --detach "$badge_dir" HEAD
+            git -C "$badge_dir" switch --orphan badges
+          fi
+
+          cp coverage-badge.json "$badge_dir/coverage.json"
+          git -C "$badge_dir" config user.name "github-actions[bot]"
+          git -C "$badge_dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$badge_dir" add coverage.json
+          if ! git -C "$badge_dir" diff --cached --quiet; then
+            git -C "$badge_dir" commit -m "Update measured coverage badge [skip ci]"
+            git -C "$badge_dir" push origin HEAD:refs/heads/badges
+          else
+            echo "Coverage value unchanged; no badge update needed"
+          fi
 
   frontend:
     needs: changes

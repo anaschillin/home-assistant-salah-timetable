@@ -15,6 +15,11 @@ MIN_LINE_PERCENT = 94.5
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("report", type=Path)
+    parser.add_argument(
+        "--badge-output",
+        type=Path,
+        help="Write a Shields.io endpoint for measured line coverage",
+    )
     args = parser.parse_args()
     totals = json.loads(args.report.read_text(encoding="utf-8"))["totals"]
     statements = totals["num_statements"]
@@ -36,6 +41,16 @@ def main() -> int:
     if line_percent + 1e-9 < MIN_LINE_PERCENT:
         print("Line coverage below the existing release gate")
         return 1
+    if args.badge_output is not None:
+        badge = {
+            "schemaVersion": 1,
+            "label": "coverage",
+            "message": f"{line_percent:.2f}%",
+            "color": "brightgreen" if line_percent > 95 else "yellow",
+        }
+        args.badge_output.write_text(
+            json.dumps(badge, indent=2) + "\n", encoding="utf-8"
+        )
     return 0
 
 

@@ -4,7 +4,7 @@ Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.2<!-- /docs:pypdf --> (fro
 
 Validated against Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> (pinned current).
 
-This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 52 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
+This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 53 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
 
@@ -53,7 +53,7 @@ The suite is intentionally grouped at one domain level rather than making single
 
 `tests/tooling/test_suite_inventory.py` runs in normal pytest CI and fails if a Python/Node test module is missing from this inventory, a module is listed twice, the count is stale, or a category guide is absent. Whenever a module is added, moved, or removed, update the inventory table and relevant guide in the same PR.
 
-## Python test modules (52)
+## Python test modules (53)
 
 The files below are the complete set of pytest test modules. When adding a regression, extend the relevant existing module before introducing a second module for the same responsibility.
 
@@ -107,6 +107,7 @@ The files below are the complete set of pytest test modules. When adding a regre
 | | `test_upgrade_recovery.py` | Older storage schemas and migration/recovery |
 | **tooling** | `test_asset_provenance.py` | Licensed asset metadata and release gate |
 | | `test_ci_changed_files.py` | Conservative Markdown-only CI classification and rename safety |
+| | `test_coverage_badge.py` | Measured line-coverage badge JSON and fail-closed publication |
 | | `test_compatibility_environment.py` | Pinned HA/Python environment assertions |
 | | `test_packaging.py` | Release file inclusion/exclusion and version integrity |
 | | `test_release_preparation.py` | Release archive and notes preparation |
@@ -150,6 +151,10 @@ The separate, network-enabled `scripts/live_smoke.mjs` creates a **disposable re
 When computing a fixture path from a Python test inside a domain folder, use `Path(__file__).resolve().parents[1] / "fixtures" / ...` (`parents[1]` is the `tests/` folder). Avoid `Path(__file__).parent / "fixtures"` inside the nested modules, and avoid moving shared fixture files as part of a purely organisational change.
 
 ## CI coverage and ownership
+
+The README **coverage** badge is generated from the *measured Python line-coverage ratio* in the successful `Validate` tests job on `main`; it is not a hard-coded percentage. The existing test job uploads the calculated Shields.io JSON endpoint, and a separate publish job with limited `contents: write` access stores only `coverage.json` on an automatically created orphan `badges` branch. The branch is deliberately retained as generated badge data; its pushes do not trigger main-branch test workflows. Badge updates occur on successful main-branch tests, not on pull requests, and can lag briefly due to image caching. The **HACS** badge queries the actual `hacs` check-run status on `main`, not the aggregate Validate workflow status. These badges do not prove HACS Store listing or replace release acceptance.
+
+
 
 | CI entry | What is verified |
 | --- | --- |
