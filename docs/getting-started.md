@@ -36,6 +36,32 @@ The Yesterday, Today and Tomorrow controls display approved source rows for the 
 
 For appearance, mobile layouts and language options see [Dashboard](dashboard.md). For prayer alerts and speaker playback see [Automations](automations.md).
 
+## Reconfigure or remove a mosque
+
+Under **Settings → Devices & services → Salah Timetable**, open the menu for
+the specific mosque:
+
+- **Reconfigure** changes the mosque display name and IANA timezone while
+  preserving the stable mosque ID, approved imported timetables, and entity
+  identities. Check the prayer timestamps after changing timezone: the
+  published local clock times will be interpreted in the newly selected zone.
+- **Configure → Mosque settings** also allows changing the timezone and
+  toggling the optional Hijri date display. The latest timezone setting is
+  retained consistently across both flows.
+- **Delete** removes that mosque's Home Assistant configuration entry and its
+  persisted imported timetables. Other configured mosques are not affected.
+
+The stable mosque ID is intentionally immutable to keep the related entity IDs,
+automations and timetable storage consistent. If a different mosque ID is
+required, create a separate mosque configuration and reimport its timetable.
+
+**Before deletion**, retain the original PDF/CSV or URL publication details you
+may need for a new installation, and review any dashboards and automations
+using that mosque's sensors. Removing a dashboard card alone does not delete
+the mosque data. To uninstall the entire integration, delete each configured
+mosque first, then remove Salah Timetable from HACS (or manually remove its
+`custom_components/salah_timetable` files) and restart Home Assistant.
+
 ## Common problems
 
 | Symptom | Check |
