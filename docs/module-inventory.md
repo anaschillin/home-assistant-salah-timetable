@@ -70,10 +70,10 @@ The card's JavaScript imports remain in their existing relative locations to pre
 
 ## Dependency and maintenance rules
 
-1. **Domain** code should remain independent of Home Assistant, downloads and persistent storage; write deterministic unit tests in `tests/core/`, `tests/calendar/` or `tests/ramadan/`.
-2. **Parsers** convert bounded PDFs/CSVs into immutable candidates; add layout tests in `tests/parsers/` and staged import scenarios in `tests/imports/`.
-3. **Imports and sources** own user approval and URL management, respectively. A remote check may only stage changes; it must not silently activate them. Tests belong in `tests/imports/` and `tests/sources/`.
-4. **Persistence** alone updates approved/staged records and enforces revision checks. Test in `tests/storage/`.
-5. **Runtime and entry points** translate approved data into HA state, entities and refresh schedules; test in `tests/core/`, `tests/calendar/` and `tests/frontend/`.
-6. **Frontend** UI assets stay under `frontend/`. Preserve module import query versions and run Node tests, browser tests, packaging tests and asset provenance validation when changing them.
-7. Add any new implementation to the appropriate folder and this inventory. Keep public Home Assistant entrypoints at the root; do not add another root implementation module by default.
+- **Domain** code should remain independent of Home Assistant, downloads and persistent storage; write deterministic unit tests in `tests/core/`, `tests/calendar/` or `tests/ramadan/`.
+- **Parsers** convert bounded PDFs/CSVs into immutable candidates; add layout tests in `tests/parsers/` and staged import scenarios in `tests/imports/`.
+- **Imports and sources** own user approval and URL management, respectively. A remote check may only stage changes; it must not silently activate them. Tests belong in `tests/imports/` and `tests/sources/`.
+- **Persistence** alone updates approved/staged records and enforces revision checks. Test in `tests/storage/`.
+- **Runtime and entry points** translate approved data into HA state, entities and refresh schedules; test in `tests/core/`, `tests/calendar/` and `tests/frontend/`.
+- **Frontend** UI assets stay under `frontend/`. Preserve module import query versions and run Node tests, browser tests, packaging tests and asset provenance validation when changing them.
+- Add any new implementation to the appropriate folder and this inventory. Keep public Home Assistant entrypoints at the root; do not add another root implementation module by default.

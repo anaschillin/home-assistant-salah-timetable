@@ -2,29 +2,37 @@
 
 This quickstart is for Home Assistant users installing the integration for the first time. For detailed developer internals see [architecture](architecture.md), [test guide](testing.md) and [release acceptance](releasing.md).
 
-## 1. Install the integration
+## Install the integration
 
-Home Assistant 2026.10.0 or later is required. In HACS, select **Custom repositories**, add `https://github.com/anaschillin/home-assistant-salah-timetable`, choose **Integration**, download Salah Timetable, and restart Home Assistant.
+Home Assistant 2026.10.0 or later is required.
 
-Then open **Settings → Devices & services → Add integration → Salah Timetable**. Give the mosque a name, a stable ID and its own IANA timezone (for example `Europe/London`). A second mosque can be installed separately using another ID.
+1. In HACS, choose **Custom repositories**, add `https://github.com/anaschillin/home-assistant-salah-timetable` and select **Integration**.
+2. Download **Salah Timetable** and restart Home Assistant.
+3. Open **Settings → Devices & services → Add integration → Salah Timetable**.
+4. Enter the mosque name, a stable mosque ID and its IANA timezone (for example, `Europe/London`). Repeat with another ID for an additional mosque.
 
 HACS custom-repository installation is distinct from inclusion in HACS's default catalogue.
 
-## 2. Import prayer times
+## Import prayer times
 
-Open the mosque under **Devices & services → Configure**. Choose **Add or replace a URL source** for a public HTTPS PDF or CSV, or use the manual PDF/CSV upload options. Select the source year and whether its coverage is Annual, Monthly or Ramadan.
+1. Under **Devices & services**, open the mosque's **Configure** menu.
+2. Choose **Add or replace a URL source** for a public HTTPS PDF/CSV, or use a manual PDF/CSV upload.
+3. Select the printed Gregorian year and **Annual**, **Monthly** or **Ramadan** source type; map only columns that the mosque actually published.
+4. Review the detected layout, dates, warnings and prayer values. Use **Compare changes before approval** when replacing approved data.
+5. Choose **Approve and save timetable** to activate it, or reject it to retain existing approved data. If importing Ramadan times, confirm the Ramadan date window separately in mosque settings.
 
-For PDF imports, the integration automatically recognises **only** the [documented layouts](pdf_layouts.md). Unknown layouts and scanned pages are not supported. CSV provides an alternative. Map only columns that were actually published; do not make up missing times.
+PDF imports recognise **only** [documented layouts](pdf_layouts.md). Scanned pages and unknown layouts are unsupported; CSV may be a suitable alternative. Never invent missing times.
 
-Check the preview, dates and every prayer value. Use **Compare changes before approval** when replacing an existing timetable. Choose **Approve and save timetable** to make the data active; rejecting a proposal preserves approved data. An imported Ramadan timetable needs an explicit Ramadan confirmation in its settings.
+## Add the dashboard card
 
-## 3. Add the dashboard card
+1. Choose **Edit dashboard → Add card → Salah Timetable**.
+2. Select the mosque's **Prayer timetable** sensor (not an individual Fajr or Dhuhr sensor).
+3. Choose **Compact**, **Standard** or **Detailed** in the graphical editor.
+4. If more than one mosque is configured, use **Mosques available on this card** to select which mosques appear. Separate cards and dashboards may show different mosques.
 
-Choose **Edit dashboard → Add card → Salah Timetable** and select the mosque's **Prayer timetable** sensor, not an individual Fajr/Dhuhr sensor. The graphical editor offers Compact, Standard and Detailed views.
+The Yesterday, Today and Tomorrow controls display approved source rows for the selected day. The calculated Hijri header is for display only; it does not activate Ramadan or change published timestamps.
 
-With multiple mosques, use the **Mosques available on this card** checkboxes to restrict which mosques this card shows. Multiple cards and separate dashboards can display different mosques. The Yesterday, Today and Tomorrow controls show only approved source rows for their selected day. The Hijri header is calculated for display; it never activates Ramadan or changes published timestamps.
-
-For card appearance, mobile layouts, language options and screenshot caveats, see [dashboard](dashboard.md). For prayer alerts or speaker playback, see [automations](automations.md).
+For appearance, mobile layouts and language options see [Dashboard](dashboard.md). For prayer alerts and speaker playback see [Automations](automations.md).
 
 ## Common problems
 

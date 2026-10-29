@@ -50,24 +50,23 @@ The proposed event flags are reserved for future editorial and frontend work.
 - Month summaries are informational, not a religious observance schedule or prayer automation.
 
 ## Acceptance criteria and current status
-1. **Implemented:** Month explanation defaults on, appears only beneath a
+- **Implemented:** Month explanation defaults on, appears only beneath a
    visible Hijri date in Standard/Detailed mode, and follows day navigation
    and the per-card adjustment.
-2. **Implemented:** Disabling month information removes the subtitle without
+- **Implemented:** Disabling month information removes the subtitle without
    changing the date, timetable or countdowns.
-3. **Implemented:** The four historical-event/source/dispute options are shown
+- **Implemented:** The four historical-event/source/dispute options are shown
    disabled in the graphical editor; saved legacy values remain inert.
-4. **Not implemented:** Turning on events to show a catalogue, date-level
+- **Not implemented:** Turning on events to show a catalogue, date-level
    citations, or monthly historical highlights. These require editorial approval
    and separate frontend acceptance.
-5. **Future requirement:** No exact-day event claim without date-level evidence;
+- **Future requirement:** No exact-day event claim without date-level evidence;
    no implied religious merit where there is no sound source.
-6. **Implemented for month text:** All 12 educational descriptions are bundled
+- **Implemented for month text:** All 12 educational descriptions are bundled
    offline. Historical day-event selectors remain research-only.
 
-## Delivery sequence
-1. Curate and audit 12 original month explanations with citations.
-2. Add offline month data and selector tests.
-3. Add per-card controls and responsive rendering.
-4. Integrate separately approved historical event candidates behind optional toggles.
-5. Run frontend and Home Assistant smoke tests before release.
+## Future editorial work
+
+- Review historical event candidates independently and document pinpoint sources, disputed dates and redistribution rights.
+- Add only explicitly approved event records to an optional offline catalogue; do not enable reserved history controls until their feature exists.
+- Validate event selection, card rendering and Home Assistant integration before releasing any future event display.

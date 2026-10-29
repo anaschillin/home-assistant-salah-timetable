@@ -51,3 +51,14 @@ See `docs/roadmap.md` for scoped follow-up work. Bugs should include HA/integrat
 versions, timezone, expected behavior and redacted logs. Report security issues using
 GitHub's private vulnerability reporting when available; do not post exploit details
 or credentials publicly.
+
+## Documentation numbering and structure
+
+Use these Markdown conventions throughout the README, `docs/`, `examples/` and test guides:
+
+- Use one unnumbered `#` title per document, then unnumbered `##` sections and `###` subsections. Do not manually prefix headings with section or milestone numbers.
+- Use ordered Markdown lists (`1.`, `2.`, `3.`) only when order matters, such as installation, verification or recovery procedures. Start each independent procedure at `1.` and keep numbering sequential.
+- Use `-` bullet lists for non-sequential features, rules, alternatives, test cases and future plans. Do not number an unordered list merely for presentation.
+- Preserve meaningful identifiers: semantic versions in `CHANGELOG.md`, Home Assistant versions, dates, parser IDs and technical constants are **not** document numbering.
+- Keep [the roadmap](docs/roadmap.md) free of completed milestone IDs, and do not add old PR numbers or dated acceptance diaries to active documentation. Git history and Actions retain that evidence.
+- Use descriptive headings so internal Markdown anchors remain stable; verify links when moving or renaming sections.

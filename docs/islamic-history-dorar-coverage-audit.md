@@ -23,11 +23,11 @@
 - Focus the research first on Prophetic life, Sahabah through ~110 AH, and notable Sunni hadith transmitters and scholars thereafter.
 
 ## Roadmap
-1. Obtain **written permission** from Dorar for any bulk extraction, long-lived caching, redistribution or derivative event compilation; otherwise do not bulk fetch.
-2. Grow an **independently written**, manually verified event dataset from permitted historical factual references with pinpoint citations, preserving uncertainty.
-3. Audit exact-day and month-only records independently; each source claim needs per-entry editorial approval before runtime.
-4. Do not introduce network calls into the Home Assistant card or prayer engines.
-5. Track total researched dates, supported day-events, month-only entries, disputes, and unknown dates. **Never** use 365/365 as a misleading authenticity target.
+- Obtain **written permission** from Dorar for any bulk extraction, long-lived caching, redistribution or derivative event compilation; otherwise do not bulk fetch.
+- Grow an **independently written**, manually verified event dataset from permitted historical factual references with pinpoint citations, preserving uncertainty.
+- Audit exact-day and month-only records independently; each source claim needs per-entry editorial approval before runtime.
+- Do not introduce network calls into the Home Assistant card or prayer engines.
+- Track total researched dates, supported day-events, month-only entries, disputes, and unknown dates. **Never** use 365/365 as a misleading authenticity target.
 
 ## Coverage at creation
 - 360 possible Hijri date keys (12 × 30), day 30 in each month is conditional.
