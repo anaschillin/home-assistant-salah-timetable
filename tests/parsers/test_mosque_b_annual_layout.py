@@ -100,6 +100,7 @@ def test_reject_incomplete_and_reordered_publications(pages):
     with pytest.raises(ImportValidationError):
         MosqueBAnnualLayout().to_csv(tuple(changed))
 
+
 @pytest.mark.parametrize(
     ("token", "month", "position"),
     [
