@@ -1,6 +1,6 @@
 # Test suite guide
 
-This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 51 Python test modules are grouped by the behaviour they protect, not by test framework. All 12 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
+This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 51 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
 
@@ -109,7 +109,7 @@ Names indicate the primary module ownership; some tests deliberately span unit, 
 
 ## JavaScript and browser tests
 
-The following 12 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
+The following 13 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
 
 | File in `tests/frontend/` | Responsibility |
 | --- | --- |
@@ -120,6 +120,7 @@ The following 12 Node unit modules are discovered by `npm test` (`node --test te
 | `card.test.mjs` | Card/editor rendering, interactions and state |
 | `dashboard-options.test.mjs` | Dashboard editor options and display flags |
 | `history-utils.test.mjs` | Islamic-history selection and defaults |
+| `live-dates.test.mjs` | UTC midnight, leap-year and year-boundary smoke fixture dates |
 | `live-dependency.test.mjs` | Live smoke dependency validation helpers |
 | `live-readiness.test.mjs` | HA startup/readiness polling rules |
 | `live-report.test.mjs` | Sanitised live smoke reporting |
