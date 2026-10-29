@@ -6,8 +6,8 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from custom_components.salah_timetable.domain.events import calculate_events
-from custom_components.salah_timetable.domain.model import DailyPrayers, PrayerField
+from custom_components.salah_timetable.events import calculate_events
+from custom_components.salah_timetable.model import DailyPrayers, PrayerField
 
 ZONE = ZoneInfo("Europe/London")
 DAY = date(2026, 10, 21)

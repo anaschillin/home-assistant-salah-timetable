@@ -74,3 +74,7 @@ was unresolved then; it is not proof of a storage bug.
 Authenticated HACS installation remains outside this manual-install result.
 Physical-device completion is recorded separately as user-confirmed acceptance. Fresh dependency installation is now explicitly verified
 within the local 0.6.2 minimum-version run described above.
+
+## UTC midnight stability
+
+The disposable live-acceptance smoke creates synthetic annual records and confirms Ramadan for the current UTC day **and the following day**. Otherwise a real Home Assistant date rollover can deactivate a one-day Ramadan fixture while the card editor is being tested, making a valid preview falsely fail its visibility assertion. The December 31 boundary uses separate annual CSV imports for each year. The browser permits approved prayer timestamps to advance exactly one day while still checking Ramadan activation and the published prayer fields. See `scripts/live_dates.mjs` and `tests/frontend/live-dates.test.mjs`.

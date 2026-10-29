@@ -2,7 +2,7 @@
 
 import pytest
 
-from custom_components.salah_timetable.imports.import_flow import CsvImportOptionsFlow
+from custom_components.salah_timetable.import_flow import CsvImportOptionsFlow
 
 
 def test_mapping_selection_retains_published_source_header_order():

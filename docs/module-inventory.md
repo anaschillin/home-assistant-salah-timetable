@@ -45,9 +45,9 @@ These files stay at the package root because Home Assistant discovers them there
 
 Each implementation directory has an `__init__.py`. Other production Python modules should import **the new grouped path** (for example, `from .domain.model import PrayerField` at root, or `from ..domain.model import PrayerField` from inside a sibling package). Use relative paths within the same directory.
 
-### Single canonical location
+### Compatibility paths
 
-No duplicate Python modules or compatibility aliases are retained at the package root. The 21 relocated modules live **only** in their listed subfolders; former root imports such as `custom_components.salah_timetable.model` must be changed to `custom_components.salah_timetable.domain.model`. All tests and mocks use these canonical locations. A packaging test rejects extra root Python files or missing grouped modules.
+The 21 previous root import paths, such as `custom_components.salah_timetable.model` and `custom_components.salah_timetable.pdf_parser`, remain as **small module aliases**. They install the actual relocated module in `sys.modules` under the old name. This retains existing third-party imports and test patch targets, including module-level monkeypatching. Do not add implementation to these shims; new code should import the grouped path. Remove compatibility aliases only through a separate deprecation and test migration.
 
 The standalone `pdf_worker.py` deliberately remains at root. The relocated `parsers/pdf_parser.py` resolves that worker's absolute path; its `python -I` subprocess boundary and resource limits are unchanged.
 

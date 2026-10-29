@@ -12,11 +12,8 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.parsers.import_model import MAX_PDF_BYTES
-from custom_components.salah_timetable.sources.download import (
-    DownloadError,
-    DownloadResult,
-)
+from custom_components.salah_timetable.download import DownloadError, DownloadResult
+from custom_components.salah_timetable.import_model import MAX_PDF_BYTES
 
 PDF_FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/sample_table.pdf"
 CSV = b"Date,Fajr Start,Fajr Jamaat\n2026-01-01,05:45,06:15\n2026-01-02,05:47,06:15\n"
@@ -75,7 +72,7 @@ async def stage_url(hass, entry, *, content=CSV, media_type="csv"):
     result = await open_step(hass, entry, "import_url")
     assert result["step_id"] == "import_url"
     with patch(
-        "custom_components.salah_timetable.sources.source_flow.async_download",
+        "custom_components.salah_timetable.source_flow.async_download",
         AsyncMock(return_value=downloaded(content, media_type)),
     ) as fetch:
         result = await hass.config_entries.options.async_configure(
@@ -177,7 +174,7 @@ async def test_url_failure_preserves_active_and_redacts_details(hass, populated)
     result = await open_step(hass, populated, "import_url")
     secret_url = "https://mosque.example.org/timetable.pdf?token=private"
     with patch(
-        "custom_components.salah_timetable.sources.source_flow.async_download",
+        "custom_components.salah_timetable.source_flow.async_download",
         AsyncMock(side_effect=DownloadError("network_error", secret_url)),
     ):
         result = await hass.config_entries.options.async_configure(
@@ -210,8 +207,7 @@ async def test_unsafe_url_rejected_before_network(hass, entry, url):
     await setup_mosque(hass, entry)
     result = await open_step(hass, entry, "import_url")
     with patch(
-        "custom_components.salah_timetable.sources.source_flow.async_download",
-        AsyncMock(),
+        "custom_components.salah_timetable.source_flow.async_download", AsyncMock()
     ) as fetch:
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
@@ -231,8 +227,7 @@ async def test_fractional_url_year_rejected_before_network(hass, entry):
     await setup_mosque(hass, entry)
     result = await open_step(hass, entry, "import_url")
     with patch(
-        "custom_components.salah_timetable.sources.source_flow.async_download",
-        AsyncMock(),
+        "custom_components.salah_timetable.source_flow.async_download", AsyncMock()
     ) as fetch:
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
@@ -409,7 +404,7 @@ async def test_url_auto_detection_persists_concrete_parser_for_future_checks(
     await setup_mosque(hass, entry)
     result = await open_step(hass, entry, "import_url")
     with patch(
-        "custom_components.salah_timetable.sources.source_flow.async_download",
+        "custom_components.salah_timetable.source_flow.async_download",
         AsyncMock(return_value=downloaded(PDF_FIXTURE.read_bytes(), "pdf")),
     ):
         result = await hass.config_entries.options.async_configure(
@@ -447,7 +442,7 @@ async def test_monthly_csv_url_uses_distinct_published_date_span(hass, entry):
     await setup_mosque(hass, entry)
     result = await open_step(hass, entry, "import_url")
     with patch(
-        "custom_components.salah_timetable.sources.source_flow.async_download",
+        "custom_components.salah_timetable.source_flow.async_download",
         AsyncMock(return_value=downloaded(CSV)),
     ):
         result = await hass.config_entries.options.async_configure(

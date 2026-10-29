@@ -100,7 +100,8 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await call("Input.dispatchKeyEvent", {type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9});
     await call("Input.dispatchKeyEvent", {type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9});
     assert.equal(await evaluate("window.salahEditor.shadowRoot.activeElement===window.salahEditor.shadowRoot.querySelector('#mosque-title')"), false, "Tab did not leave title field");
-    const originalData = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.entity);const data=card._hass.states[card._config.entity].attributes;return {prayers:data.prayers,active:data.ramadan.active}"));
+    const originalData = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.entity);const data=card._hass.states[card._config.entity].attributes;return {date:data.date,prayers:data.prayers,active:data.ramadan.active}"));
+    assert.equal(originalData.active, true, "Smoke setup needs Ramadan active on the approved date");
     for (const language of ["en", "ar"]) for (const bilingual of [false, true]) {
       await setEditorOption("language", language);
       await setEditorOption("bilingual_prayer_labels", bilingual);
@@ -137,9 +138,18 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await until(expression("return deep().filter(element=>element.localName==='salah-timetable-card').some(card=>card.shadowRoot.textContent.includes('Keyboard smoke title'))"), "Saved edited card did not appear on dashboard");
     await call("Page.reload", {ignoreCache: true});
     await until(expression("return deep().filter(element=>element.localName==='salah-timetable-card').some(card=>card.shadowRoot?.textContent.includes('Keyboard smoke title'))"), "Saved card missing after page reload");
-    const restored = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.title==='Keyboard smoke title');return card?{config:card._config,panels:card.shadowRoot.querySelectorAll('.panel:not(.hijri-month-info)').length,monthSubtitle:!!card.shadowRoot.querySelector('header .month-description'),duplicateMonthPanel:!!card.shadowRoot.querySelector('.hijri-month-info'),compact:!!card.shadowRoot.querySelector('.content.compact'),hijri:card.shadowRoot.querySelector('.hijri')?.textContent,gregorian:!!card.shadowRoot.querySelector('.gregorian'),data:{prayers:card._hass.states[card._config.entity].attributes.prayers,active:card._hass.states[card._config.entity].attributes.ramadan.active},times:[...card.shadowRoot.querySelectorAll('tbody td')].map(cell=>cell.textContent)}:null"));
+    const restored = await evaluate(expression("const card=deep().find(element=>element.localName==='salah-timetable-card'&&element._config?.title==='Keyboard smoke title');return card?{config:card._config,panels:card.shadowRoot.querySelectorAll('.panel:not(.hijri-month-info)').length,monthSubtitle:!!card.shadowRoot.querySelector('header .month-description'),duplicateMonthPanel:!!card.shadowRoot.querySelector('.hijri-month-info'),compact:!!card.shadowRoot.querySelector('.content.compact'),hijri:card.shadowRoot.querySelector('.hijri')?.textContent,gregorian:!!card.shadowRoot.querySelector('.gregorian'),data:{date:card._hass.states[card._config.entity].attributes.date,prayers:card._hass.states[card._config.entity].attributes.prayers,active:card._hass.states[card._config.entity].attributes.ramadan.active},times:[...card.shadowRoot.querySelectorAll('tbody td')].map(cell=>cell.textContent)}:null"));
     for (const [key, value] of Object.entries(selected)) assert.equal(restored.config[key], value, `Saved option did not survive reload: ${key}`);
-    assert.deepEqual(restored.data, originalData, "Display controls changed prayer data or Ramadan activation");
+    // A genuine UTC midnight rollover changes approved prayer timestamps;
+    // only compare byte-for-byte while both snapshots refer to the same day.
+    if (restored.data.date === originalData.date) {
+      assert.deepEqual(restored.data, originalData, "Display controls changed prayer data or Ramadan activation");
+    } else {
+      const nextDay = new Date(Date.parse(`${originalData.date}T12:00:00Z`) + 86400000).toISOString().slice(0, 10);
+      assert.equal(restored.data.date, nextDay, "Only a one-day rollover may change the smoke data");
+      assert.equal(restored.data.active, true, "Ramadan fixture must remain active over midnight");
+      assert.equal(restored.data.prayers?.length, originalData.prayers?.length, "Approved prayer fields disappeared during rollover");
+    }
     assert.equal(restored.panels, 1); assert.equal(restored.monthSubtitle, true); assert.equal(restored.duplicateMonthPanel, false); assert.equal(restored.compact, false); assert.equal(restored.gregorian, false);
     assert.match(restored.hijri, /هجري \(محسوب\)/);
     assert.ok(restored.times.some(value => /(?:am|pm|ص|م)\s*$/i.test(value)), "Reloaded card does not use 12-hour times");

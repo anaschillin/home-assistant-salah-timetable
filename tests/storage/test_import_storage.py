@@ -12,13 +12,9 @@ from homeassistant.util.file import WriteError
 from homeassistant.util.json import load_json
 
 from custom_components.salah_timetable.const import DOMAIN, STORAGE_VERSION
-from custom_components.salah_timetable.domain.model import (
-    DailyPrayers,
-    PrayerField,
-    Timetable,
-)
-from custom_components.salah_timetable.parsers.csv_parser import CsvParser
-from custom_components.salah_timetable.persistence.storage import (
+from custom_components.salah_timetable.csv_parser import CsvParser
+from custom_components.salah_timetable.model import DailyPrayers, PrayerField, Timetable
+from custom_components.salah_timetable.storage import (
     PendingImportError,
     TimetableStorage,
 )
@@ -129,9 +125,7 @@ async def test_overlapping_source_rejected_before_staging(hass, entry):
 async def test_ramadan_approval_rechecks_current_options_and_retains_both_sources(
     hass, entry
 ):
-    from custom_components.salah_timetable.persistence.storage import (
-        RamadanApprovalError,
-    )
+    from custom_components.salah_timetable.storage import RamadanApprovalError
 
     storage = await reload_storage(hass, entry)
     original = candidate(kind="ramadan", table_id="legacy-ramadan")

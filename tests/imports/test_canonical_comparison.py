@@ -4,17 +4,13 @@ from datetime import date, time
 
 import pytest
 
-from custom_components.salah_timetable.domain.model import (
-    DailyPrayers,
-    PrayerField,
-    Timetable,
-)
-from custom_components.salah_timetable.imports.import_comparison import (
+from custom_components.salah_timetable.import_comparison import (
     DIFF_PAGE_SIZE,
     compare_timetables,
     diff_overview,
     render_diff_page,
 )
+from custom_components.salah_timetable.model import DailyPrayers, PrayerField, Timetable
 
 F = PrayerField
 

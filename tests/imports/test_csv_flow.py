@@ -11,7 +11,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.parsers.import_model import MAX_SOURCE_BYTES
+from custom_components.salah_timetable.import_model import MAX_SOURCE_BYTES
 
 CSV = b"Date,Fajr Start,Fajr Jamaat\n2026-10-21,05:45,06:15\n2026-10-22,05:47,06:15\n"
 REPLACEMENT_CSV = b"Date,Fajr Start,Fajr Jamaat\n2026-10-21,05:55,06:25\n"
@@ -341,8 +341,8 @@ async def test_conflicting_ramadan_approval_stays_reviewable_and_can_be_rejected
 ):
     from zoneinfo import ZoneInfo
 
-    from custom_components.salah_timetable.parsers.csv_parser import CsvParser
-    from custom_components.salah_timetable.persistence.storage import TimetableStorage
+    from custom_components.salah_timetable.csv_parser import CsvParser
+    from custom_components.salah_timetable.storage import TimetableStorage
 
     storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
     original = CsvParser().parse(

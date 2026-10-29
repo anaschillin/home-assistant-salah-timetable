@@ -5,9 +5,9 @@ from unittest.mock import patch
 
 import pytest
 
-from custom_components.salah_timetable.parsers import pdf_parser
-from custom_components.salah_timetable.parsers.import_model import ImportValidationError
-from custom_components.salah_timetable.parsers.pdf_parser import PdfParser
+from custom_components.salah_timetable import pdf_parser
+from custom_components.salah_timetable.import_model import ImportValidationError
+from custom_components.salah_timetable.pdf_parser import PdfParser
 
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "pdf"
 
