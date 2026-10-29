@@ -28,7 +28,8 @@ and real Chromium/Chrome for the frontend. The reusable workflow supports manual
 runs and weekly checks. To run the live acceptance locally:
 
 ```sh
-node scripts/live_smoke.mjs --ha-version 2026.10.3 --require-fresh-dependency --output-dir /tmp/salah-live-results
+source <(python3 scripts/sync_documentation.py --shell)
+node scripts/live_smoke.mjs --ha-version "$HA_TESTED_VERSION" --require-fresh-dependency --output-dir /tmp/salah-live-results
 ```
 
 Strict dependency proof checks absence in the base image and the manifest-pinned
@@ -75,3 +76,12 @@ python scripts/sync_documentation.py --check
 ```
 
 The first command refreshes frontend cache identifiers **and** documentation values/links. The second is run in CI and fails if any rendered value or redirected link has gone stale. The Markdown pages always display real values, not raw template placeholders. Do not manually edit the generated values inside the markers.
+
+The same command also exports source-derived variables for executable Bash examples:
+
+```bash
+source <(python3 scripts/sync_documentation.py --shell)
+echo "$INTEGRATION_VERSION $HA_MIN_VERSION $HA_TESTED_VERSION"
+```
+
+The compatibility CI matrix and live-smoke workflow also read these pinned values instead of maintaining extra version literals.

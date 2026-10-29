@@ -170,7 +170,7 @@ PDF worker white-box coverage supplements, but does not replace, real isolated-s
 
 ## Compatibility test environments
 
-The development and release environment stays locked to Home Assistant
+The root test lock and supported-current compatibility lane target Home Assistant
 **<!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->** in the root `pyproject.toml` and `uv.lock`. Two independent
 projects run the same complete Python suite against supported releases:
 
@@ -194,22 +194,24 @@ Run these commands from the repository root, with uv 0.12.23 and Python 3.14
 available. `uv sync --project` creates the lane's own `.venv`; it leaves the
 repository's root `.venv` and lock unchanged. The explicit environment setting
 below also takes precedence over an inherited `UV_PROJECT_ENVIRONMENT`.
+The version variables come from the pinned compatibility project files.
 
 ```sh
+source <(python3 scripts/sync_documentation.py --shell)
 COMPAT_ENV="$PWD/compatibility/minimum/.venv"
 COMPAT_TMPDIR="$(mktemp -d /tmp/salah-unit-minimum.XXXXXX)"
 UV_PROJECT_ENVIRONMENT="$COMPAT_ENV" TMPDIR="$COMPAT_TMPDIR" \
   uv sync --project compatibility/minimum --frozen --python python3.14 --no-python-downloads
 TMPDIR="$COMPAT_TMPDIR" uv pip check --python "$COMPAT_ENV/bin/python"
 TMPDIR="$COMPAT_TMPDIR" "$COMPAT_ENV/bin/python" scripts/check_compatibility_environment.py \
-  --ha-version 2026.10.0 --plugin-version 0.13.371 \
+  --ha-version "$HA_MIN_VERSION" --plugin-version "$PLUGIN_MIN_VERSION" \
   --environment "$COMPAT_ENV"
 TMPDIR="$COMPAT_TMPDIR" COVERAGE_FILE="$COMPAT_TMPDIR/.coverage" \
   "$COMPAT_ENV/bin/python" -m pytest -c pyproject.toml --timeout=30
 ```
 
 For the supported-current lane, use `compatibility/supported-current`,
-`--ha-version 2026.10.3` and `--plugin-version 0.13.374`; use
+`--ha-version "$HA_TESTED_VERSION"` and `--plugin-version "$PLUGIN_TESTED_VERSION"`; use
 `salah-unit-supported-current.XXXXXX` in the temporary-directory command.
 Run concurrent lanes in separate shells with their own environment, temporary
 directory and coverage file. Home Assistant's file-upload tests use a directory
@@ -259,7 +261,8 @@ No user configuration or credentials are checked into the repository.
 Requirements: Docker, Node.js 24 and Chromium/Chrome. Example:
 
 ```sh
-node scripts/live_smoke.mjs --ha-version 2026.10.3 --output-dir /tmp/salah-live-results
+source <(python3 scripts/sync_documentation.py --shell)
+node scripts/live_smoke.mjs --ha-version "$HA_TESTED_VERSION" --output-dir /tmp/salah-live-results
 ```
 
 The optional `--preload-pypdf` supplies the exact manifest-pinned pure-Python

@@ -46,10 +46,11 @@ Full HAOS/Supervisor restore is an **optional** additional test, documented in [
 
 The manually triggered **Prepare draft release** workflow accepts an existing `vMAJOR.MINOR.PATCH` tag for a commit on `main` with a passing Validate push run. It validates versions, changelog, ancestry and checksum, and creates a **draft**, not a published release.
 
-For a local read-only review with the actual release tag:
+For a local read-only review **after the matching tag exists**, use its version from the manifest:
 
 ```sh
-uv run --frozen python -m scripts.prepare_release --tag vMAJOR.MINOR.PATCH --output-dir /tmp/salah-release-review
+source <(python3 scripts/sync_documentation.py --shell)
+uv run --frozen python -m scripts.prepare_release --tag "v$INTEGRATION_VERSION" --output-dir /tmp/salah-release-review
 ```
 
 Review the release notes and draft artifact before publishing.
@@ -135,11 +136,12 @@ Once you have a backup and the source container's configuration volume (as a
 filesystem path), run:
 
 ```bash
-docker pull ghcr.io/home-assistant/home-assistant:2026.10.3
+source <(python3 scripts/sync_documentation.py --shell)
+docker pull "ghcr.io/home-assistant/home-assistant:$HA_TESTED_VERSION"
 python -m scripts.disposable_backup_restore \
   --backup /private/synthetic-test-backup.tar \
   --original /private/synthetic-source-config \
-  --ha-version 2026.10.3 \
+  --ha-version "$HA_TESTED_VERSION" \
   --confirm-disposable \
   --serve
 ```
@@ -155,7 +157,8 @@ check; press Enter to stop/delete the container and restored files. Use
 `SALAH_TEST_BACKUP_PASSWORD` in the environment if an encrypted archive
 requires a password, not a command-line argument.
 
-Use the same Core patch version as the source for this preflight. For
+Use the same Core patch version as the source for this preflight. In the example above,
+`HA_TESTED_VERSION` is loaded from the supported-current compatibility project. For
 automation, omit `--serve` to validate the archive and restored files
 without booting the UI. The source reference must be a **stopped or
 quiescent** disposable HA config immediately after backup creation; live
