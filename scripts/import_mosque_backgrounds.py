@@ -18,7 +18,6 @@ TARGET = FRONTEND / "backgrounds"
 INVENTORY = ROOT / "docs/asset-provenance.json"
 MANIFEST = FRONTEND / "mosque-backgrounds.js"
 LICENSE_URL = "https://unsplash.com/license"
-MAX_DOWNLOAD_BYTES = 15_000_000
 
 PHOTOS = [
     {
@@ -209,15 +208,12 @@ def fetch_image(photo: dict) -> bytes:
     url = f"https://images.unsplash.com/{photo['photo']}?fit=max&w=1800&fm=jpg&q=85"
     request = Request(url, headers={"User-Agent": "SalahTimetableAssetImport/1.0"})
     with urlopen(request, timeout=40) as response:
-        data = response.read(MAX_DOWNLOAD_BYTES + 1)
-    if len(data) > MAX_DOWNLOAD_BYTES:
-        raise ValueError(f"Image exceeds download size limit: {photo['id']}")
+        data = response.read()
     return data
 
 
 def optimise(data: bytes) -> bytes:
     """Encode the full-resolution source as genuinely lossless WebP."""
-    Image.MAX_IMAGE_PIXELS = 30_000_000
     with Image.open(io.BytesIO(data)) as original:
         original.verify()
     with Image.open(io.BytesIO(data)) as original:
