@@ -8,9 +8,13 @@ from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.salah_timetable.const import DOMAIN
+from custom_components.salah_timetable.domain.model import (
+    DailyPrayers,
+    PrayerField,
+    Timetable,
+)
 from custom_components.salah_timetable.frontend import async_setup_frontend
-from custom_components.salah_timetable.model import DailyPrayers, PrayerField, Timetable
-from custom_components.salah_timetable.storage import TimetableStorage
+from custom_components.salah_timetable.persistence.storage import TimetableStorage
 
 
 def pytest_make_parametrize_id(

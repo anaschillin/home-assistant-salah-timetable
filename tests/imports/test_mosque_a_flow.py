@@ -13,8 +13,8 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.download import DownloadResult
-from custom_components.salah_timetable.model import PrayerField
+from custom_components.salah_timetable.domain.model import PrayerField
+from custom_components.salah_timetable.sources.download import DownloadResult
 
 FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/mosque_a_synthetic_2026.pdf"
 SOURCE_URL = "https://mosque-a.example.org/timetables/time-table.pdf"
@@ -177,7 +177,7 @@ async def test_mosque_a_url_profile_and_changed_pdf_require_new_approval(
         content, "pdf", '"mosque_a-v1"', None, sha256(content).hexdigest()
     )
     with patch(
-        "custom_components.salah_timetable.source_flow.async_download",
+        "custom_components.salah_timetable.sources.source_flow.async_download",
         AsyncMock(return_value=first),
     ):
         result = await hass.config_entries.options.async_configure(
@@ -215,7 +215,7 @@ async def test_mosque_a_url_profile_and_changed_pdf_require_new_approval(
         changed, "pdf", '"mosque_a-v2"', None, sha256(changed).hexdigest()
     )
     with patch(
-        "custom_components.salah_timetable.source_updates.download.async_download",
+        "custom_components.salah_timetable.sources.source_updates.download.async_download",
         AsyncMock(return_value=second),
     ) as fetch:
         await entry.runtime_data.source_updates.async_check_all()

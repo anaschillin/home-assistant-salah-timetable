@@ -2,7 +2,7 @@
 
 ## Boundaries
 
-The authoritative [production module inventory](module-inventory.md) lists every grouped Python module, stable Home Assistant entrypoint, frontend helper and compatibility alias. Paths here refer to actual implementations rather than legacy root import aliases.
+The authoritative [production module inventory](module-inventory.md) lists every grouped Python module, stable Home Assistant entrypoint and frontend helper. There are no duplicate root modules or legacy import aliases.
 
 - `config_flow.py`: mosque identity, UI creation, timezone/Ramadan options and import
   flow entry. Options updates preserve unrelated settings and reload the entry.

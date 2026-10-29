@@ -13,10 +13,10 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.salah_timetable.const import DOMAIN
-from custom_components.salah_timetable.download import DownloadResult
-from custom_components.salah_timetable.import_flow import IGNORE_COLUMN
-from custom_components.salah_timetable.model import PrayerField
-from custom_components.salah_timetable.source_model import RemoteSource
+from custom_components.salah_timetable.domain.model import PrayerField
+from custom_components.salah_timetable.imports.import_flow import IGNORE_COLUMN
+from custom_components.salah_timetable.sources.download import DownloadResult
+from custom_components.salah_timetable.sources.source_model import RemoteSource
 
 FIXTURE = Path(__file__).parents[1] / "fixtures/pdf/mosque_b_2026.pdf"
 SOURCE_URL = "https://mosque.example.org/mosque-b-2026.pdf"
@@ -160,7 +160,7 @@ async def test_annual_url_profile_and_separate_ramadan_confirmation(
         content, "pdf", '"mosque_b-2026"', None, sha256(content).hexdigest()
     )
     with patch(
-        "custom_components.salah_timetable.source_flow.async_download",
+        "custom_components.salah_timetable.sources.source_flow.async_download",
         AsyncMock(return_value=downloaded),
     ):
         result = await hass.config_entries.options.async_configure(

@@ -4,8 +4,8 @@ from datetime import date, time
 from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
-from custom_components.salah_timetable.model import DailyPrayers, PrayerField
-from custom_components.salah_timetable.presentation import dashboard_attributes
+from custom_components.salah_timetable.domain.model import DailyPrayers, PrayerField
+from custom_components.salah_timetable.domain.presentation import dashboard_attributes
 
 
 def attributes(day, original, times=None, *, visible=True):
