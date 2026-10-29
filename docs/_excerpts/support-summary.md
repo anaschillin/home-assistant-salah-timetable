@@ -1,0 +1,1 @@
+Salah Timetable is a community-maintained, MIT-licensed integration without guaranteed response times or a paid support service. Compatibility is limited to the [pinned Home Assistant environments](../testing.md#compatibility-test-environments) and [documented timetable layouts](../import_review.md#supported-pdf-layouts).

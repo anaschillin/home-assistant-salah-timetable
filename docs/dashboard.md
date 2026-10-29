@@ -319,11 +319,7 @@ actual timetable sensor.
 
 ## Validation limits
 
-Automated Python, frontend and Chromium tests check the documented card behaviour,
-including keyboard navigation and responsive layouts. Chromium uses Home Assistant
-element stand-ins and is not a substitute for testing an installed card on a phone
-or tablet. Verify the exact candidate version during real Home Assistant/HACS
-release acceptance; see [releasing](releasing.md).
+Frontend tests cover card navigation and responsive rendering, but acceptance on real phones and tablets remains a separate [release check](releasing.md#manual-hacs-and-home-assistant-acceptance).
 
 ## Mosque photograph implementation and maintenance
 

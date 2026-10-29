@@ -175,3 +175,48 @@ def test_version_exports_match_pinned_metadata():
     assignments = shell_assignments(values)
     assert f"HA_TESTED_VERSION={values['homeassistant_tested']}" in assignments
     assert f"INTEGRATION_VERSION={values['version']}" in assignments
+
+
+def test_excerpt_rendering_preserves_links_for_each_consumer(tmp_path):
+    """One source renders working relative links in root and nested guides."""
+    from scripts.sync_documentation import render_excerpts
+
+    excerpt = tmp_path / "docs/_excerpts/support-summary.md"
+    excerpt.parent.mkdir(parents=True)
+    excerpt.write_text(
+        "See [testing](../testing.md#compatibility-test-environments). "
+        "HA <!-- docs:homeassistant_min -->old<!-- /docs:homeassistant_min -->.\n",
+        encoding="utf-8",
+    )
+    marker = (
+        "<!-- docs:excerpt support-summary -->\n"
+        "stale content\n"
+        "<!-- /docs:excerpt support-summary -->"
+    )
+    values = {"homeassistant_min": "2026.10.0"}
+    root_rendered = render_excerpts(tmp_path, Path("README.md"), marker, values)
+    nested_rendered = render_excerpts(
+        tmp_path, Path("docs/getting-started.md"), marker, values
+    )
+    assert "[testing](docs/testing.md#compatibility-test-environments)" in root_rendered
+    assert "[testing](testing.md#compatibility-test-environments)" in nested_rendered
+    assert "docs:homeassistant_min -->2026.10.0" in nested_rendered
+    assert "stale content" not in nested_rendered
+    assert (
+        render_excerpts(
+            tmp_path, Path("docs/getting-started.md"), nested_rendered, values
+        )
+        == nested_rendered
+    )
+
+
+def test_excerpt_rendering_rejects_missing_or_unbalanced_sources(tmp_path):
+    """Broken include names must fail the documentation CI check."""
+    from scripts.sync_documentation import render_excerpts
+
+    opening = "<!-- docs:excerpt unknown -->"
+    with pytest.raises(ValueError, match="Unbalanced"):
+        render_excerpts(tmp_path, Path("README.md"), opening, {})
+    complete = opening + "\nold\n<!-- /docs:excerpt unknown -->"
+    with pytest.raises(ValueError, match="Missing documentation excerpt"):
+        render_excerpts(tmp_path, Path("README.md"), complete, {})

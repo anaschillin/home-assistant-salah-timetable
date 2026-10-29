@@ -6,12 +6,14 @@ This quickstart is for Home Assistant users installing the integration for the f
 
 Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> or later is required.
 
-1. In HACS, choose **Custom repositories**, add `https://github.com/anaschillin/home-assistant-salah-timetable` and select **Integration**.
+<!-- docs:excerpt installation -->
+1. In HACS, open **Custom repositories**, add `https://github.com/anaschillin/home-assistant-salah-timetable` and select **Integration**.
 2. Download **Salah Timetable** and restart Home Assistant.
 3. Open **Settings → Devices & services → Add integration → Salah Timetable**.
-4. Enter the mosque name, a stable mosque ID and its IANA timezone (for example, `Europe/London`). Repeat with another ID for an additional mosque.
+4. Enter the mosque name, a stable mosque ID and its IANA timezone (for example, `Europe/London`). Use a different ID to add another mosque.
 
-HACS custom-repository installation is distinct from inclusion in HACS's default catalogue.
+This is a **HACS custom repository**, not a listing in the default HACS catalogue. For manual installation, copy `custom_components/salah_timetable` into Home Assistant's `config/custom_components/` directory and restart.
+<!-- /docs:excerpt installation -->
 
 ## Import prayer times
 
@@ -50,44 +52,20 @@ For appearance, mobile layouts and language options see [Dashboard](dashboard.md
 
 ## When asking for support
 
-Include the Home Assistant version, integration version, whether you installed via HACS/manual method, the selected mosque timezone, a screenshot of the problem using synthetic or redacted data, and the expected versus actual date/time. The [support policy](getting-started.md#support-and-compatibility-policy) explains safe diagnostic sharing. Do **not** post private source URLs, security tokens, full config backups or original non-redistributable PDFs.
+Include the Home Assistant version, integration version, whether you installed via HACS/manual method, the selected mosque timezone, a screenshot of the problem using synthetic or redacted data, and the expected versus actual date/time. The [support policy](#support-and-compatibility-policy) explains safe diagnostic sharing. Do **not** post private source URLs, security tokens, full config backups or original non-redistributable PDFs.
 
 [Back to main README](../README.md)
 
 ## Support and compatibility policy
 
-Salah Timetable is a community-maintained, MIT-licensed Home Assistant custom
-integration. There is no guaranteed response time or paid support service.
+<!-- docs:excerpt support-summary -->
+Salah Timetable is a community-maintained, MIT-licensed integration without guaranteed response times or a paid support service. Compatibility is limited to the [pinned Home Assistant environments](testing.md#compatibility-test-environments) and [documented timetable layouts](import_review.md#supported-pdf-layouts).
+<!-- /docs:excerpt support-summary -->
 
-The supported Home Assistant versions come from the project's pinned compatibility
-environments, and the release checklist distinguishes automated from manual acceptance; the [validation record](releasing.md#validation-and-acceptance-scope) identifies live
-versions and the scope of each check. Supported Home Assistant OS/Container systems
-provide the Linux/POSIX process resource limits required for isolated PDF extraction.
-Other installation methods are not part of the recorded acceptance matrix.
+The supported Home Assistant versions are determined by the pinned compatibility test projects, not an open-ended promise of compatibility. See [testing environments](testing.md#compatibility-test-environments) for exact versions and [release validation](releasing.md#validation-and-acceptance-scope) for the scope of automated versus manual testing. Home Assistant OS/Container on Linux supplies the process resource limits used to isolate PDF extraction; other installation methods are outside the recorded acceptance matrix.
 
-PDF support covers the inspected Mosque A annual and May–June 2022
-monthly layouts, Mosque B Masjid's 2026 annual tables and separate Ramadan page,
-and the synthetic sample layout. Other editions and layouts remain unsupported;
-CSV provides the alternative for unsupported publications. Missing data remains
-unavailable. The dashboard displays **Fajr ends at sunrise** only when Sunrise
-is published, and MOSQUE_A second-Jumu’ah khutbah footers only as separate Friday
-notes; neither is an additional congregation. Full calculated Umm al-Qura Hijri
-dates can be hidden during mosque setup, later under Configure → Mosque settings,
-or per card. Confirm Ramadan dates explicitly: Hijri display never activates
-Ramadan. See
-[PDF layouts](import_review.md#supported-pdf-layouts) and the README for file, timezone, network and parsing
-limits.
+Only the specific inspected PDF structures in [Supported PDF layouts](import_review.md#supported-pdf-layouts) are recognised; scanned and other unknown layouts are unsupported. CSV may be used for unsupported publication layouts. Missing values stay unavailable, and the Hijri date display does not activate Ramadan or modify published Salah times. See [dashboard](dashboard.md) for Fajr sunrise/end, Friday notes and Hijri options.
 
-For installation and import problems, start with the [quickstart and troubleshooting guide](getting-started.md).
+When reporting a bug, follow [When asking for support](#when-asking-for-support) and provide redacted diagnostics. For a new PDF layout, provide a public publication URL and clarify whether it can legally be redistributed as a test fixture. Compatibility is added only after inspection and tests; resemblance to an existing layout is not sufficient.
 
-For bugs, open a GitHub issue with integration/HA versions, installation method,
-mosque timezone, relevant source layout, expected behavior and redacted logs or
-diagnostics. Describe the date/event that failed without including private source
-URLs, original imported records, credentials or a full HA configuration. Diagnostics
-intentionally use allowlisted counts and availability flags.
-
-For a new PDF layout, provide a public publication URL and explain whether its
-contents may be redistributed as a test fixture. Compatibility is added only after
-inspection and tests; a similar-looking table is not evidence of support.
-
-Report security issues through the process in [SECURITY.md](../SECURITY.md).
+Report security issues privately following [SECURITY.md](../SECURITY.md).
