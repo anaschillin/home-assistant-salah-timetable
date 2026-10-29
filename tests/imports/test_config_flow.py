@@ -154,3 +154,65 @@ async def test_config_flow_creates_loaded_entry_with_sensors(hass):
     # Confirm the integration supports clean unloading.
     assert await hass.config_entries.async_unload(entry.entry_id)
     assert entry.state == ConfigEntryState.NOT_LOADED
+
+
+async def test_reconfigure_validates_fields_without_changing_identity(hass, entry):
+    """Invalid reconfiguration keeps the same configured mosque."""
+    original = dict(entry.data)
+    start = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+    assert start["type"] == FlowResultType.FORM
+    assert start["step_id"] == "reconfigure"
+    invalid = await hass.config_entries.flow.async_configure(
+        start["flow_id"], {"name": " ", "time_zone": "Not/AZone"}
+    )
+    assert invalid["type"] == FlowResultType.FORM
+    assert invalid["errors"] == {
+        "name": "invalid_name",
+        "time_zone": "invalid_time_zone",
+    }
+    assert entry.data == original
+    assert entry.unique_id == "example"
+
+
+async def test_reconfigure_preserves_mosque_storage_and_entity_ids(
+    hass, populated, timetable
+):
+    """A renamed mosque uses the same entry, entities and approved source."""
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    old_runtime = populated.runtime_data
+    old_unique_id = populated.unique_id
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": populated.entry_id,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"name": "Renamed Mosque", "time_zone": "Asia/Riyadh"},
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert populated.title == "Renamed Mosque"
+    assert populated.data["name"] == "Renamed Mosque"
+    assert populated.data["mosque_id"] == "example"
+    assert populated.data["time_zone"] == "Asia/Riyadh"
+    assert populated.options["time_zone"] == "Asia/Riyadh"
+    assert populated.unique_id == old_unique_id
+
+    await hass.async_block_till_done()
+    assert populated.state == ConfigEntryState.LOADED
+    assert populated.runtime_data is not old_runtime
+    assert populated.runtime_data.storage.timetables == (timetable,)
+    assert er.async_get(hass).async_get_entity_id(
+        "sensor", DOMAIN, "example_fajr_begin"
+    ) is not None
