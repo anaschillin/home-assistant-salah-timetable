@@ -134,3 +134,59 @@ async def test_unchanged_data_does_not_write_states(hass, populated, freezer):
     await populated.runtime_data.async_refresh()
     await hass.async_block_till_done()
     assert hass.states.get(entity_id) is previous
+
+
+async def test_removing_one_mosque_cleans_its_device_and_entities_only(
+    hass, populated, freezer
+):
+    """One fixed mosque device belongs to one entry; removal is isolated."""
+    from homeassistant.helpers.storage import Store
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    freezer.move_to("2026-10-21 10:00:00+00:00")
+    other = MockConfigEntry(
+        domain=DOMAIN,
+        title="Other Mosque",
+        unique_id="other",
+        data={"name": "Other Mosque", "mosque_id": "other", "time_zone": "UTC"},
+    )
+    other.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    assert await hass.config_entries.async_setup(other.entry_id)
+    await hass.async_block_till_done()
+
+    devices = dr.async_get(hass)
+    entities = er.async_get(hass)
+    first = devices.async_get_device_by_identifier(
+        (DOMAIN, "example"), populated.entry_id
+    )
+    second = devices.async_get_device_by_identifier((DOMAIN, "other"), other.entry_id)
+    assert first is not None and second is not None
+    first_sensor = entities.async_get_entity_id("sensor", DOMAIN, "example_fajr_begin")
+    first_calendar = entities.async_get_entity_id(
+        "calendar", DOMAIN, "example_prayer_calendar"
+    )
+    second_sensor = entities.async_get_entity_id("sensor", DOMAIN, "other_fajr_begin")
+    second_calendar = entities.async_get_entity_id(
+        "calendar", DOMAIN, "other_prayer_calendar"
+    )
+    assert all((first_sensor, first_calendar, second_sensor, second_calendar))
+
+    assert await hass.config_entries.async_remove(populated.entry_id)
+    await hass.async_block_till_done()
+    assert devices.async_get_device_by_identifier(
+        (DOMAIN, "example"), populated.entry_id
+    ) is None
+    assert devices.async_get_device_by_identifier(
+        (DOMAIN, "other"), other.entry_id
+    ) is not None
+    assert entities.async_get_entity_id("sensor", DOMAIN, "example_fajr_begin") is None
+    assert entities.async_get_entity_id(
+        "calendar", DOMAIN, "example_prayer_calendar"
+    ) is None
+    assert hass.states.get(first_sensor) is None
+    assert hass.states.get(first_calendar) is None
+    assert hass.states.get(second_sensor) is not None
+    assert hass.states.get(second_calendar) is not None
+    assert await Store(hass, 1, f"{DOMAIN}.{populated.entry_id}").async_load() is None
+    assert other.runtime_data.storage.timetables == ()
