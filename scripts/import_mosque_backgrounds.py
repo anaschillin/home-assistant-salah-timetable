@@ -216,13 +216,12 @@ def fetch_image(photo: dict) -> bytes:
 
 
 def optimise(data: bytes) -> bytes:
-    """Encode a lossless WebP from an orientation-corrected, resized source."""
+    """Encode the full-resolution source as genuinely lossless WebP."""
     Image.MAX_IMAGE_PIXELS = 30_000_000
     with Image.open(io.BytesIO(data)) as original:
         original.verify()
     with Image.open(io.BytesIO(data)) as original:
         image = ImageOps.exif_transpose(original).convert("RGB")
-    image.thumbnail((1600, 1100), Image.Resampling.LANCZOS)
     output = io.BytesIO()
     image.save(output, format="WEBP", lossless=True, method=6, exact=True)
     return output.getvalue()
