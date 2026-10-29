@@ -193,9 +193,9 @@ def test_unpublished_khutbah_note_is_not_invented():
     )
 
     assert published_second_khutbah("Unrelated Friday notice") is None
-    assert published_second_khutbah("Second Jumu'ah Khutbah will commence at 1:15 pm") == (
-        "13:15"
-    )
+    assert published_second_khutbah(
+        "Second Jumu'ah Khutbah will commence at 1:15 pm"
+    ) == ("13:15")
 
 
 def test_annual_rejects_out_of_range_year_and_header_after_rows():
