@@ -580,18 +580,19 @@ async def test_mapping_does_not_stage_when_runtime_changes_during_parse(
     )
 
     form = await _open_mapped_csv_form(hass, entry, upload_client)
+    # Simulate the runtime changing immediately after the executor parses
+    # a candidate. The old options flow must not stage against a retired entry.
+    old_runtime = entry.runtime_data
     with patch.object(
-        CsvImportOptionsFlow,
-        "_stage_mapped_candidate",
-        AsyncMock(return_value=False),
-    ) as stage:
+        CsvImportOptionsFlow, "_coordinator", side_effect=[old_runtime, None]
+    ) as current:
         result = await hass.config_entries.options.async_configure(
             form["flow_id"],
             {"date_column": "Date", "time_format": "24h", "fajr_begin": "Fajr Start"},
         )
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "integration_reloaded"
-    stage.assert_awaited_once()
+    assert current.call_count == 2
     assert entry.runtime_data.storage.staged is None
 
 
