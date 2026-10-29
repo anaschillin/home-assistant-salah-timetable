@@ -19,7 +19,6 @@ INVENTORY = ROOT / "docs/asset-provenance.json"
 MANIFEST = FRONTEND / "mosque-backgrounds.js"
 LICENSE_URL = "https://unsplash.com/license"
 MAX_DOWNLOAD_BYTES = 15_000_000
-MAX_WEBP_BYTES = 250_000
 
 PHOTOS = [
     {
@@ -217,27 +216,16 @@ def fetch_image(photo: dict) -> bytes:
 
 
 def optimise(data: bytes) -> bytes:
-    """Convert to a legible, bounded WebP image with no EXIF metadata."""
+    """Encode a lossless WebP from an orientation-corrected, resized source."""
     Image.MAX_IMAGE_PIXELS = 30_000_000
     with Image.open(io.BytesIO(data)) as original:
         original.verify()
     with Image.open(io.BytesIO(data)) as original:
         image = ImageOps.exif_transpose(original).convert("RGB")
     image.thumbnail((1600, 1100), Image.Resampling.LANCZOS)
-    for scale in (1, 0.86, 0.74):
-        candidate = image.copy()
-        if scale != 1:
-            candidate.thumbnail(
-                (int(image.width * scale), int(image.height * scale)),
-                Image.Resampling.LANCZOS,
-            )
-        for quality in (72, 64, 56, 48):
-            output = io.BytesIO()
-            candidate.save(output, format="WEBP", quality=quality, method=6)
-            webp = output.getvalue()
-            if len(webp) <= MAX_WEBP_BYTES:
-                return webp
-    raise ValueError("Unable to encode image within 250 KB limit")
+    output = io.BytesIO()
+    image.save(output, format="WEBP", lossless=True, method=6, exact=True)
+    return output.getvalue()
 
 
 def update_manifest(items: list[dict]) -> None:
@@ -283,11 +271,10 @@ def main() -> None:
     for photo in PHOTOS:
         file = TARGET / f"{photo['id']}.webp"
         if file.is_file():
-            # Keep the eight already reviewed assets byte-for-byte unchanged.
+            # Preserve previously bundled assets until their sources are replaced.
             webp = file.read_bytes()
             if (
-                len(webp) > MAX_WEBP_BYTES
-                or webp[:4] != b"RIFF"
+                webp[:4] != b"RIFF"
                 or webp[8:12] != b"WEBP"
             ):
                 raise ValueError(f"Invalid existing background: {photo['id']}")
