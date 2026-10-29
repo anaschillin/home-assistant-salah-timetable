@@ -121,10 +121,9 @@
     "format": "WebP",
     "lossless": true,
     "encoder_method": 6,
-    "resize_max_pixels": [
-      1600,
-      1100
-    ],
-    "note": "True lossless WebP at the chosen output dimensions; no lossy quality setting, downscaling still alters original pixel dimensions. Existing bundled files are not yet replaced."
+    "resize": "none",
+    "output_size_limit": "none",
+    "source_resolution": "preserve original dimensions",
+    "note": "Use the highest-resolution source available. Lossless WebP preserves decoded source pixels without additional lossy compression. Existing bundled images are not yet replaced."
   }
 }
