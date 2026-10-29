@@ -15,6 +15,6 @@ This page records **future work only**, not completed milestones or old pull req
 - **Night calculations:** investigate clearly labelled calculated midnight/last-third values, separate from mosque publications.
 - **Mosque display mode:** explore wall/tablet presentation and user-controlled announcements.
 - **Special prayer events:** consider only events with verified publication dates.
-- **Islamic history companion:** research only; resolve date authenticity, editorial scope and rights before considering a runtime dataset. See [source review](islamic-history-source-audit.md).
+- **Islamic history companion:** research only; resolve date authenticity, editorial scope and rights before considering a runtime dataset. See [source review](../research/islamic-history/islamic-history-source-audit.md).
 
 Completed work belongs in the implementation and Git history, not this roadmap.
