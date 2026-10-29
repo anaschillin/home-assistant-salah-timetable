@@ -9,6 +9,7 @@ import argparse
 import json
 import posixpath
 import re
+import shlex
 import tomllib
 from pathlib import Path
 
@@ -86,6 +87,43 @@ def metadata(root: Path) -> dict[str, str]:
             plugin.split("==", 1)[1]
         )
     return values
+
+
+def shell_assignments(values: dict[str, str]) -> str:
+    """Emit Bash-compatible assignments from the same metadata as the docs."""
+    names = {
+        "INTEGRATION_VERSION": "version",
+        "PYTHON_MIN_VERSION": "python_min",
+        "PYPDF_VERSION": "pypdf",
+        "HA_MIN_VERSION": "homeassistant_min",
+        "HA_TESTED_VERSION": "homeassistant_tested",
+        "PLUGIN_MIN_VERSION": "test_plugin_min",
+        "PLUGIN_TESTED_VERSION": "test_plugin_tested",
+    }
+    return "\n".join(
+        f"{variable}={shlex.quote(values[key])}" for variable, key in names.items()
+    )
+
+
+def compatibility_matrix(values: dict[str, str]) -> str:
+    """Build the pinned compatibility matrix directly from the lock projects."""
+    lanes = (
+        ("minimum", "homeassistant_min", "test_plugin_min"),
+        ("supported-current", "homeassistant_tested", "test_plugin_tested"),
+    )
+    return json.dumps(
+        {
+            "include": [
+                {
+                    "lane": lane,
+                    "ha-version": values[ha],
+                    "plugin-version": values[plugin],
+                }
+                for lane, ha, plugin in lanes
+            ]
+        },
+        separators=(",", ":"),
+    )
 
 
 def rewrite_links(source_path: Path, text: str) -> str:
@@ -169,7 +207,19 @@ def main() -> int:
     parser.add_argument(
         "--check", action="store_true", help="Check tracked documentation"
     )
+    parser.add_argument(
+        "--shell", action="store_true", help="Print current metadata as Bash assignments"
+    )
+    parser.add_argument(
+        "--matrix", action="store_true", help="Print the pinned HA matrix as JSON"
+    )
     args = parser.parse_args()
+    if args.shell or args.matrix:
+        if args.write or args.check or (args.shell and args.matrix):
+            parser.error("--shell/--matrix cannot be combined with other modes")
+        values = metadata(ROOT)
+        print(shell_assignments(values) if args.shell else compatibility_matrix(values))
+        return 0
     changed = synchronise(write=args.write)
     if changed:
         status = "Updated" if args.write else "Documentation needs syncing"

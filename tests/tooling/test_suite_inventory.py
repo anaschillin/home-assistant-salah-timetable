@@ -9,7 +9,12 @@ from pathlib import Path
 
 import pytest
 
-from scripts.sync_documentation import synchronise
+from scripts.sync_documentation import (
+    compatibility_matrix,
+    metadata,
+    shell_assignments,
+    synchronise,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TEST_ROOT = REPO_ROOT / "tests"
@@ -149,3 +154,24 @@ def test_documentation_sync_rejects_missing_relative_destinations(tmp_path):
         check_local_links(
             tmp_path, Path("README.md"), "[missing](docs/no-such-guide.md)"
         )
+
+ 
+def test_version_exports_match_pinned_metadata():
+    """Executable examples and CI use one authority for their version values."""
+    values = metadata(REPO_ROOT)
+    expected = {
+        "minimum": (values["homeassistant_min"], values["test_plugin_min"]),
+        "supported-current": (
+            values["homeassistant_tested"],
+            values["test_plugin_tested"],
+        ),
+    }
+    import json
+
+    matrix = json.loads(compatibility_matrix(values))
+    assert len(matrix["include"]) == 2
+    for lane in matrix["include"]:
+        assert (lane["ha-version"], lane["plugin-version"]) == expected[lane["lane"]]
+    assignments = shell_assignments(values)
+    assert f"HA_TESTED_VERSION={values['homeassistant_tested']}" in assignments
+    assert f"INTEGRATION_VERSION={values['version']}" in assignments
