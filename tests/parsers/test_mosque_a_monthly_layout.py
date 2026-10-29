@@ -116,6 +116,7 @@ def test_monthly_layout_does_not_depend_on_a_specific_publisher_url(pages):
         pages
     )
 
+
 @pytest.mark.parametrize(
     ("replacement", "message"),
     [
