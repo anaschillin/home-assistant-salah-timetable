@@ -87,6 +87,7 @@ def test_month_swap_and_missing_page_are_rejected(pages):
     with pytest.raises(ImportValidationError):
         MosqueBRamadanLayout().to_csv(tuple(swapped))
 
+
 def test_ramadan_rejects_invalid_noon_hours_and_nonmonotonic_times():
     from custom_components.salah_timetable.parsers.mosque_b_ramadan_layout import (
         _check_order,
