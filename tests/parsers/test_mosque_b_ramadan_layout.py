@@ -86,3 +86,57 @@ def test_month_swap_and_missing_page_are_rejected(pages):
     swapped[1], swapped[2] = swapped[2], swapped[1]
     with pytest.raises(ImportValidationError):
         MosqueBRamadanLayout().to_csv(tuple(swapped))
+
+def test_ramadan_rejects_invalid_noon_hours_and_nonmonotonic_times():
+    from custom_components.salah_timetable.parsers.mosque_b_ramadan_layout import (
+        _check_order,
+        _clock,
+    )
+
+    with pytest.raises(ImportValidationError, match="unsupported hour"):
+        _clock("9:15", 4)
+    with pytest.raises(ImportValidationError, match="daily column convention"):
+        _check_order([300, 299])
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "message"),
+    [
+        ("Feb 18,...", "18", "printed Gregorian month"),
+        ("Feb 18,...", "Feb 31,...", "invalid Gregorian date"),
+        ("Feb 18,...", "BADDATE", "row is not recognized"),
+    ],
+)
+def test_ramadan_rejects_unverifiable_first_date(pages, old, new, message):
+    assert old in pages[-1]
+    changed = list(pages)
+    changed[-1] = changed[-1].replace(old, new, 1)
+    with pytest.raises(ImportValidationError, match=message):
+        MosqueBRamadanLayout().to_csv(tuple(changed))
+
+
+def test_ramadan_requires_exactly_eleven_published_time_cells(pages):
+    changed = list(pages)
+    lines = changed[-1].splitlines()
+    index = next(i for i, line in enumerate(lines) if line.startswith("Feb 18,"))
+    lines[index] += " 5:00"
+    changed[-1] = "\n".join(lines)
+    with pytest.raises(ImportValidationError, match="eleven published time cells"):
+        MosqueBRamadanLayout().to_csv(tuple(changed))
+
+
+def test_ramadan_rejects_missing_footer_and_extra_dated_row(pages):
+    from custom_components.salah_timetable.parsers.mosque_b_ramadan_layout import (
+        _SITE,
+    )
+
+    changed = list(pages)
+    lines = changed[-1].splitlines()
+    footer = next(i for i, line in enumerate(lines) if line.startswith(_SITE))
+    changed[-1] = "\n".join(lines[:footer])
+    with pytest.raises(ImportValidationError, match="footer is missing"):
+        MosqueBRamadanLayout().to_csv(tuple(changed))
+
+    changed[-1] = "\n".join(lines[:footer] + [lines[footer - 1]] + lines[footer:])
+    with pytest.raises(ImportValidationError, match="unsupported row count"):
+        MosqueBRamadanLayout().to_csv(tuple(changed))
