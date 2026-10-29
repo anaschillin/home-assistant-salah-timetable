@@ -90,7 +90,7 @@ export const MOSQUE_BACKGROUNDS = Object.freeze([
   },
   {
     "id": "faisal-mosque",
-    "name": "Faisal Mosque",
+    "name": "Shah Faisal Mosque",
     "country": "Pakistan",
     "photographer": "Faisal Mehmood",
     "source_url": "https://unsplash.com/photos/a-building-with-a-tower-OgP5pfVRdhk",
