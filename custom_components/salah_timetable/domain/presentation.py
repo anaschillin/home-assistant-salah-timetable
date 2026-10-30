@@ -136,8 +136,10 @@ def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
         "second_khutbah": khutbah_at,
         "date": data.day.isoformat(),
         "time_zone": zone.key,
-        "night_calculations": calculated_night_times(
-            data.days[1].row, data.days[2].row, zone
+        "night_calculations": (
+            calculated_night_times(data.days[1].row, data.days[2].row, zone)
+            if len(data.days) >= 3
+            else None
         ),
         "prayers": prayers,
         "day_prayers": {
