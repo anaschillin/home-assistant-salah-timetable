@@ -57,6 +57,7 @@ def _safe_text(value: str) -> str:
 
 PDF_LAYOUT_LABELS = {
     "pdf_table_v1": "Supported sample text-table PDF",
+    "pdf_spaced_v1": "ISO-dated spaced text-table PDF",
     "mosque_a_annual_v1": "Mosque A annual calendar",
     "mosque_a_monthly_v1": "Mosque A monthly calendar",
     "mosque_b_annual_v1": "Mosque B Masjid annual calendar",
