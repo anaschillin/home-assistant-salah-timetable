@@ -164,6 +164,7 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `language` | `auto` (default), `en`, `ar`; automatic follows the HA interface language with English label fallback |
 | `bilingual_prayer_labels` | `false` (default); show English and Arabic known prayer names |
 | `detail_level` | `standard` (default), `compact`, `detailed` |
+| `kiosk_mode` | `false` (default); larger responsive wall/tablet presentation with optional user-gesture fullscreen button. Does not lock the device, hide the HA toolbar or alter data. |
 | `layout` | Legacy `compact` maps to Compact; `expanded` maps to Standard if no `detail_level` is saved |
 | `mode` | Legacy setting ignored; no longer exposed in the editor |
 | `time_format` | `24h` (default), `12h`; applies to every absolute time |

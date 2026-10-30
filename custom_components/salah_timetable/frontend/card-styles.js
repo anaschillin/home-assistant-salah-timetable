@@ -946,6 +946,74 @@ ha-card.has-mosque-background::after {
   }
 }
 
+
+/* Kiosk is strictly opt-in. Responsive sizing avoids clipping in phone WebViews. */
+ha-card.kiosk {
+  min-height: 100dvh;
+  overflow: hidden;
+}
+ha-card.kiosk:fullscreen {
+  height: 100dvh;
+  overflow: auto;
+  background: var(--ha-card-background,var(--card-background-color));
+}
+.content.kiosk {
+  padding: clamp(12px, 2.5cqi, 34px);
+}
+.content.kiosk .summary-shell,
+.content.kiosk .timetable-shell {
+  max-width: 1400px;
+  margin-inline: auto;
+}
+.content.kiosk .header h2 {
+  font-size: clamp(1.5rem, 3.3cqi, 2.8rem);
+}
+.content.kiosk .summary-shell .prayer-panel .event {
+  font-size: clamp(1.2rem, 2.6cqi, 2rem);
+}
+.content.kiosk .summary-shell .prayer-panel .count {
+  font-size: clamp(2rem, 5.5cqi, 4.5rem);
+}
+.content.kiosk .prayer-time .absolute {
+  font-size: clamp(1.1rem, 2.3cqi, 1.8rem);
+}
+.content.kiosk .timetable-shell table {
+  font-size: clamp(1rem, 1.9cqi, 1.4rem);
+}
+.content.kiosk .timetable-shell th,
+.content.kiosk .timetable-shell td {
+  padding-block: clamp(8px, 1.3cqi, 16px);
+}
+.kiosk-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+.kiosk-fullscreen {
+  background: var(--secondary-background-color);
+  color: var(--primary-text-color);
+  font: inherit;
+  font-size: .85rem;
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  min-height: 40px;
+}
+.kiosk-fullscreen:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+@container(max-width:28rem) {
+  .content.kiosk { padding: 10px; }
+  .content.kiosk .summary-shell .prayer-panel .count {
+    font-size: clamp(1.35rem, 5cqi, 2.2rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kiosk-fullscreen { transition: none; }
+}
+
 `;
 
 /** Card configuration editor styles, scoped to its separate shadow root. */
