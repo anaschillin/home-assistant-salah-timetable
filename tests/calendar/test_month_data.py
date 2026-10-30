@@ -118,9 +118,10 @@ async def test_approved_source_details_never_return_url_or_pending_content(hass,
 
 
 async def test_authenticated_month_export_and_redacted_sources(
-    hass, populated, hass_ws_client, freezer
+    hass, populated, hass_ws_client
 ):
-    freezer.move_to("2026-10-21T10:00:00+00:00")
+    # The WS client fixture issues its auth token before this test runs.
+    # Do not move the clock afterwards: that invalidates the token.
     assert await hass.config_entries.async_setup(populated.entry_id)
     await hass.async_block_till_done()
     entity_id = er.async_get(hass).async_get_entity_id(
