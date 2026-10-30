@@ -67,7 +67,15 @@ async def test_options(hass, entry):
         result["flow_id"], {"time_zone": "Asia/Riyadh"}
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
-    assert entry.options == {"time_zone": "Asia/Riyadh", "show_hijri_date": True}
+    assert entry.options["time_zone"] == "Asia/Riyadh"
+    assert entry.options["show_hijri_date"] is True
+    assert entry.options["completeness_required_fields"] == [
+        "fajr_begin",
+        "dhuhr_begin",
+        "asr_begin",
+        "maghrib_begin",
+        "isha_begin",
+    ]
 
 
 async def test_hijri_mosque_setting_at_setup_and_afterwards(hass):
@@ -235,3 +243,34 @@ async def test_reconfigure_preserves_mosque_storage_and_entity_ids(
         er.async_get(hass).async_get_entity_id("sensor", DOMAIN, "example_fajr_begin")
         is not None
     )
+
+
+async def test_settings_validate_and_save_completeness_required_fields(hass, entry):
+    start = await hass.config_entries.options.async_init(entry.entry_id)
+    settings = await hass.config_entries.options.async_configure(
+        start["flow_id"], {"next_step_id": "settings"}
+    )
+    invalid = await hass.config_entries.options.async_configure(
+        settings["flow_id"],
+        {
+            "time_zone": "Europe/London",
+            "completeness_required_fields": [],
+        },
+    )
+    assert invalid["type"] == FlowResultType.FORM
+    assert invalid["errors"] == {
+        "completeness_required_fields": "invalid_completeness_fields"
+    }
+    result = await hass.config_entries.options.async_configure(
+        invalid["flow_id"],
+        {
+            "time_zone": "Europe/London",
+            "completeness_required_fields": ["fajr_begin", "sunrise"],
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.options["completeness_required_fields"] == [
+        "fajr_begin",
+        "sunrise",
+    ]
+    await hass.async_block_till_done()
