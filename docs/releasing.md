@@ -164,6 +164,46 @@ uv run --frozen python -m scripts.prepare_release --tag "v$INTEGRATION_VERSION" 
 
 Review the release notes and draft artifact before publishing.
 
+## Publishing to the HACS / Home Assistant Marketplace catalogue
+
+Salah Timetable is already installable as a **custom HACS repository**. Listing it in the
+default catalogue requires an additional pull request to
+[`hacs/default`](https://github.com/hacs/default). Home Assistant 2026.11's built-in
+Marketplace uses the same catalogue; the existing HACS repository link continues
+to work in both.
+
+1. Complete the [release acceptance](releasing.md#manual-hacs-and-home-assistant-acceptance)
+   for the **exact** candidate on `main`. Confirm both HACS and hassfest pass
+   without ignored checks, plus the repository's required Validate/CodeQL checks.
+2. Ensure the public repository has a descriptive GitHub **About** description,
+   topics, enabled issues, a README and the bundled `brand/icon.png`.
+3. Publish a **stable GitHub release** before requesting catalogue inclusion.
+   For the current version in `versions.toml`, create a matching `vMAJOR.MINOR.PATCH`
+   tag at the successfully validated `main` commit; trigger
+   **Actions → Prepare draft release** with that existing tag. The workflow
+   enforces validated ancestry, cleared asset-rights inventory, packaging and
+   checksums, and creates a **draft** only. Review the draft assets and notes,
+   then explicitly publish it as a non-prerelease release. Ephemeral PR feature
+   prereleases, tags alone and drafts do **not** satisfy the catalogue requirement.
+4. Fork [`hacs/default`](https://github.com/hacs/default) under the owner's
+   personal GitHub account, create a branch from its `master`, and insert
+   `anaschillin/home-assistant-salah-timetable` **alphabetically** in the
+   JSON `integration` list. Do not submit from an organisation or edit the fork's
+   `master` directly.
+5. Open an editable pull request to `hacs/default:master` using the full
+   upstream template. Include links to the published stable release and the
+   passing HACS and hassfest jobs for the release's exact commit. Do not request
+   reviewer attention, and do not mark any checklist item as complete before it is.
+6. Once the catalogue PR is merged and the next catalogue scan has populated
+   the listing, update [the installation instructions](../README.md#install)
+   and their synchronized source excerpt to distinguish marketplace search
+   from the optional manual custom-repository route.
+
+Useful references: [HACS catalogue instructions](https://hacs.dev/docs/publish/include/),
+[Marketplace publishing guide](https://contributors.home-assistant.io/marketplace/guides/catalog/),
+and [HACS submission PRs](https://github.com/hacs/default/pulls). The upstream
+review queue can take months; a passing submission does not mean instant listing.
+
 ## Validation and acceptance scope
 
 Validation evidence is specific to an **exact commit**. The authoritative historical job logs, artifacts and results are on [GitHub Actions](https://github.com/anaschillin/home-assistant-salah-timetable/actions), rather than in an ever-growing per-PR diary.
