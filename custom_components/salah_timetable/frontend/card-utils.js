@@ -75,14 +75,15 @@ export function normalizeConfig(config) {
     !config.mosque_entities.length ||
     config.mosque_entities.some(entity => typeof entity !== "string" || !/^sensor\.[a-z0-9_]+$/.test(entity)) ||
     new Set(config.mosque_entities).size !== config.mosque_entities.length)) throw configError("entity");
-  const defaults = {detail_level: config.detail_level || (config.layout === "compact" ? "compact" : "standard"), layout: "expanded", time_format: "24h", hijri_adjustment: 0, language: "auto", bilingual_prayer_labels: false, show_hijri_date: true, show_gregorian_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_night_calculations: false, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true, show_hijri_month_info: true, show_historical_day_events: false, show_historical_month_highlights: false, show_historical_sources: false, show_disputed_historical_dates: false, show_mosque_background: true, mosque_background: "daily"};
+  const defaults = {detail_level: config.detail_level || (config.layout === "compact" ? "compact" : "standard"), layout: "expanded", time_format: "24h", hijri_adjustment: 0, hijri_day_boundary: "midnight", language: "auto", bilingual_prayer_labels: false, show_hijri_date: true, show_gregorian_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_night_calculations: false, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true, show_hijri_month_info: true, show_historical_day_events: false, show_historical_month_highlights: false, show_historical_sources: false, show_disputed_historical_dates: false, show_mosque_background: true, mosque_background: "daily", kiosk_mode: false};
   const result = {...defaults, ...config};
   if (!["compact", "standard", "detailed"].includes(result.detail_level)) throw configError("detail_level");
   if (!["12h", "24h"].includes(result.time_format)) throw configError("time_format");
   if (!Number.isInteger(result.hijri_adjustment) || Math.abs(result.hijri_adjustment) > 3) throw configError("hijri_adjustment");
+  if (!["midnight", "maghrib"].includes(result.hijri_day_boundary)) throw configError("hijri_day_boundary");
   if (typeof result.mosque_background !== "string" || !/^(daily|none|[a-z0-9_-]+)$/.test(result.mosque_background)) throw configError("background_selection");
   if (!["auto", "en", "ar"].includes(result.language)) throw configError("language");
-  for (const key of Object.keys(defaults).filter(key => key.startsWith("show_") || key === "bilingual_prayer_labels")) if (typeof result[key] !== "boolean") throw configError("boolean", {option: key});
+  for (const key of Object.keys(defaults).filter(key => key.startsWith("show_") || key === "bilingual_prayer_labels" || key === "kiosk_mode")) if (typeof result[key] !== "boolean") throw configError("boolean", {option: key});
   // Discard this retired visual option from previously saved Lovelace cards.
   const {mode: _legacyMode, mosque_background_opacity: _legacyOpacity, ...withoutMode} = result;
   return {...withoutMode, type: "custom:salah-timetable-card", entity: config.entity || ""};
@@ -199,6 +200,19 @@ function hijriParts(value, adjustment = 0) {
     const day = number("day"), month = number("month"), year = number("year");
     return day >= 1 && day <= 30 && month >= 1 && month <= 12 && Number.isInteger(year) && year > 0 ? {day, month, year} : null;
   } catch { return null; }
+}
+
+/** The Hijri header may advance after today's published Maghrib.
+ *  Never shift Gregorian timetable dates or Yesterday/Tomorrow tabs.
+ *  If Maghrib is unpublished, preserve the midnight-based date.
+ */
+export function hijriDisplayDate(displayDate, attributes, selectedDay = 0, boundary = "midnight", now = Date.now()) {
+  if (boundary !== "maghrib" || selectedDay !== 0 || displayDate !== attributes?.date) return displayDate;
+  const publishedMaghrib = attributes?.prayers?.find(row => row?.key === "maghrib")?.begin;
+  const sunset = timestamp(publishedMaghrib);
+  const day = dateInstant(displayDate);
+  if (sunset === null || day === null || now < sunset || displayDate === "9999-12-31") return displayDate;
+  return new Date(day + 86400000).toISOString().slice(0, 10);
 }
 
 /** Calculated display date only; never used for Ramadan activation. */

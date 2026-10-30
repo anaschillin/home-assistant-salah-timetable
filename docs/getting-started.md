@@ -52,6 +52,15 @@ The Yesterday, Today and Tomorrow controls display approved source rows for the 
 
 For appearance, mobile layouts and language options see [Dashboard](dashboard.md). For prayer alerts and speaker playback see [Automations](automations.md).
 
+## Check prayer completeness
+
+**Configure → Mosque settings** allows selecting the published fields required
+by the Prayer completeness diagnostic. The default is the five daily Salah
+beginning times. Add Jamaat or Sunrise only when your mosque publishes those
+consistently. The **Prayer completeness** diagnostic identifies today's
+missing fields, tomorrow's gaps and the first incomplete future date, without
+altering the existing **Timetable coverage** sensor.
+
 ## Reconfigure or remove a mosque
 
 Under **Settings → Devices & services → Salah Timetable**, open the menu for

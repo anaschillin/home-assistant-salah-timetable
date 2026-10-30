@@ -73,7 +73,7 @@ async def test_v1_upgrade_uses_literal_multi_year_data_without_new_provenance(
     await hass.async_block_till_done()
     ids = set(er.async_get(hass).entities)
     assert (
-        len([entity_id for entity_id in ids if entity_id.startswith("sensor.")]) == 26
+        len([entity_id for entity_id in ids if entity_id.startswith("sensor.")]) == 27
     )
     assert (
         len([entity_id for entity_id in ids if entity_id.startswith("calendar.")]) == 1
