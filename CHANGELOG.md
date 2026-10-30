@@ -2,6 +2,7 @@
 
 ## 0.9.20 — unreleased
 
+- Use patched uv 0.13.6 to install CI environments ([CA trust advisory](https://github.com/advisories/GHSA-hq85-5cpj-mr62)).
 - Update pypdf to 6.21.4 for [upstream reader security fixes](https://pypdf.readthedocs.io/en/stable/meta/CHANGELOG.html#version-6-21-4-2026-10-28);
   keep the runtime, development and both compatibility locks aligned.
 - Reject import proposals if the integration reloads during monthly/source

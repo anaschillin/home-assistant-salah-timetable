@@ -4,6 +4,7 @@ This page records **future work only**, not completed milestones or old pull req
 
 ## Planned improvements
 
+- **Upstream dependency advisories:** adopt supported Home Assistant fixes for the Pillow and minimum-lane uv alerts without overriding Home Assistant's exact requirements; track candidate-specific evidence in the release review and [dependency alerts](https://github.com/anaschillin/home-assistant-salah-timetable/security/dependabot).
 - **Home Assistant Integration Quality Scale:** address the [remaining Platinum gaps in the 54-rule audit](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit): strict typing and HA-managed HTTP sessions with the current public-only DNS/redirect protections preserved. Review rule-specific evidence, the custom branding route and each exemption before claiming a tier.
 - **Verified timetable coverage:** support additional annual, monthly and Ramadan publications only with reviewed examples and independent expected results; preserve strict date, format and HTTPS validation.
 - **Prayer completeness follow-up:** consider optional event-driven alerts for missing required fields; the existing date-coverage health blueprint remains unchanged.

@@ -216,7 +216,7 @@ requires an explicit support update and verification.
 
 ### Run a lane locally
 
-Run these commands from the repository root, with uv 0.12.23 and Python 3.14
+Run these commands from the repository root, with uv 0.13.6 and Python 3.14
 available. `uv sync --project` creates the lane's own `.venv`; it leaves the
 repository's root `.venv` and lock unchanged. The explicit environment setting
 below also takes precedence over an inherited `UV_PROJECT_ENVIRONMENT`.
