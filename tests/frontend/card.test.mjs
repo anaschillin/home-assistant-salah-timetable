@@ -853,7 +853,6 @@ test("monthly view queries only the selected mosque and displays missing days", 
 });
 
 test("month view defaults off and validates a strict boolean", () => {
-  const {normalizeConfig} = awaitImportNotRequired();
   assert.equal(normalizeConfig({}).show_month_view, false);
   assert.equal(normalizeConfig({show_month_view: true}).show_month_view, true);
   assert.throws(() => normalizeConfig({show_month_view: "yes"}));
