@@ -260,6 +260,9 @@ class PdfParser:
             matches.append((layout_id, converted))
         permitted = _AUTO_LAYOUTS[self.import_type]
         selected = [(name, csv_text) for name, csv_text in matches if name in permitted]
+        # Established reviewed adapters win over the generic text-table fallback.
+        if any(name != "pdf_spaced_v1" for name, _csv_text in selected):
+            selected = [item for item in selected if item[0] != "pdf_spaced_v1"]
         if not selected:
             if matches:
                 raise ImportValidationError(
