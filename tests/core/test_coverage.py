@@ -484,3 +484,28 @@ async def test_completeness_diagnostic_follows_per_mosque_policy_on_reload(
     assert completeness_state(hass).state == "complete"
     assert completeness_state(hass).entity_id == sensor.entity_id
     assert coverage_state(hass).state == "missing_tomorrow"
+
+
+@pytest.mark.parametrize("invalid_day", ["2026-10-21", datetime(2026, 10, 21)])
+def test_completeness_rejects_non_date_inputs(invalid_day):
+    with pytest.raises(ValueError, match="calendar date"):
+        calculate_completeness(invalid_day, (), RamadanSettings())
+
+
+@pytest.mark.parametrize(
+    "required",
+    [(), (PrayerField.FAJR_BEGIN, PrayerField.FAJR_BEGIN), (PrayerField.JUMUAH,)],
+)
+def test_completeness_rejects_invalid_required_field_sets(required):
+    with pytest.raises(ValueError, match="unique supported"):
+        calculate_completeness(TODAY, (), RamadanSettings(), required)
+
+
+def test_completeness_at_maximum_supported_date_does_not_overflow():
+    latest = date.max
+    approved = Timetable("last-day", "annual", (complete_row(latest),))
+    report = calculate_completeness(latest, (approved,), RamadanSettings())
+    assert report.status == "complete"
+    assert report.missing_tomorrow == ()
+    assert report.complete_days_remaining == 0
+    assert report.first_incomplete_date is None
