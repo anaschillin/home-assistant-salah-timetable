@@ -1165,7 +1165,7 @@ export const EDITOR_CSS = `
   font-size: .82rem;
   line-height: 1.45;
 }
-@media(max-width:420px) {
+@media(max-width: 420px) {
   .setting { gap: 8px; }
   .setting select { max-width: 145px; }
   .editor-section-toggle { gap: 9px; }
