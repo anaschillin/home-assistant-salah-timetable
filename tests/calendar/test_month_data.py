@@ -3,11 +3,14 @@
 import csv
 import io
 from datetime import date, time
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 import pytest
+from homeassistant.exceptions import Unauthorized
 from homeassistant.helpers import entity_registry as er
 
+from custom_components.salah_timetable import data_api
 from custom_components.salah_timetable.const import DOMAIN
 from custom_components.salah_timetable.domain.model import (
     DailyPrayers,
@@ -118,7 +121,7 @@ async def test_approved_source_details_never_return_url_or_pending_content(hass,
 
 
 async def test_authenticated_month_export_and_redacted_sources(
-    hass, populated, hass_ws_client
+    hass, populated, hass_ws_client, monkeypatch
 ):
     # The WS client fixture issues its auth token before this test runs.
     # Do not move the clock afterwards: that invalidates the token.
@@ -164,3 +167,65 @@ async def test_authenticated_month_export_and_redacted_sources(
     msg = await client.receive_json()
     assert not msg["success"]
     assert msg["error"]["code"] == "not_found"
+
+    # All three commands must reject a nonexistent mosque independently.
+    for command in ("salah_timetable/year_csv", "salah_timetable/sources"):
+        request = {"type": command, "entity_id": "sensor.not_a_mosque"}
+        if command.endswith("year_csv"):
+            request["year"] = 2026
+        await client.send_json_auto_id(request)
+        response = await client.receive_json()
+        assert not response["success"]
+        assert response["error"]["code"] == "not_found"
+
+    # Conflicting approved sources fail closed; no guessed data or CSV is sent.
+    def unresolved(*args):
+        raise ValueError("Ambiguous approved sources")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(data_api, "approved_month", unresolved)
+        await client.send_json_auto_id(
+            {
+                "type": "salah_timetable/month",
+                "entity_id": entity_id,
+                "year": 2026,
+                "month": 10,
+            }
+        )
+        response = await client.receive_json()
+        assert response["success"] is False
+        assert response["error"]["code"] == "unresolved_timetable"
+
+    with monkeypatch.context() as patch:
+        patch.setattr(data_api, "approved_year_csv", unresolved)
+        await client.send_json_auto_id(
+            {
+                "type": "salah_timetable/year_csv",
+                "entity_id": entity_id,
+                "year": 2026,
+            }
+        )
+        response = await client.receive_json()
+        assert response["success"] is False
+        assert response["error"]["code"] == "unresolved_timetable"
+
+    # A non-admin cannot read another mosque's private timetable fields.
+    unauthorized = SimpleNamespace(
+        is_admin=False,
+        permissions=SimpleNamespace(check_entity=lambda *_args: False),
+    )
+    with pytest.raises(Unauthorized):
+        data_api._entry_for_dashboard(
+            hass, SimpleNamespace(user=unauthorized), entity_id
+        )
+    with pytest.raises(Unauthorized):
+        data_api._entry_for_dashboard(hass, SimpleNamespace(user=None), entity_id)
+
+    permitted = SimpleNamespace(
+        is_admin=False,
+        permissions=SimpleNamespace(check_entity=lambda *_args: True),
+    )
+    assert data_api._entry_for_dashboard(
+        hass, SimpleNamespace(user=permitted), entity_id
+    ) is populated
+    data_api.register_websocket_commands(hass)
