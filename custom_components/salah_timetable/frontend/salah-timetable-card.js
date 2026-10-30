@@ -142,7 +142,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._hass = value;
     if (this._hassRenderKey() !== this._renderedHassKey) this._render();
   }
-  getCardSize() { return (this._config.detail_level === "compact" ? 3 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
+  getCardSize() { return (this._config.kiosk_mode ? 7 : this._config.detail_level === "compact" ? 3 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
   getGridOptions() { return {columns: 12, rows: this.getCardSize(), min_columns: 6, min_rows: 4}; }
 
   connectedCallback() {
@@ -217,6 +217,7 @@ export class SalahTimetableCard extends HTMLElement {
     const updates = [];
     const style = node("style", CARD_CSS);
     const card = direction(node("ha-card"), ui);
+    if (this._config.kiosk_mode) card.classList.add("kiosk");
     const state = this._state();
     const background = this._config.show_mosque_background && chooseMosqueBackground(MOSQUE_BACKGROUNDS, this._config.mosque_background, (state?.attributes?.date || new Date(now).toISOString().slice(0, 10)));
     if (background) {
@@ -247,7 +248,7 @@ export class SalahTimetableCard extends HTMLElement {
     const scrollLeft = previousRegion?.scrollLeft || 0;
     const data = state.attributes;
     const zone = data.time_zone || this._hass?.config?.time_zone || "UTC";
-    const content = node("div", undefined, `content ${this._config.detail_level === "compact" ? "compact" : "expanded"}`);
+    const content = node("div", undefined, `content ${this._config.detail_level === "compact" ? "compact" : "expanded"}${this._config.kiosk_mode ? " kiosk" : ""}`);
     const baseDate = Date.parse(`${data.date || state.state}T12:00:00Z`);
     const selectedDate = Number.isFinite(baseDate) ? new Date(baseDate + this._selectedDay * 86400000).toISOString().slice(0, 10) : "";
     const displayDate = selectedDate || data.date || state.state;
@@ -293,6 +294,25 @@ export class SalahTimetableCard extends HTMLElement {
     // One cohesive glass surface for mosque identity and both live summaries.
     // Individual countdown components remain independent for timing and options.
     const summary = node("div", undefined, "summary-shell");
+    if (this._config.kiosk_mode) {
+      // Fullscreen requires a user gesture; unsupported WebViews keep kiosk styling.
+      const tools = node("div", undefined, "kiosk-toolbar");
+      const toggle = node("button", tr(ui, "card.kiosk_fullscreen"), "kiosk-fullscreen");
+      toggle.type = "button";
+      toggle.setAttribute("aria-label", tr(ui, "card.kiosk_fullscreen"));
+      toggle.addEventListener("click", () => {
+        const surface = this.shadowRoot?.querySelector("ha-card");
+        if (document.fullscreenElement === surface) {
+          const exit = document.exitFullscreen?.();
+          exit?.catch?.(() => {});
+        } else {
+          const enter = surface?.requestFullscreen?.();
+          enter?.catch?.(() => {});
+        }
+      });
+      tools.append(toggle);
+      summary.append(tools);
+    }
     summary.append(header);
     content.append(summary);
     const dateTabs = node("nav", undefined, "date-tabs");
@@ -524,7 +544,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
     this._extraControls = {};
     const settings = [
       ["language", ["auto", "en", "ar"]], ["bilingual_prayer_labels"],
-      ["detail_level", ["compact", "standard", "detailed"]], ["time_format", ["24h", "12h"]],
+      ["detail_level", ["compact", "standard", "detailed"]], ["kiosk_mode"], ["time_format", ["24h", "12h"]],
       ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]],
       ["show_hijri_date"], ["show_gregorian_date"], ["show_salah_countdown"], ["show_jamaat_countdown"],
       ["show_hijri_month_info"], ["show_historical_day_events"], ["show_historical_month_highlights"], ["show_historical_sources"], ["show_disputed_historical_dates"],
