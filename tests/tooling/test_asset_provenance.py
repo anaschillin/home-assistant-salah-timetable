@@ -44,7 +44,13 @@ def test_repository_asset_inventory_is_complete():
     assert provenance.audit(provenance.ROOT, require_cleared=True) == []
     data = json.loads((provenance.ROOT / provenance.INVENTORY).read_text())
     paths = {asset["path"] for asset in data["assets"]}
-    assert len(paths) == 33
+    assert len(paths) == 37
+    assert {
+        "docs/screenshots/main-card.jpg",
+        "docs/screenshots/card-settings.jpg",
+        "docs/screenshots/monthly-view.jpg",
+        "docs/screenshots/yesterday.jpg",
+    }.issubset(paths)
     assert "tests/fixtures/csv/annual.csv" in paths
     assert "tests/fixtures/storage/v2_approved_pending.json" in paths
     assert all(asset.get("sha256") for asset in data["assets"])

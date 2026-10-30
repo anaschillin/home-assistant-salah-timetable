@@ -8,7 +8,7 @@ template sensors or YAML configuration.
 
 ## Current layout
 
-The card provides current-day and adjacent-day views, a multi-mosque header selector and keyboard-focus restoration after refreshes. Inspect the installed card or the frontend visual checks for its current appearance.
+The card provides current-day and adjacent-day views, a multi-mosque header selector and keyboard-focus restoration after refreshes. See the [main dashboard screenshot](../README.md#dashboard-preview) and the [card configuration, Yesterday and monthly view screenshots](getting-started.md#add-the-dashboard-card). The screenshots show one example configuration, not a live or authoritative prayer timetable.
 
 ## Add the card
 

@@ -58,6 +58,24 @@ The Yesterday, Today and Tomorrow controls display approved source rows for the 
 
 For appearance, mobile layouts and language options see [Dashboard](dashboard.md). For prayer alerts and speaker playback see [Automations](automations.md).
 
+### Card configuration
+
+![Salah Timetable card editor with mosque selection, card detail dropdown, grouped configuration sections and a live preview](screenshots/card-settings.jpg)
+
+The graphical editor groups settings for dates, countdowns, Ramadan, appearance, timetable information, Islamic history (planned options are disabled), and advanced preferences. Switches control individual features; the mosque checkboxes choose which configured mosques appear in this card.
+
+### Browse yesterday and the monthly timetable
+
+![Yesterday tab showing the previous date and its published five-prayer timetable without live countdown panels](screenshots/yesterday.jpg)
+
+Use **Yesterday / Today / Tomorrow** in the card footer to browse each day's approved timetable. Yesterday and Tomorrow intentionally omit live countdowns and current-prayer highlighting.
+
+![Gregorian monthly timetable view with previous and next month navigation, year CSV export and source details](screenshots/monthly-view.jpg)
+
+Enable **Monthly timetable, CSV export and source details** under **Timetable & information** to open the Gregorian month browser. Scroll to see the rest of the month; only approved dates and fields appear. The export is for the current displayed Gregorian year, not the mosque's source PDF.
+
+These are example interface captures, not a substitute for checking your mosque's approved publication. The background photograph is decorative and does not identify the configured mosque.
+
 ## Check prayer completeness
 
 **Configure → Mosque settings** allows selecting the published fields required

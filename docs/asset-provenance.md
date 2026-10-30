@@ -13,6 +13,17 @@ on 29 October 2026. Current PDF/CSV/JSON fixture data was independently
 generated using fictional mosque names and times. This statement is retained
 because the brand icon's inventory entry refers to it as evidence.
 
+The four interface screenshots in [docs/screenshots](screenshots/) were supplied by the
+project maintainer on 30 October 2026 for README and dashboard documentation.
+They reproduce the project's own Home Assistant UI and show example mosque
+names and published timetable values; the screenshots do not grant rights to
+the original mosque publications or imply mosque endorsement. The main,
+Yesterday and editor-preview screenshots include the bundled Jama Masjid,
+Delhi photograph by Naveed Ahmed (whose separate Unsplash source and licence
+are recorded in the inventory). Those photo rights are not converted into
+MIT rights by including the image in a screenshot. The screenshot files
+are checksummed in the same inventory and included in its integrity check.
+
 The 20 bundled backgrounds come from reviewed free Unsplash photograph listings.
 Their named photographers and source pages are recorded individually in the
 inventory and card catalogue. The [Unsplash License](https://unsplash.com/license)

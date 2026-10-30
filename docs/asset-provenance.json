@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "scope": "Repository test fixtures (PDF/CSV/JSON), brand graphics and bundled photo backgrounds; source code, retired screenshots and generated distributions excluded.",
+  "scope": "Repository test fixtures (PDF/CSV/JSON), brand graphics, bundled photo backgrounds and documentation screenshots; source code, retired screenshots and generated distributions excluded.",
   "states": {
     "original_mit": "Original independently generated content under MIT",
     "permission_documented": "Permission evidenced",
@@ -175,6 +175,38 @@
       "basis": "Free photograph under the Unsplash License; converted to WebP and resized",
       "evidence": "https://unsplash.com/photos/a-view-of-a-building-through-an-archway-LbRCic9i5JY",
       "sha256": "800ab5e6f641a43fa841026435307819d4396405cdbe2539f08bbd277af8d070"
+    },
+    {
+      "path": "docs/screenshots/card-settings.jpg",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Naveed Ahmed (bundled photograph)",
+      "basis": "Maintainer-supplied screenshot of project UI; includes bundled Jama Masjid, Delhi background photograph separately governed by its Unsplash License and existing provenance entry",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "bbb16b4250f8ca6ea6f6de15a28bfb449130ec451c4073b463472ba60c6f8424"
+    },
+    {
+      "path": "docs/screenshots/main-card.jpg",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Naveed Ahmed (bundled photograph)",
+      "basis": "Maintainer-supplied screenshot of project UI; includes bundled Jama Masjid, Delhi background photograph separately governed by its Unsplash License and existing provenance entry",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "6bd61a619479ea3237b7ecdf1a320c000105ec98a930cb880b9b6c5bc8fac846"
+    },
+    {
+      "path": "docs/screenshots/monthly-view.jpg",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of the project UI showing an approved monthly timetable; no original publisher document is redistributed",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "b7a1d1e74ee4993d68da4fe3331c12ce538ec911a7f32abb8b8d73fb398d20dd"
+    },
+    {
+      "path": "docs/screenshots/yesterday.jpg",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Naveed Ahmed (bundled photograph)",
+      "basis": "Maintainer-supplied screenshot of project UI; includes bundled Jama Masjid, Delhi background photograph separately governed by its Unsplash License and existing provenance entry",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "3555b5a6bb26cdcce0d9029f141824e65e5a2095b505e2d8ec44198cd17e12a0"
     },
     {
       "path": "tests/fixtures/csv/annual.csv",
