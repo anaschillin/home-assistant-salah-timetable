@@ -76,7 +76,6 @@ Enable **Monthly timetable, CSV export and source details** under **Timetable & 
 
 These are example interface captures, not a substitute for checking your mosque's approved publication. The background photograph is decorative and does not identify the configured mosque.
 
-
 ## Check prayer completeness
 
 **Configure → Mosque settings** allows selecting the published fields required
