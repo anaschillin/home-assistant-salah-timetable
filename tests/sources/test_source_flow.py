@@ -867,17 +867,21 @@ async def test_annual_rollover_not_offered_without_approved_full_year(hass, entr
     )
 
 
-def rollover_scenario(*, source_year=2026, source_kind="annual", source_id=None,
-                      approved=True, row_count=365):
+def rollover_scenario(
+    *,
+    source_year=2026,
+    source_kind="annual",
+    source_id=None,
+    approved=True,
+    row_count=365,
+):
     """Minimal approved-source snapshot to exercise rollover guard decisions."""
     from types import SimpleNamespace
 
     key = source_id or f"annual-{source_year}"
     publication = SimpleNamespace(kind=source_kind, year=source_year, media_type="csv")
     row = SimpleNamespace(day=date(source_year, 1, 1))
-    table = SimpleNamespace(
-        timetable_id=key, kind="annual", days=(row,) * row_count
-    )
+    table = SimpleNamespace(timetable_id=key, kind="annual", days=(row,) * row_count)
     storage = SimpleNamespace(
         staged=None,
         remote_sources={key: publication},
@@ -913,12 +917,16 @@ async def test_rollover_step_rejects_unavailable_and_pending_sources():
 
     flow = SourceOptionsFlow()
     flow._coordinator = lambda: None
-    assert (await flow.async_step_annual_rollover())["reason"] == "integration_not_loaded"
+    assert (await flow.async_step_annual_rollover())[
+        "reason"
+    ] == "integration_not_loaded"
     storage = rollover_scenario()
     coordinator = SimpleNamespace(storage=storage)
     flow._coordinator = lambda: coordinator
     storage.staged = object()
-    assert (await flow.async_step_annual_rollover())["reason"] == "pending_import_exists"
+    assert (await flow.async_step_annual_rollover())[
+        "reason"
+    ] == "pending_import_exists"
     storage.staged = None
     storage.approved_sources.clear()
     assert (await flow.async_step_annual_rollover())["reason"] == "no_rollover_sources"
@@ -969,7 +977,9 @@ async def test_rollover_step_delegates_valid_new_year_to_existing_import():
     flow = SourceOptionsFlow()
     flow._coordinator = lambda: SimpleNamespace(storage=rollover_scenario())
     result = {"type": FlowResultType.FORM, "step_id": "map_columns"}
-    with patch.object(flow, "async_step_import_url", AsyncMock(return_value=result)) as handler:
+    with patch.object(
+        flow, "async_step_import_url", AsyncMock(return_value=result)
+    ) as handler:
         response = await flow.async_step_annual_rollover(
             {"source_id": "annual-2026", "url": "https://mosque.example.org/2027.csv"}
         )
