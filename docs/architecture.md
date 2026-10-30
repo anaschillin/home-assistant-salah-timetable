@@ -305,7 +305,13 @@ when detached from the DOM. Imported/user text uses `textContent`.
 The graphical editor emits `config-changed` events for card-level mosque
 filtering, optional title, `compact`/`standard`/`detailed` detail levels,
 countdown and date visibility, language, bilingual labels and 12/24-hour
-format. The old Jamaat `mode` is accepted but ignored; the panel is always
+format. Boolean settings are Home Assistant `ha-switch` controls organised
+into seven collapsible categories, with translated help and disabled
+inapplicable/history-only options. Disabling a dependent switch never clears
+its stored preference. The unified background dropdown maps to the existing
+`show_mosque_background` and `mosque_background` settings for compatibility;
+the former is no longer independently exposed in the graphical editor.
+The old Jamaat `mode` is accepted but ignored; the panel is always
 contextual. Legacy `layout` remains readable for migration. The calculated
 Umm al-Qura header has an independent −3 to +3 day adjustment and optional
 Today transition at approved Maghrib; adjacent-day views retain their own
