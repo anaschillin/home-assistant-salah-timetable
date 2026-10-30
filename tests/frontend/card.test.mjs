@@ -329,12 +329,83 @@ test("new editor controls round trip and retain nodes through HA config echoes",
   const changes = []; editor.addEventListener("config-changed", event => { changes.push(event.detail.config); editor.setConfig(event.detail.config); });
   for (const [key, entry] of Object.entries(editor._extraControls)) {
     const control = entry.control;
+    if (control.disabled) continue; // Dependent and future options do not emit changes.
     if (entry.checkbox) control.checked = false;
     else control.value = ({language: "ar", detail_level: "compact", time_format: "12h", hijri_adjustment: "-2", hijri_day_boundary: "maghrib", mosque_background: "masjid-al-haram"})[key];
     control.dispatchEvent(new Event("change")); editor.hass = hass();
     assert.equal(editor._extraControls[key].control, control);
     assert.equal(changes.at(-1)[key], entry.checkbox ? false : key === "hijri_adjustment" ? Number(control.value) : control.value);
   }
+});
+
+test("editor uses Home Assistant switches in collapsible, accessible groups", () => {
+  const editor = new SalahTimetableCardEditor(); editor.hass = hass();
+  const dates = editor._sections.dates; const prayers = editor._sections.countdowns;
+  const control = editor._extraControls.show_gregorian_date.control;
+  assert.equal(dates.toggle.attributes["aria-expanded"], "true");
+  assert.equal(dates.body.hidden, false);
+  assert.equal(prayers.body.hidden, true);
+  assert.equal(control.tagName, "ha-switch");
+  assert.equal(control.attributes["aria-label"], tr("en", "editor.show_gregorian_date"));
+  assert.match(editor._extraControls.show_gregorian_date.hint.textContent, /civil date/);
+  assert.equal(find(editor.shadowRoot, "ha-switch").length, Object.values(editor._extraControls).filter(item => item.checkbox).length);
+  prayers.toggle.dispatchEvent(new Event("click"));
+  assert.equal(dates.body.hidden, true);
+  assert.equal(prayers.toggle.attributes["aria-expanded"], "true");
+  assert.equal(prayers.body.hidden, false);
+  prayers.toggle.dispatchEvent(new Event("click"));
+  assert.equal(prayers.body.hidden, true);
+  editor.hass = hass();
+  assert.equal(editor._extraControls.show_gregorian_date.control, control);
+});
+
+test("disabled dependent switches retain their saved preferences", () => {
+  const editor = new SalahTimetableCardEditor(); editor.hass = hass();
+  const updates = [];
+  editor.addEventListener("config-changed", event => { updates.push(event.detail.config); editor.setConfig(event.detail.config); });
+  const setSwitch = (key, checked) => {
+    const control = editor._extraControls[key].control;
+    control.checked = checked; control.dispatchEvent(new Event("change"));
+  };
+  setSwitch("show_hijri_date", false);
+  const month = editor._extraControls.show_hijri_month_info.control;
+  assert.equal(month.disabled, true);
+  const count = updates.length;
+  setSwitch("show_hijri_month_info", false);
+  assert.equal(updates.length, count);
+  assert.equal(editor._config.show_hijri_month_info, true);
+  setSwitch("show_hijri_date", true);
+  assert.equal(month.disabled, false);
+  assert.equal(month.checked, true);
+  setSwitch("show_ramadan_details", false);
+  assert.equal(editor._extraControls.show_sehri_countdown.control.disabled, true);
+  assert.equal(editor._extraControls.show_iftar_countdown.control.disabled, true);
+  assert.equal(editor._config.show_iftar_countdown, true);
+  setSwitch("show_ramadan_details", true);
+  assert.equal(editor._extraControls.show_sehri_countdown.control.disabled, false);
+  const detail = editor._extraControls.detail_level.control;
+  detail.value = "compact"; detail.dispatchEvent(new Event("change"));
+  assert.equal(editor._extraControls.show_night_calculations.control.disabled, true);
+  detail.value = "standard"; detail.dispatchEvent(new Event("change"));
+  assert.equal(editor._extraControls.show_night_calculations.control.disabled, false);
+});
+
+test("single background dropdown preserves legacy options when switched off", () => {
+  const editor = new SalahTimetableCardEditor();
+  editor.setConfig({entity: "sensor.mosque_prayer_timetable", mosque_background: "masjid-al-haram"});
+  editor.hass = hass();
+  const control = editor._extraControls.mosque_background.control;
+  assert.equal(Object.hasOwn(editor._extraControls, "show_mosque_background"), false);
+  const updates = [];
+  editor.addEventListener("config-changed", event => { updates.push(event.detail.config); editor.setConfig(event.detail.config); });
+  control.value = "none"; control.dispatchEvent(new Event("change"));
+  assert.equal(updates.at(-1).show_mosque_background, false);
+  assert.equal(updates.at(-1).mosque_background, "masjid-al-haram");
+  assert.equal(control.value, "none");
+  control.value = "daily"; control.dispatchEvent(new Event("change"));
+  assert.equal(updates.at(-1).show_mosque_background, true);
+  assert.equal(updates.at(-1).mosque_background, "daily");
+  assert.equal(editor._extraControls.mosque_background.control, control);
 });
 
 test("all main countdown visibility combinations keep the timetable and both dates", () => {

@@ -16,7 +16,7 @@ The card provides current-day and adjacent-day views, a multi-mosque header sele
 2. Choose **Edit dashboard → Add card → Salah Timetable**.
 3. Choose a **Prayer timetable** sensor in the graphical editor.
 4. Select **Card detail**: **Compact**, **Standard** (default) or **Detailed**.
-   Set optional title, language, time format and visibility preferences, then save.
+   Set optional title, language, time format and visibility preferences in the grouped sections, then save.
 
 When two or more mosque timetable sensors are available, the editor shows
 **Mosques available on this card** checkboxes. By default all mosques are enabled
@@ -32,6 +32,47 @@ changing Home Assistant entity states. Each card has independent selections:
 add multiple cards to one dashboard, restrict each to one mosque, or use separate
 dashboards. Existing cards without `mosque_entities` continue to show all
 discovered mosques, including newly added ones.
+
+## Graphical editor: grouped settings
+
+The card editor keeps the mosque Prayer timetable sensor, optional title and
+**Card detail** selector at the top. Below these, seven collapsible sections
+organise the options: **Dates & calendar**, **Prayer countdowns**,
+**Ramadan & night**, **Appearance**, **Timetable & information**,
+**Islamic history**, and **Advanced settings**. Only one section expands at
+a time; Dates & calendar is open initially. Each option has concise contextual
+help. Changing a switch or opening a section does not rebuild the editor or
+discard an in-progress title edit.
+
+Boolean card options use Home Assistant-native **switches** (`ha-switch`).
+Multi-mosque selection continues to use checkboxes because each checkbox
+selects a different available mosque, rather than enabling a single feature.
+Dropdowns remain for the detail level, mosque photograph, language, time format,
+Hijri adjustment and Hijri day boundary.
+
+The following dependencies affect **whether a switch can be edited**, not its
+saved configuration:
+
+- **Hijri month information** requires **Calculated Hijri date** on this card.
+  The mosque-wide Hijri preference can still independently hide both.
+- **Sehri countdown** and **Iftar countdown** require **Ramadan details**.
+  Actual Ramadan content is shown only with approved active Ramadan data.
+- **Night midpoint & final third** requires Standard or Detailed card detail.
+- Four **Islamic history** switches and their explanatory hints remain visible
+  but disabled until the historical dataset and display features are implemented.
+
+Disabled dependent switches retain their previously saved values; restoring
+the parent switch or display mode restores the user's choices. Even when a
+switch is enabled, a setting can be visually inapplicable to Yesterday/Tomorrow,
+Compact mode, missing timetable data or a non-Ramadan date.
+
+**Mosque background** is now one dropdown: **Off — no background**,
+**Rotate daily**, or a bundled fixed mosque photograph. There is no separate
+show-background switch in the visual editor. Internally, **Off** sets
+`show_mosque_background: false` without erasing the previous
+`mosque_background` selection. Choosing a photograph or daily rotation enables
+backgrounds again. Both original YAML keys remain supported for backward
+compatibility, including cards with a previously hidden background.
 
 ## Day navigation
 
@@ -229,8 +270,8 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
 | `show_iftar_countdown` | `true`; hiding retains the displayed absolute time |
 | `show_timezone_note` | `true`; controls the timezone and missing-time note |
-| `show_mosque_background` | `true`; enables the full-strength bundled mosque photograph; `false` disables the image |
-| `mosque_background` | `daily` (default); `none`, or a bundled mosque ID for a fixed photo |
+| `show_mosque_background` | `true`; legacy YAML visibility flag. The editor sets it via the unified background dropdown; `false` disables the photograph without clearing its saved selection |
+| `mosque_background` | `daily` (default); `none`, or a bundled mosque ID for a fixed photo. In the editor, Off sets `show_mosque_background: false` |
 
 Hiding either main countdown half removes it; the remaining half fills
 the available summary width. Hiding both leaves the mosque header and
