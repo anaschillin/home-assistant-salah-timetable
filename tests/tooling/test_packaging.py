@@ -31,6 +31,10 @@ def release_source(tmp_path):
 
 def test_archive_is_complete_and_excludes_nonruntime_data(release_source, tmp_path):
     source = release_source / INTEGRATION
+    runtime_python = {
+        (INTEGRATION / path.relative_to(source)).as_posix()
+        for path in source.rglob("*.py")
+    }
     for name in (
         "__pycache__/storage.cpython-314.pyc",
         "original-timetable.pdf",
@@ -38,6 +42,14 @@ def test_archive_is_complete_and_excludes_nonruntime_data(release_source, tmp_pa
         "private.json",
         ".storage/private.json",
         "tests/fixture.csv",
+        "tests/__init__.py",
+        "tests/private.py",
+        "domain/tests/__init__.py",
+        "domain/tests/private.py",
+        "domain/fixtures/__init__.py",
+        "domain/fixtures/private.py",
+        "frontend/private.py",
+        "scratch/private.py",
         "frontend/.cache/private.js",
         "frontend/tests/private.js",
         "frontend/node_modules/private.js",
@@ -49,6 +61,7 @@ def test_archive_is_complete_and_excludes_nonruntime_data(release_source, tmp_pa
     with ZipFile(archive) as bundle:
         names = bundle.namelist()
         assert names == sorted(names)
+        assert {name for name in names if name.endswith(".py")} == runtime_python
         for relative in (
             "__init__.py",
             "manifest.json",
@@ -135,11 +148,17 @@ def test_mismatched_versions_are_rejected(release_source, name, old, new, error)
         check_versions(release_source)
 
 
-@pytest.mark.parametrize("name", ["card-utils.js", "card-i18n.js", "card-styles.js"])
-def test_missing_frontend_asset_is_rejected_before_output(
-    release_source, tmp_path, name
-):
-    (release_source / INTEGRATION / "frontend" / name).unlink()
+@pytest.mark.parametrize(
+    "name",
+    [
+        "frontend/card-utils.js",
+        "frontend/card-i18n.js",
+        "frontend/card-styles.js",
+        "coordinator.py",
+    ],
+)
+def test_missing_runtime_file_is_rejected_before_output(release_source, tmp_path, name):
+    (release_source / INTEGRATION / name).unlink()
     output = tmp_path / "dist"
     with pytest.raises(ValueError, match="Missing release files"):
         build_release(release_source, output)
@@ -155,12 +174,13 @@ def test_symlinks_cannot_include_files_outside_source(release_source, tmp_path):
 
 
 def test_production_modules_have_single_canonical_location():
-    """Only Home Assistant entrypoints and the PDF subprocess stay at root."""
+    """Home Assistant's common modules and the PDF subprocess stay at root."""
     package = PROJECT_ROOT / INTEGRATION
     root_modules = {
         "__init__.py",
         "calendar.py",
         "config_flow.py",
+        "coordinator.py",
         "const.py",
         "diagnostics.py",
         "frontend.py",
@@ -199,9 +219,6 @@ def test_production_modules_have_single_canonical_location():
         },
         "persistence": {
             "storage.py",
-        },
-        "runtime": {
-            "coordinator.py",
         },
     }
     for folder, modules in grouped.items():

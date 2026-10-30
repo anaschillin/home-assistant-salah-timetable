@@ -16,6 +16,7 @@ REQUIRED_FILES = {
     "__init__.py",
     "manifest.json",
     "config_flow.py",
+    "coordinator.py",
     "strings.json",
     "icons.json",
     "translations/en.json",
@@ -113,7 +114,16 @@ def release_files(root: Path) -> list[tuple[str, Path]]:
                 "icons.json",
             }
         else:
-            include = path.suffix in ASSET_SUFFIXES.get(relative.parts[0], set())
+            # Python code in real packages is runtime source too. Keep files
+            # below asset or non-package directories out of the distribution.
+            package_source = path.suffix == ".py" and all(
+                (source / parent / "__init__.py").is_file()
+                for parent in relative.parents
+                if parent != Path(".")
+            )
+            include = package_source or path.suffix in ASSET_SUFFIXES.get(
+                relative.parts[0], set()
+            )
         if include:
             found.add(relative.as_posix())
             files.append(((INTEGRATION / relative).as_posix(), path))

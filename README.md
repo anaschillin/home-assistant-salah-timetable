@@ -41,8 +41,8 @@ After installation, follow [Getting started](docs/getting-started.md) to import 
 | --- | --- |
 | [Getting started](docs/getting-started.md) | Setup, imports, reconfiguration, removal and troubleshooting |
 | [Dashboard](docs/dashboard.md) | Card options and multiple mosques |
-| [Importing and validation](docs/import_review.md) | PDF layouts, timetable review, Ramadan and source updates |
-| [Automations](docs/automations.md) | Blueprints and coverage alerts |
+| [Importing and validation](docs/import_review.md) | Configuration fields/defaults, PDF layouts, approval, Ramadan and source updates |
+| [Automations and entities](docs/automations.md) | Entity reference/defaults, prayer calendar, blueprints and coverage alerts |
 | [Architecture](docs/architecture.md) | Internal design for contributors |
 | [Testing](docs/testing.md) | Tests, coverage and development |
 | [Releasing](docs/releasing.md) | Release workflow, sign-off and internal Quality Scale rule audit |

@@ -21,7 +21,18 @@ REQUIRE_BROWSER_TESTS=1 npm run test:browser
 ```
 <!-- /docs:excerpt development-checks -->
 
-Pytest discovers all nested `test_*.py` modules through `testpaths = ["tests"]`. The complete Python run enforces the existing integration line-coverage gate (94.5%). This **aggregate** threshold is not equivalent to the Home Assistant Integration Quality Scale's Silver requirement of more than 95% coverage **per integration module**. The latest [quality-scale audit](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit) records a successful per-module branch-coverage measurement, but the CI gate still enforces only the aggregate line floor; inspect the per-module report after code changes. For fast investigation of an area or a single test, **turn off whole-project coverage**; a focused run cannot be expected to reach that global threshold:
+Pytest discovers all nested `test_*.py` modules through `testpaths = ["tests"]`. Plain `pytest` enforces the existing 94.5% aggregate line-coverage floor. CI also measures branches and runs `scripts/check_coverage.py`, which preserves that floor, requires **more than 95% combined statement/branch coverage in every integration Python module**, and requires **100% line and branch coverage in all three configuration/options flow modules** (`config_flow.py`, `imports/import_flow.py`, `sources/source_flow.py`). These are coverage checks, not an official quality-tier award; see the [rule audit](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit).
+
+Reproduce the CI coverage gate from the repository root:
+
+```sh
+uv run --frozen pytest --cov-branch --cov-fail-under=0 --cov-report=json:coverage-branch.json
+uv run --frozen python scripts/check_coverage.py coverage-branch.json
+```
+
+The guard compares raw counts, so exactly 95% or a rounded-up percentage fails the per-module rule. It checks the source inventory against the report, including newly added modules, and rejects missing branch data. Empty package initializers have no executable statements and are reported explicitly. Badge data is written only after every gate passes.
+
+For fast investigation of an area or a single test, **turn off whole-project coverage**; a focused run cannot be expected to reach the full-suite thresholds:
 
 ```sh
 uv run --frozen pytest --no-cov tests/parsers/ -q
@@ -107,7 +118,7 @@ The files below are the complete set of pytest test modules. When adding a regre
 | | `test_upgrade_recovery.py` | Older storage schemas and migration/recovery |
 | **tooling** | `test_asset_provenance.py` | Licensed asset metadata and release gate |
 | | `test_ci_changed_files.py` | Conservative Markdown-only CI classification and rename safety |
-| | `test_coverage_badge.py` | Measured line-coverage badge JSON and fail-closed publication |
+| | `test_coverage_badge.py` | Per-module/flow coverage gates, source inventory and measured badge publication |
 | | `test_compatibility_environment.py` | Pinned HA/Python environment assertions |
 | | `test_packaging.py` | Release file inclusion/exclusion and version integrity |
 | | `test_release_preparation.py` | Release archive and notes preparation |

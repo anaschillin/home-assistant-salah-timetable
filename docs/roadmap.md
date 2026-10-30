@@ -4,7 +4,7 @@ This page records **future work only**, not completed milestones or old pull req
 
 ## Planned improvements
 
-- **Home Assistant Integration Quality Scale:** close the [remaining rule-specific gaps in the 54-rule audit](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit), introduce a per-module CI coverage guard to protect the now-measured Silver threshold, and verify remaining documentation and entity defaults. Assess each exemption before claiming a tier.
+- **Home Assistant Integration Quality Scale:** address the [remaining Platinum gaps in the 54-rule audit](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit): strict typing and HA-managed HTTP sessions with the current public-only DNS/redirect protections preserved. Review rule-specific evidence, the custom branding route and each exemption before claiming a tier.
 - **Verified timetable coverage:** support additional annual, monthly and Ramadan publications only with reviewed examples and independent expected results; preserve strict date, format and HTTPS validation.
 - **Import usability:** make setup, differences and error messages clearer without weakening explicit approval.
 - **Release readiness:** record results of relevant HACS/HAOS testing for a tagged release; full HAOS/Supervisor restoration remains an optional separate resilience exercise.

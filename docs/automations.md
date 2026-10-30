@@ -5,6 +5,56 @@ five optional Home Assistant blueprints. Import a blueprint, choose the mosque's
 and save the resulting automation. No recording, notification service or speaker
 credentials are bundled with the integration.
 
+## Entities per mosque
+
+Each configured mosque has one logical Home Assistant device with **26 sensors
+and one read-only calendar**. Select entities by mosque and displayed name; Home
+Assistant permits entity IDs to be renamed. Timestamp values are absolute
+date/times interpreted in the mosque's configured timezone. Daily sensors retain
+today's published instant after it passes; rolling Next sensors advance to a later
+event.
+
+| Sensor / key | Supported function |
+| --- | --- |
+| Fajr beginning / `fajr_begin`, Fajr Jamaat / `fajr_jamaat` | Today's published Fajr beginning and congregation. |
+| Sunrise / `sunrise`, Sehri ends / `sehri_ends` | Today's published sunrise and Sehri cutoff, independently available when present. |
+| Dhuhr beginning / `dhuhr_begin`, Dhuhr Jamaat / `dhuhr_jamaat` | Today's published Dhuhr beginning and congregation; Friday Jumu’ah is separate. |
+| Jumu’ah / `jumuah` | Today's first published Jumu’ah congregation. The `scheduled_times` attribute includes every published congregation in order. |
+| Asr beginning / `asr_begin`, Asr Jamaat / `asr_jamaat` | Today's published Asr beginning and congregation. |
+| Maghrib beginning / `maghrib_begin`, Maghrib Jamaat / `maghrib_jamaat` | Today's published Maghrib beginning and congregation, without equating the two. |
+| Isha beginning / `isha_begin`, Isha Jamaat / `isha_jamaat` | Today's published Isha beginning and congregation. |
+| Istewa / `istewa`, Iftar / `iftar`, Taraweeh / `taraweeh` | Today's effective values when published; active Ramadan alone permits the documented Maghrib-to-Iftar fallback. Taraweeh text is not a timestamp. |
+| Next Salah / `next_salah` | Next of the five daily beginnings, from today or tomorrow. |
+| Next Jamaat / `next_jamaat` | Next published congregation, including each Jumu’ah congregation, from today or tomorrow. |
+| Previous Jamaat / `previous_jamaat` | Most recent congregation from yesterday or today. |
+| Next Sehri / `next_sehri`, Next Iftar / `next_iftar` | Next matching event from today/tomorrow whose target date has active Ramadan. |
+| Ramadan status / `ramadan_status` | `active` or `inactive`, from the saved activation settings. |
+| Taraweeh status / `taraweeh_status` | `inactive`, `scheduled`, or `after_isha_jamaat`; the last state supplies the display text, not an inferred time. |
+| Source status / `source_status` | Diagnostic summary of URL checks and pending approval; see [source states and cadence](import_review.md#when-data-updates). |
+| Timetable coverage / `coverage_status` | Diagnostic summary of consecutive effective approved dates; [states and attributes](#read-timetable-coverage) below. |
+| Prayer timetable / `dashboard` | Mosque-local date plus approved yesterday/today/tomorrow rows, event selections and display/status attributes for the bundled card. |
+| Prayer calendar | Read-only approved prayer events, as described [below](#prayer-calendar). It omits Istewa and untimed Taraweeh. |
+
+**Previous Jamaat** is disabled by default for new entity registrations: the
+bundled card reads the same event from **Prayer timetable**, and no bundled
+blueprint requires the standalone sensor. Enable it in **Settings → Devices &
+services → Entities → Previous Jamaat → Settings** if needed. The other sensors
+and calendar are enabled by default. Existing enabled/disabled entity preferences
+are retained during upgrades. Keep **Prayer timetable** enabled for the card and
+choose the needed timestamp/status sensors for your automations.
+
+All sixteen daily timestamp sensors have `timetable_date` and `scheduled_times`
+attributes. All five rolling event sensors have `prayer` and `field` attributes.
+Missing dates or fields make the affected timestamp sensor unavailable; they
+never reuse another date's time. Ramadan and Taraweeh status describe activation
+even when a date has no published prayer values. The Prayer timetable sensor is
+the bundled card's data source; choose it when adding the card.
+
+The integration provides no integration-owned actions, conditions or automation
+trigger platform. Use Home Assistant's standard time/calendar/state triggers with
+these entities, or the optional blueprints below. Importing, approval and source
+management use the mosque's **Configure** menu.
+
 ## Import a blueprint
 
 Open **Settings → Automations & scenes → Blueprints → Import blueprint** and paste

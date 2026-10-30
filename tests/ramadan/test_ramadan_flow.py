@@ -114,6 +114,55 @@ async def test_invalid_confirmation_is_not_saved(hass, entry, changes):
     assert result["type"] == FlowResultType.FORM
     assert result["errors"] == {"base": "invalid_ramadan"}
     assert not entry.options
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], data()
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.options["ramadan_start"] == "2026-03-10"
+    assert entry.options["ramadan_end"] == "2026-03-11"
+
+
+async def test_invalid_stored_ramadan_settings_can_be_replaced(hass, entry):
+    """A legacy invalid option must not stop the user opening its repair form."""
+    hass.config_entries.async_update_entry(
+        entry, options={"ramadan_mode": "unsupported", "custom_marker": "keep me"}
+    )
+    result = await ramadan_flow(hass, entry)
+    fields = {key.schema: key for key in result["data_schema"].schema}
+    assert fields["ramadan_mode"].default() == "auto"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], data()
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.options["ramadan_mode"] == "auto"
+    assert entry.options["custom_marker"] == "keep me"
+
+
+async def test_removed_ramadan_source_can_be_reselected_on_same_flow(hass, entry):
+    """A source removed after opening the form cannot become a saved selection."""
+    table = Timetable(
+        "ramadan-2026",
+        "ramadan",
+        (DailyPrayers(date(2026, 3, 10), {PrayerField.FAJR_BEGIN: (time(5),)}, {}),),
+    )
+    storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
+    await storage.async_replace((table,))
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await ramadan_flow(hass, entry)
+    await entry.runtime_data.storage.async_replace(())
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], data(ramadan_source_id="ramadan-2026")
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {"base": "invalid_ramadan"}
+    assert not entry.options
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], data()
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.options["ramadan_source_id"] is None
+    await hass.async_block_till_done()
 
 
 async def test_overlapping_ramadan_requires_explicit_source(hass, entry, freezer):

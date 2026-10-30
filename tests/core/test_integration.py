@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, patch
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.entity import EntityCategory
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.salah_timetable.const import DOMAIN
@@ -198,3 +199,96 @@ async def test_removing_one_mosque_cleans_its_device_and_entities_only(
     assert hass.states.get(second_calendar) is not None
     assert await Store(hass, 1, f"{DOMAIN}.{populated.entry_id}").async_load() is None
     assert other.runtime_data.storage.timetables == ()
+
+
+async def test_new_entity_defaults_preserve_dashboard_and_automation_interfaces(
+    hass, populated, freezer
+):
+    freezer.move_to("2026-10-21T10:00:00+00:00")
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    registry = er.async_get(hass)
+    entries = er.async_entries_for_config_entry(registry, populated.entry_id)
+    disabled = [item for item in entries if item.disabled_by is not None]
+    assert len(disabled) == 1
+    previous = disabled[0]
+    assert previous.unique_id == "example_previous_jamaat"
+    assert previous.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+    assert hass.states.get(previous.entity_id) is None
+
+    for item in entries:
+        assert item.has_entity_name
+        assert item.translation_key
+        assert item.original_name
+        assert item.device_id == previous.device_id
+        if item is not previous:
+            assert hass.states.get(item.entity_id) is not None
+
+    # Diagnostic information is available to the supplied health blueprint.
+    for key in ("source_status", "coverage_status"):
+        entity_id = registry.async_get_entity_id("sensor", DOMAIN, f"example_{key}")
+        item = registry.async_get(entity_id)
+        assert item.entity_category is EntityCategory.DIAGNOSTIC
+        assert item.original_device_class == "enum"
+
+    for key in (
+        *(field.value for field in PrayerField),
+        "next_salah",
+        "next_jamaat",
+        "previous_jamaat",
+        "next_sehri",
+        "next_iftar",
+    ):
+        entity_id = registry.async_get_entity_id("sensor", DOMAIN, f"example_{key}")
+        assert registry.async_get(entity_id).original_device_class == "timestamp"
+
+    dashboard = registry.async_get_entity_id("sensor", DOMAIN, "example_dashboard")
+    assert hass.states.get(dashboard).attributes["previous_jamaat"] is not None
+    calendar = registry.async_get_entity_id(
+        "calendar", DOMAIN, "example_prayer_calendar"
+    )
+    assert registry.async_get(calendar).supported_features == 0
+
+
+async def test_user_enabled_previous_jamaat_survives_reload(hass, populated, freezer):
+    freezer.move_to("2026-10-21T10:00:00+00:00")
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    registry = er.async_get(hass)
+    entity_id = registry.async_get_entity_id(
+        "sensor", DOMAIN, "example_previous_jamaat"
+    )
+    registry.async_update_entity(entity_id, disabled_by=None)
+    assert await hass.config_entries.async_reload(populated.entry_id)
+    await hass.async_block_till_done()
+    assert registry.async_get(entity_id).disabled_by is None
+    assert hass.states.get(entity_id).state == "2026-10-21T05:15:00+00:00"
+    assert await hass.config_entries.async_reload(populated.entry_id)
+    await hass.async_block_till_done()
+    assert registry.async_get(entity_id).disabled_by is None
+    assert hass.states.get(entity_id).state == "2026-10-21T05:15:00+00:00"
+
+
+async def test_existing_previous_jamaat_registry_choice_is_retained(
+    hass, populated, freezer
+):
+    """An upgrade must keep both enabled and explicitly user-disabled choices."""
+    freezer.move_to("2026-10-21T10:00:00+00:00")
+    registry = er.async_get(hass)
+    previous = registry.async_get_or_create(
+        "sensor", DOMAIN, "example_previous_jamaat", config_entry=populated
+    )
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    assert registry.async_get(previous.entity_id).disabled_by is None
+    assert hass.states.get(previous.entity_id) is not None
+    registry.async_update_entity(
+        previous.entity_id, disabled_by=er.RegistryEntryDisabler.USER
+    )
+    assert await hass.config_entries.async_reload(populated.entry_id)
+    await hass.async_block_till_done()
+    assert (
+        registry.async_get(previous.entity_id).disabled_by
+        is er.RegistryEntryDisabler.USER
+    )
+    assert hass.states.get(previous.entity_id) is None

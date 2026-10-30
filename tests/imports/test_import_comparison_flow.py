@@ -12,6 +12,7 @@ from homeassistant.util.json import load_json
 from custom_components.salah_timetable.config_flow import SalahOptionsFlow
 from custom_components.salah_timetable.const import DOMAIN, STORAGE_VERSION
 from custom_components.salah_timetable.domain.model import Timetable
+from custom_components.salah_timetable.imports.import_flow import import_summary
 from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 from custom_components.salah_timetable.persistence.storage import (
     ImportReviewBaseline,
@@ -507,3 +508,173 @@ async def test_comparison_warns_when_source_specific_review_changes(hass, entry)
     assert result["step_id"] == "compare"
     assert result["errors"] == {"base": "invalid_csv"}
     assert storage.staged is not None
+
+
+def test_complete_publication_summary_does_not_invent_missing_field_warnings():
+    """A complete single-date Ramadan publication needs no coverage warning."""
+    values = {
+        "fajr_begin": "05:00",
+        "fajr_jamaat": "05:15",
+        "sunrise": "06:00",
+        "istewa": "11:55",
+        "dhuhr_begin": "12:00",
+        "dhuhr_jamaat": "12:30",
+        "jumuah": "13:00",
+        "asr_begin": "15:00",
+        "asr_jamaat": "15:30",
+        "maghrib_begin": "18:00",
+        "maghrib_jamaat": "18:10",
+        "isha_begin": "20:00",
+        "isha_jamaat": "20:30",
+        "sehri_ends": "04:00",
+        "iftar": "18:00",
+        "taraweeh": "21:00",
+    }
+    content = (
+        "Date," + ",".join(values) + "\n2026-03-13," + ",".join(values.values()) + "\n"
+    ).encode()
+    proposal = CsvParser().parse(
+        content,
+        timetable_id="ramadan-2026",
+        kind="ramadan",
+        year=2026,
+        date_column="Date",
+        columns={field: field for field in values},
+    )
+    assert not proposal.coverage.missing_fields
+    assert not proposal.warnings
+    text = import_summary(proposal, ())
+    assert "Fields absent from this source" not in text
+    assert "Validation warnings:" not in text
+    assert "Missing dates within the supplied span: **0**" in text
+    assert "2026-03-13" in text
+
+
+@pytest.mark.parametrize("step", ["review", "compare"])
+@pytest.mark.parametrize("boundary", ["storage", "render"])
+async def test_unload_during_review_work_aborts_and_preserves_proposal(
+    hass, entry, step, boundary
+):
+    """Never present or approve work produced by a runtime unloaded mid-await."""
+    storage = await loaded(hass, entry)
+    proposal = candidate()
+    stage_id = await storage.async_stage(proposal)
+    flow = SalahOptionsFlow()
+    flow.hass = hass
+    flow.handler = entry.entry_id
+    await flow.async_step_review()
+    if step == "compare":
+        await flow.async_step_compare()
+    operation = getattr(flow, f"async_step_{step}")
+    if boundary == "storage":
+        original = storage.async_load
+
+        async def load_then_unload():
+            await original()
+            assert await hass.config_entries.async_unload(entry.entry_id)
+
+        with patch.object(storage, "async_load", side_effect=load_then_unload):
+            result = await operation()
+    else:
+        original = hass.async_add_executor_job
+        target_name = (
+            "_render_review_details" if step == "review" else "render_comparison_page"
+        )
+
+        async def render_then_unload(target, *args):
+            rendered = await original(target, *args)
+            if getattr(target, "__name__", None) == target_name:
+                assert await hass.config_entries.async_unload(entry.entry_id)
+            return rendered
+
+        with patch.object(
+            hass, "async_add_executor_job", side_effect=render_then_unload
+        ):
+            result = await operation()
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "integration_reloaded"
+    assert storage.staged.stage_id == stage_id
+    assert storage.timetables == ()
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await choose(hass, await open_review(hass, entry), "approve")
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.runtime_data.storage.timetables == (proposal.timetable,)
+
+
+async def test_unloaded_comparison_aborts_before_accessing_old_runtime(hass, entry):
+    storage = await loaded(hass, entry)
+    stage_id = await storage.async_stage(candidate())
+    comparison = await compare(hass, await open_review(hass, entry))
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    result = await act(hass, comparison, "review")
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "integration_not_loaded"
+    assert storage.staged.stage_id == stage_id
+    assert storage.timetables == ()
+
+
+async def test_proposal_removed_during_approval_cannot_be_committed(hass, entry):
+    storage = await loaded(hass, entry)
+    proposal = candidate()
+    stage_id = await storage.async_stage(proposal)
+    result = await open_review(hass, entry)
+    original = storage.async_approve
+
+    async def reject_then_approve(*args, **kwargs):
+        await storage.async_reject(stage_id)
+        return await original(*args, **kwargs)
+
+    with patch.object(storage, "async_approve", side_effect=reject_then_approve):
+        result = await choose(hass, result, "approve")
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "stale_import"
+    assert storage.staged is None
+    assert storage.timetables == ()
+    await storage.async_stage(proposal)
+    result = await choose(hass, await open_review(hass, entry), "approve")
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert storage.timetables == (proposal.timetable,)
+
+
+async def test_completed_approval_survives_unload_before_runtime_refresh(hass, entry):
+    """An approved transaction remains durable if its coordinator disappears."""
+    storage = await loaded(hass, entry)
+    proposal = candidate()
+    await storage.async_stage(proposal)
+    result = await open_review(hass, entry)
+    original = storage.async_approve
+
+    async def approve_then_unload(*args, **kwargs):
+        await original(*args, **kwargs)
+        assert await hass.config_entries.async_unload(entry.entry_id)
+
+    with patch.object(storage, "async_approve", side_effect=approve_then_unload):
+        result = await choose(hass, result, "approve")
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert storage.staged is None
+    assert storage.timetables == (proposal.timetable,)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.runtime_data.storage.timetables == (proposal.timetable,)
+
+
+async def test_comparison_retains_source_specific_publication_context(hass, entry):
+    storage = await loaded(hass, entry)
+    await storage.async_stage(candidate())
+    form = await open_review(hass, entry)
+    with patch.object(
+        SalahOptionsFlow,
+        "_review_source_context",
+        return_value=("Reviewed publication context", None),
+    ):
+        comparison = await compare(hass, form)
+    assert summary(comparison).startswith("Reviewed publication context\n\n")
+    assert "Import comparison — page 1 of 1" in summary(comparison)
+    assert storage.staged is not None
+    result = await act(hass, comparison, "review")
+    result = await choose(hass, result, "approve")
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()

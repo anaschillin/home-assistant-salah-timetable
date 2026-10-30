@@ -24,7 +24,7 @@ The authoritative [production module inventory](architecture.md#production-modul
   overrides. Published values take precedence over the documented Ramadan defaults.
 - `domain/events.py`: pure timezone-aware next/previous events and contextual Jamaat
   selection, independent of storage, UI and HA scheduling.
-- `runtime/coordinator.py`: resolve yesterday/today/tomorrow in the mosque timezone, calculate
+- `coordinator.py`: resolve yesterday/today/tomorrow in the mosque timezone, calculate
   events and schedule boundary refreshes, with no network calls. Its immutable snapshot
   also retains approved tables so changes outside that horizon notify the calendar.
 - `calendar.py`: one read-only calendar per mosque, using approved effective dated
@@ -335,13 +335,14 @@ The inventory below maps the shipped `custom_components/salah_timetable/` module
 
 ### Home Assistant and executable entry points (package root)
 
-These files stay at the package root because Home Assistant discovers them there, they contain public integration wiring, or (for `pdf_worker.py`) a direct subprocess invocation depends on that entry path.
+These files stay at the package root because Home Assistant discovers them there, they follow its common-module conventions, they contain public integration wiring, or (for `pdf_worker.py`) a direct subprocess invocation depends on that entry path.
 
 | File | Responsibility |
 | --- | --- |
 | `__init__.py` | Config-entry setup/unload, runtime data and device lifecycle |
 | `calendar.py` | Read-only calendar entities built from approved dates; translated name and icon |
 | `config_flow.py` | HA setup, reconfiguration and options entrypoint |
+| `coordinator.py` | HA snapshot refresh, current dates, events and timers |
 | `const.py` | Domain, storage version and configuration keys |
 | `diagnostics.py` | Privacy-conscious diagnostics export |
 | `frontend.py` | Serve the versioned dashboard resource and register it in HA |
@@ -372,13 +373,12 @@ These files stay at the package root because Home Assistant discovers them there
 | `sources/` | `source_flow.py` | Source configuration, inspection and management UI |
 | `sources/` | `source_updates.py` | Periodic and manual URL update checks, staging only |
 | `persistence/` | `storage.py` | Versioned per-entry approved/staged records and atomic writes |
-| `runtime/` | `coordinator.py` | HA snapshot refresh, current dates, events and timers |
 
 Each implementation directory has an `__init__.py`. Other production Python modules should import **the new grouped path** (for example, `from .domain.model import PrayerField` at root, or `from ..domain.model import PrayerField` from inside a sibling package). Use relative paths within the same directory.
 
 #### Single canonical location
 
-No duplicate Python modules or compatibility aliases are retained at the package root. The 21 relocated modules live **only** in their listed subfolders; former root imports such as `custom_components.salah_timetable.model` must be changed to `custom_components.salah_timetable.domain.model`. All tests and mocks use these canonical locations. A packaging test rejects extra root Python files or missing grouped modules.
+No duplicate Python modules or compatibility aliases are retained. The 20 grouped implementation modules live **only** in their listed subfolders; imports such as `custom_components.salah_timetable.model` must use `custom_components.salah_timetable.domain.model`. The coordinator has one canonical top-level implementation, following Home Assistant's common-module convention. All tests and mocks use these canonical locations. A packaging test rejects extra root Python files or missing grouped modules, and verifies the archive includes every runtime Python module.
 
 The standalone `pdf_worker.py` deliberately remains at root. The relocated `parsers/pdf_parser.py` resolves that worker's absolute path; its `python -I` subprocess boundary and resource limits are unchanged.
 

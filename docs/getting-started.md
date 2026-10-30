@@ -15,15 +15,31 @@ Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_
 This is a **HACS custom repository**, not a listing in the default HACS catalogue. For manual installation, copy `custom_components/salah_timetable` into Home Assistant's `config/custom_components/` directory and restart.
 <!-- /docs:excerpt installation -->
 
+### Installation fields
+
+| Field | Required / initial value | Meaning |
+| --- | --- | --- |
+| Mosque name | Required; no default | Display name, 1–100 characters after trimming surrounding spaces. Change it later through **Reconfigure**. |
+| Stable mosque ID | Required; no default | Unique storage/entity identity, 1–64 characters: lowercase letters, digits, `_` or `-`, starting with a letter or digit. Input is trimmed and lowercased. Use a different ID for each mosque; it cannot be changed later. |
+| Mosque timezone | Required; defaults to Home Assistant's timezone | A valid IANA zone such as `Europe/London`. Published local clock times are interpreted in this zone, including DST validation. |
+| Show full calculated Hijri date on dashboards | Optional; enabled initially | Enables the calculated dashboard date; it does not activate Ramadan or alter imported dates/times. Individual cards can also hide the header. |
+
+Setup requires no account, credentials or timetable connection. It creates a mosque
+configuration; prayer values become available after a supported import is approved.
+
 ## Import prayer times
 
 1. Under **Devices & services**, open the mosque's **Configure** menu.
 2. Choose **Add or replace a URL source** for a public HTTPS PDF/CSV, or use a manual PDF/CSV upload.
-3. Select the printed Gregorian year and **Annual**, **Monthly** or **Ramadan** source type; map only columns that the mosque actually published.
+3. Select the printed Gregorian year and source type: **Annual**, **Monthly** or **Ramadan** for PDF/URL imports; **Annual** or **Ramadan** for CSV uploads. Map only columns that the mosque actually published.
 4. Review the detected layout, dates, warnings and prayer values. Use **Compare changes before approval** when replacing approved data.
 5. Choose **Approve and save timetable** to activate it, or reject it to retain existing approved data. If importing Ramadan times, confirm the Ramadan date window separately in mosque settings.
 
 PDF imports recognise **only** [documented layouts](import_review.md#supported-pdf-layouts). Scanned pages and unknown layouts are unsupported; CSV may be a suitable alternative. Never invent missing times.
+
+See the [configuration reference](import_review.md#configuration-fields-and-defaults)
+for import, source-management and Ramadan controls, and the [entity reference](automations.md#entities-per-mosque)
+for the sensors and calendar created for each mosque.
 
 ## Add the dashboard card
 

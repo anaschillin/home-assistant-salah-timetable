@@ -70,7 +70,7 @@ jobs:
       - run: uv run --frozen ruff format --check .
       - name: Run tests with branch coverage measurement
         run: uv run --frozen pytest --cov-branch --cov-fail-under=0 --cov-report=json:coverage-branch.json
-      - name: Enforce line coverage gate and generate measured badge data
+      - name: Enforce aggregate, per-module and config-flow coverage gates and generate measured badge data
         run: uv run --frozen python scripts/check_coverage.py coverage-branch.json --badge-output coverage-badge.json
       - name: Upload measured main-branch coverage for README
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

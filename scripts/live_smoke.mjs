@@ -215,7 +215,17 @@ try {
   await until(() => state("fajr_beginning"), value => approvedTime(value, "06:00:00"), "Approved Fajr missing");
   let states = await request("/api/states");
   const ids = states.filter(item => item.entity_id.startsWith("sensor.smoke_mosque_")).map(item => item.entity_id).sort();
-  assert.equal(ids.length, 26); report.checks.push("mosque_config_flow", "authenticated_csv_upload_mapping_review_approval", "26_sensors");
+  assert.equal(ids.length, 25, "New mosques expose 25 enabled sensors by default");
+  const registryWs = await websocket();
+  const sensors = (await registryWs("config/entity_registry/list")).filter(item => item.config_entry_id === entry && item.entity_id.startsWith("sensor."));
+  assert.equal(sensors.length, 26, "All 26 sensors must be registered");
+  const previousJamaat = sensors.find(item => item.unique_id.endsWith("_previous_jamaat"));
+  assert.ok(previousJamaat, "Previous Jamaat must remain available to enable");
+  assert.equal(previousJamaat.disabled_by, "integration");
+  assert.equal(sensors.filter(item => item.disabled_by === null).length, 25);
+  assert.ok(!ids.includes(previousJamaat.entity_id), "Disabled Previous Jamaat must not have a live state");
+  activeSocket.close(); activeSocket = undefined;
+  report.checks.push("mosque_config_flow", "authenticated_csv_upload_mapping_review_approval", "25_enabled_sensors", "previous_jamaat_registered_disabled_by_default");
   const calendarId = "calendar.smoke_mosque_prayer_calendar";
   const calendarPath = `/api/calendars/${calendarId}?start=${today}T00:00:00Z&end=${new Date(Date.parse(`${today}T00:00:00Z`) + 86400000).toISOString()}`;
   const calendarEvents = () => request(calendarPath);
