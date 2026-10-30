@@ -1038,6 +1038,42 @@ ha-card.kiosk:fullscreen {
   .kiosk-fullscreen { transition: none; }
 }
 
+
+.month-toggle,.month-action,.month-nav {
+  font: inherit;
+  color: var(--primary-text-color);
+  background: var(--secondary-background-color);
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  min-height: 40px;
+}
+.month-toggle { margin: 8px 0; }
+.month-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.month-toolbar h3 { font-size: clamp(1rem,2.4cqi,1.5rem); margin: 0; text-align: center; }
+.month-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.monthly-shell {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(12px,2cqi,22px);
+  background: var(--secondary-background-color);
+  border-radius: 12px;
+}
+.monthly-table { font-size: .88rem; }
+.monthly-table th,.monthly-table td { white-space: nowrap; padding: 9px 10px; }
+.monthly-table .missing-date { opacity: .7; }
+.month-toggle:focus-visible,.month-action:focus-visible,.month-nav:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+.source-summary { border-top: 1px solid var(--divider-color); padding-top: 12px; }
+.source-summary p { overflow-wrap: anywhere; font-size: .84rem; }
+@container(max-width:28rem) {
+  .month-toolbar { flex-wrap: wrap; justify-content: center; }
+  .monthly-shell { padding: 8px; }
+}
+
 `;
 
 /** Card configuration editor styles, scoped to its separate shadow root. */

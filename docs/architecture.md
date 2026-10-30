@@ -33,6 +33,8 @@ The authoritative [production module inventory](architecture.md#production-modul
   presentation interval.
 - `domain/completeness.py`: configurable required-field diagnostics on approved
   effective rows, cached with date coverage without changing its semantics.
+- `domain/month_data.py`: bounded read-only approved effective month/year queries, CSV export and redacted provenance; no pending import values.
+- `data_api.py`: authenticated integration WebSocket commands, scoped by a mosque dashboard entity read permission.
 - `domain/coverage.py`: consecutive effective approved dates, cached by date/sources/Ramadan
   settings. Pending proposals never extend coverage; ambiguous dates beyond the live
   horizon stop coverage and expose `unresolved_date` without disabling valid current

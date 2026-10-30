@@ -129,6 +129,29 @@ The bundled card/editor supports the described language and direction options.
 Additional integration translations and reviewed Arabic wording are deferred.
 Automated browser checks do not establish full Arabic/RTL acceptance on physical devices.
 
+## Monthly timetable and CSV/source information
+
+Enable **Monthly timetable, CSV export and source details** in the card editor
+(`show_month_view: true`). The new **Monthly timetable** control opens a
+Gregorian month browser. Previous/next month and Refresh retrieve at most
+31 days of **approved effective** times for the selected mosque; missing
+dates and prayer fields display as missing, never calculated or filled.
+Ramadan overrides apply only when explicitly active for those dates.
+The card's original Yesterday/Today/Tomorrow and live countdowns are unchanged.
+
+**Export year CSV** downloads a standard UTF-8 CSV for the currently viewed
+Gregorian year, including the mosque's timezone, all canonical published
+fields and multi-time Jumu’ah values. It contains blank cells for missing
+fields/dates, and exports effective approved rows only (not source documents).
+**Source details** shows a redacted approved-source summary: date coverage,
+format, number of rows and check status, without original PDF, raw URL,
+credential-like source contents or pending-import data.
+
+These features use authenticated Home Assistant WebSocket requests, checking
+the viewer's permission to read the selected mosque's dashboard entity. This
+does not introduce a public download endpoint. Depending on the Android
+WebView, the browser download prompt may vary.
+
 ## Dates and customization
 
 In Standard/Detailed mode, the **primary Hijri header** uses the browser's **Umm al-Qura** calendar to
@@ -177,6 +200,7 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `hijri_day_boundary` | `midnight` (default) or `maghrib`; optional Today Hijri header transition at approved published Maghrib |
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
 | `show_night_calculations` | `false` (default); in Standard/Detailed Today view, display night midpoint and final-third start calculated between approved Maghrib and the following day’s Fajr |
+| `show_month_view` | `false` (default); enables read-only monthly timetable browsing, CSV year export and safe source details in the card |
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
 | `show_iftar_countdown` | `true`; hiding retains the displayed absolute time |
 | `show_timezone_note` | `true`; controls the timezone and missing-time note |

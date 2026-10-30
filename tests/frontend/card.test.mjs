@@ -19,7 +19,7 @@ globalThis.document = {createElement: name => registry.has(name) ? new (registry
 globalThis.window = {setInterval: callback => { timers.set(++timerId, callback); return timerId; }, clearInterval: id => timers.delete(id), customCards: []};
 const {SalahTimetableCard, SalahTimetableCardEditor} = await import("../../custom_components/salah_timetable/frontend/salah-timetable-card.js");
 const {tr} = await import("../../custom_components/salah_timetable/frontend/card-i18n.js");
-const {formatDate, formatHijriDate, hijriMonthInfo} = await import("../../custom_components/salah_timetable/frontend/card-utils.js");
+const {formatDate, formatHijriDate, hijriMonthInfo, normalizeConfig} = await import("../../custom_components/salah_timetable/frontend/card-utils.js");
 function find(root, tag) { return [root, ...root.children.flatMap(child => find(child, tag))].filter(node => node.tagName === tag); }
 const attributes = {
   mosque_name: "Example Mosque", date: "2026-10-21", time_zone: "Europe/London",
@@ -814,4 +814,46 @@ test("mosque selection preserves missing sensors, automatically includes new pri
   for (const mosque_entities of [[], ["sensor.fajr", "sensor.fajr"], ["switch.bad"], "oops"]) {
     assert.throws(() => new SalahTimetableCard().setConfig({entity: a, mosque_entities}));
   }
+});
+
+
+test("monthly view queries only the selected mosque and displays missing days", async () => {
+  const card = new SalahTimetableCard();
+  const api = hass();
+  const requests = [];
+  api.callWS = async message => {
+    requests.push(message);
+    if (message.type === "salah_timetable/month") return {rows: [
+      {date: "2026-10-21", published: true, times: {fajr_begin: ["05:45"], fajr_jamaat: ["06:15"]}},
+      {date: "2026-10-22", published: false, times: {}},
+    ]};
+    if (message.type === "salah_timetable/sources") return {sources: [
+      {source_id: "approved", first_date: "2026-01-01", last_date: "2026-12-31", rows: 365, format: "csv", check_status: "approved"},
+    ]};
+    throw new Error("Unexpected request");
+  };
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_month_view: true});
+  card.hass = api;
+  assert.equal(find(card.shadowRoot, "section").filter(el => el.className === "monthly-shell").length, 0);
+  const toggle = find(card.shadowRoot, "button").find(el => el.className === "month-toggle");
+  toggle.dispatchEvent(new Event("click"));
+  await Promise.resolve();
+  assert.equal(requests[0].type, "salah_timetable/month");
+  assert.equal(requests[0].entity_id, "sensor.mosque_prayer_timetable");
+  assert.equal(requests[0].year, 2026);
+  assert.match(card.shadowRoot.textContent, /05:45/);
+  assert.match(card.shadowRoot.textContent, /2026/);
+  const source = find(card.shadowRoot, "button").find(el => el.textContent === "Source details");
+  source.dispatchEvent(new Event("click"));
+  await Promise.resolve();
+  assert.equal(requests.at(-1).type, "salah_timetable/sources");
+  assert.match(card.shadowRoot.textContent, /approved: 2026-01-01/);
+  find(card.shadowRoot, "button").find(el => el.className === "month-toggle").dispatchEvent(new Event("click"));
+  assert.equal(card._monthView, false);
+});
+
+test("month view defaults off and validates a strict boolean", () => {
+  assert.equal(normalizeConfig({}).show_month_view, false);
+  assert.equal(normalizeConfig({show_month_view: true}).show_month_view, true);
+  assert.throws(() => normalizeConfig({show_month_view: "yes"}));
 });

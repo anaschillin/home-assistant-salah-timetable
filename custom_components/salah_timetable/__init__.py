@@ -11,6 +11,7 @@ from homeassistant.helpers import issue_registry as ir
 
 from .const import CONF_TIME_ZONE, DOMAIN
 from .coordinator import SalahCoordinator
+from .data_api import register_websocket_commands
 from .frontend import async_setup_frontend
 from .persistence.storage import TimetableStorage
 from .sources.source_updates import SourceUpdateManager
@@ -54,6 +55,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> boo
             model="Mosque timetable",
         )
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+        register_websocket_commands(hass)
         await coordinator.source_updates.async_start()
         entry.async_on_unload(entry.add_update_listener(async_update_options))
     except BaseException:
