@@ -142,7 +142,7 @@ def test_monthly_url_profile_rejects_changed_date_window():
 
 def test_generic_spaced_text_table_is_detected_and_mapped_only_when_explicit():
     pages = (
-        "Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20\\n2026-10-22  05:46  07:21",
+        "Date  Fajr Begin  Sunrise\n2026-10-21  05:45  07:20\n2026-10-22  05:46  07:21",
     )
     with patch.object(pdf_parser, "extract_pdf_pages", return_value=pages):
         parser = PdfParser("auto", import_type="monthly")
@@ -164,20 +164,20 @@ def test_generic_spaced_text_table_is_detected_and_mapped_only_when_explicit():
 @pytest.mark.parametrize(
     "pages",
     [
-        ("Date Fajr Begin Sunrise\\n2026-10-21 05:45 07:20",),
-        ("Date  Fajr Begin  Sunrise\\n2026-10-21  05:45\\n",),
-        ("Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20\\nADVERTISEMENT",),
-        ("Date  Fajr Begin  Sunrise\\n2026-10-21  35:45  07:20",),
+        ("Date Fajr Begin Sunrise\n2026-10-21 05:45 07:20",),
+        ("Date  Fajr Begin  Sunrise\n2026-10-21  05:45\n",),
+        ("Date  Fajr Begin  Sunrise\n2026-10-21  05:45  07:20\nADVERTISEMENT",),
+        ("Date  Fajr Begin  Sunrise\n2026-10-21  35:45  07:20",),
         (
-            "Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20",
+            "Date  Fajr Begin  Sunrise\n2026-10-21  05:45  07:20",
             "2026-10-22  05:46  07:21",
         ),
         (
-            "Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20",
-            "Date  Sunset  Sunrise\\n2026-10-22  17:00  07:21",
+            "Date  Fajr Begin  Sunrise\n2026-10-21  05:45  07:20",
+            "Date  Sunset  Sunrise\n2026-10-22  17:00  07:21",
         ),
         (
-            "Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20",
+            "Date  Fajr Begin  Sunrise\n2026-10-21  05:45  07:20",
             "Date  Fajr Begin  Sunrise",
         ),
     ],
@@ -189,7 +189,7 @@ def test_generic_pdf_rejects_ambiguous_or_unaccounted_rows(pages):
 
 
 def test_generic_spaced_pdf_requires_exact_year_for_approval():
-    pages = ("Date  Fajr Begin\\n2026-10-21  05:45",)
+    pages = ("Date  Fajr Begin\n2026-10-21  05:45",)
     with patch.object(pdf_parser, "extract_pdf_pages", return_value=pages):
         with pytest.raises(ImportValidationError, match="declared year"):
             PdfParser("pdf_spaced_v1", import_type="monthly").parse(
