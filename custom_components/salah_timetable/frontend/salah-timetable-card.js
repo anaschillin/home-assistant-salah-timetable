@@ -133,6 +133,10 @@ export class SalahTimetableCard extends HTMLElement {
     this._selectedMosque = null;
     this._selectedDay = 0;
     this._backgroundFrame = null;
+    this._monthView = false;
+    this._monthState = null;
+    this._sourceState = null;
+    this._monthRequest = 0;
   }
 
   static getConfigElement() { return document.createElement("salah-timetable-card-editor"); }
@@ -208,6 +212,141 @@ export class SalahTimetableCard extends HTMLElement {
     for (const update of live.updates) update(now);
   }
 
+  _loadMonth(year, month) {
+    const day = new Date(Date.UTC(year, month - 1, 1));
+    if (!Number.isFinite(day.valueOf()) || day.getUTCFullYear() < 1 || day.getUTCFullYear() > 9999) return;
+    const entity = this._activeEntity();
+    const token = ++this._monthRequest;
+    const actualYear = day.getUTCFullYear(), actualMonth = day.getUTCMonth() + 1;
+    this._monthView = true;
+    this._monthState = {entity, year: actualYear, month: actualMonth, loading: true, rows: []};
+    this._sourceState = null;
+    this._render();
+    if (typeof this._hass?.callWS !== "function") {
+      this._monthState.loading = false;
+      this._monthState.error = true;
+      this._render();
+      return;
+    }
+    this._hass.callWS({type: "salah_timetable/month", entity_id: entity, year: actualYear, month: actualMonth})
+      .then(result => {
+        if (token !== this._monthRequest || entity !== this._activeEntity()) return;
+        this._monthState = {...this._monthState, loading: false, rows: result.rows || []};
+        this._render();
+      })
+      .catch(() => {
+        if (token !== this._monthRequest) return;
+        this._monthState = {...this._monthState, loading: false, error: true};
+        this._render();
+      });
+  }
+
+  _exportYear() {
+    const year = this._monthState?.year, entity = this._activeEntity();
+    if (typeof this._hass?.callWS !== "function" || !year) return;
+    this._hass.callWS({type: "salah_timetable/year_csv", entity_id: entity, year})
+      .then(result => {
+        if (entity !== this._activeEntity() || typeof result.csv !== "string") return;
+        const blob = new Blob([result.csv], {type: "text/csv;charset=utf-8"});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `salah-timetable-${year}.csv`;
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      })
+      .catch(() => { this._monthExportError = true; this._render(); });
+  }
+
+  _loadSources() {
+    const entity = this._activeEntity();
+    if (typeof this._hass?.callWS !== "function") return;
+    this._sourceState = {loading: true};
+    this._render();
+    this._hass.callWS({type: "salah_timetable/sources", entity_id: entity})
+      .then(result => {
+        if (entity !== this._activeEntity() || !this._monthView) return;
+        this._sourceState = {sources: Array.isArray(result.sources) ? result.sources : []};
+        this._render();
+      })
+      .catch(() => { if (this._monthView) { this._sourceState = {error: true}; this._render(); } });
+  }
+
+  _monthlyPanel(ui) {
+    const current = this._monthState;
+    const panel = node("section", undefined, "monthly-shell");
+    panel.setAttribute("aria-label", tr(ui, "month.title"));
+    const toolbar = node("div", undefined, "month-toolbar");
+    const prev = node("button", tr(ui, "month.previous"), "month-nav");
+    prev.type = "button";
+    prev.addEventListener("click", () => this._loadMonth(current.year, current.month - 1));
+    const label = node("h3", new Intl.DateTimeFormat(ui.locale || "en-GB", {month: "long", year: "numeric", timeZone: "UTC"}).format(new Date(Date.UTC(current.year, current.month - 1, 15))));
+    const next = node("button", tr(ui, "month.next"), "month-nav");
+    next.type = "button";
+    next.addEventListener("click", () => this._loadMonth(current.year, current.month + 1));
+    toolbar.append(prev, label, next);
+    panel.append(toolbar);
+    const actions = node("div", undefined, "month-actions");
+    const exportButton = node("button", tr(ui, "month.csv_export"), "month-action");
+    exportButton.type = "button";
+    exportButton.addEventListener("click", () => this._exportYear());
+    const sourcesButton = node("button", tr(ui, "month.sources"), "month-action");
+    sourcesButton.type = "button";
+    sourcesButton.addEventListener("click", () => this._loadSources());
+    const refresh = node("button", tr(ui, "month.refresh"), "month-action");
+    refresh.type = "button";
+    refresh.addEventListener("click", () => this._loadMonth(current.year, current.month));
+    actions.append(exportButton, sourcesButton, refresh);
+    panel.append(actions);
+    if (current.loading) panel.append(node("p", tr(ui, "month.loading"), "note"));
+    else if (current.error) panel.append(node("p", tr(ui, "month.error"), "note"));
+    else {
+      const scroll = node("div", undefined, "table-scroll");
+      scroll.setAttribute("tabindex", "0");
+      const table = node("table", undefined, "monthly-table");
+      const caption = node("caption", tr(ui, "month.caption"), "sr-only");
+      const head = node("thead"), headings = node("tr");
+      for (const key of ["month.date", "prayer.fajr", "prayer.dhuhr", "prayer.asr", "prayer.maghrib", "prayer.isha", "prayer.jumuah"]) {
+        const th = node("th", tr(ui, key)); th.scope = "col"; headings.append(th);
+      }
+      head.append(headings);
+      const body = node("tbody");
+      const prayers = ["fajr", "dhuhr", "asr", "maghrib", "isha", "jumuah"];
+      for (const item of current.rows) {
+        const row = node("tr");
+        const dateCell = node("th", item.date.slice(-2));
+        dateCell.scope = "row";
+        row.append(dateCell);
+        for (const prayer of prayers) {
+          const cell = node("td");
+          const fields = prayer === "jumuah" ? ["jumuah"] : [`${prayer}_begin`, `${prayer}_jamaat`];
+          const values = fields.flatMap(field => Array.isArray(item.times?.[field]) ? item.times[field] : []);
+          cell.textContent = values.length ? values.join(" · ") : "—";
+          row.append(cell);
+        }
+        if (!item.published) row.className = "missing-date";
+        body.append(row);
+      }
+      table.append(caption, head, body);
+      scroll.append(table);
+      panel.append(scroll);
+    }
+    if (this._monthExportError) panel.append(node("p", tr(ui, "month.export_error"), "note"));
+    if (this._sourceState) {
+      const list = node("div", undefined, "source-summary");
+      if (this._sourceState.loading) list.append(node("p", tr(ui, "month.loading")));
+      else if (this._sourceState.error) list.append(node("p", tr(ui, "month.error")));
+      else {
+        list.append(node("h4", tr(ui, "month.sources")));
+        for (const source of this._sourceState.sources) {
+          list.append(node("p", `${source.source_id}: ${source.first_date} – ${source.last_date} · ${source.rows} rows · ${source.format || "legacy"} · ${source.check_status}`));
+        }
+      }
+      panel.append(list);
+    }
+    return panel;
+  }
+
   _render(now = Date.now()) {
     if (!this.shadowRoot) return;
     const ui = resolveUi(this._config, this._hass);
@@ -272,6 +411,10 @@ export class SalahTimetableCard extends HTMLElement {
         if (chooser.value === this._activeEntity()) return;
         this._selectedMosque = chooser.value;
         this._selectedDay = 0;
+        this._monthView = false;
+        this._monthState = null;
+        this._sourceState = null;
+        this._monthRequest++;
         // Replacing the Shadow DOM must not strand keyboard focus on a removed select.
         const wasFocused = this.shadowRoot.activeElement === chooser;
         this._render();
@@ -294,7 +437,29 @@ export class SalahTimetableCard extends HTMLElement {
     // Individual countdown components remain independent for timing and options.
     const summary = node("div", undefined, "summary-shell");
     summary.append(header);
+    if (this._config.show_month_view) {
+      const viewButton = node("button", tr(ui, this._monthView ? "month.daily" : "month.title"), "month-toggle");
+      viewButton.type = "button";
+      viewButton.addEventListener("click", () => {
+        if (this._monthView) {
+          this._monthView = false;
+          this._monthRequest++;
+          this._render();
+        } else {
+          const year = Number(displayDate.slice(0, 4));
+          const month = Number(displayDate.slice(5, 7));
+          this._loadMonth(year, month);
+        }
+      });
+      summary.append(viewButton);
+    }
     content.append(summary);
+    if (this._monthView && this._config.show_month_view && this._monthState) {
+      content.append(this._monthlyPanel(ui));
+      card.append(content);
+      this.shadowRoot.replaceChildren(style, card);
+      return;
+    }
     const dateTabs = node("nav", undefined, "date-tabs");
     dateTabs.setAttribute("aria-label", tr(ui, "card.day_navigation"));
     for (const [offset, key] of [[-1, "yesterday"], [0, "today"], [1, "tomorrow"]]) {
@@ -529,7 +694,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       ["show_hijri_date"], ["show_gregorian_date"], ["show_salah_countdown"], ["show_jamaat_countdown"],
       ["show_hijri_month_info"], ["show_historical_day_events"], ["show_historical_month_highlights"], ["show_historical_sources"], ["show_disputed_historical_dates"],
       ["show_mosque_background"], ["mosque_background", ["daily", "none", ...MOSQUE_BACKGROUNDS.map(item => item.id)]],
-      ["show_ramadan_details"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_timezone_note"]
+      ["show_ramadan_details"], ["show_month_view"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_timezone_note"]
     ];
     const extras = [];
     for (const [key, choices] of settings) {
