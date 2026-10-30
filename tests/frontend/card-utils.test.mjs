@@ -224,3 +224,13 @@ test("Friday Jamaat displays the specifically selected congregation", () => {
   assert.deepEqual(publishedTimes(attrs, event, true), {begin: row.begin, jamaat: row.jamaat[1], end: null});
   assert.deepEqual(publishedTimes({prayers: []}, event, true), {begin: null, jamaat: event.timestamp, end: null});
 });
+
+
+test("opt-in kiosk mode is not enabled on existing cards", () => {
+  assert.equal(normalizeConfig({}).kiosk_mode, false);
+  assert.equal(normalizeConfig({detail_level: "compact", kiosk_mode: true}).kiosk_mode, true);
+  assert.equal(normalizeConfig({kiosk_mode: true}).detail_level, "standard");
+  assert.throws(() => normalizeConfig({kiosk_mode: "true"}), error => error.translationKey === "config.boolean");
+  assert.throws(() => normalizeConfig({kiosk_mode: 1}), error => error.translationKey === "config.boolean");
+  assert.equal(normalizeConfig(JSON.parse(JSON.stringify({kiosk_mode: true}))).kiosk_mode, true);
+});
