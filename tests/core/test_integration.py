@@ -120,7 +120,7 @@ async def test_two_mosques_are_isolated(hass, populated, freezer):
         hass.states.get(first_dashboard).attributes["mosque_name"] == "Example Mosque"
     )
     assert hass.states.get(second_dashboard).attributes["mosque_name"] == "Other Mosque"
-    assert len(registry.entities) == 2 * (len(PrayerField) + 11)
+    assert len(registry.entities) == 2 * (len(PrayerField) + 12)
 
 
 async def test_unchanged_data_does_not_write_states(hass, populated, freezer):
