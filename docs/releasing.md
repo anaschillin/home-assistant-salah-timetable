@@ -102,7 +102,56 @@ workflow must be on `main` before automatic publication can operate; its own PR
 cannot exercise the full publication lifecycle before that merge. GitHub event
 delivery/runner queues determine cleanup timing.
 
-## Draft release
+## Automatic stable releases
+
+After the **current integration version in `versions.toml`** is merged into
+`main`, the [Publish stable HACS release](../.github/workflows/stable-release.yml)
+workflow runs as soon as both `Validate` and `CodeQL` have passed on the **same
+exact latest main commit**. It is triggered by the completion of either workflow
+and can also be retried via **Actions → Publish stable HACS release → Run workflow**.
+The workflow always reads the current `main`, not a pull request branch or
+untrusted workflow artifact. Document the manual HACS/Home Assistant acceptance
+on the release PR **before merging**; that acceptance is not independently
+performed by the publishing workflow.
+
+The pipeline:
+
+1. Requires complete successful `Validate` (including HACS, hassfest, Python,
+   browser and Home Assistant compatibility) and `CodeQL` push workflow runs
+   for the exact currently checked-out `main` commit. Pending, failing, stale,
+   PR-only and non-main results cannot publish.
+2. Checks synchronised versions, the release-notes section, runtime archive
+   content, cleared asset-provenance inventory and ZIP SHA-256 checksum.
+3. Creates an immutable `vMAJOR.MINOR.PATCH` tag at that validated commit,
+   then publishes a **stable** GitHub release with the changelog notes,
+   deterministic installation ZIP and checksum. HACS installs the tagged
+   integration directory; the attached ZIP is also available for manual installs.
+4. Skips subsequent pushes with the **same already published version**. It will
+   never move an existing tag, overwrite an existing release, or publish a lower
+   stable version after a newer one. Existing draft/prerelease releases with the
+   same tag cause a safe error requiring a maintainer decision.
+5. Rechecks the latest `main` and both CI results immediately before creating
+   the release. All writes use the built-in `GITHUB_TOKEN`, with serialisation to
+   prevent overlapping stable-release runs.
+
+**Bump `versions.toml` and add a `CHANGELOG.md` section for each new stable
+version.** Run `python scripts/sync_versions.py --write`, regenerate the
+relevant lockfiles, and merge the usual reviewed PR. The stable pipeline only
+publishes a new version; it deliberately never invents a version number or
+publishes modified source code under an existing version.
+
+**HACS catalogue inclusion is a separate one-time submission.** This release
+pipeline publishes GitHub releases, which HACS can install as a custom repository
+now and track as catalogue updates after the
+[`hacs/default` application](https://hacs.dev/docs/publish/include/) is approved.
+It cannot automatically bypass that upstream review.
+
+## Optional manual draft release
+
+The manually triggered **Prepare draft release** workflow remains available as
+a fallback to prepare reviewable artifacts from an **existing** validated tag.
+Do not create a manual draft for a tag intended for automatic publication:
+the automated pipeline intentionally refuses to overwrite or auto-publish it.
 
 The manually triggered **Prepare draft release** workflow accepts an existing `vMAJOR.MINOR.PATCH` tag for a commit on `main` with a passing Validate push run. It validates versions, changelog, ancestry and checksum, and creates a **draft**, not a published release.
 
