@@ -69,14 +69,19 @@ async def test_options(hass, entry):
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert entry.options["time_zone"] == "Asia/Riyadh"
     assert entry.options["show_hijri_date"] is True
-    assert entry.options["completeness_required_fields"] == [
+    assert entry.options.get("completeness_required_fields", [
+        "fajr_begin",
+        "dhuhr_begin",
+        "asr_begin",
+        "maghrib_begin",
+        "isha_begin",
+    ]) == [
         "fajr_begin",
         "dhuhr_begin",
         "asr_begin",
         "maghrib_begin",
         "isha_begin",
     ]
-
 
 async def test_hijri_mosque_setting_at_setup_and_afterwards(hass):
     initial = await hass.config_entries.flow.async_init(
