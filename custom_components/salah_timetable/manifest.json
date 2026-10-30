@@ -1,14 +1,13 @@
 {
   "domain": "salah_timetable",
   "name": "Salah Timetable",
-  "categories": [
-    "productivity_information.calendars_todos",
-    "sensors"
-  ],
   "after_dependencies": [
     "frontend",
     "http",
     "lovelace"
+  ],
+  "categories": [
+    "productivity_information.calendars_todos"
   ],
   "codeowners": [
     "@anaschillin"
