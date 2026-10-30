@@ -14,9 +14,7 @@ This page records **future work only**, not completed milestones or old pull req
 
 ## Deferred or exploratory
 
-- **Further integration translations and reviewed Arabic wording:** on hold. Preserve current identifiers and data behaviour; no target release date is assigned.
-- **Night calculations:** investigate clearly labelled calculated midnight/last-third values, separate from mosque publications.
-- **Mosque display mode:** explore wall/tablet presentation and user-controlled announcements.
+- **Additional integration translations and Arabic wording review:** on hold. The card already supports English/Arabic labels and RTL; Home Assistant setup/entity translations currently ship in English. Preserve identifiers and data behaviour; no target release date is assigned.
 - **Special prayer events:** consider only events with verified publication dates.
 - **Islamic history companion:** research only; resolve date authenticity, editorial scope and rights before considering a runtime dataset. See [source review](../research/islamic-history/islamic-history-source-audit.md).
 

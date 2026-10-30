@@ -1,6 +1,6 @@
 # Architecture
 
-Current integration version: <!-- docs:version -->0.9.19<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->0.9.20<!-- /docs:version -->.
 
 ## Boundaries
 
@@ -40,8 +40,10 @@ The authoritative [production module inventory](architecture.md#production-modul
   horizon stop coverage and expose `unresolved_date` without disabling valid current
   prayer events.
 - `domain/presentation.py`: serialize effective dates and absolute event timelines for the
-  card without adding ticking countdown state.
-- `sensor.py`: 27 entities per mosque with stable `{mosque_id}_{field}` unique IDs
+  card without adding ticking countdown state. Optional night midpoint/final-third
+  values use approved Maghrib and next-day Fajr with elapsed UTC arithmetic;
+  they are labelled derived metadata, never prayer events.
+- `sensor.py`: 27 sensors per mosque with stable `{mosque_id}_{field}` unique IDs
   and HA registry persistence; the card's unique ID uses `{mosque_id}_dashboard`.
 - `frontend.py` and `frontend/`: serve/register versioned bundled JavaScript and
   provide the responsive card, pure display helpers and graphical editor.
@@ -50,8 +52,10 @@ The authoritative [production module inventory](architecture.md#production-modul
 ## Import lifecycle
 
 The options menu offers URL sources first, manual PDF/CSV imports,
-mosque/Ramadan settings, and pending review. Supported PDF layouts are
-recognized automatically; there is no inspected-edition selection flow.
+mosque/Ramadan settings, and pending review. Eligible approved annual URL
+profiles also offer guided next-year rollover through the same mapping and
+review flow, using an explicitly supplied URL and a separate new-year source ID.
+Supported PDF layouts are recognized automatically; there is no inspected-edition selection flow.
 HA's authenticated `file_upload` dependency receives the file and returns an opaque
 UUID. A single executor operation consumes and cleans up the upload context, reads
 at most the format limit plus one byte, and inspects structure/encoding. The mapping flow keeps
@@ -141,8 +145,12 @@ validators are bounded. No environment proxy or authenticated shared session is 
 
 `parsers/pdf_parser.py` dispatches tested layouts, converts extracted values into canonical
 CSV and delegates value validation to the existing parser. `pdf_worker.py` extracts
-untrusted PDF text in a separate, isolated, resource-limited process. Unknown layouts
-fail closed. `parsers/mosque_a_layout.py` validates the inspected annual table: 14 pages, explicit
+untrusted PDF text in a separate, isolated, resource-limited process. Known
+publication adapters take priority over the conservative generic
+`pdf_spaced_v1` text-table adapter. That generic route requires explicit ISO
+dates, repeated matching headers and separated 24-hour cells; it still uses
+manual field mapping and approval. Unknown layouts fail closed.
+`parsers/mosque_a_layout.py` validates the inspected annual table: 14 pages, explicit
 cover/month years, exact headings, all Gregorian dates/weekdays and 13 physical time
 columns. It applies documented column meridiems, resolves same-column quotation marks
 before splitting Friday Jumu’ah from ordinary Dhuhr, and retains all raw cells. The
@@ -299,8 +307,10 @@ filtering, optional title, `compact`/`standard`/`detailed` detail levels,
 countdown and date visibility, language, bilingual labels and 12/24-hour
 format. The old Jamaat `mode` is accepted but ignored; the panel is always
 contextual. Legacy `layout` remains readable for migration. The calculated
-Umm al-Qura header has an independent −3 to +3 day adjustment and never
-changes Ramadan activation. The full Hijri date is displayed only when both
+Umm al-Qura header has an independent −3 to +3 day adjustment and optional
+Today transition at approved Maghrib; adjacent-day views retain their own
+date conversion. Neither option changes Ramadan activation. The full Hijri date
+is displayed only when both
 mosque-wide and per-card visibility permit it. The presentation payload
 includes the separately published Fajr sunrise/end and optional Friday
 second-khutbah values, which are display metadata, **not** event or stored
@@ -316,6 +326,11 @@ stripped during card normalisation. The photo may reframe for genuine
 viewport/column changes, but not ordinary day-tab changes or small
 scrollbar-width differences. No remote image request, WebGL renderer or Card
 Mod is needed.
+
+Opt-in kiosk styling and user-gesture fullscreen affect presentation only.
+The monthly browser, CSV export and source details use authenticated
+WebSocket commands with per-entity read permission; approved effective data
+is resolved off the event loop and pending proposals are excluded.
 
 Node tests cover helpers, rendering, safe text and editor round trips. An isolated
 headless Chromium harness checks real custom-element rendering with HA element
@@ -347,6 +362,7 @@ These files stay at the package root because Home Assistant discovers them there
 | `calendar.py` | Read-only calendar entities built from approved dates; translated name and icon |
 | `config_flow.py` | HA setup, reconfiguration and options entrypoint |
 | `coordinator.py` | HA snapshot refresh, current dates, events and timers |
+| `data_api.py` | Authenticated, permission-scoped monthly/year CSV and approved-source WebSocket reads |
 | `const.py` | Domain, storage version and configuration keys |
 | `diagnostics.py` | Privacy-conscious diagnostics export |
 | `frontend.py` | Serve the versioned dashboard resource and register it in HA |
@@ -361,6 +377,8 @@ These files stay at the package root because Home Assistant discovers them there
 | `domain/` | `ramadan.py` | Effective timetable and confirmed-date Ramadan overrides |
 | `domain/` | `ramadan_validation.py` | Validate Ramadan selections and review content |
 | `domain/` | `coverage.py` | Calculate supported approved date coverage |
+| `domain/` | `completeness.py` | Required-field diagnostics on approved effective dates |
+| `domain/` | `month_data.py` | Bounded approved month/year queries, CSV and safe source summaries |
 | `domain/` | `events.py` | Determine prayer and Jamaat events over time |
 | `domain/` | `presentation.py` | Serialize events for dashboard display |
 | `parsers/` | `import_model.py` | Import candidates, parser contracts and validation bounds |
@@ -378,11 +396,11 @@ These files stay at the package root because Home Assistant discovers them there
 | `sources/` | `source_updates.py` | Periodic and manual URL update checks, staging only |
 | `persistence/` | `storage.py` | Versioned per-entry approved/staged records and atomic writes |
 
-Each implementation directory has an `__init__.py`. Other production Python modules should import **the new grouped path** (for example, `from .domain.model import PrayerField` at root, or `from ..domain.model import PrayerField` from inside a sibling package). Use relative paths within the same directory.
+Each implementation directory has an `__init__.py`. Other production Python modules should import **the canonical grouped path** (for example, `from .domain.model import PrayerField` at root, or `from ..domain.model import PrayerField` from inside a sibling package). Use relative paths within the same directory.
 
 #### Single canonical location
 
-No duplicate Python modules or compatibility aliases are retained. The 20 grouped implementation modules live **only** in their listed subfolders; imports such as `custom_components.salah_timetable.model` must use `custom_components.salah_timetable.domain.model`. The coordinator has one canonical top-level implementation, following Home Assistant's common-module convention. All tests and mocks use these canonical locations. A packaging test rejects extra root Python files or missing grouped modules, and verifies the archive includes every runtime Python module.
+No duplicate Python modules or compatibility aliases are retained. The 22 grouped implementation modules live **only** in their listed subfolders; imports such as `custom_components.salah_timetable.model` must use `custom_components.salah_timetable.domain.model`. The coordinator has one canonical top-level implementation, following Home Assistant's common-module convention. All tests and mocks use these canonical locations. A packaging test rejects extra root Python files or missing grouped modules, and verifies the archive includes every runtime Python module.
 
 The standalone `pdf_worker.py` deliberately remains at root. The relocated `parsers/pdf_parser.py` resolves that worker's absolute path; its `python -I` subprocess boundary and resource limits are unchanged.
 
@@ -392,7 +410,7 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 | --- | --- |
 | `frontend/salah-timetable-card.js` | Custom card and editor entrypoint, registered at its existing public URL |
 | `frontend/card-utils.js` | Pure timestamp, time formatting and card model helpers |
-| `frontend/history-utils.js` | Islamic history/date helper functions |
+| `frontend/history-utils.js` | Research/test-only history selector; not imported by the card |
 | `frontend/card-i18n.js` | Localized client-side labels |
 | `frontend/card-styles.js` | Dashboard CSS and layout tokens |
 | `frontend/mosque-backgrounds.js` | Background catalog and selection logic |

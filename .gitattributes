@@ -1,1 +1,4 @@
 *.pdf binary
+
+# Fixture provenance hashes use canonical LF bytes on every platform.
+tests/fixtures/**/*.csv text eol=lf

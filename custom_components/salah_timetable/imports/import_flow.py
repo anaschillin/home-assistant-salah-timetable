@@ -339,8 +339,6 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 time_format=user_input["time_format"],
             )
         )
-        if self._coordinator() is not coordinator:
-            return False
         if self._monthly:
             # Exact published spans coexist without removing another month's rows.
             first, last = candidate.coverage.start_date, candidate.coverage.end_date
@@ -374,6 +372,10 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 time_format=user_input["time_format"],
                 parser_id=self._parser_id,
             )
+        # Monthly identity and remote provenance preparation also await executor
+        # work, so validate the runtime after all preparation and before writing.
+        if self._coordinator() is not coordinator:
+            return False
         self._review_stage_id = await coordinator.storage.async_stage(
             candidate, remote_source=remote_source
         )

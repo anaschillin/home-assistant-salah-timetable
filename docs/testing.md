@@ -1,10 +1,10 @@
 # Test suite guide
 
-Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.2<!-- /docs:pypdf --> (from the integration manifest).
+Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.4<!-- /docs:pypdf --> (from the integration manifest).
 
-Validated against Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> (pinned current).
+Pinned compatibility targets: Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested --> (pinned current).
 
-This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 54 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
+This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 54 Python test modules are grouped by the behaviour they protect, not by test framework. All 14 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
 
@@ -197,13 +197,13 @@ PDF worker white-box coverage supplements, but does not replace, real isolated-s
 ## Compatibility test environments
 
 The root test lock and supported-current compatibility lane target Home Assistant
-**<!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->** in the root `pyproject.toml` and `uv.lock`. Two independent
+**<!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested -->** in the root `pyproject.toml` and `uv.lock`. Two independent
 projects run the same complete Python suite against supported releases:
 
 | Lane | Home Assistant | Test plugin | Separate project |
 | --- | --- | --- | --- |
 | Minimum | <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> | <!-- docs:test_plugin_min -->0.13.371<!-- /docs:test_plugin_min --> | `compatibility/minimum` |
-| Supported current | <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> | <!-- docs:test_plugin_tested -->0.13.374<!-- /docs:test_plugin_tested --> | `compatibility/supported-current` |
+| Supported current | <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested --> | <!-- docs:test_plugin_tested -->0.13.375<!-- /docs:test_plugin_tested --> | `compatibility/supported-current` |
 
 Each `pytest-homeassistant-custom-component` release requires its exact HA
 version. The compatibility projects preserve those requirements and resolve
@@ -269,7 +269,7 @@ and failure evidence collection are retained.
 
 The separately locked root development suite provides another layer of
 validation. The **one** real Home Assistant Container live-acceptance job runs
-on supported-current **<!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->**. Unit compatibility uses Home Assistant
+on supported-current **<!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested -->**. Unit compatibility uses Home Assistant
 test fixtures; live acceptance checks real installation, dependencies,
 configuration, reload, and frontend behavior. These are complementary checks,
 not duplicates. Both reusable workflows can also run manually and on their
@@ -277,7 +277,7 @@ existing weekly schedules.
 
 ## Disposable Home Assistant live testing
 
-The runner is used by the required **supported-current HA <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->** live job
+The runner is used by the required **supported-current HA <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested -->** live job
 in Validate and can also run manually. The reusable live workflow runs weekly as a
 compatibility check. It creates a
 disposable official HA container and synthetic timetable, runs authenticated APIs

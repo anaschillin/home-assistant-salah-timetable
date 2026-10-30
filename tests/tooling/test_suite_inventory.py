@@ -128,6 +128,19 @@ def test_documentation_sync_updates_metadata_and_renamed_links(tmp_path):
     guide = tmp_path / "docs" / "automations.md"
     guide.parent.mkdir()
     guide.write_text("# Automations\n\n## Prayer calendar\n")
+    # A normal WSL checkout may use .venv-wsl rather than uv's default .venv.
+    # Installed packages refer to upstream files that are absent from wheels.
+    for ignored in (
+        ".venv",
+        ".venv-wsl/lib/site-packages",
+        "venv-local/lib/site-packages",
+        "compatibility/minimum/.venv/lib/site-packages",
+        "node_modules/package",
+        "dist/package",
+    ):
+        package_readme = tmp_path / ignored / "README.md"
+        package_readme.parent.mkdir(parents=True, exist_ok=True)
+        package_readme.write_text("[upstream tests](missing-fixtures/)\n")
     index = tmp_path / "README.md"
     index.write_text(
         "See [calendar](docs/calendar.md). Version "

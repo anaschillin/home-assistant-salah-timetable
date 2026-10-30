@@ -1,6 +1,6 @@
 # Dashboard card
 
-Current integration version: <!-- docs:version -->0.9.19<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->0.9.20<!-- /docs:version -->.
 
 The **Salah Timetable** card is bundled with the integration. It uses the mosque's
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
@@ -72,8 +72,7 @@ The mosque title, Hijri date/description, Gregorian date and both countdown
 sections now live inside **one CSS-first liquid-glass summary card**. The
 timetable has the **same balanced, readable glass material**: an 84–88%
 theme-aware surface with a restrained gradient, frosted blur and small
-specular edge highlights. This restores some visibility of the mosque photo
-through both cards without returning to the earlier washed-out glass effect.
+specular edge highlights. The mosque photograph remains visible through both surfaces.
 Table headings and day navigation do not add a second tint. The background photograph remains
 unobscured outside the panels. There is no WebGL runtime, animated
 distortion or remote dependency. Both countdown halves share **identical
@@ -86,7 +85,6 @@ represent the selected mosque. The two summaries sit side by side on most
 phones/tablets, stack on very narrow cards, and collapse independently through
 the card's existing visibility options. On Yesterday/Tomorrow, the shared
 surface retains the mosque/date heading but hides the live countdowns.
-The old context/upcoming/previous Jamaat panel selector has been removed.
 
 Fajr end is the *published sunrise*, never a calculated estimate. Published
 Jumu’ah congregations remain in Dhuhr's Jamaat row, and the separately published
@@ -132,7 +130,7 @@ Automated browser checks do not establish full Arabic/RTL acceptance on physical
 ## Monthly timetable and CSV/source information
 
 Enable **Monthly timetable, CSV export and source details** in the card editor
-(`show_month_view: true`). The new **Monthly timetable** control opens a
+(`show_month_view: true`). The **Monthly timetable** control opens a
 Gregorian month browser. Previous/next month and Refresh retrieve at most
 31 days of **approved effective** times for the selected mosque; missing
 dates and prayer fields display as missing, never calculated or filled.
@@ -151,6 +149,33 @@ These features use authenticated Home Assistant WebSocket requests, checking
 the viewer's permission to read the selected mosque's dashboard entity. This
 does not introduce a public download endpoint. Depending on the Android
 WebView, the browser download prompt may vary.
+
+## Calculated night information
+
+Enable **Show calculated night midpoint and final third** in the card editor
+(`show_night_calculations: true`) to show derived values in the Standard or
+Detailed **Today** view. The interval runs from today's approved Maghrib
+beginning to the following day's approved Fajr beginning. The midpoint is
+halfway through that elapsed interval; the final third starts two-thirds of
+the way through it. Elapsed UTC time preserves the calculation across DST
+changes, and the card displays the result in the mosque's timezone.
+
+Both approved anchors must exist and form a valid night interval. Missing
+anchors leave this section unavailable; no sunset or Fajr time is inferred.
+These values are labelled calculated and do not replace published prayer
+times, create sensors/calendar events or change Ramadan activation.
+
+## Wall and tablet display
+
+Enable **Kiosk / wall display mode** in the card editor (`kiosk_mode: true`)
+for larger responsive presentation. The card keeps its existing mosque/day
+controls and timetable data. Place it in a full-width dashboard view when
+using a dedicated display.
+
+The fullscreen button requires a tap or click and browser support. If the
+browser or WebView rejects fullscreen, the larger card presentation remains
+usable. This option does not lock the device, manage screen sleep, provide
+announcements or change Home Assistant's dashboard/navigation settings.
 
 ## Dates and customization
 
@@ -259,7 +284,7 @@ fills the available width. This creates wider photographic wings on landscape
 tablets and desktops without stretching the prayer table excessively.
 
 The photograph is shown without a global opacity tint. Liquid-glass styling
-now applies only to the **summary and timetable surfaces**, with matching
+applies only to the **summary and timetable surfaces**, with matching
 backdrop blur, layered translucent gradients, subtle specular edge lighting and
 a calm inset shadow. The photograph remains visible around them. The full-width
 outer card has **no drop shadow**, avoiding a dark halo. Text remains crisp.
@@ -357,143 +382,39 @@ Frontend tests cover card navigation and responsive rendering, but acceptance on
 
 ## Mosque photograph implementation and maintenance
 
-**Current behaviour:** The 20 locally bundled WebP
-photographs and their sources are catalogued in the integration and the
-machine-readable asset inventory. See the [asset provenance inventory](asset-provenance.json) and
-[display options](#optional-mosque-photograph-backgrounds).
+The 20 local WebP photographs, individual source pages, attribution and hashes
+are recorded in the [asset inventory](asset-provenance.json). The
+`frontend/mosque-backgrounds.js` catalogue supplies credits to the card.
+Display, rotation and accessibility behaviour are described under
+[background options](#optional-mosque-photograph-backgrounds).
 
-### What the card does
+For additions or replacements, follow the canonical
+[provenance and redistribution guidance](asset-provenance.md). Review each
+file's redistribution rights, update its inventory hash and catalogue entry,
+and run the provenance and frontend checks described in [Testing](testing.md).
+A passing automated check does not verify external licences or replace
+physical-device acceptance.
 
-- **Show mosque background** is enabled by default; users can disable it per
-  card. **Mosque background** defaults to a deterministic daily rotation, or
-  may be set to one of the 20 bundled images (or `none`).
-- Rotation is keyed to the mosque-local published date. It cycles through the
-  bundled photographs without repeating until the cycle has been exhausted.
-  The photograph is decorative: it does not identify the configured mosque or
-  influence its timetable, Ramadan calculations or sensors.
-- The full-strength photograph is served locally. There is **no global photo
-  opacity/tint overlay and no background-opacity editor control**. The removed
-  `mosque_background_opacity` option is ignored and discarded during card
-  configuration normalisation for older saved dashboards.
-- The card covers its allocated dashboard width and at least the available
-  viewport height, so Yesterday/Tomorrow do not expose an empty black canvas
-  when their countdowns disappear. The inner summary and timetable remain
-  centred (up to 1160px) and top-aligned. This intentionally reserves viewport
-  height when other dashboard cards are stacked below.
-- A consistent **CSS-first liquid-glass** style applies to both the summary
-  and timetable: 84–88% HA-theme-aware surfaces, frosted blur, subdued edge
-  highlights and readable text. There is no external shader or image service.
-  Higher-contrast/reduced-transparency preferences disable the photo and
-  use opaque panels; browsers without backdrop-filter support also receive
-  opaque panels.
-- Background sizing is insulated from small card-width changes caused by
-  scrollbars and date-tab switching; genuine dashboard resizing may reframe
-  the photograph. The card clips the image and blur rim to its rounded edge,
-  and displays the attribution link.
-
-### Asset rights and additions
-
-The bundled images were sourced from reviewed **free Unsplash** photographs
-under the applicable Unsplash License. The card does not download images or
-fetch licensing metadata while running. See
-[credits and source pages](asset-provenance.json) and the
-[machine-readable provenance inventory](asset-provenance.json). Additional
-photographs require individual attribution, source and redistribution-rights
-review before bundling; a search-result licence label is insufficient.
-
-The research alternatives remain:
-
-- [Unsplash License](https://unsplash.com/license): use only permitted free
-  photos; exclude paid/Unsplash+ items and competing standalone image libraries.
-- [Wikimedia Commons reuse guidance](https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia):
-  verify each image's individual rights and satisfy attribution/share-alike
-  requirements where applicable.
-- [Pixabay terms](https://pixabay.com/service/terms/): do not assume that every
-  current free item is CC0. The project's conservative legacy-CC0 review
-  requires verifiable publication **before 9 January 2019**.
-- [Pexels terms](https://help.pexels.com/hc/en-us/articles/900005880463-What-are-the-Terms-and-Conditions):
-  additional redistribution review is needed before bundling standalone files.
-
-Always distinguish the Al-Qibli Mosque from the wider Al-Aqsa compound when
-naming images, and never imply a pictured mosque supplies the selected prayer
-times.
-
-### Validation
-
-The frontend visual checks verify photo layout and accessibility behaviour.
-Photograph licensing and physical-device acceptance require separate review.
-See [asset provenance](asset-provenance.md) and [release acceptance](releasing.md).
-
+Keep mosque names accurate, including the distinction between Al-Qibli Mosque
+and the wider Al-Aqsa compound. Photographs are decorative and do not identify
+the mosque supplying the configured timetable.
 
 ## Hijri month information and future history options
 
-**Current behaviour:** The card shows an optional,
-short, offline description of the **selected day's Hijri month** directly
-beneath the calculated Hijri date in the mosque header. It does not repeat
-the month name or create a separate history panel. The explanation updates
-when switching Yesterday/Today/Tomorrow, and disappears in Compact mode
-or if the full Hijri date is hidden or `show_hijri_month_info` is disabled. This feature defaults
-to enabled on new and existing cards.
+The card bundles short, offline educational descriptions for all 12 Hijri
+months. With `show_hijri_month_info: true` (the default), the selected month's
+description appears beneath a visible calculated Hijri date in Standard and
+Detailed mode. It follows day navigation, the per-card date adjustment and the
+configured Today date boundary. Hiding the description leaves the date,
+prayer timetable and countdowns unchanged.
 
-The four additional history options are **disabled as coming soon** in the
-graphical editor. Their previously saved values have no effect; no day-event
-or monthly-highlights catalogue is rendered. `history-utils.js` is an offline
-research/test prototype, not a runtime dependency of the bundled card.
+The four history settings for day events, monthly highlights, source links and
+disputed dates are reserved and disabled in the graphical editor. Saved values
+have no effect: there is no runtime historical-event catalogue or history
+panel. `history-utils.js` is a research/test prototype and is not imported by
+the card.
 
-### Default behaviour
-- Show **information about the current Hijri month** by default for new installations, using short original educational descriptions for all 12 months.
-- Historical exact-day events: **off** by default.
-- Month-level historical highlights: **off** by default.
-- Disputed/traditional anniversaries: **off** by default and always visibly qualified if enabled.
-- Show source references in the card: **off** by default, but store provenance with every record.
-- **Implemented:** show month explanation as subordinate text in the header,
-  only when the Hijri date is visible; no separate history section or disclosure.
-- **Proposed only:** if day/month events are implemented later, show them
-  without duplicating the header's month explanation. Preserve explicit
-  choices to hide optional history content.
-
-### Card-level configuration (month info live; other flags reserved)
-```json
-{
-  "show_hijri_month_info": true,
-  "show_historical_day_events": false,
-  "show_historical_month_highlights": false,
-  "show_historical_sources": false,
-  "show_disputed_historical_dates": false
-}
-```
-
-The same saved per-card settings work on tablet and mobile. The month
-description is deliberately a small header subtitle, not a large new panel.
-The proposed event flags are reserved for future editorial and frontend work.
-
-### Date and editorial rules
-- Use the same mosque-local Hijri date and per-card adjustment as the existing timetable header.
-- A supported day event appears only on its supported Hijri day. Month-only events appear as monthly highlights, never assigned to a day.
-- Keep occurrence certainty separate from precise-date certainty; no invented anniversaries.
-- If several supported day events occur on one day, show a concise list or expand affordance, not duplicates.
-- Do not make runtime network calls to Dorar. Original summaries, documented citations, and explicit editorial approval are required before bundling events.
-- Month information should avoid asserting special religious merit for months without supporting evidence.
-- Month summaries are informational, not a religious observance schedule or prayer automation.
-
-### Acceptance criteria and current status
-- **Implemented:** Month explanation defaults on, appears only beneath a
-   visible Hijri date in Standard/Detailed mode, and follows day navigation
-   and the per-card adjustment.
-- **Implemented:** Disabling month information removes the subtitle without
-   changing the date, timetable or countdowns.
-- **Implemented:** The four historical-event/source/dispute options are shown
-   disabled in the graphical editor; saved legacy values remain inert.
-- **Not implemented:** Turning on events to show a catalogue, date-level
-   citations, or monthly historical highlights. These require editorial approval
-   and separate frontend acceptance.
-- **Future requirement:** No exact-day event claim without date-level evidence;
-   no implied religious merit where there is no sound source.
-- **Implemented for month text:** All 12 educational descriptions are bundled
-   offline. Historical day-event selectors remain research-only.
-
-### Future editorial work
-
-- Review historical event candidates independently and document pinpoint sources, disputed dates and redistribution rights.
-- Add only explicitly approved event records to an optional offline catalogue; do not enable reserved history controls until their feature exists.
-- Validate event selection, card rendering and Home Assistant integration before releasing any future event display.
+Future event records require independent date evidence, original summaries,
+explicit editorial approval and redistribution review. See the canonical
+[history research and proposed delivery](../research/islamic-history/islamic-history-source-audit.md)
+and [Dorar source review](../research/islamic-history/islamic-history-dorar-coverage-audit.md).

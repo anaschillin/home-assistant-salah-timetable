@@ -5,15 +5,17 @@
 [![HACS validation](https://img.shields.io/github/check-runs/anaschillin/home-assistant-salah-timetable/main?nameFilter=hacs&label=HACS)](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Current integration version: **<!-- docs:version -->0.9.19<!-- /docs:version -->**.
+Current integration version: **<!-- docs:version -->0.9.20<!-- /docs:version -->**.
 
 A Home Assistant custom integration for importing **published mosque Salah and Jamaat timetables**. Configure one or more mosques, import a supported PDF/CSV or public HTTPS source, explicitly approve the timetable, and display it with a bundled Lovelace card.
 
 ## Features
 
 - Separate mosque configurations, sensors, independent next-Salah and next-Jamaat countdowns, and a prayer calendar.
-- Annual, monthly and Ramadan sources; automatic recognition of **supported** PDF layouts, source comparison and approval before activation.
+- Annual, monthly and Ramadan sources; automatic recognition of **supported** PDF layouts, source comparison and guided next-year URL imports with approval before activation.
 - Compact, standard and detailed responsive cards with multiple mosque selection, Yesterday/Today/Tomorrow navigation, Gregorian/Hijri dates and optional mosque photography.
+- Optional monthly timetable browsing, approved-year CSV export and redacted source details.
+- Configurable prayer-completeness diagnostics, calculated night information and wall/tablet display mode.
 - Optional prayer, media and timetable-coverage automation blueprints.
 
 **Important:** Values come from approved publications; this integration does not calculate authoritative prayer schedules or invent missing times. Only [documented PDF layouts](docs/import_review.md#supported-pdf-layouts) are supported.

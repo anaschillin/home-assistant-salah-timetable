@@ -231,14 +231,18 @@ def synchronise(root: Path = ROOT, write: bool = False) -> list[str]:
     """Return changed file names; write them only when explicitly requested."""
     values = metadata(root)
     differences = []
-    for path in sorted(root.rglob("*.md")):
-        if set(path.relative_to(root).parts) & {
-            ".venv",
-            ".git",
-            "node_modules",
-            "dist",
-        }:
-            continue
+    # Prune before descending: local venvs can contain thousands of unrelated
+    # Markdown files and links to test fixtures absent from installed wheels.
+    paths = []
+    for directory, directories, filenames in root.walk():
+        directories[:] = [
+            name
+            for name in directories
+            if name not in {".git", "node_modules", "dist", "venv"}
+            and not name.startswith((".venv", "venv-"))
+        ]
+        paths.extend(directory / name for name in filenames if name.endswith(".md"))
+    for path in sorted(paths):
         relative = path.relative_to(root)
         original = path.read_text(encoding="utf-8")
         expected = rewrite_links(relative, original)
