@@ -7,7 +7,7 @@ credentials are bundled with the integration.
 
 ## Entities per mosque
 
-Each configured mosque has one logical Home Assistant device with **26 sensors
+Each configured mosque has one logical Home Assistant device with **27 sensors
 and one read-only calendar**. Select entities by mosque and displayed name; Home
 Assistant permits entity IDs to be renamed. Timestamp values are absolute
 date/times interpreted in the mosque's configured timezone. Daily sensors retain
@@ -32,6 +32,7 @@ event.
 | Taraweeh status / `taraweeh_status` | `inactive`, `scheduled`, or `after_isha_jamaat`; the last state supplies the display text, not an inferred time. |
 | Source status / `source_status` | Diagnostic summary of URL checks and pending approval; see [source states and cadence](import_review.md#when-data-updates). |
 | Timetable coverage / `coverage_status` | Diagnostic summary of consecutive effective approved dates; [states and attributes](#read-timetable-coverage) below. |
+| Prayer completeness / `completeness_status` | Field-level completeness of approved effective timetables; [details](#prayer-completeness) below. |
 | Prayer timetable / `dashboard` | Mosque-local date plus approved yesterday/today/tomorrow rows, event selections and display/status attributes for the bundled card. |
 | Prayer calendar | Read-only approved prayer events, as described [below](#prayer-calendar). It omits Istewa and untimed Taraweeh. |
 
@@ -153,6 +154,28 @@ Disabling, restarting or reloading changed automation settings cancels pending
 resumption. Paused players then remain under manual control. An incremental HA
 reload can retain an unchanged automation and its pending resumption; turn it off
 to cancel explicitly. There is no catch-up playback on startup.
+
+## Prayer completeness
+
+The separate diagnostic **Prayer completeness** sensor checks each mosque's
+required published fields. Select them under **Configure → Mosque settings**.
+The five daily Salah beginnings are required by default; optional Jamaat and
+Sunrise fields may be selected if a mosque consistently publishes them.
+Jumu’ah congregation is not treated as a substitute for Dhuhr beginning.
+
+The state describes **today**: `not_configured` (no approved source),
+`missing_today` (no effective row), `partial` (required fields missing)
+or `complete` (all required fields are published today).
+Attributes include `required_fields`, `missing_today`,
+`missing_tomorrow`, `complete_days_remaining` (future consecutive dates,
+excluding today), `first_incomplete_date` and `unresolved_date`.
+Tomorrow's omissions do not change today's state. Future ambiguous sources
+are not treated as complete. Only approved effective sources count, including
+explicitly active Ramadan overrides.
+
+The existing **Timetable coverage** sensor and timetable-health blueprint
+retain their date-based meaning. Completeness alerts are deferred until
+the optional blueprint behaviour is separately reviewed.
 
 ## Read timetable coverage
 
