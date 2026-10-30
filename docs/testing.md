@@ -4,7 +4,7 @@ Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.2<!-- /docs:pypdf --> (fro
 
 Validated against Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> (pinned current).
 
-This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 53 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
+This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 54 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
 
@@ -64,7 +64,7 @@ The suite is intentionally grouped at one domain level rather than making single
 
 `tests/tooling/test_suite_inventory.py` runs in normal pytest CI and fails if a Python/Node test module is missing from this inventory, a module is listed twice, the count is stale, or a category guide is absent. Whenever a module is added, moved, or removed, update the inventory table and relevant guide in the same PR.
 
-## Python test modules (53)
+## Python test modules (54)
 
 The files below are the complete set of pytest test modules. When adding a regression, extend the relevant existing module before introducing a second module for the same responsibility.
 
@@ -75,6 +75,7 @@ The files below are the complete set of pytest test modules. When adding a regre
 | | `test_media_blueprint.py` | Media pause/resume blueprint behaviour |
 | **calendar** | `test_calendar.py` | Calendar entities, triggers, timezone and date boundaries |
 | | `test_events.py` | Prayer event calculation and scheduling rules |
+| | `test_month_data.py` | Approved Gregorian month queries, CSV export, source redaction and authenticated WebSocket reads |
 | | `test_event_integration.py` | End-to-end HA event/calendar wiring |
 | **core** | `test_coordinator_lifecycle.py` | Coordinator creation, updates and teardown |
 | | `test_coverage.py` | Timetable coverage and expiry diagnostics |
