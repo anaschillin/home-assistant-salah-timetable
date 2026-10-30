@@ -167,6 +167,7 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_hijri_month_info` | `true`; shows a short, non-repeating description directly beneath the visible Hijri date in the header; hidden when the Hijri date is hidden |
 | `hijri_adjustment` | Whole days −3 through +3; default `0` |
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
+| `show_night_calculations` | `false` (default); in Standard/Detailed Today view, display night midpoint and final-third start calculated between approved Maghrib and the following day’s Fajr |
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
 | `show_iftar_countdown` | `true`; hiding retains the displayed absolute time |
 | `show_timezone_note` | `true`; controls the timezone and missing-time note |
