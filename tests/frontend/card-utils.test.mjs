@@ -224,3 +224,10 @@ test("Friday Jamaat displays the specifically selected congregation", () => {
   assert.deepEqual(publishedTimes(attrs, event, true), {begin: row.begin, jamaat: row.jamaat[1], end: null});
   assert.deepEqual(publishedTimes({prayers: []}, event, true), {begin: null, jamaat: event.timestamp, end: null});
 });
+
+
+test("night calculations are opt-in display-only information", () => {
+  assert.equal(normalizeConfig({}).show_night_calculations, false);
+  assert.equal(normalizeConfig({show_night_calculations: true}).show_night_calculations, true);
+  assert.throws(() => normalizeConfig({show_night_calculations: "true"}));
+});
