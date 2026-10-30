@@ -31,13 +31,15 @@ The authoritative [production module inventory](architecture.md#production-modul
   rows, stable event UIDs and bounded timezone-aware queries. It preserves individual
   beginnings/Jamaat and multiple Jumu’ah starts with a 60-second calendar-only
   presentation interval.
+- `domain/completeness.py`: configurable required-field diagnostics on approved
+  effective rows, cached with date coverage without changing its semantics.
 - `domain/coverage.py`: consecutive effective approved dates, cached by date/sources/Ramadan
   settings. Pending proposals never extend coverage; ambiguous dates beyond the live
   horizon stop coverage and expose `unresolved_date` without disabling valid current
   prayer events.
 - `domain/presentation.py`: serialize effective dates and absolute event timelines for the
   card without adding ticking countdown state.
-- `sensor.py`: 26 entities per mosque with stable `{mosque_id}_{field}` unique IDs
+- `sensor.py`: 27 entities per mosque with stable `{mosque_id}_{field}` unique IDs
   and HA registry persistence; the card's unique ID uses `{mosque_id}_dashboard`.
 - `frontend.py` and `frontend/`: serve/register versioned bundled JavaScript and
   provide the responsive card, pure display helpers and graphical editor.
@@ -254,8 +256,8 @@ a duration to prayer data. Single-run automations ignore overlapping triggers;
 separate pause automations do not arbitrate a shared or extended pause window.
 
 Sixteen daily timestamps, five next/previous timestamps, Ramadan/Taraweeh enums, the
-source-status and coverage diagnostics, and the Prayer timetable sensor make
-26 sensors per mosque, plus the prayer calendar. Daily sensors expose effective rows.
+source-status, coverage and completeness diagnostics, and the Prayer timetable sensor make
+27 sensors per mosque, plus the prayer calendar. Daily sensors expose effective rows.
 Missing event values are unavailable,
 apart from the explicit Iftar default. The Prayer timetable sensor's date state and
 attributes carry five prayer rows, yesterday/today/tomorrow absolute event arrays,
