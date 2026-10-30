@@ -52,18 +52,30 @@ async def ws_month(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None
     """Read a Gregorian month; never return staged records."""
     entry = _entry_for_dashboard(hass, connection, msg["entity_id"])
     if entry is None:
-        connection.send_error(msg["id"], websocket_api.ERR_NOT_FOUND, "Mosque unavailable")
+        connection.send_error(
+            msg["id"], websocket_api.ERR_NOT_FOUND, "Mosque unavailable"
+        )
         return
     runtime = entry.runtime_data
     settings = RamadanSettings.from_options(entry.options)
     try:
         rows = await hass.async_add_executor_job(
-            approved_month, runtime.storage.timetables, settings, msg["year"], msg["month"]
+            approved_month,
+            runtime.storage.timetables,
+            settings,
+            msg["year"],
+            msg["month"],
         )
     except ValueError:
-        connection.send_error(msg["id"], "unresolved_timetable", "Review conflicting approved source dates")
+        connection.send_error(
+            msg["id"],
+            "unresolved_timetable",
+            "Review conflicting approved source dates",
+        )
         return
-    connection.send_result(msg["id"], {"year": msg["year"], "month": msg["month"], "rows": rows})
+    connection.send_result(
+        msg["id"], {"year": msg["year"], "month": msg["month"], "rows": rows}
+    )
 
 
 @websocket_api.websocket_command(
@@ -78,7 +90,9 @@ async def ws_year_csv(hass: HomeAssistant, connection, msg: dict[str, Any]) -> N
     """Return a downloadable CSV of approved effective fields."""
     entry = _entry_for_dashboard(hass, connection, msg["entity_id"])
     if entry is None:
-        connection.send_error(msg["id"], websocket_api.ERR_NOT_FOUND, "Mosque unavailable")
+        connection.send_error(
+            msg["id"], websocket_api.ERR_NOT_FOUND, "Mosque unavailable"
+        )
         return
     runtime = entry.runtime_data
     settings = RamadanSettings.from_options(entry.options)
@@ -91,7 +105,11 @@ async def ws_year_csv(hass: HomeAssistant, connection, msg: dict[str, Any]) -> N
             runtime.zone.key,
         )
     except ValueError:
-        connection.send_error(msg["id"], "unresolved_timetable", "Review conflicting approved source dates")
+        connection.send_error(
+            msg["id"],
+            "unresolved_timetable",
+            "Review conflicting approved source dates",
+        )
         return
     connection.send_result(msg["id"], {"year": msg["year"], "csv": data})
 
@@ -107,9 +125,13 @@ async def ws_sources(hass: HomeAssistant, connection, msg: dict[str, Any]) -> No
     """Return metadata without publishing URLs, original source text or pending imports."""
     entry = _entry_for_dashboard(hass, connection, msg["entity_id"])
     if entry is None:
-        connection.send_error(msg["id"], websocket_api.ERR_NOT_FOUND, "Mosque unavailable")
+        connection.send_error(
+            msg["id"], websocket_api.ERR_NOT_FOUND, "Mosque unavailable"
+        )
         return
-    connection.send_result(msg["id"], {"sources": approved_source_details(entry.runtime_data.storage)})
+    connection.send_result(
+        msg["id"], {"sources": approved_source_details(entry.runtime_data.storage)}
+    )
 
 
 def register_websocket_commands(hass: HomeAssistant) -> None:
