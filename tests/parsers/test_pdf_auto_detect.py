@@ -168,9 +168,18 @@ def test_generic_spaced_text_table_is_detected_and_mapped_only_when_explicit():
         ("Date  Fajr Begin  Sunrise\\n2026-10-21  05:45\\n",),
         ("Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20\\nADVERTISEMENT",),
         ("Date  Fajr Begin  Sunrise\\n2026-10-21  35:45  07:20",),
-        ("Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20", "2026-10-22  05:46  07:21"),
-        ("Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20", "Date  Sunset  Sunrise\\n2026-10-22  17:00  07:21"),
-        ("Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20", "Date  Fajr Begin  Sunrise"),
+        (
+            "Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20",
+            "2026-10-22  05:46  07:21",
+        ),
+        (
+            "Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20",
+            "Date  Sunset  Sunrise\\n2026-10-22  17:00  07:21",
+        ),
+        (
+            "Date  Fajr Begin  Sunrise\\n2026-10-21  05:45  07:20",
+            "Date  Fajr Begin  Sunrise",
+        ),
     ],
 )
 def test_generic_pdf_rejects_ambiguous_or_unaccounted_rows(pages):
