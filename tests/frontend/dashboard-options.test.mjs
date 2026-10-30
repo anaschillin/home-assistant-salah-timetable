@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {eventProgress, formatDate, formatHijriDate, formatTime, highlightedPrayer, normalizeConfig, prayerIsPast} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+import {eventProgress, formatDate, formatHijriDate, hijriDisplayDate, formatTime, highlightedPrayer, normalizeConfig, prayerIsPast} from "../../custom_components/salah_timetable/frontend/card-utils.js";
 import {resolveUi} from "../../custom_components/salah_timetable/frontend/card-i18n.js";
 const stamp = clock => `2026-10-23T${clock}:00Z`;
 const at = clock => Date.parse(stamp(clock));
@@ -146,4 +146,30 @@ test("invalid direct locale inputs preserve graceful formatter fallbacks", () =>
   assert.equal(formatDate("2026-10-23", "bad_locale!"), "2026-10-23");
   assert.equal(formatTime(stamp("12:30"), "UTC", "bad_locale!"), "—");
   assert.equal(formatHijriDate("2026-10-23", 0, "bad_locale!"), "Hijri date unavailable");
+});
+
+
+test("Hijri sunset boundary advances only Today's header at published Maghrib", () => {
+  const prayers = [{key: "maghrib", begin: "2026-10-23T17:00:00+01:00"}];
+  const attrs = {date: "2026-10-23", prayers};
+  const before = Date.parse("2026-10-23T15:59:59Z");
+  const sunset = Date.parse("2026-10-23T16:00:00Z");
+  assert.equal(normalizeConfig({}).hijri_day_boundary, "midnight");
+  assert.equal(hijriDisplayDate(attrs.date, attrs, 0, "midnight", sunset), attrs.date);
+  assert.equal(hijriDisplayDate(attrs.date, attrs, 0, "maghrib", before), "2026-10-23");
+  assert.equal(hijriDisplayDate(attrs.date, attrs, 0, "maghrib", sunset), "2026-10-24");
+  assert.equal(hijriDisplayDate("2026-10-22", attrs, -1, "maghrib", sunset), "2026-10-22");
+  assert.equal(hijriDisplayDate("2026-10-24", attrs, 1, "maghrib", sunset), "2026-10-24");
+  assert.equal(formatHijriDate(hijriDisplayDate(attrs.date, attrs, 0, "maghrib", sunset)), formatHijriDate("2026-10-24"));
+});
+
+test("missing Maghrib, invalid dates and the last Gregorian day are never guessed", () => {
+  const now = Date.parse("2026-10-23T20:00:00Z");
+  for (const prayers of [[], [{key: "maghrib", begin: null}], [{key: "maghrib", begin: "17:00"}]]) {
+    const attrs = {date: "2026-10-23", prayers};
+    assert.equal(hijriDisplayDate(attrs.date, attrs, 0, "maghrib", now), attrs.date);
+  }
+  assert.equal(hijriDisplayDate("2026-02-30", {date: "2026-02-30", prayers: [{key: "maghrib", begin: "2026-02-30T17:00:00Z"}]}, 0, "maghrib", now), "2026-02-30");
+  assert.equal(hijriDisplayDate("9999-12-31", {date: "9999-12-31", prayers: [{key: "maghrib", begin: "9999-12-31T17:00:00Z"}]}, 0, "maghrib", Date.parse("9999-12-31T18:00:00Z")), "9999-12-31");
+  for (const bad of ["sunrise", true, null, 1]) assert.throws(() => normalizeConfig({hijri_day_boundary: bad}));
 });
