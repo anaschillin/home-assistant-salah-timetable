@@ -5,7 +5,10 @@ from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 from custom_components.salah_timetable.domain.model import DailyPrayers, PrayerField
-from custom_components.salah_timetable.domain.presentation import dashboard_attributes
+from custom_components.salah_timetable.domain.presentation import (
+    calculated_night_times,
+    dashboard_attributes,
+)
 
 
 def attributes(day, original, times=None, *, visible=True):
@@ -70,3 +73,48 @@ def test_fajr_end_unavailable_without_published_sunrise_and_malformed_notes_igno
     )
     assert data["prayers"][0]["end"] is None
     assert data["second_khutbah"] is None
+
+
+def test_calculated_night_uses_only_published_adjacent_day_anchors():
+    zone = ZoneInfo("Europe/London")
+    sunset = DailyPrayers(
+        date(2026, 10, 23), {PrayerField.MAGHRIB_BEGIN: (time(17),)}, {}
+    )
+    next_fajr = DailyPrayers(
+        date(2026, 10, 24), {PrayerField.FAJR_BEGIN: (time(6),)}, {}
+    )
+    original = (sunset.as_dict(), next_fajr.as_dict())
+    night = calculated_night_times(sunset, next_fajr, zone)
+    assert night["midpoint"] == "2026-10-23T23:30:00+01:00"
+    assert night["last_third"] == "2026-10-24T01:40:00+01:00"
+    assert night["method"] == "published_maghrib_to_next_fajr"
+    assert (sunset.as_dict(), next_fajr.as_dict()) == original
+
+
+def test_night_uses_elapsed_utc_hours_across_daylight_saving_transition():
+    zone = ZoneInfo("Europe/London")
+    sunset = DailyPrayers(
+        date(2026, 10, 24), {PrayerField.MAGHRIB_BEGIN: (time(17),)}, {}
+    )
+    next_fajr = DailyPrayers(
+        date(2026, 10, 25), {PrayerField.FAJR_BEGIN: (time(6),)}, {}
+    )
+    night = calculated_night_times(sunset, next_fajr, zone)
+    assert night["midpoint"] == "2026-10-25T00:00:00+01:00"
+    assert night["last_third"] == "2026-10-25T01:20:00+00:00"
+
+
+def test_night_remains_unavailable_without_both_valid_published_anchors():
+    zone = ZoneInfo("Europe/London")
+    dusk = DailyPrayers(
+        date(2026, 10, 23), {PrayerField.MAGHRIB_BEGIN: (time(17),)}, {}
+    )
+    empty = DailyPrayers(date(2026, 10, 24), {}, {})
+    wrong_day = DailyPrayers(
+        date(2026, 10, 23), {PrayerField.FAJR_BEGIN: (time(6),)}, {}
+    )
+    assert calculated_night_times(None, empty, zone) is None
+    assert calculated_night_times(dusk, None, zone) is None
+    assert calculated_night_times(empty, empty, zone) is None
+    assert calculated_night_times(dusk, empty, zone) is None
+    assert calculated_night_times(dusk, wrong_day, zone) is None
