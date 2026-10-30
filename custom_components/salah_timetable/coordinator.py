@@ -10,6 +10,11 @@ from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
+from .domain.completeness import (
+    CompletenessSnapshot,
+    calculate_completeness,
+    required_fields_from_options,
+)
 from .domain.coverage import CoverageSnapshot, calculate_coverage
 from .domain.events import EventSnapshot, calculate_events
 from .domain.model import Timetable
@@ -24,6 +29,7 @@ class SalahData:
     events: EventSnapshot
     days: tuple[EffectiveTimetable, ...]
     coverage: CoverageSnapshot
+    completeness: CompletenessSnapshot
     approved_tables: tuple[Timetable, ...] = ()
 
 
@@ -44,16 +50,21 @@ class SalahCoordinator(DataUpdateCoordinator[SalahData]):
         self._boundary_unsub = None
         self._coverage_key = None
         self._coverage = None
+        self._completeness = None
 
     async def _async_update_data(self) -> SalahData:
         now = dt_util.utcnow()
         day = now.astimezone(self.zone).date()
         settings = RamadanSettings.from_options(self.config_entry.options)
         tables = self.storage.timetables
-        coverage_key = (day, tables, settings)
+        required_fields = required_fields_from_options(self.config_entry.options)
+        coverage_key = (day, tables, settings, required_fields)
         if coverage_key != self._coverage_key:
             self._coverage = await self.hass.async_add_executor_job(
                 calculate_coverage, day, tables, settings
+            )
+            self._completeness = await self.hass.async_add_executor_job(
+                calculate_completeness, day, tables, settings, required_fields
             )
             self._coverage_key = coverage_key
         resolved = {
@@ -73,7 +84,13 @@ class SalahCoordinator(DataUpdateCoordinator[SalahData]):
             ),
         )
         data = SalahData(
-            day, resolved[day], events, tuple(resolved.values()), self._coverage, tables
+            day,
+            resolved[day],
+            events,
+            tuple(resolved.values()),
+            self._coverage,
+            self._completeness,
+            tables,
         )
         boundaries = [
             datetime.combine(day + timedelta(days=1), time.min, self.zone).astimezone(
