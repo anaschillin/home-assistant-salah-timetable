@@ -90,7 +90,87 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 menu.insert(0, "review")
             if coordinator.storage.remote_sources:
                 menu.extend(["check_updates", "manage_sources"])
+                if self._rollover_sources(coordinator):
+                    menu.append("annual_rollover")
         return self.async_show_menu(step_id="init", menu_options=menu)
+
+    @staticmethod
+    def _rollover_sources(coordinator) -> dict:
+        """Only fully approved annual URL publications can seed the next year."""
+        return {
+            key: source
+            for key, source in coordinator.storage.remote_sources.items()
+            if source.kind == "annual"
+            and source.year < 2199
+            and key == f"annual-{source.year}"
+            and key in coordinator.storage.approved_sources
+            and any(
+                table.timetable_id == key and len(table.days) >= 300
+                for table in coordinator.storage.timetables
+            )
+        }
+
+    async def async_step_annual_rollover(self, user_input=None):
+        """Guide a new year's URL through the *existing* approval process.
+
+        Never invent the publisher URL, reuse previous-year data or approve a
+        new source automatically. Next year remains a distinct source identity.
+        """
+        coordinator = self._coordinator()
+        if coordinator is None:
+            return self.async_abort(reason="integration_not_loaded")
+        if coordinator.storage.staged is not None:
+            return self.async_abort(reason="pending_import_exists")
+        candidates = self._rollover_sources(coordinator)
+        if not candidates:
+            return self.async_abort(reason="no_rollover_sources")
+        errors = {}
+        if user_input is not None:
+            original = candidates.get(user_input["source_id"])
+            if original is None:
+                errors["base"] = "invalid_rollover"
+            else:
+                following = original.year + 1
+                if any(
+                    table.kind == "annual" and any(
+                        row.day.year == following for row in table.days
+                    )
+                    for table in coordinator.storage.timetables
+                ):
+                    errors["base"] = "rollover_already_approved"
+                elif f"annual-{following}" in coordinator.storage.remote_sources:
+                    errors["base"] = "rollover_already_configured"
+                else:
+                    # Reuse the import's HTTPS validation, bounded downloader,
+                    # strict PDF/CSV recognition and review staging.
+                    return await self.async_step_import_url(
+                        {
+                            "year": following,
+                            "kind": "annual",
+                            "media_type": original.media_type,
+                            "url": user_input["url"],
+                        }
+                    )
+        return self.async_show_form(
+            step_id="annual_rollover",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("source_id"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                selector.SelectOptionDict(
+                                    value=key,
+                                    label=f"{key}: {source.year} → {source.year + 1}",
+                                )
+                                for key, source in candidates.items()
+                            ]
+                        )
+                    ),
+                    vol.Required("url"): selector.TextSelector(),
+                }
+            ),
+            errors=errors,
+        )
 
     async def _inspect_source(self, content, *, media_type, import_type):
         """Share PDF/CSV preparation without changing the review or approval flow."""
