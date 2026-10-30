@@ -225,7 +225,8 @@ async def test_authenticated_month_export_and_redacted_sources(
         is_admin=False,
         permissions=SimpleNamespace(check_entity=lambda *_args: True),
     )
-    assert data_api._entry_for_dashboard(
-        hass, SimpleNamespace(user=permitted), entity_id
-    ) is populated
+    assert (
+        data_api._entry_for_dashboard(hass, SimpleNamespace(user=permitted), entity_id)
+        is populated
+    )
     data_api.register_websocket_commands(hass)
