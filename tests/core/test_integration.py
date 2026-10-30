@@ -15,7 +15,7 @@ async def test_empty_setup_and_unload(hass, entry):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entry.state == ConfigEntryState.LOADED
-    assert len(er.async_get(hass).entities) == len(PrayerField) + 11
+    assert len(er.async_get(hass).entities) == len(PrayerField) + 12
     assert (
         hass.states.get("sensor.example_mosque_fajr_beginning").state == "unavailable"
     )
