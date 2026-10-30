@@ -111,7 +111,7 @@ class SpacedTextTableLayout:
 
     def to_csv(self, pages: tuple[str, ...]) -> str:
         output = io.StringIO(newline="")
-        writer = csv.writer(output, lineterminator="\\n")
+        writer = csv.writer(output, lineterminator="\n")
         header = None
         count = 0
         for page in pages:
@@ -121,7 +121,7 @@ class SpacedTextTableLayout:
                 line = raw.strip()
                 if not line:
                     continue
-                cells = tuple(re.split(r"\\s{2,}", line))
+                cells = tuple(re.split(r"\s{2,}", line))
                 if cells[0] == "Date":
                     if not 2 <= len(cells) <= 32 or len(set(cells)) != len(cells):
                         raise ImportValidationError("Invalid PDF text-table header")
