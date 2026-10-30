@@ -173,6 +173,24 @@ Inspect the complete original PDF/CSV as well as **all** pages before
 approving. Comparison does **not** assess copyright, religious authenticity,
 source accuracy or redistribution permission.
 
+## Guided annual publication rollover
+
+When an approved full-year HTTPS URL profile is configured, **Configure →
+Prepare next year's URL publication** can start a new-year import from that
+approved profile. Select the previous year's source and **enter the actual
+new year's public HTTPS URL**. The integration derives the next Gregorian
+year from the approved profile and reuses the existing bounded download,
+layout detection, column mapping, preview, comparison and explicit
+approval flow. It never guesses publisher URL patterns, overwrites the
+prior year's data or activates a new source without review.
+
+The flow appears only for a canonical approved annual URL profile with
+substantial yearly coverage. It is unavailable if another import awaits
+review; it also rejects a year that already has approved annual data or
+an existing URL profile. This initial guided rollover does not
+automatically discover future publications; auto-discovery needs an
+explicitly configured publisher URL template and independent tests.
+
 ## Supported PDF layouts
 
 Every supported layout has a bounded adapter, explicit column meanings and golden
