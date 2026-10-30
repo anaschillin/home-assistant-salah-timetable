@@ -19,7 +19,7 @@ def source(tmp_path):
         root / INTEGRATION,
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
     )
-    for name in ("LICENSE", "pyproject.toml", "CHANGELOG.md"):
+    for name in ("LICENSE", "pyproject.toml", "CHANGELOG.md", "versions.toml"):
         shutil.copyfile(PROJECT_ROOT / name, root / name)
     return root
 

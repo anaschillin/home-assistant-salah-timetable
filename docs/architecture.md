@@ -279,7 +279,7 @@ countdown. The backend and card behavior have separate boundary tests.
 `frontend.py` registers the bundled directory at `/salah_timetable` through HA's
 asynchronous static-path API. For storage-mode Lovelace resources it creates or
 updates the integration's relative module URL, removes duplicate registrations and
-uses the `frontend.py` `CARD_VERSION` cache key for cache changes. For YAML resources it uses HA's extra-JavaScript
+uses the generated `frontend.py` `CARD_VERSION` cache key for cache changes. For YAML resources it uses HA's extra-JavaScript
 helper without editing user YAML. Setup retries when frontend/Lovelace loads later;
 a resource-registration failure is logged without disabling valid prayer entities.
 
@@ -420,7 +420,29 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 | `strings.json`, `translations/en.json` | HA setup, options, reconfiguration and entity-name localization |
 | `icons.json` | Home Assistant entity icon translations (including the prayer calendar) |
 
-The card's JavaScript imports remain in their existing relative locations to preserve the versioned static asset URL, browser cache behaviour, HACS packaging and frontend tests. Do not move these files without updating JS imports, frontend resource registration, release validation and browser tests together.
+The card's JavaScript imports remain in their existing relative locations to
+preserve the versioned static asset URL, browser cache behaviour, HACS packaging
+and frontend tests. Their query versions and `frontend.py` cache key are generated
+from `versions.toml`; they remain literal in the shipped files so browsers can
+invalidate every imported module on an integration upgrade. Do not hand-edit those
+values or move the modules without updating registration, release validation and
+browser tests together.
+
+### Central version configuration
+
+The root `versions.toml` owns the current integration, Python, Node.js, uv, pypdf,
+Ruff and supported Home Assistant/test-plugin versions. Running
+`python scripts/sync_versions.py --write` renders the formats required by the
+integration manifest, project/compatibility metadata, frontend, CI and documentation.
+`--check` detects drift without modifying files. The generator uses only the Python
+standard library; Home Assistant does not need to read the root configuration at
+runtime. The packaged integration retains its generated metadata and asset versions.
+
+uv resolves the separately committed dependency locks after relevant project-version
+or dependency changes. Changelog history, parser/storage schema identifiers and
+content dates retain their own meanings. See the
+[maintenance workflow](../CONTRIBUTING.md#keeping-documentation-variables-current)
+for the single-file edit, synchronization and lock commands.
 
 ### Dependency and maintenance rules
 

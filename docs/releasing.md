@@ -4,7 +4,7 @@ Current integration version: <!-- docs:version -->0.9.20<!-- /docs:version -->.
 
 ## Current release readiness
 
-Check the **exact candidate commit and version**; do not reuse validation claims from older changes. Manifest/project/frontend versions and release notes must agree. A successful CI run does not prove an authenticated HACS UI installation or every Home Assistant OS use case.
+Check the **exact candidate commit and version**; do not reuse validation claims from older changes. The generated manifest/project/frontend versions must agree with `versions.toml` and the release notes. A successful CI run does not prove an authenticated HACS UI installation or every Home Assistant OS use case.
 
 **Required:** passing Validate and CodeQL on the candidate commit, package/version checks, checksum review and documented relevant manual HACS/Home Assistant acceptance.
 
@@ -14,9 +14,21 @@ Check the **exact candidate commit and version**; do not reuse validation claims
 
 ## Build and verify
 
-Update `custom_components/salah_timetable/manifest.json`, `pyproject.toml`, `uv.lock` where dependencies changed, the frontend card/cache version strings and `CHANGELOG.md` consistently.
+Edit the release version or dependency/toolchain pins only in
+[`versions.toml`](../versions.toml), then run `python scripts/sync_versions.py --write`.
+This refreshes required metadata, frontend cache/import query versions, CI values
+and documentation together. Keep the candidate's `CHANGELOG.md` heading and notes
+accurate; historical release headings remain unchanged.
+
+Regenerate `uv.lock` with `uv lock` after changing the root project version or pins,
+and regenerate affected compatibility locks after their dependency pins change.
+See the [central version workflow](../CONTRIBUTING.md#keeping-documentation-variables-current)
+for the lane commands. The synchronizer does not resolve or download dependencies.
+Commit the central configuration, generated files and locks together before
+running the candidate checks:
 
 ```sh
+python scripts/sync_versions.py --check
 uv sync --frozen --group dev
 uv run --frozen pytest --cov-branch --cov-fail-under=0 --cov-report=json:coverage-branch.json
 uv run --frozen python scripts/check_coverage.py coverage-branch.json
@@ -94,7 +106,7 @@ delivery/runner queues determine cleanup timing.
 
 The manually triggered **Prepare draft release** workflow accepts an existing `vMAJOR.MINOR.PATCH` tag for a commit on `main` with a passing Validate push run. It validates versions, changelog, ancestry and checksum, and creates a **draft**, not a published release.
 
-For a local read-only review **after the matching tag exists**, use its version from the manifest:
+For a local read-only review **after the matching tag exists**, export its version from the central configuration:
 
 ```sh
 source <(python3 scripts/sync_documentation.py --shell)

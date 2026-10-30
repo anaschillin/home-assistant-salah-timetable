@@ -75,3 +75,28 @@ def test_a_lane_rejects_an_unsupported_interpreter(
         patch.setattr(sys, "version_info", python_version)
         with pytest.raises(ValueError, match="Expected Python"):
             verify()
+
+
+@pytest.mark.parametrize(
+    ("python_version", "accepted"),
+    [((3, 13, 7), False), ((3, 13, 8), True), ((3, 14, 0), False)],
+    ids=["below-configured-minimum", "configured-series", "different-series"],
+)
+def test_interpreter_guard_follows_central_python_policy(
+    matching_environment, monkeypatch, python_version, accepted
+):
+    """Changing central Python policy changes both minimum and series checks."""
+    monkeypatch.setattr(
+        checker,
+        "load_versions",
+        lambda: {"python_min": "3.13.8", "python_minor": "3.13"},
+    )
+    with monkeypatch.context() as patch:
+        patch.setattr(sys, "version_info", python_version)
+        if accepted:
+            assert verify()["python"] == "3.13.8"
+        else:
+            with pytest.raises(
+                ValueError, match=r"Expected Python 3\.13\.8 or later in 3\.13"
+            ):
+                verify()

@@ -2,6 +2,9 @@
 
 ## 0.9.20 — unreleased
 
+- Centralize current release, dependency, toolchain and compatibility versions in
+  `versions.toml`; generate required code/configuration/documentation copies with
+  one command and reject version drift in CI.
 - Use patched uv 0.13.6 to install CI environments ([CA trust advisory](https://github.com/advisories/GHSA-hq85-5cpj-mr62)).
 - Update pypdf to 6.21.4 for [upstream reader security fixes](https://pypdf.readthedocs.io/en/stable/meta/CHANGELOG.html#version-6-21-4-2026-10-28);
   keep the runtime, development and both compatibility locks aligned.
