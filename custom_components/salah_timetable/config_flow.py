@@ -9,7 +9,17 @@ from homeassistant.const import CONF_NAME
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 
-from .const import CONF_MOSQUE_ID, CONF_SHOW_HIJRI_DATE, CONF_TIME_ZONE, DOMAIN
+from .const import (
+    CONF_COMPLETENESS_REQUIRED_FIELDS,
+    CONF_MOSQUE_ID,
+    CONF_SHOW_HIJRI_DATE,
+    CONF_TIME_ZONE,
+    DOMAIN,
+)
+from .domain.completeness import (
+    SELECTABLE_REQUIRED_FIELDS,
+    required_fields_from_options,
+)
 from .domain.ramadan import RamadanSettings
 from .domain.ramadan_validation import validate_ramadan_selection
 from .sources.source_flow import SourceOptionsFlow
@@ -122,17 +132,25 @@ class SalahOptionsFlow(SourceOptionsFlow):
     async def async_step_settings(self, user_input=None):
         errors = {}
         if user_input is not None:
-            if valid_zone(user_input[CONF_TIME_ZONE]):
+            try:
+                required_fields_from_options(user_input)
+            except ValueError:
+                errors[CONF_COMPLETENESS_REQUIRED_FIELDS] = (
+                    "invalid_completeness_fields"
+                )
+            if not valid_zone(user_input[CONF_TIME_ZONE]):
+                errors[CONF_TIME_ZONE] = "invalid_time_zone"
+            if not errors:
                 return self.async_create_entry(
                     title="", data={**self.config_entry.options, **user_input}
                 )
-            errors[CONF_TIME_ZONE] = "invalid_time_zone"
         current = self.config_entry.options.get(
             CONF_TIME_ZONE, self.config_entry.data[CONF_TIME_ZONE]
         )
         show_hijri = self.config_entry.options.get(
             CONF_SHOW_HIJRI_DATE, self.config_entry.data.get(CONF_SHOW_HIJRI_DATE, True)
         )
+        required_fields = required_fields_from_options(self.config_entry.options)
         return self.async_show_form(
             step_id="settings",
             data_schema=vol.Schema(
@@ -143,6 +161,21 @@ class SalahOptionsFlow(SourceOptionsFlow):
                     vol.Optional(
                         CONF_SHOW_HIJRI_DATE, default=show_hijri
                     ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_COMPLETENESS_REQUIRED_FIELDS,
+                        default=[field.value for field in required_fields],
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                selector.SelectOptionDict(
+                                    value=field.value,
+                                    label=field.value.replace("_", " ").title(),
+                                )
+                                for field in SELECTABLE_REQUIRED_FIELDS
+                            ],
+                            multiple=True,
+                        )
+                    ),
                 }
             ),
             errors=errors,

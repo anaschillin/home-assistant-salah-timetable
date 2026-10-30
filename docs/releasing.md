@@ -46,6 +46,50 @@ Use disposable configurations and synthetic timetables; note the installed HA/in
 
 Full HAOS/Supervisor restore is an **optional** additional test, documented in [Backup and restore](releasing.md#optional-full-backup-and-restore-acceptance). Do not describe Container tests as completing it.
 
+## Automatic feature test releases
+
+After this workflow is merged into `main`, each **non-draft, same-repository PR
+targeting `main`** gets one published GitHub prerelease when its latest Validate
+and CodeQL PR runs both succeed for the current feature-branch head. Known merge
+conflicts and unsuccessful external commit statuses block publication. Mark a
+draft PR **Ready for review** when it is ready for Home Assistant testing; this
+does not merge it or replace manual acceptance.
+
+- The tag is `vVERSION-pr.PR_NUMBER.FULL_HEAD_SHA`, using the branch's manifest
+  version and exact commit. The release notes link to its PR and identify its
+  branch. The reserved `-pr.NUMBER.SHA` tag namespace belongs to this automation.
+- A new commit removes the previous candidate release and tag. A replacement is
+  published only after the new head passes CI. Repeated notifications for the same
+  passing commit leave the existing release intact.
+- Merging, closing, returning to draft or retargeting away from `main` removes
+  the candidate release and tag. Stable releases and feature branches are untouched.
+- These are published **prereleases**, never GitHub's latest stable release. HACS
+  installs the tagged repository source with the existing `hacs.json` configuration;
+  there is no separate attached integration ZIP. GitHub's source ZIP includes
+  `custom_components/salah_timetable` for manual copying into the HA configuration.
+
+In HACS, enable pre-release/beta versions for Salah Timetable, refresh repository
+information, then use **Redownload** to select the candidate tag. Restart Home
+Assistant and refresh the browser/app cache. The manifest and frontend cache
+version remain the branch's values, so switching candidates with the same manifest
+version can require a forced cache refresh. After testing/merge, select the desired
+stable release again; deleting a GitHub release does not change an installed HA
+instance. Actual HACS/device installation remains a manual acceptance check.
+
+`Feature release lifecycle` is a read-only PR-event notification workflow.
+`Reconcile feature releases` responds to it and to Validate/CodeQL runs, and always
+loads its script from trusted `main`. It reads PR metadata/manifest data through
+GitHub's API and never checks out or executes feature code with write credentials.
+Publication is serialized; current PR state is rechecked around creation. Fork PRs
+do not receive releases. Only the built-in `GITHUB_TOKEN` is needed.
+
+For already-green PRs after initial installation, or to recover after a failed or
+cancelled automation run, run **Actions → Reconcile feature releases → Run workflow**
+on `main`. This reconciles all eligible PRs and cleans orphan candidate tags. The
+workflow must be on `main` before automatic publication can operate; its own PR
+cannot exercise the full publication lifecycle before that merge. GitHub event
+delivery/runner queues determine cleanup timing.
+
 ## Draft release
 
 The manually triggered **Prepare draft release** workflow accepts an existing `vMAJOR.MINOR.PATCH` tag for a commit on `main` with a passing Validate push run. It validates versions, changelog, ancestry and checksum, and creates a **draft**, not a published release.
@@ -236,7 +280,7 @@ Do not set `manifest.json` to a claimed Core quality tier solely on this audit. 
 | [`docs-examples`](https://contributors.home-assistant.io/core/quality-scale/docs-examples/) | Implemented | Automation and media blueprints supplied |
 | [`docs-known-limitations`](https://contributors.home-assistant.io/core/quality-scale/docs-known-limitations/) | Implemented | PDF layout, date, HA compatibility and source limitations documented |
 | [`docs-supported-devices`](https://contributors.home-assistant.io/core/quality-scale/docs-supported-devices/) | N/A (reviewed) | Official exception for integrations without physical devices; [supported publication layouts](import_review.md#supported-pdf-layouts) are documented separately |
-| [`docs-supported-functions`](https://contributors.home-assistant.io/core/quality-scale/docs-supported-functions/) | Implemented | [Complete entity reference](automations.md#entities-per-mosque) cross-checked against all 26 sensors and read-only calendar, including attributes, availability and defaults |
+| [`docs-supported-functions`](https://contributors.home-assistant.io/core/quality-scale/docs-supported-functions/) | Implemented | [Complete entity reference](automations.md#entities-per-mosque) cross-checked against all 27 sensors and read-only calendar, including attributes, availability and defaults |
 | [`docs-troubleshooting`](https://contributors.home-assistant.io/core/quality-scale/docs-troubleshooting/) | Implemented | Getting-started and dashboard troubleshooting sections |
 | [`docs-use-cases`](https://contributors.home-assistant.io/core/quality-scale/docs-use-cases/) | Implemented | README and automation examples cover dashboards and reminders |
 | [`dynamic-devices`](https://contributors.home-assistant.io/core/quality-scale/dynamic-devices/) | N/A (reviewed) | Official fixed-device exception: exactly one static logical mosque device per config entry; additional mosques require separate entries |
