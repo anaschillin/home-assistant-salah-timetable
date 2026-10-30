@@ -97,9 +97,7 @@ def calculate_completeness(
     ):
         raise ValueError("Choose unique supported fields for prayer completeness")
     if not timetables:
-        return CompletenessSnapshot(
-            "not_configured", required_fields, (), (), 0, None
-        )
+        return CompletenessSnapshot("not_configured", required_fields, (), (), 0, None)
 
     indexed = index_sources_by_date(today, timetables)
     tomorrow = today + timedelta(days=1) if today < date.max else None
