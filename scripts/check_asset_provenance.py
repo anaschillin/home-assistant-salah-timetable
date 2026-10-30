@@ -16,6 +16,7 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parents[1]
 INVENTORY = Path("docs/asset-provenance.json")
 ASSET_DIRS = (
+    Path("docs/screenshots"),
     Path("tests/fixtures"),
     Path("custom_components/salah_timetable/brand"),
     Path("custom_components/salah_timetable/frontend"),

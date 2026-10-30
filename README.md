@@ -20,6 +20,14 @@ A Home Assistant custom integration for importing **published mosque Salah and J
 
 **Important:** Values come from approved publications; this integration does not calculate authoritative prayer schedules or invent missing times. Only [documented PDF layouts](docs/import_review.md#supported-pdf-layouts) are supported.
 
+## Dashboard preview
+
+![Salah Timetable detailed card with next Salah and Jamaat countdowns, five-prayer timetable and optional mosque photograph](docs/screenshots/main-card.jpg)
+
+*Example of the detailed dashboard card. The pictured mosque photograph is decorative; displayed prayer times belong to the configured mosque and are not a universal prayer timetable.*
+
+For the card editor, previous-day and monthly views, see [Dashboard getting started](docs/getting-started.md#add-the-dashboard-card). Full settings are in the [Dashboard guide](docs/dashboard.md).
+
 ## Install
 
 Home Assistant **<!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> or newer** is required.
