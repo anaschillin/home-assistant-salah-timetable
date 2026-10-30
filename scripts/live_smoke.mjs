@@ -215,10 +215,10 @@ try {
   await until(() => state("fajr_beginning"), value => approvedTime(value, "06:00:00"), "Approved Fajr missing");
   let states = await request("/api/states");
   const ids = states.filter(item => item.entity_id.startsWith("sensor.smoke_mosque_")).map(item => item.entity_id).sort();
-  assert.equal(ids.length, 25, "New mosques expose 25 enabled sensors by default");
+  assert.equal(ids.length, 26, "New mosques expose 26 enabled sensors by default");
   const registryWs = await websocket();
   const sensors = (await registryWs("config/entity_registry/list")).filter(item => item.config_entry_id === entry && item.entity_id.startsWith("sensor."));
-  assert.equal(sensors.length, 26, "All 26 sensors must be registered");
+  assert.equal(sensors.length, 27, "All 27 sensors must be registered");
   const previousJamaat = sensors.find(item => item.unique_id.endsWith("_previous_jamaat"));
   assert.ok(previousJamaat, "Previous Jamaat must remain available to enable");
   assert.equal(previousJamaat.disabled_by, "integration");
