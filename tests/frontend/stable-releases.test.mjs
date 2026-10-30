@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   assessRelease, compareStableVersions, latestMainPushPassed, planFromGitHub,
@@ -92,4 +93,19 @@ test('API errors are not mistaken for missing releases', async () => {
     async list() { return passing; },
   };
   await assert.rejects(planFromGitHub(api, sha, '1.2.3'), /Forbidden/);
+});
+
+test('publication workflow has isolated write permissions and trusted-main gates', () => {
+  const source = readFileSync('.github/workflows/stable-release.yml', 'utf8');
+  assert.match(source, /workflows: \[Validate, CodeQL\]/);
+  assert.match(source, /types: \[completed\]/);
+  assert.match(source, /github\.event\.workflow_run\.event == 'push'/);
+  assert.match(source, /github\.event\.workflow_run\.head_branch == 'main'/);
+  assert.match(source, /github\.event\.workflow_run\.head_repository\.full_name == github\.repository/);
+  assert.match(source, /ref: main/);
+  assert.match(source, /persist-credentials: false/);
+  assert.match(source, /python scripts\/check_asset_provenance\.py --require-cleared/);
+  assert.match(source, /node scripts\/stable_releases\.mjs --assert/);
+  assert.match(source, /gh release create "\$RELEASE_TAG" --verify-tag/);
+  assert.doesNotMatch(source, /pull_request_target:/);
 });
