@@ -401,9 +401,7 @@ def test_ramadan_completeness_uses_approved_effective_field_overrides():
         (DailyPrayers(TODAY, {PrayerField.ISHA_BEGIN: (time(20),)}, {}),),
     )
     assert (
-        calculate_completeness(
-            TODAY, (annual, override), RamadanSettings()
-        ).status
+        calculate_completeness(TODAY, (annual, override), RamadanSettings()).status
         == "partial"
     )
     assert (
@@ -416,9 +414,7 @@ def test_ramadan_completeness_uses_approved_effective_field_overrides():
 
 def test_future_completeness_conflict_is_reported_not_guessed():
     future = TODAY + timedelta(days=3)
-    annual = Timetable(
-        "annual", "annual", tuple(complete_row(day) for day in days(5))
-    )
+    annual = Timetable("annual", "annual", tuple(complete_row(day) for day in days(5)))
     competing = tuple(
         Timetable(source_id, "ramadan", (row(future),))
         for source_id in ("first", "second")
@@ -450,9 +446,7 @@ def test_required_fields_validation_and_no_approved_data():
         ["fajr_begin", 1],
     ):
         with pytest.raises(ValueError, match="unique supported"):
-            required_fields_from_options(
-                {"completeness_required_fields": invalid}
-            )
+            required_fields_from_options({"completeness_required_fields": invalid})
     empty = calculate_completeness(TODAY, (), RamadanSettings())
     assert empty.status == "not_configured"
     assert empty.attributes()["first_incomplete_date"] is None
@@ -468,11 +462,7 @@ async def test_completeness_diagnostic_follows_per_mosque_policy_on_reload(
             Timetable(
                 "approved",
                 "annual",
-                (
-                    DailyPrayers(
-                        TODAY, {PrayerField.FAJR_BEGIN: (time(6),)}, {}
-                    ),
-                ),
+                (DailyPrayers(TODAY, {PrayerField.FAJR_BEGIN: (time(6),)}, {}),),
             ),
         )
     )
