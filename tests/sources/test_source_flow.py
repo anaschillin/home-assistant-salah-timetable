@@ -791,3 +791,58 @@ async def test_reload_during_url_download_requires_reopening_import(hass, entry)
     reopened = await stage_url(hass, entry)
     assert reopened["step_id"] == "review"
     assert entry.runtime_data.storage.timetables == ()
+
+
+def annual_csv(year):
+    return (
+        "Date,Fajr Start,Fajr Jamaat\\n"
+        + "".join(
+            f"{date(year, 1, 1).fromordinal(date(year, 1, 1).toordinal() + day).isoformat()},05:45,06:15\\n"
+            for day in range(365)
+        )
+    ).encode()
+
+
+async def test_annual_rollover_uses_explicit_new_url_and_requires_approval(hass, entry):
+    await setup_mosque(hass, entry)
+    first = await stage_url(hass, entry, content=annual_csv(2026))
+    await approve(hass, first)
+    assert "annual_rollover" in (await hass.config_entries.options.async_init(entry.entry_id))["menu_options"]
+
+    flow = await open_step(hass, entry, "annual_rollover")
+    assert flow["step_id"] == "annual_rollover"
+    new_url = "https://mosque.example.org/2027.pdf"
+    fresh = b"Date,Fajr Start,Fajr Jamaat\\n2027-01-01,05:46,06:15\\n"
+    with patch(
+        "custom_components.salah_timetable.sources.source_flow.async_download",
+        AsyncMock(return_value=downloaded(fresh)),
+    ) as fetch:
+        form = await hass.config_entries.options.async_configure(
+            flow["flow_id"], {"source_id": "annual-2026", "url": new_url}
+        )
+    fetch.assert_awaited_once_with(new_url, media_type="csv")
+    assert form["step_id"] == "map_columns"
+    staged = await hass.config_entries.options.async_configure(
+        form["flow_id"],
+        {
+            "date_column": "Date",
+            "time_format": "24h",
+            "fajr_begin": "Fajr Start",
+        },
+    )
+    assert staged["step_id"] == "review"
+    assert entry.runtime_data.storage.staged.candidate.year == 2027
+    assert set(entry.runtime_data.storage.approved_sources) == {"annual-2026"}
+    assert set(entry.runtime_data.storage.remote_sources) == {"annual-2026", "annual-2027"}
+    await approve(hass, staged)
+    assert set(entry.runtime_data.storage.approved_sources) == {
+        "annual-2026", "annual-2027"
+    }
+
+
+async def test_annual_rollover_not_offered_without_approved_full_year(hass, entry):
+    await setup_mosque(hass, entry)
+    assert "annual_rollover" not in (await hass.config_entries.options.async_init(entry.entry_id))["menu_options"]
+    staged = await stage_url(hass, entry, content=CSV)
+    await approve(hass, staged)
+    assert "annual_rollover" not in (await hass.config_entries.options.async_init(entry.entry_id))["menu_options"]
