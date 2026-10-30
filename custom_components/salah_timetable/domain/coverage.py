@@ -36,6 +36,14 @@ class CoverageSnapshot:
         }
 
 
+def index_sources_by_date(
+    today: date, timetables: tuple[Timetable, ...]
+) -> dict[date, tuple[Timetable, ...]]:
+    """Build one-row approved source views for effective date resolution."""
+    indexed = index_sources_by_date(today, timetables)
+    return {day: tuple(sources) for day, sources in indexed.items()}
+
+
 def calculate_coverage(
     today: date, timetables: tuple[Timetable, ...], settings: RamadanSettings
 ) -> CoverageSnapshot:
