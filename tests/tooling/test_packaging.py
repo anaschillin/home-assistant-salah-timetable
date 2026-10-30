@@ -195,6 +195,7 @@ def test_production_modules_have_single_canonical_location():
             "ramadan.py",
             "ramadan_validation.py",
             "coverage.py",
+            "completeness.py",
             "events.py",
             "presentation.py",
         },
