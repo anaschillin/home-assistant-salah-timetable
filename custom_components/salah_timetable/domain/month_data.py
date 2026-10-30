@@ -58,7 +58,12 @@ def approved_month(
     month: int,
 ) -> list[dict]:
     """One month's effective approved rows, with explicit missing dates."""
-    if type(year) is not int or type(month) is not int or not 1 <= year <= 9999 or not 1 <= month <= 12:
+    if (
+        type(year) is not int
+        or type(month) is not int
+        or not 1 <= year <= 9999
+        or not 1 <= month <= 12
+    ):
         raise ValueError("Choose a valid Gregorian month")
     first = date(year, month, 1)
     last = date(year, month, calendar.monthrange(year, month)[1])
