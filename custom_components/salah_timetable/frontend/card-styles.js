@@ -1078,89 +1078,99 @@ ha-card.kiosk:fullscreen {
 
 /** Card configuration editor styles, scoped to its separate shadow root. */
 export const EDITOR_CSS = `
-:host {
-  display: block;
-}
-.form {
-  display: grid;
-  gap: 16px;
-  padding: 12px 0;
-}
-.help {
-  color: var(--secondary-text-color);
-  font-size: .9rem;
-}
-.error {
-  color: var(--error-color);
-}
-.setting {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-}
-.setting select {
-  font: inherit;
-  color: var(--primary-text-color);
-  background: var(--card-background-color);
-  padding: 8px;
-  max-width: 55%;
-}
-.setting span {
-  overflow-wrap: anywhere;
-}
-.mosque-options {
-  display: grid;
-  gap: 8px;
-}
-.mosque-options[hidden] {
-  display: none;
-}
-.mosque-options-heading {
-  font-weight: 600;
-}
-.mosque-options-list {
-  display: grid;
-  gap: 8px;
-}
-.mosque-choice {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-.mosque-choice input {
-  accent-color: var(--primary-color);
-}
-.setting input:disabled {
-  cursor: not-allowed;
-  opacity: .55;
-}
-.title-field {
-  display: grid;
-  gap: 7px;
-}
-.title-field label {
-  font: inherit;
-  color: var(--primary-text-color);
-}
+:host { display: block; }
+.form { display: grid; gap: 14px; padding: 12px 0; color: var(--primary-text-color); }
+.help { color: var(--secondary-text-color); font-size: .85rem; line-height: 1.45; }
+.error { color: var(--error-color); }
+.title-field { display: grid; gap: 7px; }
+.title-field label { font: inherit; }
 .title-field input {
   box-sizing: border-box;
   width: 100%;
   padding: 12px;
   border: 1px solid var(--divider-color);
-  border-radius: 4px;
+  border-radius: 6px;
   background: var(--card-background-color);
   color: var(--primary-text-color);
   font: inherit;
 }
-.title-field input:focus {
+.title-field input:focus-visible,
+.setting select:focus-visible,
+.editor-section-toggle:focus-visible {
   outline: 2px solid var(--primary-color);
-  outline-offset: 1px;
+  outline-offset: 2px;
+}
+.mosque-options { display: grid; gap: 8px; }
+.mosque-options[hidden] { display: none; }
+.mosque-options-heading { font-weight: 600; }
+.mosque-options-list { display: grid; gap: 8px; }
+.mosque-choice { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.mosque-choice input { accent-color: var(--primary-color); }
+.setting {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.setting-copy { display: grid; gap: 5px; min-width: 0; overflow-wrap: anywhere; }
+.setting-label { font-size: .95rem; font-weight: 500; }
+.setting-hint { color: var(--secondary-text-color); font-size: .8rem; line-height: 1.45; }
+.setting[data-disabled="true"] .setting-label { opacity: .6; }
+.setting select {
+  font: inherit;
+  color: var(--primary-text-color);
+  background: var(--card-background-color);
+  border: 1px solid var(--divider-color);
+  border-radius: 6px;
+  padding: 8px;
+  max-width: min(50vw,220px);
+  min-width: 105px;
+}
+.setting ha-switch { display: block; flex-shrink: 0; }
+.editor-section {
+  border: 1px solid var(--divider-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.editor-section-toggle {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  gap: 12px;
+  width: 100%;
+  min-height: 62px;
+  padding: 12px;
+  border: 0;
+  background: var(--secondary-background-color);
+  color: var(--primary-text-color);
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+}
+.editor-section-toggle > ha-icon:first-child { color: var(--secondary-text-color); }
+.editor-section-toggle > ha-icon:last-child {
+  color: var(--secondary-text-color);
+  transition: transform .15s ease;
+}
+.editor-section-toggle[aria-expanded="true"] > ha-icon:last-child { transform: rotate(180deg); }
+.editor-section-copy { display: grid; flex: 1; min-width: 0; gap: 3px; }
+.editor-section-title { font-size: .95rem; font-weight: 600; }
+.editor-section-hint { color: var(--secondary-text-color); font-size: .8rem; line-height: 1.35; }
+.editor-section-content { display: grid; gap: 15px; padding: 14px; }
+.editor-section-content[hidden] { display: none; }
+.editor-soon-note {
+  margin: 0;
+  color: var(--secondary-text-color);
+  font-size: .82rem;
+  line-height: 1.45;
 }
 @media(max-width: 420px) {
-  .setting {
-    gap: 8px;
-  }
+  .setting { gap: 8px; }
+  .setting select { max-width: 145px; }
+  .editor-section-toggle { gap: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .editor-section-toggle > ha-icon:last-child { transition: none; }
 }
 `;

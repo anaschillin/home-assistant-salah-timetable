@@ -625,8 +625,19 @@ export class SalahTimetableCard extends HTMLElement {
   }
 }
 
+const EDITOR_GROUPS = [
+  {id: "dates", icon: "mdi:calendar-month", keys: ["show_hijri_date", "show_gregorian_date", "show_hijri_month_info"]},
+  {id: "countdowns", icon: "mdi:timer-outline", keys: ["show_salah_countdown", "show_jamaat_countdown"]},
+  {id: "ramadan", icon: "mdi:moon-waning-crescent", keys: ["show_ramadan_details", "show_sehri_countdown", "show_iftar_countdown", "show_night_calculations"]},
+  {id: "appearance", icon: "mdi:image-outline", keys: ["mosque_background"]},
+  {id: "tools", icon: "mdi:calendar-text-outline", keys: ["show_month_view", "show_timezone_note"]},
+  {id: "history", icon: "mdi:book-open-variant", keys: ["show_historical_day_events", "show_historical_month_highlights", "show_historical_sources", "show_disputed_historical_dates"]},
+  {id: "advanced", icon: "mdi:tune-variant", keys: ["language", "bilingual_prayer_labels", "kiosk_mode", "time_format", "hijri_adjustment", "hijri_day_boundary"]},
+];
+const EDITOR_FUTURE_OPTIONS = new Set(["show_historical_day_events", "show_historical_month_highlights", "show_historical_sources", "show_disputed_historical_dates"]);
+
 export class SalahTimetableCardEditor extends HTMLElement {
-  constructor() { super(); this.attachShadow({mode: "open"}); this._config = normalizeConfig({}); }
+  constructor() { super(); this.attachShadow({mode: "open"}); this._config = normalizeConfig({}); this._expandedSection = "dates"; }
   setConfig(config) {
     const next = normalizeForUi(config, this._hass);
     const changed = JSON.stringify(next) !== JSON.stringify(this._config);
@@ -639,21 +650,44 @@ export class SalahTimetableCardEditor extends HTMLElement {
     this._updateControls();
     this.dispatchEvent(new CustomEvent("config-changed", {detail: {config: {...this._config}}, bubbles: true, composed: true}));
   }
+  _updateSections(ui = resolveUi(this._config, this._hass)) {
+    for (const [id, section] of Object.entries(this._sections || {})) {
+      section.title.textContent = tr(ui, `editor.section.${id}`);
+      section.description.textContent = tr(ui, `editor.section.${id}.hint`);
+      const expanded = this._expandedSection === id;
+      section.toggle.setAttribute("aria-expanded", String(expanded));
+      section.body.hidden = !expanded;
+      const soon = Array.from(section.body.children).find(item => item.className === "editor-soon-note");
+      if (soon) soon.textContent = tr(ui, "editor.history_unavailable");
+    }
+  }
   _updateControls() {
     if (!this._controls) return;
     const ui = resolveUi(this._config, this._hass);
     direction(this, ui); direction(this._form, ui);
-    for (const [key, {control, checkbox, label, options}] of Object.entries(this._extraControls || {})) {
-      const historyLabels = {show_mosque_background: "Show mosque background", mosque_background: "Mosque background", show_hijri_month_info: "Show Hijri month information", show_historical_day_events: "Show historical day events (coming soon)", show_historical_month_highlights: "Show monthly history highlights (coming soon)", show_historical_sources: "Show history sources (coming soon)", show_disputed_historical_dates: "Include disputed dates (coming soon)"};
-      const text = historyLabels[key] || tr(ui, `editor.${key}`);
-      label.textContent = text; control.setAttribute("aria-label", text);
-      for (const {option, value} of options || []) option.textContent = key === "hijri_adjustment" ? localizedNumber(value, ui, {signDisplay: "exceptZero"}) : key === "mosque_background" ? (MOSQUE_BACKGROUNDS.find(item => item.id === value)?.name || (value === "daily" ? "Rotate daily" : "None")) : tr(ui, `editor.${key}.${value}`);
+    for (const [key, {control, checkbox, label, hint, field, options}] of Object.entries(this._extraControls || {})) {
+      const title = tr(ui, `editor.${key}`);
+      label.textContent = title;
+      hint.textContent = tr(ui, `editor.hint.${key}`);
+      control.setAttribute("aria-label", title);
+      for (const {option, value} of options || []) {
+        option.textContent = key === "hijri_adjustment"
+          ? localizedNumber(value, ui, {signDisplay: "exceptZero"})
+          : key === "mosque_background"
+            ? (MOSQUE_BACKGROUNDS.find(item => item.id === value)?.name || tr(ui, `editor.background.${value}`))
+            : tr(ui, `editor.${key}.${value}`);
+      }
+      const selected = key === "mosque_background" && !this._config.show_mosque_background ? "none" : this._config[key];
       if (checkbox) control.checked = this._config[key];
-      else if (control.value !== String(this._config[key])) control.value = String(this._config[key]);
-      // These settings have no implemented behaviour yet; do not allow users
-      // to enable an option that cannot display any history data.
-      control.disabled = ["show_historical_day_events", "show_historical_month_highlights", "show_historical_sources", "show_disputed_historical_dates"].includes(key);
+      else if (control.value !== String(selected)) control.value = String(selected);
+      const disabled = EDITOR_FUTURE_OPTIONS.has(key)
+        || (key === "show_hijri_month_info" && !this._config.show_hijri_date)
+        || ((key === "show_sehri_countdown" || key === "show_iftar_countdown") && !this._config.show_ramadan_details)
+        || (key === "show_night_calculations" && this._config.detail_level === "compact");
+      control.disabled = disabled;
+      field.setAttribute("data-disabled", String(disabled));
     }
+    this._updateSections(ui);
     const {entity, title, titleLabel, error, help, mosqueGroup, mosqueHeading, mosqueList} = this._controls;
     entity.hass = this._hass; entity.label = tr(ui, "editor.entity");
     const mosques = discoverTimetableEntities(this._hass);
@@ -727,28 +761,65 @@ export class SalahTimetableCardEditor extends HTMLElement {
     this._controls = {entity, title, titleLabel, error, help, mosqueGroup, mosqueHeading, mosqueList};
     this._extraControls = {};
     const settings = [
-      ["language", ["auto", "en", "ar"]], ["bilingual_prayer_labels"],
-      ["detail_level", ["compact", "standard", "detailed"]], ["kiosk_mode"], ["time_format", ["24h", "12h"]],
-      ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]], ["hijri_day_boundary", ["midnight", "maghrib"]],
-      ["show_hijri_date"], ["show_gregorian_date"], ["show_salah_countdown"], ["show_jamaat_countdown"],
-      ["show_hijri_month_info"], ["show_historical_day_events"], ["show_historical_month_highlights"], ["show_historical_sources"], ["show_disputed_historical_dates"],
-      ["show_mosque_background"], ["mosque_background", ["daily", "none", ...MOSQUE_BACKGROUNDS.map(item => item.id)]],
-      ["show_ramadan_details"], ["show_night_calculations"], ["show_month_view"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_timezone_note"]
+      ["detail_level", ["compact", "standard", "detailed"]],
+      ["show_hijri_date"], ["show_gregorian_date"], ["show_hijri_month_info"],
+      ["show_salah_countdown"], ["show_jamaat_countdown"],
+      ["show_ramadan_details"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_night_calculations"],
+      ["mosque_background", ["none", "daily", ...MOSQUE_BACKGROUNDS.map(item => item.id)]],
+      ["show_month_view"], ["show_timezone_note"],
+      ["show_historical_day_events"], ["show_historical_month_highlights"], ["show_historical_sources"], ["show_disputed_historical_dates"],
+      ["language", ["auto", "en", "ar"]], ["bilingual_prayer_labels"], ["kiosk_mode"], ["time_format", ["24h", "12h"]],
+      ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]], ["hijri_day_boundary", ["midnight", "maghrib"]]
     ];
-    const extras = [];
+    const fields = new Map();
     for (const [key, choices] of settings) {
-      const field = node("label", undefined, "setting"); const label = node("span"); field.append(label);
-      const control = node(choices ? "select" : "input"); const options = [];
-      if (choices) for (const value of choices) { const option = node("option"); option.value = String(value); control.append(option); options.push({option, value}); }
-      else control.type = "checkbox";
+      const field = node(choices ? "label" : "div", undefined, "setting");
+      const copy = node("span", undefined, "setting-copy");
+      const label = node("span", undefined, "setting-label");
+      const hint = node("span", undefined, "setting-hint");
+      copy.append(label, hint); field.append(copy);
+      const control = node(choices ? "select" : "ha-switch"); const options = [];
+      if (choices) for (const value of choices) {
+        const option = node("option"); option.value = String(value); control.append(option); options.push({option, value});
+      }
       control.setAttribute("data-option", key);
       control.addEventListener("change", () => {
         if (control.disabled) return;
+        if (key === "mosque_background") {
+          // Keep the previous image choice when the background is turned off.
+          this._changed(control.value === "none" ? {show_mosque_background: false}
+            : {show_mosque_background: true, mosque_background: control.value});
+          return;
+        }
         this._changed({[key]: choices ? key === "hijri_adjustment" ? Number(control.value) : control.value : control.checked});
       });
-      this._extraControls[key] = {control, checkbox: !choices, label, options}; field.append(control); extras.push(field);
+      this._extraControls[key] = {control, checkbox: !choices, label, hint, field, options};
+      field.append(control); fields.set(key, field);
     }
-    form.append(entity, error, titleField, mosqueGroup, ...extras, help);
+    this._sections = {};
+    const groups = [];
+    for (const {id, icon, keys} of EDITOR_GROUPS) {
+      const section = node("section", undefined, "editor-section");
+      const toggle = node("button", undefined, "editor-section-toggle"); toggle.type = "button";
+      const graphic = node("ha-icon"); graphic.setAttribute("icon", icon);
+      const text = node("span", undefined, "editor-section-copy");
+      const heading = node("span", undefined, "editor-section-title");
+      const description = node("span", undefined, "editor-section-hint");
+      const chevron = node("ha-icon"); chevron.setAttribute("icon", "mdi:chevron-down");
+      text.append(heading, description); toggle.append(graphic, text, chevron);
+      const body = node("div", undefined, "editor-section-content");
+      body.id = `editor-section-${id}`; toggle.setAttribute("aria-controls", body.id);
+      for (const key of keys) body.append(fields.get(key));
+      if (id === "history") body.append(node("p", undefined, "editor-soon-note"));
+      toggle.addEventListener("click", () => {
+        this._expandedSection = this._expandedSection === id ? null : id;
+        this._updateSections();
+      });
+      section.append(toggle, body);
+      this._sections[id] = {toggle, body, title: heading, description};
+      groups.push(section);
+    }
+    form.append(entity, error, titleField, mosqueGroup, fields.get("detail_level"), ...groups, help);
     this._updateControls();
     this.shadowRoot.replaceChildren(style, form);
   }

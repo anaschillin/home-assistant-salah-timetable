@@ -348,7 +348,12 @@ try {
   const restored = new SalahTimetableCardEditor(); restored.setConfig(JSON.parse(JSON.stringify(lastConfig))); restored.hass = hass;
   check("restored graphical configuration", restored.shadowRoot.querySelector("input#mosque-title").value === "My Mosque" && restored.shadowRoot.querySelector('[data-option="detail_level"]').value === lastConfig.detail_level);
   check("all graphical options survive configuration reload", [...restored.shadowRoot.querySelectorAll("[data-option]")].every(control => {
-    const key = control.getAttribute("data-option"); return control.type === "checkbox" ? control.checked === lastConfig[key] : control.value === String(lastConfig[key]);
+    const key = control.getAttribute("data-option");
+    if (control.localName === "ha-switch") return control.checked === lastConfig[key];
+    if (key === "mosque_background") {
+      return control.value === (lastConfig.show_mosque_background ? lastConfig.mosque_background : "none");
+    }
+    return control.value === String(lastConfig[key]);
   }));
   check("countdowns never write HA service or state", serviceCalls === 0);
   check("real browser resource registration", customElements.get("salah-timetable-card") === SalahTimetableCard && window.customCards.some(item => item.type === "salah-timetable-card"));
