@@ -297,9 +297,11 @@ Yesterday or Tomorrow, and hides when the Hijri date is hidden.
 The card bundles 20 WebP photographs from free Unsplash photo pages. They
 are served from the integration itself, without remote requests or an Unsplash
 account. Photo backgrounds rotate once per mosque-local published date by
-default and do not repeat until all 20 have appeared. In the editor, open **Appearance → Mosque background** to choose a fixed
-photograph or select **Off — no background** to hide it. The old background-opacity overlay and
-editor option have been removed. Saved cards containing
+default and do not repeat until all 20 have appeared.
+
+In the editor, open **Appearance → Mosque background** to choose a fixed
+photograph or select **Off — no background** to hide it. The old
+background-opacity overlay and editor option have been removed. Saved cards containing
 `mosque_background_opacity` are accepted, but that obsolete value is ignored
 and stripped when the configuration is normalised.
 
