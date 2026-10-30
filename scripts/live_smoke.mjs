@@ -222,10 +222,10 @@ try {
   const previousJamaat = sensors.find(item => item.unique_id.endsWith("_previous_jamaat"));
   assert.ok(previousJamaat, "Previous Jamaat must remain available to enable");
   assert.equal(previousJamaat.disabled_by, "integration");
-  assert.equal(sensors.filter(item => item.disabled_by === null).length, 25);
+  assert.equal(sensors.filter(item => item.disabled_by === null).length, 26);
   assert.ok(!ids.includes(previousJamaat.entity_id), "Disabled Previous Jamaat must not have a live state");
   activeSocket.close(); activeSocket = undefined;
-  report.checks.push("mosque_config_flow", "authenticated_csv_upload_mapping_review_approval", "25_enabled_sensors", "previous_jamaat_registered_disabled_by_default");
+  report.checks.push("mosque_config_flow", "authenticated_csv_upload_mapping_review_approval", "26_enabled_sensors", "27_registered_sensors", "previous_jamaat_registered_disabled_by_default");
   const calendarId = "calendar.smoke_mosque_prayer_calendar";
   const calendarPath = `/api/calendars/${calendarId}?start=${today}T00:00:00Z&end=${new Date(Date.parse(`${today}T00:00:00Z`) + 86400000).toISOString()}`;
   const calendarEvents = () => request(calendarPath);
