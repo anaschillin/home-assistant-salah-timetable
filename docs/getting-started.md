@@ -51,7 +51,8 @@ for the sensors and calendar created for each mosque.
 1. Choose **Edit dashboard → Add card → Salah Timetable**.
 2. Select the mosque's **Prayer timetable** sensor (not an individual Fajr or Dhuhr sensor).
 3. Choose **Compact**, **Standard** or **Detailed** in the graphical editor.
-4. If more than one mosque is configured, use **Mosques available on this card** to select which mosques appear. Separate cards and dashboards may show different mosques.
+4. Expand the relevant settings section to configure dates, countdowns, Ramadan, appearance or timetable tools. On/off features use switches; background choices are in **Appearance → Mosque background**.
+5. If more than one mosque is configured, use **Mosques available on this card** to select which mosques appear. Separate cards and dashboards may show different mosques.
 
 The Yesterday, Today and Tomorrow controls display approved source rows for the selected day. The calculated Hijri header is for display only; it does not activate Ramadan or change published timestamps.
 
