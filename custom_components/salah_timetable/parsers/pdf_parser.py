@@ -102,8 +102,70 @@ class PipeTableLayout:
         return output.getvalue()
 
 
+class SpacedTextTableLayout:
+    """Conservative text table with an ISO Date column and >=2-space separators.
+
+    Only clean, fully accounted-for text tables are accepted. Unknown notes,
+    single-space columns, merged cells or scanned documents remain unsupported.
+    """
+
+    def to_csv(self, pages: tuple[str, ...]) -> str:
+        output = io.StringIO(newline="")
+        writer = csv.writer(output, lineterminator="\n")
+        header = None
+        count = 0
+        for page in pages:
+            page_rows = 0
+            page_header = False
+            for raw in page.splitlines():
+                line = raw.strip()
+                if not line:
+                    continue
+                cells = tuple(re.split(r"\s{2,}", line))
+                if cells[0] == "Date":
+                    if not 2 <= len(cells) <= 32 or len(set(cells)) != len(cells):
+                        raise ImportValidationError("Invalid PDF text-table header")
+                    if any(not value or len(value) > 256 for value in cells):
+                        raise ImportValidationError(
+                            "Invalid PDF text-table column name"
+                        )
+                    if header is None:
+                        header = cells
+                        writer.writerow(header)
+                    elif cells != header:
+                        raise ImportValidationError("PDF text-table headers differ")
+                    page_header = True
+                    continue
+                if not page_header or header is None or len(cells) != len(header):
+                    raise ImportValidationError(
+                        "PDF text-table rows must match the visible repeated header"
+                    )
+                if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", cells[0]):
+                    raise ImportValidationError("PDF text-table requires ISO dates")
+                if any(
+                    cell not in {"-", "—"}
+                    and not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", cell)
+                    for cell in cells[1:]
+                ):
+                    raise ImportValidationError("PDF text-table requires HH:MM times")
+                writer.writerow(
+                    (
+                        cells[0],
+                        *(("" if cell in {"-", "—"} else cell) for cell in cells[1:]),
+                    )
+                )
+                page_rows += 1
+                count += 1
+            if not page_header or not page_rows:
+                raise ImportValidationError("Every PDF page needs a dated text table")
+        if not count:
+            raise ImportValidationError("No dated PDF text-table rows")
+        return output.getvalue()
+
+
 _LAYOUTS: dict[str, PdfLayout] = {
     "pdf_table_v1": PipeTableLayout(),
+    "pdf_spaced_v1": SpacedTextTableLayout(),
     "mosque_a_annual_v1": MosqueALayout(),
     "mosque_a_monthly_v1": MosqueAMonthlyLayout(),
     "mosque_b_ramadan_v1": MosqueBRamadanLayout(),
@@ -113,10 +175,12 @@ _LAYOUTS: dict[str, PdfLayout] = {
 # A monthly source remains an ordinary, partially covered annual timetable.
 # A Ramadan selection changes override semantics, not the published dates.
 _AUTO_LAYOUTS = {
-    "annual": frozenset({"mosque_a_annual_v1", "mosque_b_annual_v1", "pdf_table_v1"}),
-    "monthly": frozenset({"mosque_a_monthly_v1", "pdf_table_v1"}),
+    "annual": frozenset(
+        {"mosque_a_annual_v1", "mosque_b_annual_v1", "pdf_table_v1", "pdf_spaced_v1"}
+    ),
+    "monthly": frozenset({"mosque_a_monthly_v1", "pdf_table_v1", "pdf_spaced_v1"}),
     "ramadan": frozenset(
-        {"mosque_a_monthly_v1", "mosque_b_ramadan_v1", "pdf_table_v1"}
+        {"mosque_a_monthly_v1", "mosque_b_ramadan_v1", "pdf_table_v1", "pdf_spaced_v1"}
     ),
 }
 
@@ -206,6 +270,9 @@ class PdfParser:
             matches.append((layout_id, converted))
         permitted = _AUTO_LAYOUTS[self.import_type]
         selected = [(name, csv_text) for name, csv_text in matches if name in permitted]
+        # Established reviewed adapters win over the generic text-table fallback.
+        if any(name != "pdf_spaced_v1" for name, _csv_text in selected):
+            selected = [item for item in selected if item[0] != "pdf_spaced_v1"]
         if not selected:
             if matches:
                 raise ImportValidationError(
