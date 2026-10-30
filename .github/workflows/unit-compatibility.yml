@@ -55,7 +55,7 @@ jobs:
           python-version: '3.14'
       - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
-          version: '0.12.23'
+          version: '0.13.6'
       - name: Install separately locked compatibility environment
         run: |
           uv sync --project "$COMPAT_PROJECT" --frozen --python python3.14 --no-python-downloads

@@ -4,6 +4,7 @@ This page records **future work only**, not completed milestones or old pull req
 
 ## Planned improvements
 
+- **Upstream dependency advisories:** adopt supported Home Assistant fixes for the Pillow and minimum-lane uv alerts without overriding Home Assistant's exact requirements; track candidate-specific evidence in the release review and [dependency alerts](https://github.com/anaschillin/home-assistant-salah-timetable/security/dependabot).
 - **Home Assistant Integration Quality Scale:** address the [remaining Platinum gaps in the 54-rule audit](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit): strict typing and HA-managed HTTP sessions with the current public-only DNS/redirect protections preserved. Review rule-specific evidence, the custom branding route and each exemption before claiming a tier.
 - **Verified timetable coverage:** support additional annual, monthly and Ramadan publications only with reviewed examples and independent expected results; preserve strict date, format and HTTPS validation.
 - **Prayer completeness follow-up:** consider optional event-driven alerts for missing required fields; the existing date-coverage health blueprint remains unchanged.
@@ -14,9 +15,7 @@ This page records **future work only**, not completed milestones or old pull req
 
 ## Deferred or exploratory
 
-- **Further integration translations and reviewed Arabic wording:** on hold. Preserve current identifiers and data behaviour; no target release date is assigned.
-- **Night calculations:** investigate clearly labelled calculated midnight/last-third values, separate from mosque publications.
-- **Mosque display mode:** explore wall/tablet presentation and user-controlled announcements.
+- **Additional integration translations and Arabic wording review:** on hold. The card already supports English/Arabic labels and RTL; Home Assistant setup/entity translations currently ship in English. Preserve identifiers and data behaviour; no target release date is assigned.
 - **Special prayer events:** consider only events with verified publication dates.
 - **Islamic history companion:** research only; resolve date authenticity, editorial scope and rights before considering a runtime dataset. See [source review](../research/islamic-history/islamic-history-source-audit.md).
 

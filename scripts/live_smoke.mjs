@@ -26,7 +26,7 @@ for (let index = 2; index < process.argv.length; index++) {
   else if (argument === "--preload-pypdf") options.preload = true;
   else if (argument === "--verify-backup-restore") options.verifyBackupRestore = true;
   else if (argument === "--help") {
-    console.log(`node scripts/live_smoke.mjs [--ha-version ${options.version}] [--output-dir PATH] [--preload-pypdf | --require-fresh-dependency] [--ca-bundle PATH] [--verify-backup-restore]\nRequires Docker, Node.js 24 and Chromium/Chrome (CHROME_BIN optional). Creates and removes its own container/configuration. --preload-pypdf explicitly supplies the locked local dependency instead of testing fresh installation. --require-fresh-dependency verifies absence before and the manifest-pinned import after setup. --ca-bundle mounts a trusted combined CA bundle read-only for dependency installation; TLS verification remains enabled.`);
+    console.log(`node scripts/live_smoke.mjs [--ha-version ${options.version}] [--output-dir PATH] [--preload-pypdf | --require-fresh-dependency] [--ca-bundle PATH] [--verify-backup-restore]\nRequires Docker, supported Node.js (see CONTRIBUTING.md), and Chromium/Chrome (CHROME_BIN optional). Creates and removes its own container/configuration. --preload-pypdf explicitly supplies the locked local dependency instead of testing fresh installation. --require-fresh-dependency verifies absence before and the manifest-pinned import after setup. --ca-bundle mounts a trusted combined CA bundle read-only for dependency installation; TLS verification remains enabled.`);
     process.exit(0);
   } else throw new Error(`Unknown argument: ${argument}`);
 }

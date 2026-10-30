@@ -1,14 +1,14 @@
 # Test suite guide
 
-Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.2<!-- /docs:pypdf --> (from the integration manifest).
+Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.4<!-- /docs:pypdf --> (from `versions.toml`, mirrored into the integration manifest).
 
-Validated against Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> (pinned current).
+Pinned compatibility targets: Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested --> (pinned current).
 
-This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 54 Python test modules are grouped by the behaviour they protect, not by test framework. All 13 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
+This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 54 Python test modules are grouped by the behaviour they protect, not by test framework. All 14 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
 
-Install the locked Python dependencies and use Node.js 24:
+Install the locked Python dependencies and use Node.js <!-- docs:node_major -->24<!-- /docs:node_major --> with uv <!-- docs:uv -->0.13.6<!-- /docs:uv -->:
 
 <!-- docs:excerpt development-checks -->
 ```sh
@@ -197,37 +197,46 @@ PDF worker white-box coverage supplements, but does not replace, real isolated-s
 ## Compatibility test environments
 
 The root test lock and supported-current compatibility lane target Home Assistant
-**<!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->** in the root `pyproject.toml` and `uv.lock`. Two independent
+**<!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested -->**. `versions.toml`
+owns that target and its matching test-plugin pin; the project metadata and
+marked values in this guide are generated mirrors, while `uv.lock` records the
+resolved environment. Two independent
 projects run the same complete Python suite against supported releases:
 
 | Lane | Home Assistant | Test plugin | Separate project |
 | --- | --- | --- | --- |
 | Minimum | <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> | <!-- docs:test_plugin_min -->0.13.371<!-- /docs:test_plugin_min --> | `compatibility/minimum` |
-| Supported current | <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested --> | <!-- docs:test_plugin_tested -->0.13.374<!-- /docs:test_plugin_tested --> | `compatibility/supported-current` |
+| Supported current | <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested --> | <!-- docs:test_plugin_tested -->0.13.375<!-- /docs:test_plugin_tested --> | `compatibility/supported-current` |
 
 Each `pytest-homeassistant-custom-component` release requires its exact HA
-version. The compatibility projects preserve those requirements and resolve
-their own committed locks. They do not override dependencies or replace the
-root development environment. Python must be **<!-- docs:python_min -->3.14.2<!-- /docs:python_min --> or later in 3.14**.
+version. The compatibility projects receive their version pairs from `versions.toml`
+and resolve their own committed locks. They do not override dependencies or replace the
+root development environment. Python must be **<!-- docs:python_min -->3.14.2<!-- /docs:python_min --> or later
+within the supported Python series**.
 
 “Supported current” means the reviewed support target rather than the latest
 release available on PyPI. Promoting a newer Home Assistant/plugin pair
-requires an explicit support update and verification.
+requires an explicit support update and verification. Follow the
+[central version workflow](../CONTRIBUTING.md#keeping-documentation-variables-current):
+edit `versions.toml`, run `python scripts/sync_versions.py --write`, then regenerate
+affected locks with uv. `python scripts/sync_versions.py --check` rejects drift in
+the generated code, configuration and documentation before test execution.
 
 ### Run a lane locally
 
-Run these commands from the repository root, with uv 0.12.23 and Python 3.14
-available. `uv sync --project` creates the lane's own `.venv`; it leaves the
+Run these commands from the repository root, with uv <!-- docs:uv -->0.13.6<!-- /docs:uv --> and the
+supported Python series available. `uv sync --project` creates the lane's own `.venv`; it leaves the
 repository's root `.venv` and lock unchanged. The explicit environment setting
 below also takes precedence over an inherited `UV_PROJECT_ENVIRONMENT`.
-The version variables come from the pinned compatibility project files.
+The version variables are exported from `versions.toml`, using the same values
+as the generated compatibility projects.
 
 ```sh
 source <(python3 scripts/sync_documentation.py --shell)
 COMPAT_ENV="$PWD/compatibility/minimum/.venv"
 COMPAT_TMPDIR="$(mktemp -d /tmp/salah-unit-minimum.XXXXXX)"
 UV_PROJECT_ENVIRONMENT="$COMPAT_ENV" TMPDIR="$COMPAT_TMPDIR" \
-  uv sync --project compatibility/minimum --frozen --python python3.14 --no-python-downloads
+  uv sync --project compatibility/minimum --frozen --python "$PYTHON_SERIES" --no-python-downloads
 TMPDIR="$COMPAT_TMPDIR" uv pip check --python "$COMPAT_ENV/bin/python"
 TMPDIR="$COMPAT_TMPDIR" "$COMPAT_ENV/bin/python" scripts/check_compatibility_environment.py \
   --ha-version "$HA_MIN_VERSION" --plugin-version "$PLUGIN_MIN_VERSION" \
@@ -269,7 +278,7 @@ and failure evidence collection are retained.
 
 The separately locked root development suite provides another layer of
 validation. The **one** real Home Assistant Container live-acceptance job runs
-on supported-current **<!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->**. Unit compatibility uses Home Assistant
+on supported-current **<!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested -->**. Unit compatibility uses Home Assistant
 test fixtures; live acceptance checks real installation, dependencies,
 configuration, reload, and frontend behavior. These are complementary checks,
 not duplicates. Both reusable workflows can also run manually and on their
@@ -277,14 +286,14 @@ existing weekly schedules.
 
 ## Disposable Home Assistant live testing
 
-The runner is used by the required **supported-current HA <!-- docs:homeassistant_tested -->2026.10.3<!-- /docs:homeassistant_tested -->** live job
+The runner is used by the required **supported-current HA <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested -->** live job
 in Validate and can also run manually. The reusable live workflow runs weekly as a
 compatibility check. It creates a
 disposable official HA container and synthetic timetable, runs authenticated APIs
 and the real frontend, and removes its container and private configuration afterward.
 No user configuration or credentials are checked into the repository.
 
-Requirements: Docker, Node.js 24 and Chromium/Chrome. Example:
+Requirements: Docker, Node.js <!-- docs:node_major -->24<!-- /docs:node_major --> and Chromium/Chrome. Example:
 
 ```sh
 source <(python3 scripts/sync_documentation.py --shell)
@@ -327,11 +336,9 @@ configuration files and authenticated-session logs are not exported. The
 ten-minute run deadline and scoped cleanup remain mandatory. Docker creates/copies
 can take several minutes in this environment.
 
-The current runner supersedes an earlier unsuccessful attempt. Its restart timeout
-was unresolved then; it is not proof of a storage bug.
-Authenticated HACS installation remains outside this manual-install result.
-Physical-device completion is recorded separately as user-confirmed acceptance. Fresh dependency installation is now explicitly verified
-within the local 0.6.2 minimum-version run described above.
+Record candidate-specific outcomes in the pull request or release review.
+Authenticated HACS installation and physical-device acceptance remain separate
+checks; historical local runs do not establish the current candidate's readiness.
 
 ### UTC midnight stability
 

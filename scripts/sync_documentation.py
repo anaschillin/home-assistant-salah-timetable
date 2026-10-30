@@ -10,10 +10,12 @@ import json
 import posixpath
 import re
 import shlex
-import tomllib
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+if __package__:
+    from .versions import ROOT, load_versions
+else:
+    from versions import ROOT, load_versions
 
 # Single source for retired guide routes. The optional suffix is the landing section.
 GUIDE_ROUTES = {
@@ -56,44 +58,8 @@ EXCERPT_OPEN = re.compile(r"<!-- docs:excerpt [a-z][a-z0-9-]* -->")
 
 
 def metadata(root: Path) -> dict[str, str]:
-    manifest = json.loads(
-        (root / "custom_components/salah_timetable/manifest.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
-    values = {"version": manifest["version"]}
-    values["python_min"] = re.search(
-        r">=\s*(\d+\.\d+(?:\.\d+)?)", project["project"]["requires-python"]
-    ).group(1)
-    requirement = next(
-        dep for dep in manifest["requirements"] if dep.startswith("pypdf==")
-    )
-    values["pypdf"] = requirement.split("==", 1)[1]
-    for key, location in (
-        ("homeassistant_min", "minimum"),
-        ("homeassistant_tested", "supported-current"),
-    ):
-        setting = tomllib.loads(
-            (root / "compatibility" / location / "pyproject.toml").read_text(
-                encoding="utf-8"
-            )
-        )
-        requirement = next(
-            d
-            for d in setting["project"]["dependencies"]
-            if d.startswith("homeassistant==")
-        )
-        values[key] = requirement.split("==", 1)[1]
-        plugin = next(
-            d
-            for d in setting["project"]["dependencies"]
-            if d.startswith("pytest-homeassistant-custom-component==")
-        )
-        values["test_plugin_min" if location == "minimum" else "test_plugin_tested"] = (
-            plugin.split("==", 1)[1]
-        )
-    return values
+    """Read documentation and CI values from the authoritative version file."""
+    return load_versions(root)
 
 
 def shell_assignments(values: dict[str, str]) -> str:
@@ -101,6 +67,9 @@ def shell_assignments(values: dict[str, str]) -> str:
     names = {
         "INTEGRATION_VERSION": "version",
         "PYTHON_MIN_VERSION": "python_min",
+        "PYTHON_SERIES": "python_minor",
+        "NODE_MAJOR_VERSION": "node_major",
+        "UV_VERSION": "uv",
         "PYPDF_VERSION": "pypdf",
         "HA_MIN_VERSION": "homeassistant_min",
         "HA_TESTED_VERSION": "homeassistant_tested",
@@ -231,14 +200,18 @@ def synchronise(root: Path = ROOT, write: bool = False) -> list[str]:
     """Return changed file names; write them only when explicitly requested."""
     values = metadata(root)
     differences = []
-    for path in sorted(root.rglob("*.md")):
-        if set(path.relative_to(root).parts) & {
-            ".venv",
-            ".git",
-            "node_modules",
-            "dist",
-        }:
-            continue
+    # Prune before descending: local venvs can contain thousands of unrelated
+    # Markdown files and links to test fixtures absent from installed wheels.
+    paths = []
+    for directory, directories, filenames in root.walk():
+        directories[:] = [
+            name
+            for name in directories
+            if name not in {".git", "node_modules", "dist", "venv"}
+            and not name.startswith((".venv", "venv-"))
+        ]
+        paths.extend(directory / name for name in filenames if name.endswith(".md"))
+    for path in sorted(paths):
         relative = path.relative_to(root)
         original = path.read_text(encoding="utf-8")
         expected = rewrite_links(relative, original)

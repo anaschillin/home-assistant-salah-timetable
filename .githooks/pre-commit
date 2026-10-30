@@ -2,4 +2,5 @@
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
+uv run --frozen python scripts/sync_versions.py --check
 exec uv run --frozen --with pre-commit pre-commit run --config .pre-commit-config.yaml

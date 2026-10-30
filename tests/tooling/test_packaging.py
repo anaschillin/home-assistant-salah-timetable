@@ -24,7 +24,7 @@ def release_source(tmp_path):
         root / INTEGRATION,
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
     )
-    for name in ("LICENSE", "pyproject.toml"):
+    for name in ("LICENSE", "pyproject.toml", "versions.toml"):
         shutil.copyfile(PROJECT_ROOT / name, root / name)
     return root
 
@@ -145,6 +145,22 @@ def test_mismatched_versions_are_rejected(release_source, name, old, new, error)
     assert old in text
     path.write_text(text.replace(old, new))
     with pytest.raises(ValueError, match=error):
+        check_versions(release_source)
+
+
+def test_generated_versions_cannot_replace_central_authority(release_source):
+    """Even mutually consistent generated files cannot override versions.toml."""
+    version = check_versions(release_source)
+    for name in (
+        "pyproject.toml",
+        "custom_components/salah_timetable/manifest.json",
+        "custom_components/salah_timetable/frontend.py",
+        "custom_components/salah_timetable/frontend/salah-timetable-card.js",
+        "custom_components/salah_timetable/frontend/card-utils.js",
+    ):
+        path = release_source / name
+        path.write_text(path.read_text().replace(version, "999.0.0"))
+    with pytest.raises(ValueError, match="versions.toml"):
         check_versions(release_source)
 
 

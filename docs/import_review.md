@@ -16,6 +16,7 @@ import; no timetable is active until you explicitly approve it.
 | --- | --- | --- |
 | Mosque settings → Mosque timezone | Current saved IANA timezone | Reinterprets published local clock times in the chosen zone; check timestamps after changing it. |
 | Mosque settings → Show full calculated Hijri date | Saved preference; initially enabled | Dashboard display only. Card preferences can hide the header independently. |
+| Mosque settings → Required published fields for Prayer completeness | Five daily Salah beginnings by default; at least one unique field | Select the daily beginnings, their Jamaat fields and/or Sunrise to assess. Changes affect the [completeness diagnostic](automations.md#prayer-completeness), not imported values or date coverage. |
 | Add or replace a URL source → URL | Required; no default | Public HTTPS PDF/CSV address, without credentials or private-network destinations, using port 443. |
 | URL source → File type | PDF (default) or CSV | Select the actual publication format; neither an HTML page nor a scanned PDF is supported. |
 | PDF upload → PDF file | Required; no default | Text PDF, at most 4 MiB and 16 pages, in a [supported layout](#supported-pdf-layouts). |
@@ -28,6 +29,8 @@ import; no timetable is active until you explicitly approve it.
 | Map columns → Prayer fields | Unique recognised headers are suggested; otherwise Do not import this field | Map only published fields. At least one prayer field is required; a physical column cannot be reused or also mapped as the date. All sixteen supported fields are listed in the [entity reference](automations.md#entities-per-mosque). |
 | Review → Action | Compare changes, Approve and save timetable, or Reject and keep the active timetable; no default decision | Comparison is read-only. Approval replaces the complete target source; rejection retains approved data. |
 | Compare → Next step | Return to approval/rejection, plus Previous/Next page when available | Navigate all change pages without approving or changing the timetable. |
+| Prepare next year's URL publication → Approved current-year source | Required eligible approved annual URL profile; no default | Derives the next Gregorian year and reuses the source's PDF/CSV format. See [guided rollover](#guided-annual-publication-rollover). |
+| Prepare next year's URL publication → Next year's published HTTPS URL | Required; no default | Supply the actual new publication URL; mapping and explicit approval are still required. |
 | Manage URL sources → Source | One configured source; no default | Select the source to check or remove. |
 | Manage URL sources → Action | Check or Remove; no default | Check stages valid changes for approval. Remove stops checks while retaining approved timetable rows. |
 
@@ -52,8 +55,9 @@ fallbacks, and [Dashboard](dashboard.md#ramadan-controls) for display behaviour.
 
 ### When data updates
 
-The coordinator refreshes date/event snapshots once per minute while the mosque
-is loaded; card countdowns tick in the browser. These refreshes use already
+The coordinator refreshes date/event snapshots at prayer-event and mosque-local
+date boundaries, with a one-minute fallback while the mosque is loaded; card
+countdowns tick in the browser. These refreshes use already
 approved data and do not download a timetable. Uploaded files change only after
 another import is approved.
 
@@ -184,9 +188,11 @@ layout detection, column mapping, preview, comparison and explicit
 approval flow. It never guesses publisher URL patterns, overwrites the
 prior year's data or activates a new source without review.
 
-The flow appears only for a canonical approved annual URL profile with
-substantial yearly coverage. It is unavailable if another import awaits
-review; it also rejects a year that already has approved annual data or
+The flow is offered only for a canonical approved annual URL profile
+(`annual-<year>`) below the maximum supported year, with at least 300 approved
+dated rows. This eligibility threshold is not a promise of complete annual
+coverage; inspect the new publication's dates and missing fields during review.
+It is unavailable if another import awaits review; it also rejects a year that already has approved annual data or
 an existing URL profile. This initial guided rollover does not
 automatically discover future publications; auto-discovery needs an
 explicitly configured publisher URL template and independent tests.

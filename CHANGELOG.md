@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.9.20 — unreleased
+
+- Centralize current release, dependency, toolchain and compatibility versions in
+  `versions.toml`; generate required code/configuration/documentation copies with
+  one command and reject version drift in CI.
+- Use patched uv 0.13.6 to install CI environments ([CA trust advisory](https://github.com/advisories/GHSA-hq85-5cpj-mr62)).
+- Update pypdf to 6.21.4 for [upstream reader security fixes](https://pypdf.readthedocs.io/en/stable/meta/CHANGELOG.html#version-6-21-4-2026-10-28);
+  keep the runtime, development and both compatibility locks aligned.
+- Reject import proposals if the integration reloads during monthly/source
+  preparation; check the active runtime immediately before staging.
+- Prune local virtual environments before checking documentation, and enforce
+  LF fixture CSV bytes so provenance checks also work on Windows checkouts.
+- Move the supported-current Home Assistant test lane to 2026.10.4 with
+  pytest-homeassistant-custom-component 0.13.375; retain minimum support for
+  Home Assistant 2026.10.0. Update Ruff and its pre-commit hooks to 0.17.3.
+- Document existing prayer completeness checks, optional night calculations,
+  kiosk display, authenticated monthly tables/CSV export, conservative generic
+  PDF recognition and explicitly approved annual URL rollover.
+- Remove completed roadmap proposals and dated acceptance diaries, correct
+  module inventories and research boundaries, and complete contributor guidance.
+
 ## 0.9.19 — maintenance (29 October 2026)
 
 - Preserve the focused day-navigation button and multi-mosque header selector after the card refreshes its Shadow DOM, with Chromium keyboard-focus regressions.

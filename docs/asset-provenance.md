@@ -28,6 +28,10 @@ checksums and the presence of evidence. Use
 release gate that rejects unresolved entries. A passing check **does not**
 authenticate external licence pages or prove exclusive ownership.
 
+Fixture CSVs are checked out with LF line endings through `.gitattributes`
+so their byte checksums remain stable on Windows and Linux. Do not change the
+inventory hashes merely to accept line-ending conversion.
+
 When replacing or adding media, verify provenance and redistribution rights,
 then update the inventory hashes. Do not classify a modified publisher image
 or PDF as original merely because it was reformatted or anonymised.

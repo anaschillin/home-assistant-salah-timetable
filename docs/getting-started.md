@@ -35,6 +35,11 @@ configuration; prayer values become available after a supported import is approv
 4. Review the detected layout, dates, warnings and prayer values. Use **Compare changes before approval** when replacing approved data.
 5. Choose **Approve and save timetable** to activate it, or reject it to retain existing approved data. If importing Ramadan times, confirm the Ramadan date window separately in mosque settings.
 
+For an approved annual URL source, **Prepare next year's URL publication**
+starts a separate new-year import using a URL you supply. Check its
+[eligibility and review requirements](import_review.md#guided-annual-publication-rollover);
+the current year remains available until its own published coverage ends.
+
 PDF imports recognise **only** [documented layouts](import_review.md#supported-pdf-layouts). Scanned pages and unknown layouts are unsupported; CSV may be a suitable alternative. Never invent missing times.
 
 See the [configuration reference](import_review.md#configuration-fields-and-defaults)

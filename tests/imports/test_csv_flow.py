@@ -603,3 +603,64 @@ async def test_uninitialised_mapping_step_fails_without_upload():
     result = await flow.async_step_map_columns()
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "upload_expired"
+
+
+@pytest.mark.parametrize(
+    ("monthly", "remote", "reload_after"),
+    [(True, False, 2), (False, True, 2), (True, True, 3)],
+    ids=["monthly-identity", "remote-provenance", "monthly-remote-provenance"],
+)
+async def test_reload_during_candidate_preparation_does_not_persist_proposal(
+    hass, entry, monthly, remote, reload_after
+):
+    """A retired runtime must not stage a proposal after executor preparation."""
+    from types import SimpleNamespace
+
+    from custom_components.salah_timetable.imports.import_flow import (
+        CsvImportOptionsFlow,
+    )
+
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    original = entry.runtime_data
+    flow = CsvImportOptionsFlow()
+    flow.hass = hass
+    flow._content = CSV
+    flow._year = 2026
+    flow._monthly = monthly
+    flow._coordinator = lambda: entry.runtime_data
+    if remote:
+        flow._remote_url = "https://mosque.example.org/timetable.csv"
+        flow._download_result = SimpleNamespace(etag=None, last_modified=None)
+
+    executor = hass.async_add_executor_job
+    completed = 0
+    reloaded = False
+
+    async def reload_after_preparation(target, *args):
+        nonlocal completed, reloaded
+        result = await executor(target, *args)
+        completed += 1
+        if not reloaded and completed == reload_after:
+            reloaded = True
+            assert await hass.config_entries.async_reload(entry.entry_id)
+            await hass.async_block_till_done()
+        return result
+
+    with patch.object(
+        hass, "async_add_executor_job", side_effect=reload_after_preparation
+    ):
+        staged = await flow._stage_mapped_candidate(
+            {"date_column": "Date", "time_format": "24h"},
+            {"Fajr Start": "fajr_begin"},
+            original,
+        )
+
+    assert reloaded
+    assert entry.runtime_data is not original
+    assert not staged
+    assert original.storage.staged is None
+    await entry.runtime_data.storage.async_load()
+    assert entry.runtime_data.storage.staged is None
+    assert entry.runtime_data.storage.remote_sources == {}
+    assert entry.runtime_data.storage.timetables == ()

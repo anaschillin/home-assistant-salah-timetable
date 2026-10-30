@@ -198,4 +198,9 @@ When explicitly authorised to merge, prefer squash merging and clean up the asso
 
 Before significant changes, assess:
 
-- Existing user
+- Effects on existing configuration, entities, approved timetables and pending imports.
+- Storage migration, reload/unload behaviour and recovery if a write fails.
+- Supported Home Assistant/Python versions and dependency compatibility.
+- Appropriate regression tests and user-facing documentation.
+
+Record verified results and remaining limitations in the pull request. Preserve user data and explicit timetable approval throughout the change.

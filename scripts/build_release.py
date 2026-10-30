@@ -10,7 +10,12 @@ import tomllib
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if __package__:
+    from .versions import ROOT as PROJECT_ROOT
+    from .versions import load_versions
+else:
+    from versions import ROOT as PROJECT_ROOT
+    from versions import load_versions
 INTEGRATION = Path("custom_components/salah_timetable")
 REQUIRED_FILES = {
     "__init__.py",
@@ -46,6 +51,8 @@ def check_versions(root: Path) -> str:
         raise ValueError(
             "The manifest must declare salah_timetable and a valid version"
         )
+    if version != load_versions(root)["version"]:
+        raise ValueError("manifest.json version must equal versions.toml")
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
     if project["project"]["version"] != version:
         raise ValueError("pyproject.toml and manifest.json versions differ")

@@ -1,10 +1,10 @@
 # Building and accepting a release
 
-Current integration version: <!-- docs:version -->0.9.19<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->0.9.20<!-- /docs:version -->.
 
 ## Current release readiness
 
-Check the **exact candidate commit and version**; do not reuse validation claims from older changes. Manifest/project/frontend versions and release notes must agree. A successful CI run does not prove an authenticated HACS UI installation or every Home Assistant OS use case.
+Check the **exact candidate commit and version**; do not reuse validation claims from older changes. The generated manifest/project/frontend versions must agree with `versions.toml` and the release notes. A successful CI run does not prove an authenticated HACS UI installation or every Home Assistant OS use case.
 
 **Required:** passing Validate and CodeQL on the candidate commit, package/version checks, checksum review and documented relevant manual HACS/Home Assistant acceptance.
 
@@ -14,9 +14,21 @@ Check the **exact candidate commit and version**; do not reuse validation claims
 
 ## Build and verify
 
-Update `custom_components/salah_timetable/manifest.json`, `pyproject.toml`, `uv.lock` where dependencies changed, the frontend card/cache version strings and `CHANGELOG.md` consistently.
+Edit the release version or dependency/toolchain pins only in
+[`versions.toml`](../versions.toml), then run `python scripts/sync_versions.py --write`.
+This refreshes required metadata, frontend cache/import query versions, CI values
+and documentation together. Keep the candidate's `CHANGELOG.md` heading and notes
+accurate; historical release headings remain unchanged.
+
+Regenerate `uv.lock` with `uv lock` after changing the root project version or pins,
+and regenerate affected compatibility locks after their dependency pins change.
+See the [central version workflow](../CONTRIBUTING.md#keeping-documentation-variables-current)
+for the lane commands. The synchronizer does not resolve or download dependencies.
+Commit the central configuration, generated files and locks together before
+running the candidate checks:
 
 ```sh
+python scripts/sync_versions.py --check
 uv sync --frozen --group dev
 uv run --frozen pytest --cov-branch --cov-fail-under=0 --cov-report=json:coverage-branch.json
 uv run --frozen python scripts/check_coverage.py coverage-branch.json
@@ -94,7 +106,7 @@ delivery/runner queues determine cleanup timing.
 
 The manually triggered **Prepare draft release** workflow accepts an existing `vMAJOR.MINOR.PATCH` tag for a commit on `main` with a passing Validate push run. It validates versions, changelog, ancestry and checksum, and creates a **draft**, not a published release.
 
-For a local read-only review **after the matching tag exists**, use its version from the manifest:
+For a local read-only review **after the matching tag exists**, export its version from the central configuration:
 
 ```sh
 source <(python3 scripts/sync_documentation.py --shell)
@@ -224,7 +236,7 @@ restore/restart acceptance.
 
 Audit reviewed: 30 October 2026, against [the official 54-rule checklist](https://contributors.home-assistant.io/core/quality-scale/rules/), including each rule's applicability and exceptions. This is an **internal best-effort review of a custom HACS integration**, not an official Core tier or formal certification. A row marked **Implemented** means the required feature or convention is present with the cited evidence, not that every real Home Assistant version or UI journey has passed acceptance. **Verify** means additional evidence is required; **Gap** means known incomplete work. **N/A (reviewed)** identifies a specific official exception and its implementation evidence; absence of physical hardware alone is not a blanket exemption.
 
-Local validation of this change on Home Assistant **2026.10.3**, Python **3.14.8**: **1,146 Python tests passed**, **99.53% line coverage** and **98.31% branch coverage**. All 34 integration modules pass the per-module guard (five empty package initializers have no executable statements); the lowest measurable combined coverage is **96.69%** in `domain/model.py`. All three configuration/options flow modules have **100% line and branch coverage**. Ruff, documentation synchronization, Node tests, Chromium smoke and release packaging checks passed. This run does not establish new minimum-version HA compatibility or hosted HACS/hassfest/CodeQL results; those remain candidate-specific CI checks.
+Keep candidate-specific test counts, coverage reports, installed versions and CI links in the pull request or release review. Re-run the [current validation commands](testing.md#run-and-debug) after code or dependency changes; historical results do not establish release readiness.
 
 Do not set `manifest.json` to a claimed Core quality tier solely on this audit. Any future tier claim requires the official rule-specific tests and a maintainer review of each exemption.
 

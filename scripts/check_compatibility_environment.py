@@ -6,6 +6,11 @@ import sys
 from importlib.metadata import version
 from pathlib import Path
 
+if __package__:
+    from .versions import load_versions
+else:
+    from versions import load_versions
+
 
 def verify_environment(
     *,
@@ -16,8 +21,14 @@ def verify_environment(
     """Check distribution metadata, imported HA code and the interpreter prefix."""
     from homeassistant.const import __version__ as imported_ha_version
 
-    if not (3, 14, 2) <= sys.version_info[:3] < (3, 15):
-        raise ValueError(f"Expected Python 3.14.2 or later in 3.14, got {sys.version}")
+    pins = load_versions()
+    python_min = tuple(map(int, pins["python_min"].split(".")))
+    python_minor = tuple(map(int, pins["python_minor"].split(".")))
+    if sys.version_info[:3] < python_min or sys.version_info[:2] != python_minor:
+        raise ValueError(
+            f"Expected Python {pins['python_min']} or later in "
+            f"{pins['python_minor']}, got {sys.version}"
+        )
     actual_environment = Path(sys.prefix).resolve()
     if actual_environment != environment.resolve():
         raise ValueError(
