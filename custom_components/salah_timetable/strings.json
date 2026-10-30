@@ -42,7 +42,8 @@
           "import_pdf": "Upload a supported PDF",
           "check_updates": "Check URL sources now",
           "manage_sources": "Manage URL sources",
-          "ramadan": "Ramadan settings"
+          "ramadan": "Ramadan settings",
+          "annual_rollover": "Prepare next year's URL publication"
         }
       },
       "settings": {
@@ -141,6 +142,14 @@
           "ramadan_adjustment": "Adjust confirmed window (days)",
           "ramadan_source_id": "Ramadan source"
         }
+      },
+      "annual_rollover": {
+        "title": "Prepare next year's annual timetable",
+        "description": "Select an approved annual URL source and enter the NEXT year's published HTTPS URL. The current year will remain active; downloaded new-year values must be mapped and explicitly approved. The source year is inferred from the selected approved profile, not the URL.",
+        "data": {
+          "source_id": "Approved current-year source",
+          "url": "Next year's published HTTPS URL"
+        }
       }
     },
     "error": {
@@ -154,7 +163,10 @@
       "ramadan_conflict": "Approval conflicts with the current Ramadan settings. Select a Ramadan source in Ramadan settings, then review again. The approved timetable and pending proposal have been retained.",
       "review_changed": "The approved source changed while this review was open. Check the refreshed overview and the comparison from its first page, then choose Approve again to activate this proposal.",
       "invalid_import_decision": "Choose one of the review actions shown.",
-      "invalid_completeness_fields": "Select at least one unique supported prayer field."
+      "invalid_completeness_fields": "Select at least one unique supported prayer field.",
+      "invalid_rollover": "Choose an approved annual URL source.",
+      "rollover_already_approved": "The next year already has approved annual timetable data.",
+      "rollover_already_configured": "The next year's URL source is already configured."
     },
     "abort": {
       "integration_not_loaded": "The mosque integration must be loaded before importing. Check its setup error or change its settings first.",
@@ -165,7 +177,8 @@
       "integration_reloaded": "Mosque settings changed while this dialog was open. Reopen Configure to review the current timetable.",
       "checks_complete": "URL checks completed. See the Source status sensor, or reopen Configure to review a pending import.",
       "no_remote_sources": "There are no configured URL sources.",
-      "source_save_failed": "Source settings could not be saved. Check Home Assistant storage and logs, then retry."
+      "source_save_failed": "Source settings could not be saved. Check Home Assistant storage and logs, then retry.",
+      "no_rollover_sources": "No approved full-year URL source is configured for annual rollover. Import a source using the normal URL flow first."
     }
   },
   "entity": {

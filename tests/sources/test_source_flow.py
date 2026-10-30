@@ -791,3 +791,204 @@ async def test_reload_during_url_download_requires_reopening_import(hass, entry)
     reopened = await stage_url(hass, entry)
     assert reopened["step_id"] == "review"
     assert entry.runtime_data.storage.timetables == ()
+
+
+def annual_csv(year):
+    return (
+        "Date,Fajr Start,Fajr Jamaat\n"
+        + "".join(
+            f"{date(year, 1, 1).fromordinal(date(year, 1, 1).toordinal() + day).isoformat()},05:45,06:15\n"
+            for day in range(365)
+        )
+    ).encode()
+
+
+async def test_annual_rollover_uses_explicit_new_url_and_requires_approval(hass, entry):
+    await setup_mosque(hass, entry)
+    first = await stage_url(hass, entry, content=annual_csv(2026))
+    await approve(hass, first)
+    assert (
+        "annual_rollover"
+        in (await hass.config_entries.options.async_init(entry.entry_id))[
+            "menu_options"
+        ]
+    )
+
+    flow = await open_step(hass, entry, "annual_rollover")
+    assert flow["step_id"] == "annual_rollover"
+    new_url = "https://mosque.example.org/2027.pdf"
+    fresh = b"Date,Fajr Start,Fajr Jamaat\n2027-01-01,05:46,06:15\n"
+    with patch(
+        "custom_components.salah_timetable.sources.source_flow.async_download",
+        AsyncMock(return_value=downloaded(fresh)),
+    ) as fetch:
+        form = await hass.config_entries.options.async_configure(
+            flow["flow_id"], {"source_id": "annual-2026", "url": new_url}
+        )
+    fetch.assert_awaited_once_with(new_url, media_type="csv")
+    assert form["step_id"] == "map_columns"
+    staged = await hass.config_entries.options.async_configure(
+        form["flow_id"],
+        {
+            "date_column": "Date",
+            "time_format": "24h",
+            "fajr_begin": "Fajr Start",
+        },
+    )
+    assert staged["step_id"] == "review"
+    assert entry.runtime_data.storage.staged.candidate.year == 2027
+    assert set(entry.runtime_data.storage.approved_sources) == {"annual-2026"}
+    assert set(entry.runtime_data.storage.remote_sources) == {
+        "annual-2026",
+        "annual-2027",
+    }
+    await approve(hass, staged)
+    assert set(entry.runtime_data.storage.approved_sources) == {
+        "annual-2026",
+        "annual-2027",
+    }
+
+
+async def test_annual_rollover_not_offered_without_approved_full_year(hass, entry):
+    await setup_mosque(hass, entry)
+    assert (
+        "annual_rollover"
+        not in (await hass.config_entries.options.async_init(entry.entry_id))[
+            "menu_options"
+        ]
+    )
+    staged = await stage_url(hass, entry, content=CSV)
+    await approve(hass, staged)
+    assert (
+        "annual_rollover"
+        not in (await hass.config_entries.options.async_init(entry.entry_id))[
+            "menu_options"
+        ]
+    )
+
+
+def rollover_scenario(
+    *,
+    source_year=2026,
+    source_kind="annual",
+    source_id=None,
+    approved=True,
+    row_count=365,
+):
+    """Minimal approved-source snapshot to exercise rollover guard decisions."""
+    from types import SimpleNamespace
+
+    key = source_id or f"annual-{source_year}"
+    publication = SimpleNamespace(kind=source_kind, year=source_year, media_type="csv")
+    row = SimpleNamespace(day=date(source_year, 1, 1))
+    table = SimpleNamespace(timetable_id=key, kind="annual", days=(row,) * row_count)
+    storage = SimpleNamespace(
+        staged=None,
+        remote_sources={key: publication},
+        approved_sources={key: object()} if approved else {},
+        timetables=(table,),
+    )
+    return storage
+
+
+@pytest.mark.parametrize(
+    ("variant", "kwargs"),
+    [
+        ("non_annual", {"source_kind": "ramadan"}),
+        ("last_supported_year", {"source_year": 2199}),
+        ("noncanonical_id", {"source_id": "annual-2026-monthly-0101-1231"}),
+        ("not_approved", {"approved": False}),
+        ("insufficient_coverage", {"row_count": 299}),
+    ],
+)
+def test_rollover_candidates_reject_ineligible_source_profiles(variant, kwargs):
+    from types import SimpleNamespace
+
+    from custom_components.salah_timetable.sources.source_flow import SourceOptionsFlow
+
+    storage = rollover_scenario(**kwargs)
+    assert SourceOptionsFlow._rollover_sources(SimpleNamespace(storage=storage)) == {}
+
+
+async def test_rollover_step_rejects_unavailable_and_pending_sources():
+    from types import SimpleNamespace
+
+    from custom_components.salah_timetable.sources.source_flow import SourceOptionsFlow
+
+    flow = SourceOptionsFlow()
+    flow._coordinator = lambda: None
+    assert (await flow.async_step_annual_rollover())[
+        "reason"
+    ] == "integration_not_loaded"
+    storage = rollover_scenario()
+    coordinator = SimpleNamespace(storage=storage)
+    flow._coordinator = lambda: coordinator
+    storage.staged = object()
+    assert (await flow.async_step_annual_rollover())[
+        "reason"
+    ] == "pending_import_exists"
+    storage.staged = None
+    storage.approved_sources.clear()
+    assert (await flow.async_step_annual_rollover())["reason"] == "no_rollover_sources"
+
+
+async def test_rollover_step_handles_changed_selection_and_existing_years():
+    from types import SimpleNamespace
+
+    from custom_components.salah_timetable.sources.source_flow import SourceOptionsFlow
+
+    flow = SourceOptionsFlow()
+    storage = rollover_scenario()
+    coordinator = SimpleNamespace(storage=storage)
+    flow._coordinator = lambda: coordinator
+    assert (await flow.async_step_annual_rollover())["step_id"] == "annual_rollover"
+
+    invalid = await flow.async_step_annual_rollover(
+        {"source_id": "annual-2025", "url": "https://mosque.example.org/2027.csv"}
+    )
+    assert invalid["errors"] == {"base": "invalid_rollover"}
+
+    next_year = SimpleNamespace(
+        timetable_id="annual-2027",
+        kind="annual",
+        days=(SimpleNamespace(day=date(2027, 1, 1)),),
+    )
+    storage.timetables += (next_year,)
+    already = await flow.async_step_annual_rollover(
+        {"source_id": "annual-2026", "url": "https://mosque.example.org/2027.csv"}
+    )
+    assert already["errors"] == {"base": "rollover_already_approved"}
+
+    storage.timetables = storage.timetables[:1]
+    storage.remote_sources["annual-2027"] = SimpleNamespace(
+        kind="annual", year=2027, media_type="csv"
+    )
+    configured = await flow.async_step_annual_rollover(
+        {"source_id": "annual-2026", "url": "https://mosque.example.org/2027.csv"}
+    )
+    assert configured["errors"] == {"base": "rollover_already_configured"}
+
+
+async def test_rollover_step_delegates_valid_new_year_to_existing_import():
+    from types import SimpleNamespace
+
+    from custom_components.salah_timetable.sources.source_flow import SourceOptionsFlow
+
+    flow = SourceOptionsFlow()
+    flow._coordinator = lambda: SimpleNamespace(storage=rollover_scenario())
+    result = {"type": FlowResultType.FORM, "step_id": "map_columns"}
+    with patch.object(
+        flow, "async_step_import_url", AsyncMock(return_value=result)
+    ) as handler:
+        response = await flow.async_step_annual_rollover(
+            {"source_id": "annual-2026", "url": "https://mosque.example.org/2027.csv"}
+        )
+    assert response is result
+    handler.assert_awaited_once_with(
+        {
+            "year": 2027,
+            "kind": "annual",
+            "media_type": "csv",
+            "url": "https://mosque.example.org/2027.csv",
+        }
+    )
