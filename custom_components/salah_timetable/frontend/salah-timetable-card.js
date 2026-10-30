@@ -1,6 +1,6 @@
 import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=0.9.19";
 import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=0.9.19";
-import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.19";
+import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.19";
 import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9.19";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
@@ -8,7 +8,7 @@ const RENDER_ATTRIBUTES = [
   "mosque_name", "date", "time_zone", "prayers", "day_prayers", "beginning_events", "jamaat_events",
   "next_salah", "next_jamaat", "previous_jamaat", "context_jamaat", "context_mode",
   "ramadan", "sehri_events", "iftar_events", "next_sehri", "next_iftar",
-  "show_hijri_date", "second_khutbah",
+  "show_hijri_date", "second_khutbah", "night_calculations",
 ];
 const PRAYERS = new Set(["fajr", "sunrise", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
@@ -142,7 +142,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._hass = value;
     if (this._hassRenderKey() !== this._renderedHassKey) this._render();
   }
-  getCardSize() { return (this._config.detail_level === "compact" ? 3 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
+  getCardSize() { return (this._config.kiosk_mode ? 7 : this._config.detail_level === "compact" ? 3 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
   getGridOptions() { return {columns: 12, rows: this.getCardSize(), min_columns: 6, min_rows: 4}; }
 
   connectedCallback() {
@@ -193,6 +193,7 @@ export class SalahTimetableCard extends HTMLElement {
     const next = nextSalah(data, now);
     const congregation = jamaatPanel(data, "context", now);
     return JSON.stringify([next, congregation, highlightedPrayer(data, now),
+      hijriDisplayDate(data.date, data, this._selectedDay, this._config.hijri_day_boundary, now),
       data.prayers.map(row => row && prayerIsPast(row, now)),
       ...["sehri", "iftar"].map(kind => {
         const value = nextRamadanEvent(data, kind, now);
@@ -217,6 +218,7 @@ export class SalahTimetableCard extends HTMLElement {
     const updates = [];
     const style = node("style", CARD_CSS);
     const card = direction(node("ha-card"), ui);
+    if (this._config.kiosk_mode) card.classList.add("kiosk");
     const state = this._state();
     const background = this._config.show_mosque_background && chooseMosqueBackground(MOSQUE_BACKGROUNDS, this._config.mosque_background, (state?.attributes?.date || new Date(now).toISOString().slice(0, 10)));
     if (background) {
@@ -247,7 +249,7 @@ export class SalahTimetableCard extends HTMLElement {
     const scrollLeft = previousRegion?.scrollLeft || 0;
     const data = state.attributes;
     const zone = data.time_zone || this._hass?.config?.time_zone || "UTC";
-    const content = node("div", undefined, `content ${this._config.detail_level === "compact" ? "compact" : "expanded"}`);
+    const content = node("div", undefined, `content ${this._config.detail_level === "compact" ? "compact" : "expanded"}${this._config.kiosk_mode ? " kiosk" : ""}`);
     const baseDate = Date.parse(`${data.date || state.state}T12:00:00Z`);
     const selectedDate = Number.isFinite(baseDate) ? new Date(baseDate + this._selectedDay * 86400000).toISOString().slice(0, 10) : "";
     const displayDate = selectedDate || data.date || state.state;
@@ -283,16 +285,36 @@ export class SalahTimetableCard extends HTMLElement {
       title.setAttribute("dir", "auto");
     }
     header.append(title);
-    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(displayDate, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
+    const hijriDate = hijriDisplayDate(displayDate, data, this._selectedDay, this._config.hijri_day_boundary, now);
+    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(hijriDate, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
     if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(displayDate, ui), "date gregorian"));
     if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false && this._config.show_hijri_month_info) {
       // The month description tracks the selected day's Hijri date, too.
-      const month = hijriMonthInfo(displayDate, this._config.hijri_adjustment);
+      const month = hijriMonthInfo(hijriDate, this._config.hijri_adjustment);
       if (month) header.append(node("div", month.summary_en, "month-description"));
     }
     // One cohesive glass surface for mosque identity and both live summaries.
     // Individual countdown components remain independent for timing and options.
     const summary = node("div", undefined, "summary-shell");
+    if (this._config.kiosk_mode) {
+      // Fullscreen requires a user gesture; unsupported WebViews keep kiosk styling.
+      const tools = node("div", undefined, "kiosk-toolbar");
+      const toggle = node("button", tr(ui, "card.kiosk_fullscreen"), "kiosk-fullscreen");
+      toggle.type = "button";
+      toggle.setAttribute("aria-label", tr(ui, "card.kiosk_fullscreen"));
+      toggle.addEventListener("click", () => {
+        const surface = this.shadowRoot?.querySelector("ha-card");
+        if (document.fullscreenElement === surface) {
+          const exit = document.exitFullscreen?.();
+          exit?.catch?.(() => {});
+        } else {
+          const enter = surface?.requestFullscreen?.();
+          enter?.catch?.(() => {});
+        }
+      });
+      tools.append(toggle);
+      summary.append(tools);
+    }
     summary.append(header);
     content.append(summary);
     const dateTabs = node("nav", undefined, "date-tabs");
@@ -397,6 +419,23 @@ export class SalahTimetableCard extends HTMLElement {
       if (!data.ramadan.taraweeh && data.ramadan.taraweeh_text) taraweehValue.setAttribute("dir", "auto");
       taraweeh.append(node("div", tr(ui, "ramadan.taraweeh"), "label"), taraweehValue); grid.append(taraweeh);
       ramadan.append(grid); content.append(ramadan);
+    }
+    if (this._selectedDay === 0 && this._config.detail_level !== "compact" &&
+        this._config.show_night_calculations && data.night_calculations) {
+      const night = node("section", undefined, "night-calculations");
+      night.append(node("h3", tr(ui, "night.title")));
+      const grid = node("div", undefined, "night-grid");
+      for (const [label, value] of [
+        ["night.midpoint", data.night_calculations.midpoint],
+        ["night.final_third", data.night_calculations.last_third],
+      ]) {
+        const cell = node("div", undefined, "night-cell");
+        cell.append(node("div", tr(ui, label), "label"),
+          formattedNode("div", formatTime(value, zone, ui, timeFormat), "event"));
+        grid.append(cell);
+      }
+      night.append(grid, node("p", tr(ui, "night.note"), "note"));
+      content.append(night);
     }
     if (this._selectedDay === 0 && this._config.show_timezone_note) {
       const note = translatedRun("p", ui, "card.timezone_note", "zone", zone, "note");
@@ -524,12 +563,12 @@ export class SalahTimetableCardEditor extends HTMLElement {
     this._extraControls = {};
     const settings = [
       ["language", ["auto", "en", "ar"]], ["bilingual_prayer_labels"],
-      ["detail_level", ["compact", "standard", "detailed"]], ["time_format", ["24h", "12h"]],
-      ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]],
+      ["detail_level", ["compact", "standard", "detailed"]], ["kiosk_mode"], ["time_format", ["24h", "12h"]],
+      ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]], ["hijri_day_boundary", ["midnight", "maghrib"]],
       ["show_hijri_date"], ["show_gregorian_date"], ["show_salah_countdown"], ["show_jamaat_countdown"],
       ["show_hijri_month_info"], ["show_historical_day_events"], ["show_historical_month_highlights"], ["show_historical_sources"], ["show_disputed_historical_dates"],
       ["show_mosque_background"], ["mosque_background", ["daily", "none", ...MOSQUE_BACKGROUNDS.map(item => item.id)]],
-      ["show_ramadan_details"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_timezone_note"]
+      ["show_ramadan_details"], ["show_night_calculations"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_timezone_note"]
     ];
     const extras = [];
     for (const [key, choices] of settings) {

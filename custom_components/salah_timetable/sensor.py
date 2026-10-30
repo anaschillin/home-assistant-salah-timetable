@@ -34,6 +34,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             ),
             SourceStatusSensor(entry.runtime_data, entry),
             CoverageStatusSensor(entry.runtime_data, entry),
+            CompletenessStatusSensor(entry.runtime_data, entry),
             *(
                 EventSensor(entry.runtime_data, entry, key)
                 for key in (
@@ -152,6 +153,29 @@ class CoverageStatusSensor(CoordinatorEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         return self.coordinator.data.coverage.attributes()
+
+
+class CompletenessStatusSensor(CoordinatorEntity, SensorEntity):
+    """Required published fields, independent of date-coverage diagnostics."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "completeness_status"
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_options = ["not_configured", "missing_today", "partial", "complete"]
+
+    def __init__(self, coordinator, entry):
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.unique_id}_completeness_status"
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry.unique_id)})
+
+    @property
+    def native_value(self):
+        return self.coordinator.data.completeness.status
+
+    @property
+    def extra_state_attributes(self):
+        return self.coordinator.data.completeness.attributes()
 
 
 class EventSensor(CoordinatorEntity, SensorEntity):

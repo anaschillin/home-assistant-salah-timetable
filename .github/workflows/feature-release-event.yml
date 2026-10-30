@@ -1,0 +1,14 @@
+name: Feature release lifecycle
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed, edited]
+
+permissions: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - run: echo 'Reconcile feature releases using the trusted default-branch workflow.'

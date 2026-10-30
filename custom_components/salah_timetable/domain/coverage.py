@@ -36,6 +36,20 @@ class CoverageSnapshot:
         }
 
 
+def index_sources_by_date(
+    today: date, timetables: tuple[Timetable, ...]
+) -> dict[date, tuple[Timetable, ...]]:
+    """Build one-row approved source views for effective date resolution."""
+    indexed: dict[date, list[Timetable]] = {}
+    for table in timetables:
+        for row in table.days:
+            if row.day >= today:
+                indexed.setdefault(row.day, []).append(
+                    Timetable(table.timetable_id, table.kind, (row,))
+                )
+    return {day: tuple(sources) for day, sources in indexed.items()}
+
+
 def calculate_coverage(
     today: date, timetables: tuple[Timetable, ...], settings: RamadanSettings
 ) -> CoverageSnapshot:
@@ -49,13 +63,7 @@ def calculate_coverage(
         raise ValueError("Coverage requires a calendar date")
     if not timetables:
         return CoverageSnapshot("not_configured", False, False, None, 0)
-    indexed: dict[date, list[Timetable]] = {}
-    for table in timetables:
-        for row in table.days:
-            if row.day >= today:
-                indexed.setdefault(row.day, []).append(
-                    Timetable(table.timetable_id, table.kind, (row,))
-                )
+    indexed = index_sources_by_date(today, timetables)
 
     tomorrow = today + timedelta(days=1) if today < date.max else None
     unresolved = None
