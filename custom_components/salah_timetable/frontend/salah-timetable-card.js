@@ -8,7 +8,7 @@ const RENDER_ATTRIBUTES = [
   "mosque_name", "date", "time_zone", "prayers", "day_prayers", "beginning_events", "jamaat_events",
   "next_salah", "next_jamaat", "previous_jamaat", "context_jamaat", "context_mode",
   "ramadan", "sehri_events", "iftar_events", "next_sehri", "next_iftar",
-  "show_hijri_date", "second_khutbah",
+  "show_hijri_date", "second_khutbah", "night_calculations",
 ];
 const PRAYERS = new Set(["fajr", "sunrise", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
@@ -398,6 +398,23 @@ export class SalahTimetableCard extends HTMLElement {
       taraweeh.append(node("div", tr(ui, "ramadan.taraweeh"), "label"), taraweehValue); grid.append(taraweeh);
       ramadan.append(grid); content.append(ramadan);
     }
+    if (this._selectedDay === 0 && this._config.detail_level !== "compact" &&
+        this._config.show_night_calculations && data.night_calculations) {
+      const night = node("section", undefined, "night-calculations");
+      night.append(node("h3", tr(ui, "night.title")));
+      const grid = node("div", undefined, "night-grid");
+      for (const [label, value] of [
+        ["night.midpoint", data.night_calculations.midpoint],
+        ["night.final_third", data.night_calculations.last_third],
+      ]) {
+        const cell = node("div", undefined, "night-cell");
+        cell.append(node("div", tr(ui, label), "label"),
+          formattedNode("div", formatTime(value, zone, ui, timeFormat), "event"));
+        grid.append(cell);
+      }
+      night.append(grid, node("p", tr(ui, "night.note"), "note"));
+      content.append(night);
+    }
     if (this._selectedDay === 0 && this._config.show_timezone_note) {
       const note = translatedRun("p", ui, "card.timezone_note", "zone", zone, "note");
       note.setAttribute("data-role", "timezone-note"); content.append(note);
@@ -529,7 +546,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       ["show_hijri_date"], ["show_gregorian_date"], ["show_salah_countdown"], ["show_jamaat_countdown"],
       ["show_hijri_month_info"], ["show_historical_day_events"], ["show_historical_month_highlights"], ["show_historical_sources"], ["show_disputed_historical_dates"],
       ["show_mosque_background"], ["mosque_background", ["daily", "none", ...MOSQUE_BACKGROUNDS.map(item => item.id)]],
-      ["show_ramadan_details"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_timezone_note"]
+      ["show_ramadan_details"], ["show_night_calculations"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_timezone_note"]
     ];
     const extras = [];
     for (const [key, choices] of settings) {
