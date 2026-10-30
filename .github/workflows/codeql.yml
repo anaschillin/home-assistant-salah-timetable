@@ -45,7 +45,6 @@ jobs:
 
   analyze:
     needs: changes
-    if: needs.changes.outputs.docs_only != 'true'
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
