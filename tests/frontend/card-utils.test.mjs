@@ -234,3 +234,9 @@ test("opt-in kiosk mode is not enabled on existing cards", () => {
   assert.throws(() => normalizeConfig({kiosk_mode: 1}), error => error.translationKey === "config.boolean");
   assert.equal(normalizeConfig(JSON.parse(JSON.stringify({kiosk_mode: true}))).kiosk_mode, true);
 });
+
+test("night calculations are opt-in display-only information", () => {
+  assert.equal(normalizeConfig({}).show_night_calculations, false);
+  assert.equal(normalizeConfig({show_night_calculations: true}).show_night_calculations, true);
+  assert.throws(() => normalizeConfig({show_night_calculations: "true"}));
+});

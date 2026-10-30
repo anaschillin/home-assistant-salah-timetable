@@ -947,6 +947,30 @@ ha-card.has-mosque-background::after {
 }
 
 
+/* Calculated auxiliaries never blend into the published daily prayer table. */
+.night-calculations {
+  border-top: 1px solid var(--divider-color);
+  margin: 14px auto 0;
+  padding: 14px clamp(10px,2cqi,20px);
+  max-width: 1400px;
+  border-radius: 10px;
+  background: var(--secondary-background-color);
+}
+.night-calculations h3 {
+  font-size: 1rem;
+  margin: 0 0 12px;
+}
+.night-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 12px;
+}
+.night-cell { min-width: 0; }
+.night-calculations .note { line-height: 1.45; }
+@container(max-width:21rem) {
+  .night-grid { grid-template-columns: 1fr; }
+}
+
 /* Kiosk is strictly opt-in. Responsive sizing avoids clipping in phone WebViews. */
 ha-card.kiosk {
   min-height: 100dvh;

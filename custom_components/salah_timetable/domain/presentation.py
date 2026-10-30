@@ -1,7 +1,7 @@
 """Safe dashboard payloads made from absolute published/effective timestamps."""
 
 import re
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, timezone
 
 from .events import PrayerEvent
 from .model import PrayerField
@@ -18,6 +18,34 @@ PRAYERS = (
     ("maghrib", "Maghrib", PrayerField.MAGHRIB_BEGIN, (PrayerField.MAGHRIB_JAMAAT,)),
     ("isha", "Isha", PrayerField.ISHA_BEGIN, (PrayerField.ISHA_JAMAAT,)),
 )
+
+
+def calculated_night_times(today, tomorrow, zone):
+    """Night midpoint and final third from approved Maghrib and following Fajr.
+
+    These values are derived display information, never published prayer times.
+    Missing/invalid anchors result in no night calculation.
+    """
+    if today is None or tomorrow is None:
+        return None
+    sunset = today.timestamps(PrayerField.MAGHRIB_BEGIN, zone)
+    fajr = tomorrow.timestamps(PrayerField.FAJR_BEGIN, zone)
+    if not sunset or not fajr:
+        return None
+    start = sunset[0].astimezone(timezone.utc)
+    end = fajr[0].astimezone(timezone.utc)
+    night = end - start
+    if not timedelta(hours=1) < night < timedelta(hours=24):
+        return None
+    midpoint = (start + night / 2).astimezone(zone)
+    final_third = (start + night * (2 / 3)).astimezone(zone)
+    return {
+        "midpoint": midpoint.isoformat(),
+        "last_third": final_third.isoformat(),
+        "from_maghrib": sunset[0].isoformat(),
+        "until_fajr": fajr[0].isoformat(),
+        "method": "published_maghrib_to_next_fajr",
+    }
 
 
 def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
@@ -108,6 +136,11 @@ def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
         "second_khutbah": khutbah_at,
         "date": data.day.isoformat(),
         "time_zone": zone.key,
+        "night_calculations": (
+            calculated_night_times(data.days[1].row, data.days[2].row, zone)
+            if len(data.days) >= 3
+            else None
+        ),
         "prayers": prayers,
         "day_prayers": {
             (data.day + timedelta(days=offset)).isoformat(): prayer_rows(effective)
