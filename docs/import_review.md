@@ -207,6 +207,15 @@ The mapping and approval screens report recognized layout and date range.
 | `mosque_b_annual_v1` | Maintainer-supplied Mosque B 2026 calendar | Extracts twelve complete annual tables; separate Ramadan page excluded |
 | `mosque_b_ramadan_v1` | Same publication, separate Ramadan page | Extracts only the final Ramadan table; annual tables use their own layout |
 | `pdf_table_v1` | Synthetic sample only | Text-based, pipe-delimited table described below |
+| `pdf_spaced_v1` | Generic text table with explicit ISO dates | Date and column names separated by 2+ spaces, one 24-hour HH:MM or explicit dash per cell, repeating matching header on every page; no stray text or unknown rows. Requires user column mapping and explicit review. |
+
+The generic spaced text-table PDF adapter is intentionally limited: it
+accepts only text-based tables with clearly repeated `Date` headers,
+`YYYY-MM-DD` dates and 24-hour wall-clock cells separated by at least two
+spaces. It does **not** infer column meanings, handle merged cells, OCR or
+accept unrelated text. Existing recognised publication adapters take priority
+when both match. All parsed fields still require manual column mapping,
+inspection and explicit approval.
 
 ### Supported editions and automatic recognition
 
