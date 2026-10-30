@@ -49,7 +49,8 @@
         "title": "Mosque settings",
         "data": {
           "time_zone": "Mosque timezone",
-          "show_hijri_date": "Show full calculated Hijri date on dashboards"
+          "show_hijri_date": "Show full calculated Hijri date on dashboards",
+          "completeness_required_fields": "Required published fields for Prayer completeness"
         }
       },
       "import_csv": {
@@ -152,7 +153,8 @@
       "invalid_ramadan": "The Ramadan settings are invalid. See the details above.",
       "ramadan_conflict": "Approval conflicts with the current Ramadan settings. Select a Ramadan source in Ramadan settings, then review again. The approved timetable and pending proposal have been retained.",
       "review_changed": "The approved source changed while this review was open. Check the refreshed overview and the comparison from its first page, then choose Approve again to activate this proposal.",
-      "invalid_import_decision": "Choose one of the review actions shown."
+      "invalid_import_decision": "Choose one of the review actions shown.",
+      "invalid_completeness_fields": "Select at least one unique supported prayer field."
     },
     "abort": {
       "integration_not_loaded": "The mosque integration must be loaded before importing. Check its setup error or change its settings first.",
@@ -269,6 +271,15 @@
           "inactive": "Inactive",
           "scheduled": "Published time",
           "after_isha_jamaat": "After Isha Jamaat"
+        }
+      },
+      "completeness_status": {
+        "name": "Prayer completeness",
+        "state": {
+          "not_configured": "No approved timetable",
+          "missing_today": "Today's timetable missing",
+          "partial": "Required times missing",
+          "complete": "Today's times complete"
         }
       }
     },
