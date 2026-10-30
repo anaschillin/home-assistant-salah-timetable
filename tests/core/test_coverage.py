@@ -8,6 +8,11 @@ from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.salah_timetable.const import DOMAIN
+from custom_components.salah_timetable.domain.completeness import (
+    DEFAULT_REQUIRED_FIELDS,
+    calculate_completeness,
+    required_fields_from_options,
+)
 from custom_components.salah_timetable.domain.coverage import calculate_coverage
 from custom_components.salah_timetable.domain.model import (
     DailyPrayers,
@@ -314,3 +319,178 @@ async def test_future_legacy_conflict_preserves_live_sensors_and_clears_on_selec
     assert hass.states.get(fajr).state == "2026-10-21T04:45:00+00:00"
     assert hass.states.get(next_salah).state == "2026-10-22T04:45:00+00:00"
     assert entry.runtime_data.storage.timetables == approved
+
+
+def complete_row(day):
+    return DailyPrayers(
+        day,
+        {field: (time(6 + i),) for i, field in enumerate(DEFAULT_REQUIRED_FIELDS)},
+        {},
+    )
+
+
+def completeness_state(hass, key="example"):
+    entity_id = er.async_get(hass).async_get_entity_id(
+        "sensor", DOMAIN, f"{key}_completeness_status"
+    )
+    assert entity_id is not None
+    result = hass.states.get(entity_id)
+    assert result is not None
+    return result
+
+
+def test_prayer_completeness_remains_separate_from_date_coverage():
+    approved = (table(days(3)),)
+    date_coverage = calculate_coverage(TODAY, approved, RamadanSettings())
+    report = calculate_completeness(TODAY, approved, RamadanSettings())
+    assert date_coverage.days_remaining == 2
+    assert report.status == "partial"
+    assert report.missing_today == DEFAULT_REQUIRED_FIELDS
+    assert report.attributes()["first_incomplete_date"] == TODAY.isoformat()
+    assert report.complete_days_remaining == 0
+
+
+def test_complete_today_and_missing_tomorrow_are_independent():
+    report = calculate_completeness(
+        TODAY,
+        (Timetable("approved", "annual", (complete_row(TODAY),)),),
+        RamadanSettings(),
+    )
+    assert report.status == "complete"
+    assert report.missing_today == ()
+    assert report.missing_tomorrow == DEFAULT_REQUIRED_FIELDS
+    assert report.first_incomplete_date == TODAY + timedelta(days=1)
+
+
+def test_complete_fields_cross_calendar_years_without_requiring_jamaat():
+    start = date(2026, 12, 31)
+    tables = (
+        Timetable("year-2026", "annual", (complete_row(start),)),
+        Timetable(
+            "year-2027",
+            "annual",
+            (complete_row(start + timedelta(days=1)),),
+        ),
+    )
+    result = calculate_completeness(start, tables, RamadanSettings())
+    assert result.status == "complete"
+    assert result.complete_days_remaining == 1
+    assert result.first_incomplete_date == date(2027, 1, 2)
+    assert not result.missing_tomorrow
+
+
+def test_ramadan_completeness_uses_approved_effective_field_overrides():
+    annual = Timetable(
+        "annual",
+        "annual",
+        (
+            DailyPrayers(
+                TODAY,
+                {
+                    field: values
+                    for field, values in complete_row(TODAY).times.items()
+                    if field != PrayerField.ISHA_BEGIN
+                },
+                {},
+            ),
+        ),
+    )
+    override = Timetable(
+        "ramadan",
+        "ramadan",
+        (DailyPrayers(TODAY, {PrayerField.ISHA_BEGIN: (time(20),)}, {}),),
+    )
+    assert (
+        calculate_completeness(
+            TODAY, (annual, override), RamadanSettings()
+        ).status
+        == "partial"
+    )
+    assert (
+        calculate_completeness(
+            TODAY, (annual, override), RamadanSettings(mode="on")
+        ).status
+        == "complete"
+    )
+
+
+def test_future_completeness_conflict_is_reported_not_guessed():
+    future = TODAY + timedelta(days=3)
+    annual = Timetable(
+        "annual", "annual", tuple(complete_row(day) for day in days(5))
+    )
+    competing = tuple(
+        Timetable(source_id, "ramadan", (row(future),))
+        for source_id in ("first", "second")
+    )
+    result = calculate_completeness(
+        TODAY, (annual, *competing), RamadanSettings(mode="on")
+    )
+    assert result.status == "complete"
+    assert result.complete_days_remaining == 2
+    assert result.first_incomplete_date == future
+    assert result.unresolved_date == future
+    with pytest.raises(ValueError, match="Select a Ramadan source"):
+        calculate_completeness(
+            future - timedelta(days=1),
+            (annual, *competing),
+            RamadanSettings(mode="on"),
+        )
+
+
+def test_required_fields_validation_and_no_approved_data():
+    assert required_fields_from_options({}) == DEFAULT_REQUIRED_FIELDS
+    assert required_fields_from_options(
+        {"completeness_required_fields": ["fajr_begin", "sunrise"]}
+    ) == (PrayerField.FAJR_BEGIN, PrayerField.SUNRISE)
+    for invalid in (
+        [],
+        ["fajr_begin", "fajr_begin"],
+        ["jumuah"],
+        ["fajr_begin", 1],
+    ):
+        with pytest.raises(ValueError, match="unique supported"):
+            required_fields_from_options(
+                {"completeness_required_fields": invalid}
+            )
+    empty = calculate_completeness(TODAY, (), RamadanSettings())
+    assert empty.status == "not_configured"
+    assert empty.attributes()["first_incomplete_date"] is None
+
+
+async def test_completeness_diagnostic_follows_per_mosque_policy_on_reload(
+    hass, entry, freezer
+):
+    freezer.move_to("2026-10-21T12:00:00+00:00")
+    storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
+    await storage.async_replace(
+        (
+            Timetable(
+                "approved",
+                "annual",
+                (
+                    DailyPrayers(
+                        TODAY, {PrayerField.FAJR_BEGIN: (time(6),)}, {}
+                    ),
+                ),
+            ),
+        )
+    )
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    sensor = completeness_state(hass)
+    assert sensor.state == "partial"
+    assert sensor.attributes["missing_today"] == [
+        field.value for field in DEFAULT_REQUIRED_FIELDS[1:]
+    ]
+    assert (
+        er.async_get(hass).async_get(sensor.entity_id).entity_category.value
+        == "diagnostic"
+    )
+    hass.config_entries.async_update_entry(
+        entry, options={"completeness_required_fields": ["fajr_begin"]}
+    )
+    await hass.async_block_till_done()
+    assert completeness_state(hass).state == "complete"
+    assert completeness_state(hass).entity_id == sensor.entity_id
+    assert coverage_state(hass).state == "missing_tomorrow"
