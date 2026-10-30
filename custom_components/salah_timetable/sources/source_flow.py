@@ -132,9 +132,8 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
             else:
                 following = original.year + 1
                 if any(
-                    table.kind == "annual" and any(
-                        row.day.year == following for row in table.days
-                    )
+                    table.kind == "annual"
+                    and any(row.day.year == following for row in table.days)
                     for table in coordinator.storage.timetables
                 ):
                     errors["base"] = "rollover_already_approved"
