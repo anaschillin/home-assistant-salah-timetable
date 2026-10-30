@@ -1,6 +1,6 @@
 import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=0.9.19";
 import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=0.9.19";
-import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.19";
+import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=0.9.19";
 import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=0.9.19";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
@@ -193,6 +193,7 @@ export class SalahTimetableCard extends HTMLElement {
     const next = nextSalah(data, now);
     const congregation = jamaatPanel(data, "context", now);
     return JSON.stringify([next, congregation, highlightedPrayer(data, now),
+      hijriDisplayDate(data.date, data, this._selectedDay, this._config.hijri_day_boundary, now),
       data.prayers.map(row => row && prayerIsPast(row, now)),
       ...["sehri", "iftar"].map(kind => {
         const value = nextRamadanEvent(data, kind, now);
@@ -283,11 +284,12 @@ export class SalahTimetableCard extends HTMLElement {
       title.setAttribute("dir", "auto");
     }
     header.append(title);
-    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(displayDate, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
+    const hijriDate = hijriDisplayDate(displayDate, data, this._selectedDay, this._config.hijri_day_boundary, now);
+    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(hijriDate, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
     if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(displayDate, ui), "date gregorian"));
     if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false && this._config.show_hijri_month_info) {
       // The month description tracks the selected day's Hijri date, too.
-      const month = hijriMonthInfo(displayDate, this._config.hijri_adjustment);
+      const month = hijriMonthInfo(hijriDate, this._config.hijri_adjustment);
       if (month) header.append(node("div", month.summary_en, "month-description"));
     }
     // One cohesive glass surface for mosque identity and both live summaries.
@@ -525,7 +527,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
     const settings = [
       ["language", ["auto", "en", "ar"]], ["bilingual_prayer_labels"],
       ["detail_level", ["compact", "standard", "detailed"]], ["time_format", ["24h", "12h"]],
-      ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]],
+      ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]], ["hijri_day_boundary", ["midnight", "maghrib"]],
       ["show_hijri_date"], ["show_gregorian_date"], ["show_salah_countdown"], ["show_jamaat_countdown"],
       ["show_hijri_month_info"], ["show_historical_day_events"], ["show_historical_month_highlights"], ["show_historical_sources"], ["show_disputed_historical_dates"],
       ["show_mosque_background"], ["mosque_background", ["daily", "none", ...MOSQUE_BACKGROUNDS.map(item => item.id)]],

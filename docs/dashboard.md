@@ -136,7 +136,14 @@ convert the mosque's Gregorian timetable date, displaying its Islamic day,
 **named Hijri month** and year. The Gregorian date is a separate secondary
 header field; hide it via the card's `show_gregorian_date: false` switch without
 hiding Hijri. Both default to visible for existing cards.
-It advances at mosque-local midnight, not sunset. The default is visible; choose
+By default it advances at mosque-local midnight. A card can optionally
+advance the **Today** Hijri header and month description at that day's
+**published Maghrib beginning** (`hijri_day_boundary: maghrib`). Yesterday
+and Tomorrow retain their own selected Gregorian date's Hijri conversion.
+When published Maghrib is absent, the header does not infer sunset; it
+remains on the civil-date convention. The option never changes the Gregorian
+date, prayer events, approved values or Ramadan confirmation.
+The default is visible; choose
 **Show full calculated Hijri date on dashboards** during initial mosque setup,
 or change it later via **Configure → Mosque settings**. Older mosque entries
 without a stored preference default to visible. The card editor's
@@ -166,6 +173,7 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_gregorian_date` | `true`; independently displays the secondary Gregorian date |
 | `show_hijri_month_info` | `true`; shows a short, non-repeating description directly beneath the visible Hijri date in the header; hidden when the Hijri date is hidden |
 | `hijri_adjustment` | Whole days −3 through +3; default `0` |
+| `hijri_day_boundary` | `midnight` (default) or `maghrib`; optional Today Hijri header transition at approved published Maghrib |
 | `show_ramadan_details` | `true`; controls the entire Ramadan section |
 | `show_sehri_countdown` | `true`; hiding retains the displayed absolute time |
 | `show_iftar_countdown` | `true`; hiding retains the displayed absolute time |
