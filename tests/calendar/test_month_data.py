@@ -71,14 +71,10 @@ def test_year_csv_preserves_missing_fields_and_local_timezone():
 def test_effective_rows_respect_confirmed_ramadan_and_no_guessing():
     d = date(2026, 10, 23)
     annual = table(d, {PrayerField.FAJR_BEGIN: (time(5),)})
-    ramadan = table(
-        d, {PrayerField.IFTAR: (time(17),)}, "ramadan", "ramadan"
-    )
+    ramadan = table(d, {PrayerField.IFTAR: (time(17),)}, "ramadan", "ramadan")
     inactive = approved_month((annual, ramadan), RamadanSettings(), 2026, 10)
     assert "iftar" not in inactive[22]["times"]
-    active = approved_month(
-        (annual, ramadan), RamadanSettings(mode="on"), 2026, 10
-    )
+    active = approved_month((annual, ramadan), RamadanSettings(mode="on"), 2026, 10)
     assert active[22]["ramadan_active"]
     assert active[22]["times"]["iftar"] == ["17:00"]
 
@@ -133,7 +129,12 @@ async def test_authenticated_month_export_and_redacted_sources(
     assert entity_id is not None
     client = await hass_ws_client(hass)
     await client.send_json_auto_id(
-        {"type": "salah_timetable/month", "entity_id": entity_id, "year": 2026, "month": 10}
+        {
+            "type": "salah_timetable/month",
+            "entity_id": entity_id,
+            "year": 2026,
+            "month": 10,
+        }
     )
     msg = await client.receive_json()
     assert msg["success"], msg
@@ -152,7 +153,12 @@ async def test_authenticated_month_export_and_redacted_sources(
     assert msg["result"]["sources"]
     assert "url" not in str(msg["result"]["sources"])
     await client.send_json_auto_id(
-        {"type": "salah_timetable/month", "entity_id": "sensor.not_a_mosque", "year": 2026, "month": 10}
+        {
+            "type": "salah_timetable/month",
+            "entity_id": "sensor.not_a_mosque",
+            "year": 2026,
+            "month": 10,
+        }
     )
     msg = await client.receive_json()
     assert not msg["success"]
