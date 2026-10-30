@@ -31,7 +31,7 @@ The authoritative [production module inventory](architecture.md#production-modul
   rows, stable event UIDs and bounded timezone-aware queries. It preserves individual
   beginnings/Jamaat and multiple Jumu’ah starts with a 60-second calendar-only
   presentation interval.
-- `domain/coverage.py`: consecutive effective approved dates, cached by date/sources/Ramadan
+- `domain/month_data.py`: bounded read-only approved effective month/year queries, CSV export and redacted provenance; no pending import values.\n- `data_api.py`: authenticated integration WebSocket commands, scoped by a mosque dashboard entity read permission.\n- `domain/coverage.py`: consecutive effective approved dates, cached by date/sources/Ramadan
   settings. Pending proposals never extend coverage; ambiguous dates beyond the live
   horizon stop coverage and expose `unresolved_date` without disabling valid current
   prayer events.
