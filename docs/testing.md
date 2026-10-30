@@ -129,7 +129,7 @@ Names indicate the primary module ownership; some tests deliberately span unit, 
 
 ## JavaScript and browser tests
 
-The following 14 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
+The following 15 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
 
 | File in `tests/frontend/` | Responsibility |
 | --- | --- |
@@ -140,6 +140,7 @@ The following 14 Node unit modules are discovered by `npm test` (`node --test te
 | `card.test.mjs` | Card/editor rendering, interactions and state |
 | `dashboard-options.test.mjs` | Dashboard editor options and display flags |
 | `feature-releases.test.mjs` | Feature release CI gates, replacement, cleanup, races and stable-release protection |
+| `stable-releases.test.mjs` | Stable release version/CI gates, safe tagging, idempotency and publication workflow security |
 | `history-utils.test.mjs` | Islamic-history selection and defaults |
 | `live-dates.test.mjs` | UTC midnight, leap-year and year-boundary smoke fixture dates |
 | `live-dependency.test.mjs` | Live smoke dependency validation helpers |
