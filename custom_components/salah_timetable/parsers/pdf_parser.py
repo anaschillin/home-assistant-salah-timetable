@@ -126,7 +126,9 @@ class SpacedTextTableLayout:
                     if not 2 <= len(cells) <= 32 or len(set(cells)) != len(cells):
                         raise ImportValidationError("Invalid PDF text-table header")
                     if any(not value or len(value) > 256 for value in cells):
-                        raise ImportValidationError("Invalid PDF text-table column name")
+                        raise ImportValidationError(
+                            "Invalid PDF text-table column name"
+                        )
                     if header is None:
                         header = cells
                         writer.writerow(header)
@@ -141,11 +143,17 @@ class SpacedTextTableLayout:
                 if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", cells[0]):
                     raise ImportValidationError("PDF text-table requires ISO dates")
                 if any(
-                    cell not in {"-", "—"} and not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", cell)
+                    cell not in {"-", "—"}
+                    and not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", cell)
                     for cell in cells[1:]
                 ):
                     raise ImportValidationError("PDF text-table requires HH:MM times")
-                writer.writerow((cells[0], *(("" if cell in {"-", "—"} else cell) for cell in cells[1:])))
+                writer.writerow(
+                    (
+                        cells[0],
+                        *(("" if cell in {"-", "—"} else cell) for cell in cells[1:]),
+                    )
+                )
                 page_rows += 1
                 count += 1
             if not page_header or not page_rows:
@@ -167,7 +175,9 @@ _LAYOUTS: dict[str, PdfLayout] = {
 # A monthly source remains an ordinary, partially covered annual timetable.
 # A Ramadan selection changes override semantics, not the published dates.
 _AUTO_LAYOUTS = {
-    "annual": frozenset({"mosque_a_annual_v1", "mosque_b_annual_v1", "pdf_table_v1", "pdf_spaced_v1"}),
+    "annual": frozenset(
+        {"mosque_a_annual_v1", "mosque_b_annual_v1", "pdf_table_v1", "pdf_spaced_v1"}
+    ),
     "monthly": frozenset({"mosque_a_monthly_v1", "pdf_table_v1", "pdf_spaced_v1"}),
     "ramadan": frozenset(
         {"mosque_a_monthly_v1", "mosque_b_ramadan_v1", "pdf_table_v1", "pdf_spaced_v1"}
