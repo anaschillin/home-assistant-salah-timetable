@@ -18,7 +18,8 @@ Update `custom_components/salah_timetable/manifest.json`, `pyproject.toml`, `uv.
 
 ```sh
 uv sync --frozen --group dev
-uv run --frozen pytest
+uv run --frozen pytest --cov-branch --cov-fail-under=0 --cov-report=json:coverage-branch.json
+uv run --frozen python scripts/check_coverage.py coverage-branch.json
 uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 npm test
@@ -177,7 +178,9 @@ restore/restart acceptance.
 
 ## Home Assistant Integration Quality Scale: internal gap audit
 
-Audit baseline: 29 October 2026, against [the official 54-rule checklist](https://contributors.home-assistant.io/core/quality-scale/rules/). The latest validated Python run on that date passed **1,096 tests**, with **99.08% overall line coverage** and **more than 95% combined statement/branch coverage in every integration module** (lowest: `imports/import_flow.py`, 96%). This is an **internal best-effort review of a custom HACS integration**, not an official Core tier or formal certification. A row marked **Implemented** means the required feature or convention is present in source, not that every real Home Assistant version or UI journey has passed acceptance. **Verify** means additional evidence is required; **Gap** means known incomplete work; **Adapted** and **N/A** require the documented non-hardware rationale and are not automatic official exemptions.
+Audit reviewed: 30 October 2026, against [the official 54-rule checklist](https://contributors.home-assistant.io/core/quality-scale/rules/), including each rule's applicability and exceptions. This is an **internal best-effort review of a custom HACS integration**, not an official Core tier or formal certification. A row marked **Implemented** means the required feature or convention is present with the cited evidence, not that every real Home Assistant version or UI journey has passed acceptance. **Verify** means additional evidence is required; **Gap** means known incomplete work. **N/A (reviewed)** identifies a specific official exception and its implementation evidence; absence of physical hardware alone is not a blanket exemption.
+
+Local validation of this change on Home Assistant **2026.10.3**, Python **3.14.8**: **1,146 Python tests passed**, **99.53% line coverage** and **98.31% branch coverage**. All 34 integration modules pass the per-module guard (five empty package initializers have no executable statements); the lowest measurable combined coverage is **96.69%** in `domain/model.py`. All three configuration/options flow modules have **100% line and branch coverage**. Ruff, documentation synchronization, Node tests, Chromium smoke and release packaging checks passed. This run does not establish new minimum-version HA compatibility or hosted HACS/hassfest/CodeQL results; those remain candidate-specific CI checks.
 
 Do not set `manifest.json` to a claimed Core quality tier solely on this audit. Any future tier claim requires the official rule-specific tests and a maintainer review of each exemption.
 
@@ -185,24 +188,24 @@ Do not set `manifest.json` to a claimed Core quality tier solely on this audit. 
 
 | Rule | Assessment | Evidence / action |
 | --- | --- | --- |
-| [`action-setup`](https://contributors.home-assistant.io/core/quality-scale/action-setup/) | N/A | No integration-owned HA actions; automations are separate blueprints |
-| [`appropriate-polling`](https://contributors.home-assistant.io/core/quality-scale/appropriate-polling/) | Adapted | 1-minute coordinator refreshes derived event snapshots; remote publication checks are scheduled separately |
-| [`brands`](https://contributors.home-assistant.io/core/quality-scale/brands/) | Verify | Local brand/icon.png exists; verify any catalogue-specific brand requirements before publishing |
-| [`common-modules`](https://contributors.home-assistant.io/core/quality-scale/common-modules/) | Gap | Coordinator remains at runtime/coordinator.py; do not add duplicate wrappers solely to satisfy a Core layout convention |
+| [`action-setup`](https://contributors.home-assistant.io/core/quality-scale/action-setup/) | N/A (reviewed) | No integration-owned HA actions; automations are separate blueprints |
+| [`appropriate-polling`](https://contributors.home-assistant.io/core/quality-scale/appropriate-polling/) | Implemented | Minute refreshes and absolute event boundaries derive local approved snapshots; publication checks run separately every 24 hours |
+| [`brands`](https://contributors.home-assistant.io/core/quality-scale/brands/) | Implemented (custom integration) | Valid 256×256 `brand/icon.png`; the [official local-brand route](https://contributors.home-assistant.io/blog/2026/02/24/brands-proxy-api/) is supported since HA 2026.3, before this integration's minimum HA version. Core submission would require its own brands-repository review |
+| [`common-modules`](https://contributors.home-assistant.io/core/quality-scale/common-modules/) | Implemented | Sole coordinator implementation at top-level `coordinator.py`; release archive includes all Python packages, with no compatibility wrappers |
 | [`config-flow`](https://contributors.home-assistant.io/core/quality-scale/config-flow/) | Implemented | UI setup validates name, stable ID and IANA timezone |
-| [`config-flow-test-coverage`](https://contributors.home-assistant.io/core/quality-scale/config-flow-test-coverage/) | Verify | Config flow is tested, but its per-module 100% branch/line coverage has not been established |
+| [`config-flow-test-coverage`](https://contributors.home-assistant.io/core/quality-scale/config-flow-test-coverage/) | Implemented (CI guard) | 100% line/branch coverage in `config_flow.py`, `imports/import_flow.py` and `sources/source_flow.py`; real HA tests assert unique identity, duplicate rejection, error recovery and unload/reload/stale-proposal approval boundaries. The rule includes reconfiguration and options flows, not only initial setup |
 | [`dependency-transparency`](https://contributors.home-assistant.io/core/quality-scale/dependency-transparency/) | Implemented | pypdf is pinned from public PyPI; inspect its licence/provenance on dependency changes |
-| [`docs-actions`](https://contributors.home-assistant.io/core/quality-scale/docs-actions/) | N/A | No native integration actions |
-| [`docs-conditions`](https://contributors.home-assistant.io/core/quality-scale/docs-conditions/) | N/A | No native condition platform |
+| [`docs-actions`](https://contributors.home-assistant.io/core/quality-scale/docs-actions/) | N/A (reviewed) | No native integration actions |
+| [`docs-conditions`](https://contributors.home-assistant.io/core/quality-scale/docs-conditions/) | N/A (reviewed) | No native condition platform |
 | [`docs-high-level-description`](https://contributors.home-assistant.io/core/quality-scale/docs-high-level-description/) | Implemented | README explains approved published timetable imports |
 | [`docs-installation-instructions`](https://contributors.home-assistant.io/core/quality-scale/docs-installation-instructions/) | Implemented | Getting-started guide covers HACS and manual setup |
 | [`docs-removal-instructions`](https://contributors.home-assistant.io/core/quality-scale/docs-removal-instructions/) | Implemented | Getting-started guide explains per-mosque deletion and full uninstall |
-| [`docs-triggers`](https://contributors.home-assistant.io/core/quality-scale/docs-triggers/) | N/A | No native trigger platform; optional HA automation blueprints documented |
-| [`entity-event-setup`](https://contributors.home-assistant.io/core/quality-scale/entity-event-setup/) | Adapted | Coordinator and source manager own timers; platform entities do not register their own listeners |
+| [`docs-triggers`](https://contributors.home-assistant.io/core/quality-scale/docs-triggers/) | N/A (reviewed) | No native trigger platform; optional HA automation blueprints documented |
+| [`entity-event-setup`](https://contributors.home-assistant.io/core/quality-scale/entity-event-setup/) | Implemented | Sensors/calendar inherit `CoordinatorEntity`, which registers in `async_added_to_hass` and unsubscribes through `async_on_remove`; lifecycle tests cover unload/reload and failed setup |
 | [`entity-unique-id`](https://contributors.home-assistant.io/core/quality-scale/entity-unique-id/) | Implemented | Sensors and calendar use stable mosque-scoped unique IDs |
 | [`has-entity-name`](https://contributors.home-assistant.io/core/quality-scale/has-entity-name/) | Implemented | Entities use has_entity_name, with translated calendar name |
 | [`runtime-data`](https://contributors.home-assistant.io/core/quality-scale/runtime-data/) | Implemented | Coordinator held in ConfigEntry.runtime_data |
-| [`test-before-configure`](https://contributors.home-assistant.io/core/quality-scale/test-before-configure/) | N/A | No external login or connection at setup; validate timezone and identity locally |
+| [`test-before-configure`](https://contributors.home-assistant.io/core/quality-scale/test-before-configure/) | Implemented (scoped) | Initial mosque setup validates identity/timezone locally and has no connection; optional HTTPS source configuration downloads and validates before saving/staging its profile |
 | [`test-before-setup`](https://contributors.home-assistant.io/core/quality-scale/test-before-setup/) | Implemented | Storage is validated and first coordinator refresh runs before platform setup |
 | [`unique-config-entry`](https://contributors.home-assistant.io/core/quality-scale/unique-config-entry/) | Implemented | Duplicate mosque IDs are rejected by unique ID |
 
@@ -210,16 +213,16 @@ Do not set `manifest.json` to a claimed Core quality tier solely on this audit. 
 
 | Rule | Assessment | Evidence / action |
 | --- | --- | --- |
-| [`action-exceptions`](https://contributors.home-assistant.io/core/quality-scale/action-exceptions/) | N/A | No integration-owned Home Assistant actions |
+| [`action-exceptions`](https://contributors.home-assistant.io/core/quality-scale/action-exceptions/) | N/A (reviewed) | No integration-owned Home Assistant actions |
 | [`config-entry-unloading`](https://contributors.home-assistant.io/core/quality-scale/config-entry-unloading/) | Implemented | Unload stops source checks and coordinator callbacks; regression tests exist |
-| [`docs-configuration-parameters`](https://contributors.home-assistant.io/core/quality-scale/docs-configuration-parameters/) | Verify | Review every import, Ramadan and source option against public instructions |
+| [`docs-configuration-parameters`](https://contributors.home-assistant.io/core/quality-scale/docs-configuration-parameters/) | Implemented | [Configuration reference](import_review.md#configuration-fields-and-defaults) cross-checked against every settings/import/mapping/review/source/Ramadan form, including defaults, limits and approval effects |
 | [`docs-installation-parameters`](https://contributors.home-assistant.io/core/quality-scale/docs-installation-parameters/) | Implemented | Setup fields and mosque-ID rules documented |
 | [`entity-unavailable`](https://contributors.home-assistant.io/core/quality-scale/entity-unavailable/) | Implemented | Missing Salah/event data makes timestamp sensors unavailable; source status remains independently readable |
 | [`integration-owner`](https://contributors.home-assistant.io/core/quality-scale/integration-owner/) | Implemented | Maintainer recorded in manifest codeowners |
-| [`log-when-unavailable`](https://contributors.home-assistant.io/core/quality-scale/log-when-unavailable/) | N/A | No continuously connected device; remote source errors represented by status instead |
+| [`log-when-unavailable`](https://contributors.home-assistant.io/core/quality-scale/log-when-unavailable/) | Implemented (source transitions) | Optional URL checks and source storage log one sanitized warning per failure episode and one recovery message, without publication identifiers; approved rows remain usable. Expected missing dates/fields are data absence, not a connection failure |
 | [`parallel-updates`](https://contributors.home-assistant.io/core/quality-scale/parallel-updates/) | Implemented | sensor.py and calendar.py declare PARALLEL_UPDATES = 0 |
-| [`reauthentication-flow`](https://contributors.home-assistant.io/core/quality-scale/reauthentication-flow/) | N/A | No credentials are collected or stored for public HTTPS timetable downloads |
-| [`test-coverage`](https://contributors.home-assistant.io/core/quality-scale/test-coverage/) | Implemented (measured) | Python branch-coverage report: 1,096 passing tests; minimum per-module combined coverage 96%, overall line coverage 99.08%. The existing CI blocker still checks a 94.5% *aggregate line* threshold; it does not automatically enforce the per-module Silver target |
+| [`reauthentication-flow`](https://contributors.home-assistant.io/core/quality-scale/reauthentication-flow/) | N/A (reviewed) | No credentials are collected or stored for public HTTPS timetable downloads |
+| [`test-coverage`](https://contributors.home-assistant.io/core/quality-scale/test-coverage/) | Implemented (CI guard) | [Coverage gate](testing.md#run-and-debug) requires >95% combined statement/branch coverage for every Python module using raw counts and a source inventory; preserves the 94.5% aggregate line floor and rejects missing branch/module data |
 
 ### Gold
 
@@ -227,38 +230,41 @@ Do not set `manifest.json` to a claimed Core quality tier solely on this audit. 
 | --- | --- | --- |
 | [`devices`](https://contributors.home-assistant.io/core/quality-scale/devices/) | Implemented | One logical Home Assistant device per configured mosque |
 | [`diagnostics`](https://contributors.home-assistant.io/core/quality-scale/diagnostics/) | Implemented | Allowlisted, redacted per-entry diagnostic snapshot |
-| [`discovery`](https://contributors.home-assistant.io/core/quality-scale/discovery/) | N/A | Mosques and their publications have no network discovery mechanism |
-| [`discovery-update-info`](https://contributors.home-assistant.io/core/quality-scale/discovery-update-info/) | N/A | No discoverable device address to update |
+| [`discovery`](https://contributors.home-assistant.io/core/quality-scale/discovery/) | N/A (reviewed) | Mosques and their publications have no network discovery mechanism |
+| [`discovery-update-info`](https://contributors.home-assistant.io/core/quality-scale/discovery-update-info/) | N/A (reviewed) | No discoverable device address to update |
 | [`docs-data-update`](https://contributors.home-assistant.io/core/quality-scale/docs-data-update/) | Implemented | Source checking and user-approved update workflow documented |
 | [`docs-examples`](https://contributors.home-assistant.io/core/quality-scale/docs-examples/) | Implemented | Automation and media blueprints supplied |
 | [`docs-known-limitations`](https://contributors.home-assistant.io/core/quality-scale/docs-known-limitations/) | Implemented | PDF layout, date, HA compatibility and source limitations documented |
-| [`docs-supported-devices`](https://contributors.home-assistant.io/core/quality-scale/docs-supported-devices/) | Adapted | No physical products; supported publication layouts are documented instead |
-| [`docs-supported-functions`](https://contributors.home-assistant.io/core/quality-scale/docs-supported-functions/) | Verify | Cross-check the complete entity list against current sensor/calendar implementation |
+| [`docs-supported-devices`](https://contributors.home-assistant.io/core/quality-scale/docs-supported-devices/) | N/A (reviewed) | Official exception for integrations without physical devices; [supported publication layouts](import_review.md#supported-pdf-layouts) are documented separately |
+| [`docs-supported-functions`](https://contributors.home-assistant.io/core/quality-scale/docs-supported-functions/) | Implemented | [Complete entity reference](automations.md#entities-per-mosque) cross-checked against all 26 sensors and read-only calendar, including attributes, availability and defaults |
 | [`docs-troubleshooting`](https://contributors.home-assistant.io/core/quality-scale/docs-troubleshooting/) | Implemented | Getting-started and dashboard troubleshooting sections |
 | [`docs-use-cases`](https://contributors.home-assistant.io/core/quality-scale/docs-use-cases/) | Implemented | README and automation examples cover dashboards and reminders |
-| [`dynamic-devices`](https://contributors.home-assistant.io/core/quality-scale/dynamic-devices/) | N/A | Additional mosques are explicitly added via a config flow |
+| [`dynamic-devices`](https://contributors.home-assistant.io/core/quality-scale/dynamic-devices/) | N/A (reviewed) | Official fixed-device exception: exactly one static logical mosque device per config entry; additional mosques require separate entries |
 | [`entity-category`](https://contributors.home-assistant.io/core/quality-scale/entity-category/) | Implemented | Source and coverage status sensors are diagnostic |
 | [`entity-device-class`](https://contributors.home-assistant.io/core/quality-scale/entity-device-class/) | Implemented | Prayer events are timestamp sensors; status sensors use enum device class |
-| [`entity-disabled-by-default`](https://contributors.home-assistant.io/core/quality-scale/entity-disabled-by-default/) | Verify | Audit low-use sensors against dashboard dependencies before disabling anything |
+| [`entity-disabled-by-default`](https://contributors.home-assistant.io/core/quality-scale/entity-disabled-by-default/) | Implemented | Standalone Previous Jamaat is opt-in for new registrations because the card already gets it from Prayer timetable and bundled blueprints do not use it. Other sensors/calendar provide primary timetable, reminder or health functions. Registry tests preserve existing user choices and prove enable/reload |
 | [`entity-translations`](https://contributors.home-assistant.io/core/quality-scale/entity-translations/) | Implemented | Sensor names and prayer calendar use translations |
 | [`exception-translations`](https://contributors.home-assistant.io/core/quality-scale/exception-translations/) | Implemented (targeted) | Calendar query and invalid-storage `HomeAssistantError` subclasses use `translation_domain`/`translation_key`; option forms already use translated error keys. Review any newly introduced HA exception paths |
 | [`icon-translations`](https://contributors.home-assistant.io/core/quality-scale/icon-translations/) | Implemented | Calendar icon now declared via icons.json; device class supplies standard sensor icons |
 | [`reconfiguration-flow`](https://contributors.home-assistant.io/core/quality-scale/reconfiguration-flow/) | Implemented | Name and timezone editable without changing mosque identity or storage |
 | [`repair-issues`](https://contributors.home-assistant.io/core/quality-scale/repair-issues/) | Implemented | Corrupt or invalid timetable storage raises a persistent Repairs issue |
-| [`stale-devices`](https://contributors.home-assistant.io/core/quality-scale/stale-devices/) | N/A (official exemption) | Exactly one fixed logical mosque device belongs to each configuration entry and is removed with it; separate two-mosque removal regression protects devices, entities and storage |
+| [`stale-devices`](https://contributors.home-assistant.io/core/quality-scale/stale-devices/) | N/A (reviewed) | Official fixed-device exception: one logical mosque device belongs to each entry and is removed with it; two-mosque removal regression protects the remaining device, entities and storage |
 
 ### Platinum
 
 | Rule | Assessment | Evidence / action |
 | --- | --- | --- |
-| [`async-dependency`](https://contributors.home-assistant.io/core/quality-scale/async-dependency/) | Adapted | Async downloads; synchronous PDF parsing is isolated in a worker/executor rather than called on the event loop |
-| [`inject-websession`](https://contributors.home-assistant.io/core/quality-scale/inject-websession/) | N/A | No external API client library; separate HTTPS connector is a deliberate SSRF/DNS validation boundary |
+| [`async-dependency`](https://contributors.home-assistant.io/core/quality-scale/async-dependency/) | N/A (reviewed) | Dependency-without-I/O exception: pypdf reads already-downloaded in-memory `BytesIO`, with no dependency network/file access. PDF CPU/process work is isolated off the event loop; executor isolation alone would not establish an exception |
+| [`inject-websession`](https://contributors.home-assistant.io/core/quality-scale/inject-websession/) | Gap | HTTP downloads mean the no-HTTP exception does not apply. A dedicated connector enforces public-only DNS resolution on every connection/redirect. The pinned HA session helper supplies its own connector; redesign needs proof that this SSRF boundary survives before adopting it |
 | [`strict-typing`](https://contributors.home-assistant.io/core/quality-scale/strict-typing/) | Gap | Python integration is not yet checked with strict mypy |
 
-### Prioritised follow-up
+### Exemption review and remaining work
+
+Each absence-based exception was checked independently: `action-setup`, `docs-actions` and `action-exceptions` have no integration-owned actions; `docs-conditions` has no condition platform; `docs-triggers` has no trigger platform; `reauthentication-flow` collects no authentication credentials. Generic HA calendar/state/time triggers and optional blueprints do not create integration-owned platforms. `discovery` and `discovery-update-info` have no discoverable protocol or endpoint. The physical-device, fixed-device and dependency-without-I/O exceptions are explained in their individual rows above.
+
+`brands` and `common-modules` have no blanket custom-integration exception. Local branding uses the supported custom route; the coordinator follows the standard layout. `log-when-unavailable` does not qualify for the no-entities exception, and `inject-websession` does not qualify for the no-HTTP exception. Their implementation/gap must be assessed directly.
 
 1. **Validate release candidates:** re-run Ruff, Python/branch coverage, frontend, HACS/hassfest, both supported HA compatibility versions, live acceptance and CodeQL for the release candidate; a previous green run does not validate later commits.
-2. **Protect Silver coverage:** maintain greater than 95% combined coverage for *each* integration module as the code evolves. A follow-up CI improvement should explicitly enforce the per-module rule without weakening the existing aggregate line-coverage gate.
-3. **Gold usability:** translated Home Assistant calendar/setup exceptions and fixed-device removal regression are covered; inspect any other user-facing exception when extending the integration. Review low-use entity defaults before making them disabled by default.
-4. **Bronze structure:** document why the coordinator lives in the organized runtime package or migrate it cleanly to the conventional top-level module in a separate refactor; never duplicate implementations.
-5. **Platinum:** treat strict mypy and an asynchronous dependency design review as optional later work; keep the explicit HTTPS security boundary.
+2. **Preserve rule evidence:** retain the per-module guard, check error-to-success recovery when extending any flow, and review new public fields, entities and exception paths against this audit.
+3. **Platinum gaps:** strict mypy and HA-managed websession adoption remain incomplete. Preserve the downloader's DNS/redirect validation during any session redesign. These are gaps, not exemptions.
+4. **Tier review:** retain the custom-integration scope and obtain a maintainer review of all applicable rules and each exception before making any tier claim; no `quality_scale` value is added to the manifest.

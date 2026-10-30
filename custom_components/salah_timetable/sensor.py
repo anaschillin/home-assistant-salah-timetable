@@ -166,6 +166,10 @@ class EventSensor(CoordinatorEntity, SensorEntity):
         self._attr_translation_key = key
         self._attr_unique_id = f"{entry.unique_id}_{key}"
         self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry.unique_id)})
+        # The card reads previous Jamaat from the dashboard snapshot, and the
+        # bundled automations only need upcoming events. Keep the standalone
+        # historical timestamp opt-in without changing existing registry choices.
+        self._attr_entity_registry_enabled_default = key != "previous_jamaat"
 
     @property
     def available(self):

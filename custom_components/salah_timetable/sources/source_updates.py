@@ -40,6 +40,11 @@ class SourceUpdateManager:
         self._attempted_at: dict[str, tuple[Any, datetime]] = {}
         self._stopped = False
         self._runtime_error: str | None = None
+        self._failed_sources = {
+            source_id: source
+            for source_id, source in storage.remote_sources.items()
+            if storage.remote_checks.get(source_id, {}).get("status") == "error"
+        }
 
     @property
     def status(self) -> dict[str, Any]:
@@ -213,7 +218,33 @@ class SourceUpdateManager:
 
     def source_profiles_changed(self) -> None:
         """Recalculate the next due check after a source profile changes."""
+        self._failed_sources = {
+            source_id: source
+            for source_id, source in self._failed_sources.items()
+            if self.storage.remote_sources.get(source_id) == source
+        }
         self._notify()
+
+    def _set_storage_error(self, failed: bool) -> None:
+        """Log storage availability transitions without exception details."""
+        if failed == (self._runtime_error is not None):
+            return
+        self._runtime_error = "storage_failed" if failed else None
+        if failed:
+            _LOGGER.warning("Timetable source storage is unavailable")
+        else:
+            _LOGGER.info("Timetable source storage recovered")
+
+    def _log_check_result(self, source, patch: dict[str, Any]) -> None:
+        """Log each failure/recovery once, omitting publication identifiers."""
+        failed = self._failed_sources.get(source.source_id) == source
+        if patch.get("status") == "error":
+            self._failed_sources[source.source_id] = source
+            if not failed:
+                _LOGGER.warning("Timetable source check failed; approved data retained")
+        elif patch.get("last_success") is not None and failed:
+            del self._failed_sources[source.source_id]
+            _LOGGER.info("Timetable source check recovered; approved data retained")
 
     async def async_check_all(self) -> None:
         """Attempt every configured source once; no active data is changed."""
@@ -238,7 +269,7 @@ class SourceUpdateManager:
                 OSError,
                 HomeAssistantError,
             ):
-                self._runtime_error = "storage_failed"
+                self._set_storage_error(True)
                 now = dt_util.utcnow()
                 for source in self.storage.remote_sources.values():
                     self._attempted_at[source.source_id] = (source, now)
@@ -288,9 +319,10 @@ class SourceUpdateManager:
             OSError,
             HomeAssistantError,
         ):
-            self._runtime_error = "storage_failed"
+            self._set_storage_error(True)
             return False
-        self._runtime_error = None
+        self._set_storage_error(False)
+        self._log_check_result(source, patch)
         return True
 
     @staticmethod
@@ -332,9 +364,6 @@ class SourceUpdateManager:
             )
             return
         except ImportValidationError, ValueError:
-            _LOGGER.warning(
-                "Downloaded timetable failed validation; approved data retained"
-            )
             await self._record(
                 source,
                 {
@@ -345,7 +374,7 @@ class SourceUpdateManager:
             )
             return
         except OSError, HomeAssistantError:
-            self._runtime_error = "storage_failed"
+            self._set_storage_error(True)
             return
         await self._record(
             source,
@@ -380,9 +409,6 @@ class SourceUpdateManager:
                 last_modified=previous.get("last_modified") if baseline else None,
             )
         except download.DownloadError as err:
-            _LOGGER.warning(
-                "Timetable source check failed (%s); approved data retained", err.code
-            )
             await self._record(
                 source, {"status": "error", "last_checked": now, "error_code": err.code}
             )
@@ -413,7 +439,7 @@ class SourceUpdateManager:
             OSError,
             HomeAssistantError,
         ):
-            self._runtime_error = "storage_failed"
+            self._set_storage_error(True)
             return
         if self.storage.remote_sources.get(source.source_id) != source:
             return

@@ -703,23 +703,26 @@ async def test_unloaded_entry_hides_source_check_action(hass, entry):
     assert "manage_sources" not in result["menu_options"]
 
 
-async def test_pending_approval_blocks_another_url_import_form(hass, entry):
+@pytest.mark.parametrize("step", ["import_url", "import_pdf", "import_csv"])
+async def test_pending_approval_blocks_another_import_form(hass, entry, step):
     await setup_mosque(hass, entry)
-    existing_form = await open_step(hass, entry, "import_url")
+    existing_form = await open_step(hass, entry, step)
     staged = await stage_url(hass, entry)
     assert staged["step_id"] == "review"
+    pending = entry.runtime_data.storage.staged
+    data = {"kind": "annual", "year": 2026}
+    if step == "import_url":
+        data.update(url=PUBLIC_URL, media_type="csv")
+    else:
+        # The pending guard must run before any uploaded file is read.
+        data["file"] = "00000000-0000-0000-0000-000000000000"
     result = await hass.config_entries.options.async_configure(
-        existing_form["flow_id"],
-        {
-            "url": PUBLIC_URL,
-            "media_type": "csv",
-            "kind": "annual",
-            "year": 2026,
-        },
+        existing_form["flow_id"], data
     )
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "pending_import_exists"
-    assert entry.runtime_data.storage.staged is not None
+    assert entry.runtime_data.storage.staged == pending
+    assert entry.runtime_data.storage.timetables == ()
 
 
 async def test_remove_source_during_manage_dialog_aborts_without_recreating(
@@ -739,13 +742,52 @@ async def test_remove_source_during_manage_dialog_aborts_without_recreating(
     assert entry.runtime_data.storage.remote_sources == {}
 
 
-async def test_unloaded_entry_cannot_run_previously_opened_source_check(hass, entry):
+@pytest.mark.parametrize("step", ["check_updates", "manage_sources"])
+async def test_unloaded_entry_cannot_run_previously_opened_source_action(
+    hass, entry, step
+):
     await setup_mosque(hass, entry)
     staged = await stage_url(hass, entry)
     await approve(hass, staged)
-    form = await open_step(hass, entry, "check_updates")
-    assert form["step_id"] == "check_updates"
+    form = await open_step(hass, entry, step)
+    assert form["step_id"] == step
     assert await hass.config_entries.async_unload(entry.entry_id)
-    result = await hass.config_entries.options.async_configure(form["flow_id"], {})
+    result = await hass.config_entries.options.async_configure(
+        form["flow_id"],
+        {}
+        if step == "check_updates"
+        else {"source_id": "annual-2026", "action": "check"},
+    )
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "integration_not_loaded"
+
+
+async def test_reload_during_url_download_requires_reopening_import(hass, entry):
+    """A completed download must not attach its profile to a retired runtime."""
+    await setup_mosque(hass, entry)
+    original = entry.runtime_data
+    form = await open_step(hass, entry, "import_url")
+
+    async def reload_during_download(*args, **kwargs):
+        assert await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+        return downloaded()
+
+    with patch(
+        "custom_components.salah_timetable.sources.source_flow.async_download",
+        side_effect=reload_during_download,
+    ):
+        result = await hass.config_entries.options.async_configure(
+            form["flow_id"],
+            {"url": PUBLIC_URL, "media_type": "csv", "kind": "annual", "year": 2026},
+        )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "integration_reloaded"
+    assert entry.runtime_data is not original
+    assert original.source_updates._stopped
+    assert entry.runtime_data.storage.staged is None
+    assert entry.runtime_data.storage.remote_sources == {}
+    # Reopening after the reload can still reach review without approving data.
+    reopened = await stage_url(hass, entry)
+    assert reopened["step_id"] == "review"
+    assert entry.runtime_data.storage.timetables == ()

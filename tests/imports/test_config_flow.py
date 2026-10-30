@@ -40,6 +40,14 @@ async def test_invalid_input(hass):
         "mosque_id": "invalid_mosque_id",
         "time_zone": "invalid_time_zone",
     }
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"name": "Recovered Mosque", "mosque_id": "recovered", "time_zone": "UTC"},
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["result"].unique_id == "recovered"
+    assert result["result"].data["time_zone"] == "UTC"
+    await hass.async_block_till_done()
 
 
 async def test_options(hass, entry):
@@ -178,6 +186,16 @@ async def test_reconfigure_validates_fields_without_changing_identity(hass, entr
     }
     assert entry.data == original
     assert entry.unique_id == "example"
+    result = await hass.config_entries.flow.async_configure(
+        invalid["flow_id"], {"name": "Recovered Mosque", "time_zone": "UTC"}
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.unique_id == "example"
+    assert entry.data["mosque_id"] == "example"
+    assert entry.data["name"] == "Recovered Mosque"
+    assert entry.data["time_zone"] == "UTC"
+    await hass.async_block_till_done()
 
 
 async def test_reconfigure_preserves_mosque_storage_and_entity_ids(

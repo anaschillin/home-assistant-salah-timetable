@@ -6,6 +6,84 @@ download. The review includes date coverage, missing fields, warnings, sample
 values, Ramadan effects, and an optional read-only comparison against the
 currently approved publication.
 
+## Configuration fields and defaults
+
+Open the mosque's **Configure** menu in **Settings → Devices & services**. Saved
+settings are reused when reopening a form. Import choices below describe a new
+import; no timetable is active until you explicitly approve it.
+
+| Form / field | Values and initial default | Effect |
+| --- | --- | --- |
+| Mosque settings → Mosque timezone | Current saved IANA timezone | Reinterprets published local clock times in the chosen zone; check timestamps after changing it. |
+| Mosque settings → Show full calculated Hijri date | Saved preference; initially enabled | Dashboard display only. Card preferences can hide the header independently. |
+| Add or replace a URL source → URL | Required; no default | Public HTTPS PDF/CSV address, without credentials or private-network destinations, using port 443. |
+| URL source → File type | PDF (default) or CSV | Select the actual publication format; neither an HTML page nor a scanned PDF is supported. |
+| PDF upload → PDF file | Required; no default | Text PDF, at most 4 MiB and 16 pages, in a [supported layout](#supported-pdf-layouts). |
+| CSV upload → CSV file | Required; no default | UTF-8 CSV, at most 512 KiB, with a header and ISO `YYYY-MM-DD` dates. |
+| PDF/URL → Timetable type | Annual (default), Monthly or Ramadan | Monthly creates a separate exact-date-span ordinary source. Ramadan is a separately activated override. |
+| CSV upload → Timetable type | Annual (default) or Ramadan | A partial Annual CSV replaces that whole year's ordinary source. For a separate Monthly CSV source, use a public HTTPS CSV URL and choose Monthly. |
+| All imports → Year | Current year in the mosque's timezone; whole number 1900–2199 | Must match the publication's Gregorian dates. One import cannot span two years. |
+| Map columns → Date column | Matching `Date` header, otherwise the first column | Select the explicit date column and check every row's date interpretation. |
+| Map columns → Time format | 24-hour (default) or 12-hour | General input requires `HH:MM` or explicit `HH:MM AM/PM`, respectively. Known PDF adapters normalize their documented column conventions before mapping. |
+| Map columns → Prayer fields | Unique recognised headers are suggested; otherwise Do not import this field | Map only published fields. At least one prayer field is required; a physical column cannot be reused or also mapped as the date. All sixteen supported fields are listed in the [entity reference](automations.md#entities-per-mosque). |
+| Review → Action | Compare changes, Approve and save timetable, or Reject and keep the active timetable; no default decision | Comparison is read-only. Approval replaces the complete target source; rejection retains approved data. |
+| Compare → Next step | Return to approval/rejection, plus Previous/Next page when available | Navigate all change pages without approving or changing the timetable. |
+| Manage URL sources → Source | One configured source; no default | Select the source to check or remove. |
+| Manage URL sources → Action | Check or Remove; no default | Check stages valid changes for approval. Remove stops checks while retaining approved timetable rows. |
+
+**Check URL sources now** has no parameters: submit its confirmation form to
+check every configured URL. **Manage URL sources** and **Check URL sources now**
+appear only when URL sources exist; **Review pending import** appears when a
+proposal is staged. To replace a URL, import and approve another URL for the same
+source identity; check the [replacement scope](#replacement-scope) first.
+
+### Ramadan settings
+
+| Field | Initial default | Meaning |
+| --- | --- | --- |
+| Activation | Automatic | Automatic applies only inside the confirmed window. Manual on remains active until changed and ignores the window; Off prevents Ramadan overrides/defaults. |
+| Confirmed first / last date | Both empty | Inclusive Gregorian window of 1–35 days. Set both dates or clear both; imported rows and calculated Hijri dates do not confirm them. |
+| Adjust confirmed window (days) | `0` | Whole days from −3 to +3, shifting the activation window only; source row dates stay unchanged. |
+| Ramadan source | Use the unique matching source | Automatic selection requires a unique source on each active date. Alternatively choose an approved Ramadan source explicitly; other Ramadan sources are then excluded. |
+
+An import and its activation settings are separate. See [Ramadan timetable
+validation](#ramadan-timetable-validation) for merging, warnings and Iftar/Taraweeh
+fallbacks, and [Dashboard](dashboard.md#ramadan-controls) for display behaviour.
+
+### When data updates
+
+The coordinator refreshes date/event snapshots once per minute while the mosque
+is loaded; card countdowns tick in the browser. These refreshes use already
+approved data and do not download a timetable. Uploaded files change only after
+another import is approved.
+
+Configured URL sources are checked when due and then once every 24 hours while
+loaded. Due times use saved check timestamps across restarts; an overdue source
+is checked after startup. Manual checks use the same validation and approval
+rules. A valid changed download becomes a pending proposal, never an automatic
+replacement. Failed checks retain the approved timetable. Review any existing
+pending proposal before importing another file.
+
+The diagnostic **Source status** sensor exposes `configured_sources`,
+`pending_review`, `error_count`, `last_checked` and `last_success`, without the
+URLs or published prayer values. Its states are:
+
+| State | Meaning |
+| --- | --- |
+| `not_configured` | No URL sources are configured. Uploaded timetables can still be active. |
+| `configured` | A URL source has no successful validated check recorded yet. |
+| `up_to_date` | The latest successfully checked publication matches the approved source. |
+| `rejected_version` | A checked publication has been explicitly rejected. |
+| `differs_from_approved` | A checked publication is not the approved version. |
+| `pending_review` | A proposal awaits approval or rejection. |
+| `error` | A URL source check or source-state storage operation failed. |
+
+With several sources this is a summary; **Manage URL sources** shows each
+source's check status. Pending review takes precedence over errors in the summary;
+the `error_count` attribute still exposes failures. This sensor remains readable
+when prayer data is unavailable. Use the [Timetable coverage](automations.md#read-timetable-coverage)
+sensor to check approved date coverage separately.
+
 ## Replacement scope
 
 A comparison targets the **exact source ID** that approval will replace (for

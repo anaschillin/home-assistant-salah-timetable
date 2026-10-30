@@ -88,6 +88,9 @@ async def test_event_entities_transition_at_exact_beginning_and_jamaat(
     hass, entry, event_tables, freezer
 ):
     freezer.move_to("2026-03-10T05:50:00+00:00")
+    er.async_get(hass).async_get_or_create(
+        "sensor", DOMAIN, "example_previous_jamaat", config_entry=entry
+    )
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert state(hass, "next_salah").state == "2026-03-10T06:00:00+00:00"
@@ -115,6 +118,9 @@ async def test_after_isha_uses_tomorrows_published_times(
     hass, entry, event_tables, freezer
 ):
     freezer.move_to("2026-03-10T21:00:00+00:00")
+    er.async_get(hass).async_get_or_create(
+        "sensor", DOMAIN, "example_previous_jamaat", config_entry=entry
+    )
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert state(hass, "next_salah").state == "2026-03-11T06:03:00+00:00"

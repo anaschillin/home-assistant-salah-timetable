@@ -10,9 +10,9 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 
 from .const import CONF_TIME_ZONE, DOMAIN
+from .coordinator import SalahCoordinator
 from .frontend import async_setup_frontend
 from .persistence.storage import TimetableStorage
-from .runtime.coordinator import SalahCoordinator
 from .sources.source_updates import SourceUpdateManager
 
 type SalahConfigEntry = ConfigEntry[SalahCoordinator]

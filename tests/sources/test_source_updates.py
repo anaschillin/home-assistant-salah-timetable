@@ -1,6 +1,7 @@
 """Remote checks exercise real persistence while mocking only outbound transport."""
 
 import asyncio
+import logging
 import runpy
 from dataclasses import replace
 from datetime import date
@@ -24,6 +25,7 @@ from custom_components.salah_timetable.sources.source_updates import (
 
 CSV = b"Date,Fajr Begin\n2026-10-21,05:45\n"
 UPDATED = b"Date,Fajr Begin\n2026-10-21,05:55\n"
+LOGGER = "custom_components.salah_timetable.sources.source_updates"
 
 
 def response(content=CSV, etag='"v1"'):
@@ -124,6 +126,98 @@ async def test_changed_update_keeps_last_approved(manager):
         manager.storage.approved_sources[source().source_id].sha256
         == sha256(CSV).hexdigest()
     )
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [
+        DownloadError("connection_failed", "private transport detail"),
+        TimeoutError("private timeout detail"),
+        OSError("private transport detail"),
+        response(b"invalid timetable private content"),
+    ],
+)
+async def test_source_failure_logs_once_until_validated_recovery(
+    manager, caplog, failure
+):
+    """Retries stay quiet; real recovery keeps the approved publication intact."""
+    with patch(
+        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        AsyncMock(return_value=response()),
+    ):
+        await manager.async_check_all()
+    await manager.storage.async_approve(manager.storage.staged.stage_id)
+    approved = manager.storage.timetables
+    caplog.set_level(logging.INFO, logger=LOGGER)
+    with patch(
+        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        AsyncMock(side_effect=[failure, failure, response(), response(), failure]),
+    ):
+        await manager.async_check_all()
+        # A pending-review marker is not proof that the failed source recovered.
+        await manager._record(source(), {"status": "pending"})
+        await manager.async_check_all()
+        await manager.async_check_all()
+        await manager.async_check_all()
+        await manager.async_check_all()
+    records = [record for record in caplog.records if record.name == LOGGER]
+    assert [(record.levelno, record.getMessage()) for record in records] == [
+        (
+            logging.WARNING,
+            "Timetable source check failed; approved data retained",
+        ),
+        (
+            logging.INFO,
+            "Timetable source check recovered; approved data retained",
+        ),
+        (
+            logging.WARNING,
+            "Timetable source check failed; approved data retained",
+        ),
+    ]
+    assert manager.storage.timetables == approved
+    assert manager.storage.staged is None
+    assert manager.status["status"] == "error"
+
+
+async def test_persisted_failure_stays_quiet_after_restart_and_logs_recovery(
+    manager, caplog
+):
+    await manager.storage.async_record_check(source().source_id, {"status": "error"})
+    restarted = SourceUpdateManager(
+        manager.hass, manager.entry, manager.storage, MagicMock()
+    )
+    caplog.set_level(logging.INFO, logger=LOGGER)
+    with patch(
+        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        AsyncMock(side_effect=[DownloadError("timeout", "private detail"), response()]),
+    ):
+        await restarted.async_check_all()
+        await restarted.async_check_all()
+    assert [
+        record.getMessage() for record in caplog.records if record.name == LOGGER
+    ] == ["Timetable source check recovered; approved data retained"]
+
+
+async def test_source_failures_are_tracked_per_profile_and_cleared_on_removal(
+    manager, caplog
+):
+    second = source(source_id="annual-2026-second")
+    await manager.storage.async_set_remote_source(second)
+    caplog.set_level(logging.INFO, logger=LOGGER)
+    with patch(
+        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        AsyncMock(side_effect=DownloadError("timeout", "private detail")),
+    ):
+        await manager.async_check_all()
+        await manager.async_check_all()
+        await manager.storage.async_remove_remote_source(second.source_id)
+        manager.source_profiles_changed()
+        await manager.storage.async_set_remote_source(second)
+        await manager.async_check_all()
+    assert [
+        record.getMessage() for record in caplog.records if record.name == LOGGER
+    ] == ["Timetable source check failed; approved data retained"] * 3
 
 
 @pytest.mark.parametrize("media_type", ["csv", "pdf"])
@@ -838,17 +932,28 @@ async def test_duplicate_start_keeps_one_source_check_listener(manager):
         await manager.async_stop()
 
 
-async def test_failed_source_check_persistence_is_nonfatal_and_recoverable(manager):
+async def test_failed_source_check_persistence_is_nonfatal_and_recoverable(
+    manager, caplog
+):
+    caplog.set_level(logging.INFO, logger=LOGGER)
     with patch.object(
         manager.storage,
         "async_record_check",
         AsyncMock(side_effect=OSError("disk full")),
     ):
         assert not await manager._record(source(), {"status": "error"})
+        assert not await manager._record(source(), {"status": "error"})
     assert manager._runtime_error == "storage_failed"
     assert manager.status["status"] == "error"
     assert await manager._record(source(), {"status": "configured"})
+    assert await manager._record(source(), {"status": "configured"})
     assert manager._runtime_error is None
+    assert [
+        record.getMessage() for record in caplog.records if record.name == LOGGER
+    ] == [
+        "Timetable source storage is unavailable",
+        "Timetable source storage recovered",
+    ]
 
 
 @pytest.mark.parametrize("failure", [ValueError("source changed"), KeyError("deleted")])
