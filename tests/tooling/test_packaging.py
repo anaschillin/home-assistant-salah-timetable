@@ -182,6 +182,7 @@ def test_production_modules_have_single_canonical_location():
         "config_flow.py",
         "coordinator.py",
         "const.py",
+        "data_api.py",
         "diagnostics.py",
         "frontend.py",
         "pdf_worker.py",
@@ -192,6 +193,7 @@ def test_production_modules_have_single_canonical_location():
     grouped = {
         "domain": {
             "model.py",
+            "month_data.py",
             "ramadan.py",
             "ramadan_validation.py",
             "coverage.py",
