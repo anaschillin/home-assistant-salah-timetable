@@ -12,6 +12,7 @@ from ..parsers.import_model import ImportValidationError
 PDF_PARSER_IDS = frozenset(
     {
         "pdf_table_v1",
+        "pdf_spaced_v1",
         "mosque_a_annual_v1",
         "mosque_a_monthly_v1",
         "mosque_b_ramadan_v1",
