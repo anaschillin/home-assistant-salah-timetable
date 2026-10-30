@@ -54,6 +54,8 @@ export const CATALOGS = Object.freeze({
     "editor.mosques": "Mosques available on this card",
     "editor.invalid_entity": "Choose the Prayer timetable sensor, rather than an individual prayer sensor.",
     "editor.detail_level": "Card detail",
+    "editor.kiosk_mode": "Kiosk / wall display mode",
+    "card.kiosk_fullscreen": "Toggle fullscreen",
     "editor.detail_level.compact": "Compact — prayer cards only",
     "editor.detail_level.standard": "Standard — prayer cards and timetable",
     "editor.detail_level.detailed": "Detailed — all published details",
