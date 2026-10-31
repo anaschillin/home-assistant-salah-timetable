@@ -6,6 +6,26 @@ download. The review includes date coverage, missing fields, warnings, sample
 values, Ramadan effects, and an optional read-only comparison against the
 currently approved publication.
 
+## Choose a source and review it
+
+1. Open the mosque's **Configure** menu and choose **Upload a supported PDF**,
+   **Import CSV timetable**, or **Add or replace a URL source**.
+2. Choose the timetable type and Gregorian year printed on the publication.
+   PDF uploads support annual, monthly and Ramadan layouts; URL sources also
+   accept CSV. A manual CSV can be annual, Ramadan or cross-year. Only
+   [listed PDF layouts](#supported-pdf-layouts) are recognised; there is no OCR.
+3. Check the date column, time format and every prayer mapping against the
+   publication. Leave unpublished fields unselected. An earlier approved
+   manual CSV mapping may be suggested as described [below](#configuration-fields-and-defaults).
+4. Review the detected dates, warnings and values. When replacing a source,
+   use **Compare changes before approval** and inspect every page.
+5. Choose **Approve and save timetable** to activate it, or reject it to keep
+   the currently approved data. Confirm Ramadan dates separately when needed.
+
+Each approval replaces a whole source. A shorter replacement can remove dates
+or fields; missing values are never invented. See [replacement scope](#replacement-scope)
+and [Ramadan validation](#ramadan-timetable-validation) before approving.
+
 ## Configuration fields and defaults
 
 Open the mosque's **Configure** menu in **Settings → Devices & services**. Saved
@@ -263,60 +283,40 @@ inspection and explicit approval.
 
 ### Supported editions and automatic recognition
 
-Use **Configure → Upload a supported PDF** or **Add or replace a URL source**.
-Choose **Annual**, **Monthly** or **Ramadan** and the printed Gregorian year.
-The integration identifies known layouts automatically and suggests their
-published columns; the user must still inspect the mapping and approve.
-There is no edition-specific profile picker or hard-coded mosque timezone.
-All strict PDF parsers, independent fixture comparisons, limits and automatic
-layout detection remain in place. Unsupported editions fail closed rather
-than guessing times.
+Known layouts are identified automatically after you select the timetable type
+and printed Gregorian year. Check the suggested columns and approve explicitly.
+There is no edition selector or hard-coded mosque timezone; unsupported editions
+are rejected. The following sections explain the specific inspected structures.
 
 ### MOSQUE_A monthly pages (`mosque_a_monthly_v1`)
 
-Choose **Monthly**, year **2022**, and upload the matching PDF. The original
-contributed publication inspected during development contained **May and June 2022**, with 61 dates and
-854 event values. Every date/value matches an independent Poppler extraction.
-That original is not redistributed. The similarly named repository fixture
-`mosque_a_monthly_2022.pdf` is a synthetic example, not that publication.
-It is not a complete Ramadan-only publication: May 1 is printed Hijri 30, May 2
-resets to Hijri 1, and June is outside Ramadan. Its moonsighting note is preserved
-as document context and does not confirm any activation dates.
+Choose **Monthly**, year **2022**, for a matching PDF. The adapter accepts
+complete consecutive months in one year and checks weekdays, headings, footer,
+thirteen time cells and month-local Jamaat ditto marks. It uses the same column
+meanings and AM/PM convention as the [annual adapter](#mosque-a-annual-calendar-mosque_a_annual_v1).
+The printed second-Jumu’ah **khutbah** time is Friday-only metadata, not a
+congregation time. Missing or unrecognised content is not invented.
 
-The adapter checks complete consecutive months in one year, exact weekdays,
-recognized headings/footer, thirteen physical time cells, the known extracted
-separator and month-local Jamaat ditto. Column meanings and morning/noon/evening
-normalization match the annual MOSQUE_A contract below. It preserves published values,
-weekday and Hijri day separately. The Monthly choice stores ordinary calendar
-data under its own exact date-span source. Ramadan may be selected when importing
-an explicitly confirmed exact-date override source.
-Selecting 2026 for this 2022 file is rejected. No Taraweeh or extra Khutbah event
-is inferred. Only the inspected structure is supported.
-
-The inspected monthly footer's explicitly printed **Second Jumu’ah khutbah**
-time is preserved separately as Friday-only metadata. It is not a Jumu’ah
-congregation and does not change the Dhuhr beginning or Jamaat column. An
-unrecognized footer still fails validation, rather than fabricating a time.
+The inspected May–June 2022 publication contained 61 dates and 854 values,
+checked against an independent Poppler extraction. It is not a complete Ramadan
+publication; its printed Hijri labels and moonsighting note do not confirm
+activation dates. The original is not redistributed. The similarly named
+`mosque_a_monthly_2022.pdf` test fixture is synthetic. See the
+[fixture provenance](../tests/fixtures/pdf/README.md).
 
 ### Mosque B annual calendar (`mosque_b_annual_v1`)
 
-Choose **Annual**, year **2026**, and upload a matching fourteen-page publication.
-The repository's `mosque_b_2026.pdf` is a synthetic fixture; the originally
-inspected publication is not redistributed. The adapter imports its twelve
-annual tables only. The separate Ramadan page remains an independently approved
-Ramadan source; importing the annual tables never activates Ramadan.
+Choose **Annual**, year **2026**, for a matching fourteen-page publication.
+Only the twelve annual tables are imported; the Ramadan page requires a separate
+import and activation decision. The adapter checks the cover, month titles, row
+counts, weekdays, time cells, order and footers. Pre-noon **11:xx AM** Dhuhr
+values remain before noon. Friday's weekday label does not turn Zohar Jamaat
+into Jumu’ah; missing times are not invented.
 
-All **365 dates and 3,770 published values** match an independent Poppler extraction.
-The field meanings match the Ramadan mapping below, with **Sehri published only
-from February through May (120 dates)**. Other months have no published Sehri
-value. No Maghrib Jamaat, Iftar, Jumu'ah, Istewa or Taraweeh timestamp is invented.
-Friday's Arabic weekday cell does not turn the Zohar Jamaat column into Jumu'ah.
-
-The adapter recognizes the tested 2026 cover, twelve ordered Gregorian titles,
-known header variations, full month row counts, exact weekdays, ten/eleven physical
-time cells, the printed daily order and expected footers. Pre-noon **11:xx AM**
-Dhuhr values remain before noon, rather than being changed to 23:xx. Stored
-`Europe/London` timestamps validate the spring/autumn clock changes.
+For the originally inspected publication, 365 dates and 3,770 values matched
+an independent Poppler extraction; Sehri was printed only February–May. That
+publication is not redistributed. The repository's `mosque_b_2026.pdf` is a
+synthetic fixture. See [fixture provenance](../tests/fixtures/pdf/README.md).
 
 One source date cell is visibly clipped to **“May …”**. It is accepted as
 **2026-05-01** only in the first row of the complete May 2026 table, with the

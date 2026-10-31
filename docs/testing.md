@@ -298,7 +298,7 @@ Requirements: Docker, Node.js <!-- docs:node_major -->24<!-- /docs:node_major --
 
 ```sh
 source <(python3 scripts/sync_documentation.py --shell)
-node scripts/live_smoke.mjs --ha-version "$HA_TESTED_VERSION" --output-dir /tmp/salah-live-results
+node scripts/live_smoke.mjs --ha-version "$HA_TESTED_VERSION" --require-fresh-dependency --output-dir /tmp/salah-live-results
 ```
 
 The optional `--preload-pypdf` supplies the exact manifest-pinned pure-Python
@@ -309,7 +309,8 @@ The default omits this preload and lets HA resolve the manifest requirement.
 `--require-fresh-dependency` verifies that both pypdf metadata and import are absent
 in the base image and match the manifest pin after the mosque has loaded. It fails
 rather than treating a pre-existing/preloaded package as fresh-install evidence.
-CI uses this flag. The runner verifies before/after dependency versions, but
+CI and the example above use this flag; do not combine it with `--preload-pypdf`.
+The runner verifies before/after dependency versions, but
 public `results.json` records only boolean outcomes, including
 `dependency.fresh_install_verified`, to avoid copying raw API or process data.
 

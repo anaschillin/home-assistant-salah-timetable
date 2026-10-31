@@ -60,7 +60,7 @@ Full HAOS/Supervisor restore is an **optional** additional test, documented in [
 
 ## Automatic feature test releases
 
-After this workflow is merged into `main`, each **non-draft, same-repository PR
+Each **non-draft, same-repository PR
 targeting `main`** gets one published GitHub prerelease when its latest Validate
 and CodeQL PR runs both succeed for the current feature-branch head. Known merge
 conflicts and unsuccessful external commit statuses block publication. Mark a
@@ -221,11 +221,10 @@ For reproducible commands and test boundaries see [Testing](testing.md), [Compat
 
 ### Manual acceptance
 
-For a release candidate, record real HACS install/update and HAOS usage on the **exact version**; check import/approval, two-mosque isolation, dashboard rendering on mobile/tablet, date boundaries, storage after restart and relevant automation behaviour. Capture environment and results in the release review.
-
-A full HAOS/Supervisor backup restore is optional/deferred, not a prerequisite for every change or release. See [Backup and restore](releasing.md#optional-full-backup-and-restore-acceptance).
-
-The authoritative sign-off procedure is [Releasing](releasing.md).
+Record real HACS install/update and Home Assistant OS use for the **exact version**
+using the [manual acceptance checklist](#manual-hacs-and-home-assistant-acceptance).
+[Full HAOS/Supervisor backup and restore](#optional-full-backup-and-restore-acceptance)
+is optional and does not replace that checklist.
 
 ## Optional full backup and restore acceptance
 

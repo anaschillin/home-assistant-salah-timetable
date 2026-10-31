@@ -34,20 +34,9 @@ uses HA element stand-ins and does not replace a live HA/frontend installation c
 
 Validate also runs full pinned Python compatibility suites on HA <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min -->
 and <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested -->, plus one real Docker-based live acceptance on HA <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested -->.
-The live job needs network access for official images and HA-managed dependencies,
-and real Chromium/Chrome for the frontend. The reusable workflow supports manual
-runs and weekly checks. To run the live acceptance locally:
-
-```sh
-source <(python3 scripts/sync_documentation.py --shell)
-node scripts/live_smoke.mjs --ha-version "$HA_TESTED_VERSION" --require-fresh-dependency --output-dir /tmp/salah-live-results
-```
-
-Strict dependency proof checks absence in the base image and the manifest-pinned
-metadata/import after setup. Do not combine it with `--preload-pypdf`. If the test
-network uses a private proxy CA, use `--ca-bundle` with a trusted combined bundle;
-keep TLS verification enabled. See [runner details](docs/testing.md#disposable-home-assistant-live-testing).
-The runner uses synthetic data and removes its private configuration/containers.
+For requirements, local commands, dependency verification and proxy CA handling,
+see [disposable Home Assistant live testing](docs/testing.md#disposable-home-assistant-live-testing).
+The runner uses synthetic data and removes its private configuration and container.
 
 Run `uv run --frozen python scripts/build_release.py --check` to check runtime
 assets and synchronized integration/frontend cache versions. See
