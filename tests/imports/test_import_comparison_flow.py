@@ -41,6 +41,27 @@ def candidate(value="05:45", *, count=1, year=2026, notes="printed", bom=False):
     )
 
 
+def test_cross_year_review_warns_only_when_previously_approved_dates_are_removed():
+    def cross_year(days):
+        content = "Date,Fajr Begin\n" + "".join(f"{day},06:00\n" for day in days)
+        return CsvParser().parse(
+            content.encode(),
+            timetable_id="annual-2026-cross-year",
+            kind="annual",
+            year=2026,
+            date_column="Date",
+            columns={"Fajr Begin": "fajr_begin"},
+        )
+
+    old = cross_year(["2026-12-30", "2026-12-31", "2027-01-01"])
+    replacement = cross_year(["2026-12-31", "2027-01-02"])
+    text = import_summary(replacement, (old.timetable,))
+    assert "Warning: approval removes 2 previously approved date(s)" in text
+    assert "First removed date: 2026-12-30; last removed date: 2027-01-01" in text
+    assert "Warning: approval removes" not in import_summary(old, (old.timetable,))
+    assert "Warning: approval removes" not in import_summary(replacement, ())
+
+
 async def loaded(hass, entry, previous=None):
     storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
     if previous is not None:

@@ -3,7 +3,9 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 
+from custom_components.salah_timetable.config_flow import _readiness_field_names
 from custom_components.salah_timetable.const import DOMAIN
+from custom_components.salah_timetable.domain.model import PrayerField
 from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 
 
@@ -158,6 +160,19 @@ async def test_getting_started_reports_approved_coverage(hass, populated, freeze
     assert "Europe/London" in status
     assert "today: available; tomorrow: available" in status
     assert "Required fields missing today: 4" in status
+    assert "Dhuhr Begin, Asr Begin, Maghrib Begin, Isha Begin" in status
+    assert "tomorrow: 4 (Dhuhr Begin, Asr Begin, Maghrib Begin, Isha Begin)" in status
+    settings = await hass.config_entries.options.async_configure(
+        guide["flow_id"], {"next_step_id": "settings"}
+    )
+    assert settings["step_id"] == "settings"
+
+
+def test_readiness_names_empty_and_selected_missing_fields():
+    assert _readiness_field_names(()) == "none"
+    assert _readiness_field_names((PrayerField.FAJR_JAMAAT, PrayerField.SUNRISE)) == (
+        "Fajr Jamaat, Sunrise"
+    )
 
 
 async def test_hijri_mosque_setting_at_setup_and_afterwards(hass):
