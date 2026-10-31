@@ -2,6 +2,10 @@
 
 ## 0.9.20 — unreleased
 
+- Add an optional Prayer completeness alert blueprint for newly missing required
+  fields today or tomorrow, with user-selected actions.
+- Allow import comparison to show only date and prayer value changes while keeping
+  the full original-cell comparison available.
 - Centralize current release, dependency, toolchain and compatibility versions in
   `versions.toml`; generate required code/configuration/documentation copies with
   one command and reject version drift in CI.

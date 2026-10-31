@@ -327,7 +327,9 @@
       "options": {
         "review": "Return to approval/rejection",
         "previous": "Previous page",
-        "next": "Next page"
+        "next": "Next page",
+        "canonical": "Show date and prayer changes only",
+        "all": "Show all changes"
       }
     },
     "source_format": {

@@ -1,0 +1,71 @@
+blueprint:
+  name: Salah Timetable - Prayer completeness alert
+  description: >-
+    Run your actions when newly missing required fields appear for today or
+    tomorrow. Select the mosque's Prayer completeness sensor. Configure required
+    fields in Mosque settings. Existing gaps at startup, recovery from unknown
+    or unavailable, unchanged gaps and removal-only updates do not alert.
+  domain: automation
+  source_url: https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/prayer_completeness_alert.yaml
+  homeassistant:
+    min_version: 2026.10.0
+  input:
+    completeness_sensor:
+      name: Prayer completeness sensor
+      selector:
+        entity:
+          filter:
+            integration: salah_timetable
+            domain: sensor
+            device_class: enum
+    alert_today:
+      name: Alert for today's missing fields
+      default: true
+      selector:
+        boolean:
+    alert_tomorrow:
+      name: Alert for tomorrow's missing fields
+      default: true
+      selector:
+        boolean:
+    alert_actions:
+      name: Alert actions
+      description: >-
+        Choose your actions. Variables alert_kind, missing_fields,
+        newly_missing_fields and required_fields are available.
+      selector:
+        action:
+
+triggers:
+  - trigger: state
+    entity_id: !input completeness_sensor
+    attribute: missing_today
+    id: missing_today
+  - trigger: state
+    entity_id: !input completeness_sensor
+    attribute: missing_tomorrow
+    id: missing_tomorrow
+
+variables:
+  alert_today: !input alert_today
+  alert_tomorrow: !input alert_tomorrow
+  alert_kind: "{{ trigger.id }}"
+  missing_fields: "{{ trigger.to_state.attributes.get(trigger.id, []) if trigger.to_state is not none else [] }}"
+  newly_missing_fields: >-
+    {{ missing_fields | reject('in', trigger.from_state.attributes.get(trigger.id, [])) | list
+       if trigger.from_state is not none else [] }}
+  required_fields: "{{ trigger.to_state.attributes.get('required_fields', []) if trigger.to_state is not none else [] }}"
+
+conditions:
+  - condition: template
+    value_template: >-
+      {{ trigger.from_state is not none and trigger.to_state is not none
+         and trigger.from_state.state not in ['unknown', 'unavailable']
+         and trigger.to_state.state not in ['unknown', 'unavailable']
+         and (alert_today if trigger.id == 'missing_today' else alert_tomorrow)
+         and newly_missing_fields | count > 0 }}
+
+actions: !input alert_actions
+
+mode: queued
+max: 10

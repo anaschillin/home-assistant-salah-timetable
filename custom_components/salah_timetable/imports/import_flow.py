@@ -26,6 +26,7 @@ from ..persistence.storage import (
     ReviewChangedError,
 )
 from .import_comparison import (
+    DEFAULT_PAGE_SIZE,
     compare_import,
     comparison_overview,
     render_comparison_page,
@@ -178,6 +179,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         self._review_runtime = None
         self._review_baseline = None
         self._review_page = 0
+        self._review_canonical_only = False
         self._parser = PARSER
         self._source_format = "csv"
         self._parser_id = "csv_v1"
@@ -492,6 +494,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             decision = user_input["decision"]
             if decision == "compare":
                 self._review_page = 0
+                self._review_canonical_only = False
                 return await self.async_step_compare()
             try:
                 applied = await self._async_apply_review_decision(coordinator, decision)
@@ -588,16 +591,27 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 self._review_page += 1
             elif action == "previous":
                 self._review_page -= 1
+            elif action == "canonical":
+                self._review_canonical_only = True
+                self._review_page = 0
+            elif action == "all":
+                self._review_canonical_only = False
+                self._review_page = 0
             else:
                 errors["base"] = "invalid_import_decision"
-        self._review_page = min(max(0, self._review_page), comparison.page_count() - 1)
-        options = ["review"]
+        page_count = comparison.page_count(canonical_only=self._review_canonical_only)
+        self._review_page = min(max(0, self._review_page), page_count - 1)
+        options = ["review", "all" if self._review_canonical_only else "canonical"]
         if self._review_page > 0:
             options.append("previous")
-        if self._review_page + 1 < comparison.page_count():
+        if self._review_page + 1 < page_count:
             options.append("next")
         detail = await self.hass.async_add_executor_job(
-            render_comparison_page, comparison, self._review_page
+            render_comparison_page,
+            comparison,
+            self._review_page,
+            DEFAULT_PAGE_SIZE,
+            self._review_canonical_only,
         )
         if self._coordinator() is not coordinator:
             return self.async_abort(reason="integration_reloaded")

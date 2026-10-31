@@ -73,6 +73,97 @@ def reminder(name, entity, alias="Reminder"):
     )
 
 
+async def test_completeness_alert_reports_new_fields_without_repeating(hass):
+    events = async_capture_events(hass, "test_completeness")
+    sensor = "sensor.completeness"
+    config = expanded(
+        "prayer_completeness_alert",
+        {
+            "completeness_sensor": sensor,
+            "alert_actions": [
+                {
+                    "event": "test_completeness",
+                    "event_data": {
+                        "kind": "{{ alert_kind }}",
+                        "missing": "{{ missing_fields }}",
+                        "new": "{{ newly_missing_fields }}",
+                    },
+                }
+            ],
+        },
+    )
+
+    def set_gaps(today, tomorrow, state="complete"):
+        hass.states.async_set(
+            sensor,
+            state,
+            {
+                "missing_today": today,
+                "missing_tomorrow": tomorrow,
+                "required_fields": ["fajr_begin", "isha_begin"],
+            },
+        )
+
+    set_gaps(["fajr_begin"], [])
+    await start(hass, [config])
+    assert not events
+    set_gaps(["fajr_begin"], ["isha_begin"])
+    await hass.async_block_till_done()
+    assert len(events) == 1
+    assert events[-1].data == {
+        "kind": "missing_tomorrow",
+        "missing": ["isha_begin"],
+        "new": ["isha_begin"],
+    }
+    set_gaps(["fajr_begin"], ["isha_begin", "fajr_begin"])
+    await hass.async_block_till_done()
+    assert len(events) == 2
+    assert events[-1].data["new"] == ["fajr_begin"]
+    set_gaps(["fajr_begin"], ["fajr_begin"])
+    await hass.async_block_till_done()
+    assert len(events) == 2
+    set_gaps(["fajr_begin"], [])
+    await hass.async_block_till_done()
+    set_gaps(["fajr_begin"], ["isha_begin"])
+    await hass.async_block_till_done()
+    assert len(events) == 3
+
+    hass.states.async_set(sensor, "unavailable")
+    await hass.async_block_till_done()
+    set_gaps(["fajr_begin", "isha_begin"], ["isha_begin"])
+    await hass.async_block_till_done()
+    assert len(events) == 3
+
+
+async def test_completeness_alert_can_disable_today(hass):
+    events = async_capture_events(hass, "test_completeness")
+    sensor = "sensor.completeness"
+    config = expanded(
+        "prayer_completeness_alert",
+        {
+            "completeness_sensor": sensor,
+            "alert_today": False,
+            "alert_actions": [{"event": "test_completeness"}],
+        },
+    )
+    hass.states.async_set(
+        sensor, "complete", {"missing_today": [], "missing_tomorrow": []}
+    )
+    await start(hass, [config])
+    hass.states.async_set(
+        sensor, "partial", {"missing_today": ["fajr_begin"], "missing_tomorrow": []}
+    )
+    await hass.async_block_till_done()
+    assert not events
+    hass.states.async_set(
+        sensor,
+        "partial",
+        {"missing_today": ["fajr_begin"], "missing_tomorrow": ["isha_begin"]},
+    )
+    await hass.async_block_till_done()
+    assert len(events) == 1
+
+
 @pytest.mark.parametrize("set_volume", [False, True])
 async def test_adhan_plays_selected_media_and_targets_at_published_beginning(
     hass, freezer, set_volume
