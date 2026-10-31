@@ -44,8 +44,9 @@ and calendar are enabled by default. Existing enabled/disabled entity preference
 are retained during upgrades. Keep **Prayer timetable** enabled for the card and
 choose the needed timestamp/status sensors for your automations.
 
-All sixteen daily timestamp sensors have `timetable_date` and `scheduled_times`
-attributes. All five rolling event sensors have `prayer` and `field` attributes.
+The sixteen daily timestamp sensors expose `timetable_date` and `scheduled_times`
+when an effective daily row exists. The five rolling event sensors expose `prayer`
+and `field` when a matching event exists.
 Missing dates or fields make the affected timestamp sensor unavailable; they
 never reuse another date's time. Ramadan and Taraweeh status describe activation
 even when a date has no published prayer values. The Prayer timetable sensor is
