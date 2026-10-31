@@ -35,12 +35,14 @@ Home Assistant **<!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistan
 [![Open Salah Timetable in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=anaschillin&repository=home-assistant-salah-timetable&category=integration)
 
 <!-- docs:excerpt installation -->
+Use Home Assistant OS or Home Assistant Container on Linux; these supply the process limits required for PDF extraction. The tested versions are listed in the [compatibility guide](docs/testing.md#compatibility-test-environments). For the HACS route, [install and configure HACS](https://www.hacs.xyz/docs/use/) first.
+
 1. In HACS, open **Custom repositories**, add `https://github.com/anaschillin/home-assistant-salah-timetable` and select **Integration**.
 2. Download **Salah Timetable** and restart Home Assistant.
 3. Open **Settings → Devices & services → Add integration → Salah Timetable**.
 4. Enter the mosque name, a stable mosque ID and its IANA timezone (for example, `Europe/London`). Use a different ID to add another mosque.
 
-This is a **HACS custom repository**, not a listing in the default HACS catalogue. For manual installation, copy `custom_components/salah_timetable` into Home Assistant's `config/custom_components/` directory and restart.
+This is a **HACS custom repository**, not a listing in the default HACS catalogue. For manual installation, download the desired [stable release](https://github.com/anaschillin/home-assistant-salah-timetable/releases), extract it, and copy the complete `custom_components/salah_timetable` directory into Home Assistant's configuration directory as `config/custom_components/salah_timetable/`. The `manifest.json` must be directly inside that directory, with its `frontend/`, `translations/` and other bundled files alongside it. Restart Home Assistant, then follow steps 3–4 above.
 <!-- /docs:excerpt installation -->
 
 After installation, follow [Getting started](docs/getting-started.md) to import and approve a timetable and add the dashboard card.
@@ -70,7 +72,13 @@ For safe bug reports and support requests, see the [support policy](docs/getting
 
 ## Development
 
-Use Python <!-- docs:python_min -->3.14.2<!-- /docs:python_min -->+ and the locked project environment:
+From a repository checkout, use Python <!-- docs:python_min -->3.14.2<!-- /docs:python_min -->+
+in the [supported Python series](docs/testing.md#compatibility-test-environments), Node.js <!-- docs:node_major -->24<!-- /docs:node_major -->
+and uv <!-- docs:uv -->0.13.6<!-- /docs:uv -->. Run the full suite on Linux/WSL.
+Install Chromium/Chrome for the browser check; set `CHROME_BIN` if it is not found
+automatically. Frontend tests have no npm dependencies and need no `npm install`.
+See [Contributing](CONTRIBUTING.md) for environment setup and WSL guidance.
+Run these commands from the repository root:
 
 <!-- docs:excerpt development-checks -->
 ```sh
