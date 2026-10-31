@@ -10,6 +10,7 @@ their presence here does not mean those features still need to be built.
 
 ## Planned improvements
 
+- **Documentation simplification:** follow the [dedicated documentation cleanup plan](documentation-simplification-plan.md) for the reviewed guide-by-guide checklist, Codex workflow and validation requirements. Re-check the implemented changes after PRs #119 and #120 merge before editing the guides.
 - **Upstream dependency advisories:** review current [dependency alerts](https://github.com/anaschillin/home-assistant-salah-timetable/security/dependabot) against the locked candidate environment and adopt supported upstream fixes under the [advisory policy](../SECURITY.md#dependency-advisories). The roadmap is not a live advisory inventory; do not override Home Assistant's exact requirements to clear an alert.
 - **Home Assistant Integration Quality Scale:** address the [remaining Platinum gaps in the 54-rule audit](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit): strict typing and HA-managed HTTP sessions with the current public-only DNS/redirect protections preserved. Review rule-specific evidence, the custom branding route and each exemption before claiming a tier.
 - **Verified timetable coverage:** support additional annual, monthly and Ramadan publications only with reviewed examples and independent expected results; preserve strict date, format and HTTPS validation.
