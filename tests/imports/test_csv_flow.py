@@ -104,6 +104,34 @@ async def test_upload_preview_approve_and_reload(hass, entry, freezer, upload_cl
     assert entry.options == {}
 
 
+async def test_cross_year_upload_approves_both_dates_together(
+    hass, entry, upload_client
+):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await stage_upload(
+        hass,
+        entry,
+        upload_client,
+        b"Date,Fajr Start,Fajr Jamaat\n2026-12-31,06:00,06:30\n2027-01-01,06:01,06:31\n",
+        kind="cross_year",
+    )
+    storage = entry.runtime_data.storage
+    assert storage.for_date(date(2026, 12, 31)) is None
+    assert storage.for_date(date(2027, 1, 1)) is None
+    assert "2026-12-31 to 2027-01-01" in result["description_placeholders"]["summary"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert storage.for_date(date(2026, 12, 31)) is not None
+    assert storage.for_date(date(2027, 1, 1)) is not None
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.runtime_data.storage.for_date(date(2027, 1, 1)) is not None
+
+
 async def test_pending_survives_cancel_reload_and_new_flow(hass, entry, upload_client):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()

@@ -20,8 +20,8 @@ their presence here does not mean those features still need to be built.
 
 ## Deferred or exploratory
 
-- **Publication discovery:** guided rollover already accepts an explicitly supplied next-year URL. Automatic discovery would need configured publisher URL templates and independent tests; no publisher URLs are guessed.
-- **Cross-year imports:** native support for one publication spanning December–January is not implemented. Imports remain limited to one declared Gregorian year; see [import limits](import_review.md#remaining-limits).
+- **Publication discovery:** consider automated discovery beyond the user-configured template and confirmation flow; no publisher URLs are guessed.
+- **Cross-year imports:** consider PDF and URL support beyond the manual CSV upload; see [import limits](import_review.md#remaining-limits).
 - **Additional integration translations and Arabic wording review:** on hold. The card already supports English/Arabic labels and RTL; Home Assistant setup/entity translations currently ship in English. Preserve identifiers and data behaviour; no target release date is assigned.
 - **Special prayer events:** consider only events with verified publication dates.
 - **Islamic history companion:** research only; resolve date authenticity, editorial scope and rights before considering a runtime dataset. See [source review](../research/islamic-history/islamic-history-source-audit.md).

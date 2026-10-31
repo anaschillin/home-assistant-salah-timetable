@@ -938,6 +938,12 @@ async def test_rollover_step_handles_changed_selection_and_existing_years():
     from custom_components.salah_timetable.sources.source_flow import SourceOptionsFlow
 
     flow = SourceOptionsFlow()
+    flow.hass = SimpleNamespace(
+        config_entries=SimpleNamespace(
+            async_get_known_entry=lambda _: SimpleNamespace(options={})
+        )
+    )
+    flow.handler = "entry"
     storage = rollover_scenario()
     coordinator = SimpleNamespace(storage=storage)
     flow._coordinator = lambda: coordinator
@@ -975,6 +981,12 @@ async def test_rollover_step_delegates_valid_new_year_to_existing_import():
     from custom_components.salah_timetable.sources.source_flow import SourceOptionsFlow
 
     flow = SourceOptionsFlow()
+    flow.hass = SimpleNamespace(
+        config_entries=SimpleNamespace(
+            async_get_known_entry=lambda _: SimpleNamespace(options={})
+        )
+    )
+    flow.handler = "entry"
     flow._coordinator = lambda: SimpleNamespace(storage=rollover_scenario())
     result = {"type": FlowResultType.FORM, "step_id": "map_columns"}
     with patch.object(
@@ -992,3 +1004,69 @@ async def test_rollover_step_delegates_valid_new_year_to_existing_import():
             "url": "https://mosque.example.org/2027.csv",
         }
     )
+
+
+@pytest.mark.parametrize(
+    "template",
+    [
+        "https://example.org/timetable.pdf",
+        "https://example.org/{year}/{year}.pdf",
+        "https://example.org/{year}/{month}.pdf",
+        "http://example.org/{year}.pdf",
+        "https://127.0.0.1/{year}.pdf",
+        "https://user:secret@example.org/{year}.pdf",
+        "https://example.org/{year}.pdf}",
+    ],
+)
+def test_publisher_templates_reject_invalid_or_unsafe_addresses(template):
+    from custom_components.salah_timetable.sources.source_flow import (
+        render_publisher_url,
+    )
+
+    with pytest.raises(ValueError):
+        render_publisher_url(template, 2027)
+
+
+def test_publisher_template_renders_the_next_year():
+    from custom_components.salah_timetable.sources.source_flow import (
+        render_publisher_url,
+    )
+
+    assert render_publisher_url("https://example.org/{year}.pdf", 2028) == (
+        "https://example.org/2028.pdf"
+    )
+
+
+async def test_publisher_template_preview_requires_confirmation():
+    from types import SimpleNamespace
+
+    from custom_components.salah_timetable.sources.source_flow import SourceOptionsFlow
+
+    flow = SourceOptionsFlow()
+    flow.hass = SimpleNamespace(
+        config_entries=SimpleNamespace(
+            async_get_known_entry=lambda _: SimpleNamespace(
+                options={"publisher_url_template": "https://example.org/{year}.csv"}
+            )
+        )
+    )
+    flow.handler = "entry"
+    storage = rollover_scenario()
+    flow._coordinator = lambda: SimpleNamespace(storage=storage)
+    with patch.object(flow, "async_step_import_url", AsyncMock()) as handler:
+        preview = await flow.async_step_annual_rollover(
+            {"source_id": "annual-2026", "use_template": True}
+        )
+        assert preview["step_id"] == "annual_rollover_preview"
+        handler.assert_not_awaited()
+        await flow.async_step_annual_rollover_preview(
+            {"url": "https://example.org/2027.csv"}
+        )
+        handler.assert_awaited_once_with(
+            {
+                "year": 2027,
+                "kind": "annual",
+                "media_type": "csv",
+                "url": "https://example.org/2027.csv",
+            }
+        )

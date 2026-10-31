@@ -129,6 +129,45 @@ class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class SalahOptionsFlow(SourceOptionsFlow):
+    async def async_step_getting_started(self, user_input=None):
+        """Guide users to import, review, and check approved timetable coverage."""
+        coordinator = self._coordinator()
+        if coordinator is None or not coordinator.last_update_success:
+            return self.async_show_menu(
+                step_id="getting_started",
+                menu_options=["settings", "init"],
+                description_placeholders={
+                    "status": "The mosque is not ready. Check its integration status and retry."
+                },
+            )
+
+        coverage = coordinator.data.coverage
+        completeness = coordinator.data.completeness
+        status = (
+            f"Mosque timezone: {coordinator.zone.key}. "
+            f"Approved timetable data for today: {'available' if coverage.today_available else 'missing'}; "
+            f"tomorrow: {'available' if coverage.tomorrow_available else 'missing'}. "
+        )
+        if completeness.status == "not_configured":
+            status += "No approved timetable is available to check required fields. "
+        else:
+            status += (
+                f"Required fields missing today: {len(completeness.missing_today)}; "
+                f"tomorrow: {len(completeness.missing_tomorrow)}. "
+            )
+        status += "Date coverage does not guarantee all prayer fields are present."
+        menu = ["settings", "init"]
+        if coordinator.storage.staged is not None:
+            status += " A timetable is awaiting review."
+            menu.insert(0, "review")
+        else:
+            menu[0:0] = ["import_url", "import_pdf", "import_csv"]
+        return self.async_show_menu(
+            step_id="getting_started",
+            menu_options=menu,
+            description_placeholders={"status": status},
+        )
+
     async def async_step_settings(self, user_input=None):
         errors = {}
         if user_input is not None:
