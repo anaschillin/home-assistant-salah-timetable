@@ -109,6 +109,11 @@ class CsvParser:
         source_text, headers, rows = self._read(content)
         if type(year) is not int or not 1 <= year <= 9999:
             raise ImportValidationError("Enter a valid calendar year")
+        cross_year = timetable_id == f"annual-{year}-cross-year" and kind == "annual"
+        if cross_year and not 1900 <= year < 2199:
+            raise ImportValidationError(
+                "Cross-year imports require a first year from 1900 to 2198"
+            )
         if time_format not in {"24h", "12h"}:
             raise ImportValidationError("Select either 24-hour or explicit AM/PM times")
         if date_column not in headers or date_column in columns or not columns:
@@ -141,7 +146,7 @@ class CsvParser:
                 raise ImportValidationError(
                     f"CSV row {row_number} needs a valid YYYY-MM-DD date"
                 ) from err
-            if day.year != year:
+            if day.year != year and not (cross_year and day.year == year + 1):
                 raise ImportValidationError(
                     f"CSV row {row_number} does not match the declared year"
                 )
@@ -183,6 +188,16 @@ class CsvParser:
                 raise ImportValidationError(
                     f"CSV row {row_number} has invalid or unordered congregation times"
                 ) from err
+        if cross_year:
+            first, last = parsed[0].day, parsed[-1].day
+            if (
+                first.year != year
+                or last.year != year + 1
+                or (last - first).days >= 366
+            ):
+                raise ImportValidationError(
+                    "Cross-year CSV must span the declared year and the following year within 366 days"
+                )
         try:
             timetable = Timetable(timetable_id, kind, tuple(parsed))
         except ValueError as err:

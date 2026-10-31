@@ -133,9 +133,19 @@ class ImportComparison:
             )
         )
 
-    def page_count(self, page_size: int = DEFAULT_PAGE_SIZE) -> int:
+    def visible_items(self, canonical_only: bool = False) -> tuple[ComparisonItem, ...]:
+        """Keep date and prayer changes while optionally hiding original-only cells."""
+        return tuple(
+            item
+            for item in self.items
+            if not canonical_only or not isinstance(item, OriginalChange)
+        )
+
+    def page_count(
+        self, page_size: int = DEFAULT_PAGE_SIZE, canonical_only: bool = False
+    ) -> int:
         size = _page_size(page_size)
-        return max(1, (len(self.items) + size - 1) // size)
+        return max(1, (len(self.visible_items(canonical_only)) + size - 1) // size)
 
     @property
     def added_fields(self) -> int:
@@ -477,17 +487,22 @@ def render_comparison_page(
     comparison: ImportComparison,
     page: int = 0,
     page_size: int = DEFAULT_PAGE_SIZE,
+    canonical_only: bool = False,
 ) -> str:
     """Render one bounded page; all rows remain reachable through pagination."""
     size = _page_size(page_size)
-    pages = comparison.page_count(size)
+    pages = comparison.page_count(size, canonical_only)
     if type(page) is not int or not 0 <= page < pages:
         raise ValueError("Comparison page is outside the available range")
     lines = [
         f"**Import comparison — page {page + 1} of {pages}**",
         comparison_overview(comparison),
     ]
-    items = comparison.items
+    if canonical_only:
+        lines.append(
+            "Showing date and prayer value changes only. Original-cell-only changes are hidden; switch to all changes to inspect them."
+        )
+    items = comparison.visible_items(canonical_only)
     first = page * size
     page_items = items[first : first + size]
     if page_items:
@@ -495,7 +510,11 @@ def render_comparison_page(
             f"Comparison entries {first + 1}–{first + len(page_items)} of {len(items)}:"
         )
     else:
-        lines.append("No dated value or original-cell changes to display.")
+        lines.append(
+            "No dated value changes to display."
+            if canonical_only
+            else "No dated value or original-cell changes to display."
+        )
     for item in page_items:
         day = item.day.isoformat()
         if isinstance(item, DateChange):

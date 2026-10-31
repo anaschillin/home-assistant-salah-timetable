@@ -12,6 +12,23 @@ from ..parsers.import_model import MAX_PDF_BYTES, ImportValidationError
 from ..parsers.pdf_parser import PdfParser
 from .download import DownloadError, async_download, validate_url
 
+CONF_PUBLISHER_URL_TEMPLATE = "publisher_url_template"
+
+
+def render_publisher_url(template: str, year: int) -> str:
+    """Render only an explicit year placeholder and apply normal URL rules."""
+    if (
+        not isinstance(template, str)
+        or len(template) > 2048
+        or template.count("{year}") != 1
+        or "{" in template.replace("{year}", "")
+        or "}" in template.replace("{year}", "")
+        or type(year) is not int
+        or not 1900 <= year <= 2199
+    ):
+        raise ValueError("Invalid publisher URL template")
+    return str(validate_url(template.replace("{year}", str(year))))
+
 
 def _year(value) -> int:
     if (
@@ -78,6 +95,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
 
     async def async_step_init(self, user_input=None):
         menu = [
+            "getting_started",
             "import_url",
             "import_pdf",
             "import_csv",
@@ -92,7 +110,41 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 menu.extend(["check_updates", "manage_sources"])
                 if self._rollover_sources(coordinator):
                     menu.append("annual_rollover")
+                menu.append("publisher_template")
         return self.async_show_menu(step_id="init", menu_options=menu)
+
+    async def async_step_publisher_template(self, user_input=None):
+        """Store one optional publisher template for this mosque."""
+        errors = {}
+        if user_input is not None:
+            template = user_input.get("template", "").strip()
+            try:
+                if template:
+                    render_publisher_url(template, 2027)
+            except TypeError, ValueError:
+                errors["base"] = "invalid_publisher_template"
+            else:
+                options = dict(self.config_entry.options)
+                if template:
+                    options[CONF_PUBLISHER_URL_TEMPLATE] = template
+                else:
+                    options.pop(CONF_PUBLISHER_URL_TEMPLATE, None)
+                return self.async_create_entry(title="", data=options)
+        return self.async_show_form(
+            step_id="publisher_template",
+            description_placeholders={"year_placeholder": "{year}"},
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        "template",
+                        default=self.config_entry.options.get(
+                            CONF_PUBLISHER_URL_TEMPLATE, ""
+                        ),
+                    ): selector.TextSelector()
+                }
+            ),
+            errors=errors,
+        )
 
     @staticmethod
     def _rollover_sources(coordinator) -> dict:
@@ -125,6 +177,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
         if not candidates:
             return self.async_abort(reason="no_rollover_sources")
         errors = {}
+        template = self.config_entry.options.get(CONF_PUBLISHER_URL_TEMPLATE, "")
         if user_input is not None:
             original = candidates.get(user_input["source_id"])
             if original is None:
@@ -139,6 +192,18 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                     errors["base"] = "rollover_already_approved"
                 elif f"annual-{following}" in coordinator.storage.remote_sources:
                     errors["base"] = "rollover_already_configured"
+                elif user_input.get("use_template", False):
+                    try:
+                        self._rollover_preview_url = render_publisher_url(
+                            template, following
+                        )
+                    except TypeError, ValueError:
+                        errors["base"] = "invalid_publisher_template"
+                    else:
+                        self._rollover_preview_source = user_input["source_id"]
+                        return await self.async_step_annual_rollover_preview()
+                elif not user_input.get("url"):
+                    errors["base"] = "rollover_url_required"
                 else:
                     # Reuse the import's HTTPS validation, bounded downloader,
                     # strict PDF/CSV recognition and review staging.
@@ -165,10 +230,36 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                             ]
                         )
                     ),
-                    vol.Required("url"): selector.TextSelector(),
+                    vol.Optional("url"): selector.TextSelector(),
+                    **(
+                        {
+                            vol.Optional(
+                                "use_template", default=False
+                            ): selector.BooleanSelector()
+                        }
+                        if template
+                        else {}
+                    ),
                 }
             ),
             errors=errors,
+        )
+
+    async def async_step_annual_rollover_preview(self, user_input=None):
+        """Require the user to inspect the generated address before download."""
+        if user_input is not None:
+            return await self.async_step_annual_rollover(
+                {"source_id": self._rollover_preview_source, "url": user_input["url"]}
+            )
+        return self.async_show_form(
+            step_id="annual_rollover_preview",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        "url", default=self._rollover_preview_url
+                    ): selector.TextSelector()
+                }
+            ),
         )
 
     async def _inspect_source(self, content, *, media_type, import_type):

@@ -2,6 +2,15 @@
 
 ## 0.9.20 — unreleased
 
+- Add guided mosque readiness and shortcuts to import or review a timetable.
+- Allow a bounded manual CSV import across two adjacent Gregorian years as a
+  single explicitly reviewed source.
+- Allow an optional publisher URL template to suggest the next annual URL for
+  confirmation before download and approval.
+- Add an optional Prayer completeness alert blueprint for newly missing required
+  fields today or tomorrow, with user-selected actions.
+- Allow import comparison to show only date and prayer value changes while keeping
+  the full original-cell comparison available.
 - Centralize current release, dependency, toolchain and compatibility versions in
   `versions.toml`; generate required code/configuration/documentation copies with
   one command and reject version drift in CI.

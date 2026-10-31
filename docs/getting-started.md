@@ -31,11 +31,18 @@ configuration; prayer values become available after a supported import is approv
 
 ## Import prayer times
 
-1. Under **Devices & services**, open the mosque's **Configure** menu.
-2. Choose **Add or replace a URL source** for a public HTTPS PDF/CSV, or use a manual PDF/CSV upload.
-3. Select the printed Gregorian year and source type: **Annual**, **Monthly** or **Ramadan** for PDF/URL imports; **Annual** or **Ramadan** for CSV uploads. Map only columns that the mosque actually published.
+1. Under **Devices & services**, open the mosque's **Configure** menu and choose **Getting started and readiness**.
+2. Choose the public HTTPS URL, PDF or CSV option. If an import is already pending, choose **Review pending import** instead.
+3. Select the printed Gregorian year and source type: **Annual**, **Monthly** or **Ramadan** for PDF/URL imports; **Annual**, **Ramadan** or **Cross-year** for CSV uploads. For a cross-year CSV, select its first Gregorian year; the upload must include that year and the next, and span at most 366 days. Map only columns that the mosque actually published.
 4. Review the detected layout, dates, warnings and prayer values. Use **Compare changes before approval** when replacing approved data.
 5. Choose **Approve and save timetable** to activate it, or reject it to retain existing approved data. If importing Ramadan times, confirm the Ramadan date window separately in mosque settings.
+
+Reopen **Configure → Getting started and readiness** to check the saved mosque
+timezone, whether approved data covers today and tomorrow, and how many required
+fields are missing. A covered date can still lack individual prayer fields. The
+screen also links to mosque settings; it does not check the timetable against the
+original publication or automatically approve an import. When the integration is
+not loaded, check its status before importing.
 
 For an approved annual URL source, **Prepare next year's URL publication**
 starts a separate new-year import using a URL you supply. Check its

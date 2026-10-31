@@ -13,6 +13,7 @@ A Home Assistant custom integration for importing **published mosque Salah and J
 
 - Separate mosque configurations, sensors, independent next-Salah and next-Jamaat countdowns, and a prayer calendar.
 - Annual, monthly and Ramadan sources; automatic recognition of **supported** PDF layouts, source comparison and guided next-year URL imports with approval before activation.
+- Guided readiness checks, optional publisher URL templates and manual CSV imports spanning two adjacent years.
 - Compact, standard and detailed responsive cards with multiple mosque selection, Yesterday/Today/Tomorrow navigation, Gregorian/Hijri dates and optional mosque photography.
 - Optional monthly timetable browsing, approved-year CSV export and redacted source details.
 - Configurable prayer-completeness diagnostics, calculated night information and wall/tablet display mode.

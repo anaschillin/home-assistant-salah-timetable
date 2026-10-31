@@ -26,6 +26,7 @@ from ..persistence.storage import (
     ReviewChangedError,
 )
 from .import_comparison import (
+    DEFAULT_PAGE_SIZE,
     compare_import,
     comparison_overview,
     render_comparison_page,
@@ -79,7 +80,7 @@ def import_summary(candidate, existing, settings=None) -> str:
             f"{_safe_text(source)} → {field}"
             for source, field in candidate.columns.items()
         ),
-        f"Missing dates{' within the supplied span' if table.kind == 'ramadan' else ''}: **{len(coverage.missing_dates)}**.",
+        f"Missing dates{' within the supplied span' if table.kind == 'ramadan' or table.timetable_id.endswith('-cross-year') else ''}: **{len(coverage.missing_dates)}**.",
     ]
     if candidate.source_format == "pdf":
         lines.append(
@@ -102,6 +103,12 @@ def import_summary(candidate, existing, settings=None) -> str:
         if previous
         else "Approval adds this source; other years remain stored."
     )
+    if table.timetable_id.endswith("-cross-year"):
+        lines.append(
+            "This separate cross-year source covers both years in a single approval. "
+            "Dates overlapping another ordinary source are rejected; replacing a "
+            "source replaces all previously approved dates for the same starting year."
+        )
     lines.append(
         "Choose **Compare changes** to inspect every canonical and original-cell change "
         "before approval. The comparison never activates a pending import."
@@ -172,12 +179,14 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         self._headers: tuple[str, ...] = ()
         self._kind = "annual"
         self._monthly = False
+        self._cross_year = False
         self._year: int | None = None
         self._review_stage_id: str | None = None
         self._mapping_input: dict[str, Any] = {}
         self._review_runtime = None
         self._review_baseline = None
         self._review_page = 0
+        self._review_canonical_only = False
         self._parser = PARSER
         self._source_format = "csv"
         self._parser_id = "csv_v1"
@@ -221,7 +230,10 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                     PARSER.inspect, self._content
                 )
                 self._year = int(user_input["year"])
-                self._kind = user_input["kind"]
+                if user_input["kind"] not in {"annual", "ramadan", "cross_year"}:
+                    raise ImportValidationError("Select a valid timetable type")
+                self._cross_year = user_input["kind"] == "cross_year"
+                self._kind = "annual" if self._cross_year else user_input["kind"]
             except (ValueError, OSError, HomeAssistantError) as err:
                 errors["base"] = "invalid_csv"
                 detail = _safe_text(str(err))
@@ -236,7 +248,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                     ),
                     vol.Required("kind", default="annual"): selector.SelectSelector(
                         selector.SelectSelectorConfig(
-                            options=["annual", "ramadan"],
+                            options=["annual", "ramadan", "cross_year"],
                             translation_key="timetable_kind",
                         )
                     ),
@@ -331,7 +343,11 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         candidate = await self.hass.async_add_executor_job(
             lambda: self._parser.parse(
                 self._content,
-                timetable_id=f"{self._kind}-{self._year}",
+                timetable_id=(
+                    f"annual-{self._year}-cross-year"
+                    if self._cross_year
+                    else f"{self._kind}-{self._year}"
+                ),
                 kind=self._kind,
                 year=self._year,
                 date_column=user_input["date_column"],
@@ -492,6 +508,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
             decision = user_input["decision"]
             if decision == "compare":
                 self._review_page = 0
+                self._review_canonical_only = False
                 return await self.async_step_compare()
             try:
                 applied = await self._async_apply_review_decision(coordinator, decision)
@@ -588,16 +605,27 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                 self._review_page += 1
             elif action == "previous":
                 self._review_page -= 1
+            elif action == "canonical":
+                self._review_canonical_only = True
+                self._review_page = 0
+            elif action == "all":
+                self._review_canonical_only = False
+                self._review_page = 0
             else:
                 errors["base"] = "invalid_import_decision"
-        self._review_page = min(max(0, self._review_page), comparison.page_count() - 1)
-        options = ["review"]
+        page_count = comparison.page_count(canonical_only=self._review_canonical_only)
+        self._review_page = min(max(0, self._review_page), page_count - 1)
+        options = ["review", "all" if self._review_canonical_only else "canonical"]
         if self._review_page > 0:
             options.append("previous")
-        if self._review_page + 1 < comparison.page_count():
+        if self._review_page + 1 < page_count:
             options.append("next")
         detail = await self.hass.async_add_executor_job(
-            render_comparison_page, comparison, self._review_page
+            render_comparison_page,
+            comparison,
+            self._review_page,
+            DEFAULT_PAGE_SIZE,
+            self._review_canonical_only,
         )
         if self._coordinator() is not coordinator:
             return self.async_abort(reason="integration_reloaded")

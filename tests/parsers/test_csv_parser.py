@@ -39,6 +39,33 @@ def make_csv(rows):
     return output.getvalue().encode()
 
 
+def test_cross_year_csv_has_bounded_span_identity_and_round_trips():
+    content = b"Date,Fajr\n2026-12-30,06:00\n2027-01-01,06:02\n"
+    candidate = parse(content, timetable_id="annual-2026-cross-year")
+    assert candidate.timetable.timetable_id == "annual-2026-cross-year"
+    assert candidate.coverage.missing_dates == (date(2026, 12, 31),)
+    assert ImportCandidate.from_dict(candidate.as_dict()) == candidate
+    broken = candidate.as_dict()
+    broken["timetable"]["id"] = "annual-2027-cross-year"
+    with pytest.raises(ImportValidationError, match="Stored import data is invalid"):
+        ImportCandidate.from_dict(broken)
+    with pytest.raises(ImportValidationError, match="declared year"):
+        parse(content)
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        b"Date,Fajr\n2026-12-31,06:00\n",
+        b"Date,Fajr\n2026-12-31,06:00\n2028-01-01,06:00\n",
+        b"Date,Fajr\n2026-01-01,06:00\n2027-01-02,06:00\n",
+    ],
+)
+def test_cross_year_csv_rejects_invalid_spans(content):
+    with pytest.raises(ImportValidationError):
+        parse(content, timetable_id="annual-2026-cross-year")
+
+
 def test_annual_fixture_preserves_source_and_resolves_only_explicit_ditto():
     content = (FIXTURES / "annual.csv").read_bytes()
     parser = CsvParser()
