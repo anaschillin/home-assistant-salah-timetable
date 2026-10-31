@@ -40,7 +40,8 @@ mosque, repeat the installation's **Add integration** step with a different ID.
 5. Choose **Approve and save timetable** to activate it, or reject it to retain existing approved data. Ramadan imports also require separate [activation settings](import_review.md#ramadan-settings).
 
 Reopen **Configure → Getting started and readiness** to check the saved mosque
-timezone, today's and tomorrow's coverage, and the names of missing required fields.
+timezone, today's and tomorrow's coverage, and the names and counts of missing
+required fields.
 The screen links to mosque settings and does not verify the original publication or
 approve an import. If the integration is not loaded, check its status before importing.
 

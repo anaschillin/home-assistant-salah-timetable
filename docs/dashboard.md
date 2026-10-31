@@ -45,6 +45,19 @@ a time; Dates & calendar is open initially. Switches control features,
 checkboxes select mosques, and dropdowns choose values such as language,
 detail level and mosque photograph. Each setting has contextual help.
 
+| Section | Settings |
+| --- | --- |
+| **Dates & calendar** | Calculated Hijri date, Gregorian date and Hijri month information |
+| **Prayer countdowns** | Salah beginning and Jamaat countdowns |
+| **Ramadan & night** | Ramadan details, Sehri and Iftar countdowns, and calculated night information |
+| **Appearance** | Mosque background photograph |
+| **Timetable & information** | Monthly timetable, CSV export and source details; timezone and help text |
+| **Islamic history** | Day events, monthly highlights, sources and disputed dates (all currently disabled) |
+| **Advanced settings** | Language, bilingual labels, kiosk mode, time format, Hijri adjustment and day boundary |
+
+See the [options and defaults](#dates-and-customization) below for the corresponding
+YAML names and default values.
+
 The following dependencies affect **whether a switch can be edited**, not its
 saved configuration:
 

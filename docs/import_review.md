@@ -26,6 +26,33 @@ Each approval replaces a whole source. A shorter replacement can remove dates
 or fields; missing values are never invented. See [replacement scope](#replacement-scope)
 and [Ramadan validation](#ramadan-timetable-validation) before approving.
 
+### Upload a PDF
+
+Choose **Upload a supported PDF**, then select Annual, Monthly or Ramadan and
+the printed Gregorian year. The PDF must contain selectable text and match a
+[supported layout](#supported-pdf-layouts); scanned pages are not recognised.
+The [configuration reference](#configuration-fields-and-defaults) gives the
+file and page limits. Check the detected columns before approval.
+
+### Upload a CSV
+
+Choose **Import CSV timetable** and select Annual, Ramadan or Cross-year.
+Use UTF-8 with a header and ISO dates, and check the suggested mapping as
+described in the [configuration reference](#configuration-fields-and-defaults).
+For a publication crossing December–January, select **Cross-year** and enter
+its first Gregorian year. It must contain dates in both adjacent years and span
+at most 366 calendar days. Review the [cross-year replacement rules and downgrade
+limit](#remaining-limits) before approving.
+
+### Add an HTTPS source
+
+Choose **Add or replace a URL source**, select PDF or CSV and enter a public
+HTTPS URL. Only port 443 is accepted; URLs with credentials and private-network
+destinations are rejected. Select Annual, Monthly or Ramadan and the printed
+year, then review and approve the downloaded proposal. Cross-year URL imports
+are not supported. See [configuration fields](#configuration-fields-and-defaults)
+for limits and [source updates](#when-data-updates) for checking cadence.
+
 ## Configuration fields and defaults
 
 Open the mosque's **Configure** menu in **Settings → Devices & services**. Saved
@@ -123,8 +150,8 @@ A comparison targets the **exact source ID** that approval will replace (for
 example, `annual-2026`), not an unrelated timetable with overlapping dates.
 Approving a replacement changes the **whole source**, not just the dates
 displayed in the preview. Separate approved source IDs, other mosques and
-separately approved Ramadan tables are unchanged. A legacy source containing
-multiple years is compared across all of its dates.
+separately approved Ramadan tables are unchanged. Cross-year CSV sources and
+legacy sources spanning multiple years are compared across all of their dates.
 
 An initial import has no previous source: its published dates and values are
 additions. Before replacing any existing source, check whether a shorter
