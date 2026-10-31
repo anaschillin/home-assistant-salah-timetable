@@ -178,12 +178,13 @@ to work in both.
 2. Ensure the public repository has a descriptive GitHub **About** description,
    topics, enabled issues, a README and the bundled `brand/icon.png`.
 3. Publish a **stable GitHub release** before requesting catalogue inclusion.
-   For the current version in `versions.toml`, create a matching `vMAJOR.MINOR.PATCH`
-   tag at the successfully validated `main` commit; trigger
-   **Actions → Prepare draft release** with that existing tag. The workflow
-   enforces validated ancestry, cleared asset-rights inventory, packaging and
-   checksums, and creates a **draft** only. Review the draft assets and notes,
-   then explicitly publish it as a non-prerelease release. Ephemeral PR feature
+   Follow [Automatic stable releases](#automatic-stable-releases): a new version
+   in `versions.toml` is tagged and published after Validate and CodeQL pass on
+   the same latest `main` commit. Check the published release and its assets;
+   do not create a competing manual tag or draft for that version. If automatic
+   publication is unavailable, use the [manual draft fallback](#optional-manual-draft-release)
+   with an existing validated tag, review its artifacts and explicitly publish
+   the draft as a non-prerelease release. Ephemeral PR feature
    prereleases, tags alone and drafts do **not** satisfy the catalogue requirement.
 4. Fork [`hacs/default`](https://github.com/hacs/default) under the owner's
    personal GitHub account, create a branch from its `master`, and insert
