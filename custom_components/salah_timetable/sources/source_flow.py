@@ -15,19 +15,35 @@ from .download import DownloadError, async_download, validate_url
 CONF_PUBLISHER_URL_TEMPLATE = "publisher_url_template"
 
 
+class PublisherTemplateError(ValueError):
+    """Identify a template validation problem without exposing the URL."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
+
+
 def render_publisher_url(template: str, year: int) -> str:
     """Render only an explicit year placeholder and apply normal URL rules."""
     if (
         not isinstance(template, str)
         or len(template) > 2048
-        or template.count("{year}") != 1
-        or "{" in template.replace("{year}", "")
-        or "}" in template.replace("{year}", "")
         or type(year) is not int
         or not 1900 <= year <= 2199
     ):
-        raise ValueError("Invalid publisher URL template")
-    return str(validate_url(template.replace("{year}", str(year))))
+        raise PublisherTemplateError("invalid_publisher_template")
+    count = template.count("{year}")
+    if count == 0:
+        raise PublisherTemplateError("publisher_template_missing_year")
+    if count > 1:
+        raise PublisherTemplateError("publisher_template_multiple_years")
+    remaining = template.replace("{year}", "")
+    if "{" in remaining or "}" in remaining:
+        raise PublisherTemplateError("publisher_template_extra_braces")
+    try:
+        return str(validate_url(template.replace("{year}", str(year))))
+    except DownloadError as err:
+        raise PublisherTemplateError("publisher_template_invalid_url") from err
 
 
 def _year(value) -> int:
@@ -121,8 +137,8 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
             try:
                 if template:
                     render_publisher_url(template, 2027)
-            except TypeError, ValueError:
-                errors["base"] = "invalid_publisher_template"
+            except PublisherTemplateError as err:
+                errors["base"] = err.code
             else:
                 options = dict(self.config_entry.options)
                 if template:
@@ -197,8 +213,8 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                         self._rollover_preview_url = render_publisher_url(
                             template, following
                         )
-                    except TypeError, ValueError:
-                        errors["base"] = "invalid_publisher_template"
+                    except PublisherTemplateError as err:
+                        errors["base"] = err.code
                     else:
                         self._rollover_preview_source = user_input["source_id"]
                         return await self.async_step_annual_rollover_preview()

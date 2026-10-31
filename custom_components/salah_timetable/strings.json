@@ -56,7 +56,7 @@
           "import_pdf": "Upload a supported PDF",
           "import_csv": "Upload a CSV",
           "review": "Review pending import",
-          "settings": "Check mosque settings",
+          "settings": "Configure required fields and timezone",
           "init": "Return to mosque options"
         }
       },
@@ -191,6 +191,10 @@
       "invalid_completeness_fields": "Select at least one unique supported prayer field.",
       "invalid_rollover": "Choose an approved annual URL source.",
       "invalid_publisher_template": "Enter a public HTTPS template containing the year placeholder exactly once and no other braces. See the documentation for its format.",
+      "publisher_template_missing_year": "Add the required year placeholder to the template.",
+      "publisher_template_multiple_years": "Use the year placeholder exactly once in the template.",
+      "publisher_template_extra_braces": "Remove extra placeholders or braces; only the year placeholder is supported.",
+      "publisher_template_invalid_url": "Enter a valid public HTTPS URL without credentials or a private-network address.",
       "rollover_url_required": "Enter the published URL or select the saved template.",
       "rollover_already_approved": "The next year already has approved annual timetable data.",
       "rollover_already_configured": "The next year's URL source is already configured."

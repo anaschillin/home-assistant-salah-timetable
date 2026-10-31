@@ -2,6 +2,7 @@
 
 import csv
 import io
+from dataclasses import replace
 from datetime import date, time
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from custom_components.salah_timetable.parsers.csv_parser import (
     MAX_CELL_LENGTH,
     MAX_COLUMNS,
     CsvParser,
+    suggest_approved_mapping,
 )
 from custom_components.salah_timetable.parsers.import_model import (
     MAX_SOURCE_BYTES,
@@ -37,6 +39,28 @@ def make_csv(rows):
     output = io.StringIO(newline="")
     csv.writer(output).writerows(rows)
     return output.getvalue().encode()
+
+
+def test_suggest_mapping_requires_matching_manual_approved_sources():
+    candidate = parse(b"Date,Fajr,Notes\n2026-10-21,05:45,Text\n")
+    headers = ("Notes", "Date", "Fajr")
+    assert suggest_approved_mapping([candidate], headers, "annual", False) == candidate
+    assert (
+        suggest_approved_mapping([candidate], ("Date", "Fajr"), "annual", False) is None
+    )
+    assert suggest_approved_mapping([candidate], headers, "ramadan", False) is None
+    assert suggest_approved_mapping([candidate], headers, "annual", True) is None
+    remote = replace(candidate, source_url="https://example.org/source.csv")
+    assert suggest_approved_mapping([remote], headers, "annual", False) is None
+
+
+def test_suggest_mapping_requires_unambiguous_agreement():
+    content = b"Date,Fajr,Isha\n2026-10-21,05:45,19:30\n"
+    first = parse(content)
+    other = parse(content, columns={"Fajr": "isha_begin"})
+    headers = ("Date", "Fajr", "Isha")
+    assert suggest_approved_mapping([first, first], headers, "annual", False) == first
+    assert suggest_approved_mapping([first, other], headers, "annual", False) is None
 
 
 def test_cross_year_csv_has_bounded_span_identity_and_round_trips():

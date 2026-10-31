@@ -41,6 +41,14 @@ appear only when URL sources exist; **Review pending import** appears when a
 proposal is staged. To replace a URL, import and approve another URL for the same
 source identity; check the [replacement scope](#replacement-scope) first.
 
+For a manual CSV upload, a previously approved manual CSV mapping is suggested
+when its complete set of column names matches the new file and its timetable
+type matches. Column order may differ. If matching approved sources disagree on
+their mappings or time formats, normal header suggestions are used instead.
+URL and PDF mappings and unapproved proposals are not reused. Review the date
+column, every prayer field and time format against the new publication before
+continuing; a suggestion never approves or activates an import.
+
 ### Ramadan settings
 
 | Field | Initial default | Meaning |
@@ -200,7 +208,9 @@ publisher URL template** and enter a public HTTPS URL containing exactly one
 template applies per mosque, regardless of which source you choose. It is saved
 until removed by clearing the field. When selected for rollover, the generated
 URL is displayed for you to verify or edit before the download starts. Templates
-do not search for publications or confirm that a URL is correct. The same public
+show specific errors for a missing or repeated year placeholder, extra braces,
+and invalid or unsupported URLs. Templates do not search for publications or
+confirm that a URL is correct. The same public
 destination, redirect and bounded-download checks apply, and downloading never
 approves the publication.
 
@@ -506,7 +516,9 @@ declared first year and the following year, spanning at most 366 calendar days.
 One cross-year source (`annual-YYYY-cross-year`) exists per declared first year. Approving another CSV for
 that first year replaces the complete previous cross-year source after review;
 overlap with other ordinary sources is rejected. The two years are approved as
-one source. PDF and URL imports remain limited to one declared year. Earlier
+one source. When a replacement would remove approved dates, the review prominently
+reports their count and first and last dates; use Compare changes to inspect every
+removed date. PDF and URL imports remain limited to one declared year. Earlier
 integration versions cannot load an approved cross-year source; retain a backup
 before downgrading. The supplied MOSQUE_A sample does not validate a complete
 Ramadan publication. Mosque B's annual and Ramadan tables use separate explicit
