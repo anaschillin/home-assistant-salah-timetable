@@ -132,6 +132,7 @@ class SourceOptionsFlow(CsvImportOptionsFlow):
                 return self.async_create_entry(title="", data=options)
         return self.async_show_form(
             step_id="publisher_template",
+            description_placeholders={"year_placeholder": "{year}"},
             data_schema=vol.Schema(
                 {
                     vol.Optional(

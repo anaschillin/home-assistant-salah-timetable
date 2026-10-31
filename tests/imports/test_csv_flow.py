@@ -198,6 +198,28 @@ async def test_invalid_upload_is_removed(hass, entry, upload_client, content):
     assert entry.runtime_data.storage.staged is None
 
 
+async def test_unknown_csv_kind_is_rejected_after_upload(hass, entry, upload_client):
+    """A direct flow call cannot stage a kind outside the offered choices."""
+    from custom_components.salah_timetable.imports.import_flow import (
+        CsvImportOptionsFlow,
+    )
+
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    file_id, path = await upload(hass, upload_client)
+    flow = CsvImportOptionsFlow()
+    flow.hass = hass
+    flow._coordinator = lambda: entry.runtime_data
+    result = await flow.async_step_import_csv(
+        {"file": file_id, "kind": "unknown", "year": 2026}
+    )
+    assert result["step_id"] == "import_csv"
+    assert result["errors"] == {"base": "invalid_csv"}
+    assert "valid timetable type" in result["description_placeholders"]["detail"]
+    assert not await hass.async_add_executor_job(path.exists)
+    assert entry.runtime_data.storage.staged is None
+
+
 async def test_missing_upload_is_reported(hass, entry):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()

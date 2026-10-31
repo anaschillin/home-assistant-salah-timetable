@@ -1070,3 +1070,60 @@ async def test_publisher_template_preview_requires_confirmation():
                 "url": "https://example.org/2027.csv",
             }
         )
+
+
+async def test_publisher_template_is_validated_saved_and_removed(hass, entry):
+    await setup_mosque(hass, entry)
+    staged = await stage_url(hass, entry)
+    await approve(hass, staged)
+    original = dict(entry.options)
+
+    form = await open_step(hass, entry, "publisher_template")
+    assert form["description_placeholders"]["year_placeholder"] == "{year}"
+    invalid = await hass.config_entries.options.async_configure(
+        form["flow_id"], {"template": "http://example.org/{year}.csv"}
+    )
+    assert invalid["errors"] == {"base": "invalid_publisher_template"}
+    assert dict(entry.options) == original
+
+    template = "https://example.org/timetable-{year}.csv"
+    result = await hass.config_entries.options.async_configure(
+        form["flow_id"], {"template": template}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.options["publisher_url_template"] == template
+    assert all(entry.options[key] == value for key, value in original.items())
+
+    form = await open_step(hass, entry, "publisher_template")
+    result = await hass.config_entries.options.async_configure(
+        form["flow_id"], {"template": ""}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert "publisher_url_template" not in entry.options
+    assert dict(entry.options) == original
+
+
+async def test_rollover_rejects_missing_url_and_invalid_saved_template():
+    from types import SimpleNamespace
+
+    from custom_components.salah_timetable.sources.source_flow import SourceOptionsFlow
+
+    options = {"publisher_url_template": "http://example.org/{year}.csv"}
+    flow = SourceOptionsFlow()
+    flow.hass = SimpleNamespace(
+        config_entries=SimpleNamespace(
+            async_get_known_entry=lambda _: SimpleNamespace(options=options)
+        )
+    )
+    flow.handler = "entry"
+    flow._coordinator = lambda: SimpleNamespace(storage=rollover_scenario())
+    with patch.object(flow, "async_step_import_url", AsyncMock()) as download:
+        missing = await flow.async_step_annual_rollover({"source_id": "annual-2026"})
+        assert missing["errors"] == {"base": "rollover_url_required"}
+        invalid = await flow.async_step_annual_rollover(
+            {"source_id": "annual-2026", "use_template": True}
+        )
+        assert invalid["errors"] == {"base": "invalid_publisher_template"}
+        download.assert_not_awaited()
