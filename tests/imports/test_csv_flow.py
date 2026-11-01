@@ -104,6 +104,47 @@ async def test_upload_preview_approve_and_reload(hass, entry, freezer, upload_cl
     assert entry.options == {}
 
 
+async def test_approved_manual_mapping_is_suggested_after_reload(
+    hass, entry, upload_client
+):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await begin_import(hass, entry)
+    file_id, _ = await upload(
+        hass, upload_client, b"Published,Dawn clock,Note\n2026-10-21,05:45,old\n"
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"file": file_id, "kind": "annual", "year": 2026}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"date_column": "Published", "time_format": "24h", "fajr_begin": "Dawn clock"},
+    )
+    await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    result = await begin_import(hass, entry)
+    file_id, _ = await upload(
+        hass, upload_client, b"Note,Dawn clock,Published\nnew,05:50,2027-10-21\n"
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"file": file_id, "kind": "annual", "year": 2027}
+    )
+    schema = result["data_schema"].schema
+
+    def default(name):
+        return next(key.default() for key in schema if key.schema == name)
+
+    assert default("date_column") == "Published"
+    assert default("fajr_begin") == "Dawn clock"
+    assert default("isha_begin") == "__ignore__"
+    assert "previously approved" in result["description_placeholders"]["detail"]
+    assert entry.runtime_data.storage.staged is None
+
+
 async def test_cross_year_upload_approves_both_dates_together(
     hass, entry, upload_client
 ):

@@ -1,7 +1,10 @@
 # Changelog
 
-## 0.9.20 — unreleased
+## 1.0.0 — unreleased
 
+- Show missing prayer field names in the readiness screen and clarify the settings shortcut.
+- Explain invalid publisher templates and highlight dates removed by cross-year replacements.
+- Suggest matching previously approved manual CSV mappings for review.
 - Add guided mosque readiness and shortcuts to import or review a timetable.
 - Allow a bounded manual CSV import across two adjacent Gregorian years as a
   single explicitly reviewed source.

@@ -4,6 +4,7 @@ import csv
 import io
 import re
 import unicodedata
+from collections.abc import Iterable
 from datetime import date, time
 from hashlib import sha256
 
@@ -20,6 +21,42 @@ MAX_ROWS = 366
 MAX_COLUMNS = 32
 MAX_CELL_LENGTH = 256
 DITTO_MARKERS = frozenset({'"', '""', "“", "”", "“”", "″"})
+
+
+def suggest_approved_mapping(
+    candidates: Iterable[ImportCandidate],
+    headers: tuple[str, ...],
+    kind: str,
+    cross_year: bool,
+) -> ImportCandidate | None:
+    """Suggest a manual CSV mapping only when matching approvals agree.
+
+    Header order can change, but every header must be present. Candidates
+    already passed provenance validation when stored, including uniqueness and
+    column-to-field validation. Pending proposals and URL sources are excluded.
+    """
+    matched = []
+    for candidate in candidates:
+        if (
+            candidate.source_format != "csv"
+            or candidate.source_url is not None
+            or candidate.timetable.kind != kind
+            or candidate.timetable.timetable_id.endswith("-cross-year") != cross_year
+            or set(candidate.timetable.days[0].original) != set(headers)
+        ):
+            continue
+        matched.append(candidate)
+    if not matched:
+        return None
+    first = matched[0]
+    signature = (first.date_column, first.time_format, dict(first.columns))
+    if any(
+        (candidate.date_column, candidate.time_format, dict(candidate.columns))
+        != signature
+        for candidate in matched[1:]
+    ):
+        return None
+    return first
 
 
 class CsvParser:

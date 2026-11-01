@@ -3,7 +3,7 @@
 # Other versioned metadata and documentation are generated copies.
 
 [project]
-version = "0.9.20"
+version = "1.0.0"
 python_min = "3.14.2"
 node_major = "24"
 

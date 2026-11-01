@@ -7,5 +7,5 @@ workflow in a development Home Assistant instance. The annual coverage warning i
 expected because the example contains only two dates.
 
 This example and the input fixtures in `tests/fixtures/csv/` are original synthetic
-data provided under the repository's MIT license. CSV oracles extracted from real
-PDF publications have separate provenance in `tests/fixtures/pdf/README.md`.
+data provided under the repository's MIT license. The PDF test fixtures and their
+CSV oracles are synthetic too; see `tests/fixtures/pdf/README.md` for provenance.

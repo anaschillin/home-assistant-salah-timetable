@@ -20,6 +20,7 @@ from .domain.completeness import (
     SELECTABLE_REQUIRED_FIELDS,
     required_fields_from_options,
 )
+from .domain.model import PrayerField
 from .domain.ramadan import RamadanSettings
 from .domain.ramadan_validation import validate_ramadan_selection
 from .sources.source_flow import SourceOptionsFlow
@@ -35,6 +36,13 @@ def valid_zone(value: str) -> bool:
     ):
         return False
     return True
+
+
+def _readiness_field_names(fields: tuple[PrayerField, ...]) -> str:
+    """Use the same readable labels as the required-field selector."""
+    return (
+        ", ".join(field.value.replace("_", " ").title() for field in fields) or "none"
+    )
 
 
 class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -152,8 +160,10 @@ class SalahOptionsFlow(SourceOptionsFlow):
             status += "No approved timetable is available to check required fields. "
         else:
             status += (
-                f"Required fields missing today: {len(completeness.missing_today)}; "
-                f"tomorrow: {len(completeness.missing_tomorrow)}. "
+                f"Required fields missing today: {len(completeness.missing_today)} "
+                f"({_readiness_field_names(completeness.missing_today)}); "
+                f"tomorrow: {len(completeness.missing_tomorrow)} "
+                f"({_readiness_field_names(completeness.missing_tomorrow)}). "
             )
         status += "Date coverage does not guarantee all prayer fields are present."
         menu = ["settings", "init"]

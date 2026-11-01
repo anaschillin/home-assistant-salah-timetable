@@ -5,7 +5,7 @@
 [![HACS validation](https://img.shields.io/github/check-runs/anaschillin/home-assistant-salah-timetable/main?nameFilter=hacs&label=HACS)](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Current integration version: **<!-- docs:version -->0.9.20<!-- /docs:version -->**.
+Current integration version: **<!-- docs:version -->1.0.0<!-- /docs:version -->**.
 
 A Home Assistant custom integration for importing **published mosque Salah and Jamaat timetables**. Configure one or more mosques, import a supported PDF/CSV or public HTTPS source, explicitly approve the timetable, and display it with a bundled Lovelace card.
 

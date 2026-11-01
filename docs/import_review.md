@@ -23,10 +23,10 @@ import; no timetable is active until you explicitly approve it.
 | CSV upload → CSV file | Required; no default | UTF-8 CSV, at most 512 KiB, with a header and ISO `YYYY-MM-DD` dates. |
 | PDF/URL → Timetable type | Annual (default), Monthly or Ramadan | Monthly creates a separate exact-date-span ordinary source. Ramadan is a separately activated override. |
 | CSV upload → Timetable type | Annual (default), Cross-year or Ramadan | A partial Annual CSV replaces that whole year's ordinary source. Cross-year covers a publication crossing into the following year; see [limits](#remaining-limits). For a separate Monthly CSV source, use a public HTTPS CSV URL and choose Monthly. |
-| All imports → Year | Current year in the mosque's timezone; whole number 1900–2199 | Must match the publication's Gregorian dates. For Cross-year CSV, enter the first year. Other imports are restricted to the selected year. |
-| Map columns → Date column | Matching `Date` header, otherwise the first column | Select the explicit date column and check every row's date interpretation. |
-| Map columns → Time format | 24-hour (default) or 12-hour | General input requires `HH:MM` or explicit `HH:MM AM/PM`, respectively. Known PDF adapters normalize their documented column conventions before mapping. |
-| Map columns → Prayer fields | Unique recognised headers are suggested; otherwise Do not import this field | Map only published fields. At least one prayer field is required; a physical column cannot be reused or also mapped as the date. All sixteen supported fields are listed in the [entity reference](automations.md#entities-per-mosque). |
+| All imports → Year | Current year in the mosque's timezone; whole number 1900–2199 | Must match the publication's Gregorian dates. For Cross-year CSV, enter the first year, 1900–2198. Other imports are restricted to the selected year. |
+| Map columns → Date column | A matching approved manual CSV mapping may be suggested; otherwise a `Date` header or the first column | Select the explicit date column and check every row's date interpretation. |
+| Map columns → Time format | A matching approved manual CSV mapping may be suggested; otherwise 24-hour (default) or 12-hour | General input requires `HH:MM` or explicit `HH:MM AM/PM`, respectively. Known PDF adapters normalize their documented column conventions before mapping. |
+| Map columns → Prayer fields | A matching approved manual CSV mapping may be suggested; otherwise unique recognised headers are suggested, or Do not import this field | Map only published fields. At least one prayer field is required; a physical column cannot be reused or also mapped as the date. All sixteen supported fields are listed in the [entity reference](automations.md#entities-per-mosque). |
 | Review → Action | Compare changes, Approve and save timetable, or Reject and keep the active timetable; no default decision | Comparison is read-only. Approval replaces the complete target source; rejection retains approved data. |
 | Compare → Next step | Return to approval/rejection, switch between all changes and date/prayer changes only, or choose Previous/Next page when available | Navigate change pages without approving or changing the timetable. Filtering hides original-cell-only changes; return to all changes to inspect those entries. |
 | Prepare next year's URL publication → Approved current-year source | Required eligible approved annual URL profile; no default | Derives the next Gregorian year and reuses the source's PDF/CSV format. See [guided rollover](#guided-annual-publication-rollover). |
@@ -40,6 +40,14 @@ check every configured URL. **Manage URL sources** and **Check URL sources now**
 appear only when URL sources exist; **Review pending import** appears when a
 proposal is staged. To replace a URL, import and approve another URL for the same
 source identity; check the [replacement scope](#replacement-scope) first.
+
+For a manual CSV upload, a previously approved manual CSV mapping is suggested
+when its complete set of column names matches the new file and its timetable
+type matches. Column order may differ. If matching approved sources disagree on
+their mappings or time formats, normal header suggestions are used instead.
+URL and PDF mappings and unapproved proposals are not reused. Review the date
+column, every prayer field and time format against the new publication before
+continuing; a suggestion never approves or activates an import.
 
 ### Ramadan settings
 
@@ -193,14 +201,19 @@ The flow is offered only for a canonical approved annual URL profile
 (`annual-<year>`) below the maximum supported year, with at least 300 approved
 dated rows. This eligibility threshold is not a promise of complete annual
 coverage; inspect the new publication's dates and missing fields during review.
-It is unavailable if another import awaits review; it also rejects a year that already has approved annual data or
-an existing URL profile. To configure a template, open **Configure → Configure
-publisher URL template** and enter a public HTTPS URL containing exactly one
+It is unavailable if another import awaits review; it also rejects the next year
+if any approved ordinary source has a row in that year, including monthly or
+cross-year sources, or if the next year's annual URL profile already exists.
+The template menu appears when the mosque is loaded and has at least one configured
+URL source. To configure a template, open **Configure → Configure publisher URL
+template** and enter a public HTTPS URL containing exactly one
 `{year}` placeholder, such as `https://example.org/timetable-{year}.pdf`. One
 template applies per mosque, regardless of which source you choose. It is saved
 until removed by clearing the field. When selected for rollover, the generated
 URL is displayed for you to verify or edit before the download starts. Templates
-do not search for publications or confirm that a URL is correct. The same public
+show specific errors for a missing or repeated year placeholder, extra braces,
+and invalid or unsupported URLs. Templates do not search for publications or
+confirm that a URL is correct. The same public
 destination, redirect and bounded-download checks apply, and downloading never
 approves the publication.
 
@@ -261,9 +274,11 @@ than guessing times.
 
 ### MOSQUE_A monthly pages (`mosque_a_monthly_v1`)
 
-Choose **Monthly**, year **2022**, and upload the matching PDF. The contributed file
-named `mosque_a_monthly_2022.pdf` actually contains **May and June 2022**, with 61 dates and
+Choose **Monthly**, year **2022**, and upload the matching PDF. The original
+contributed publication inspected during development contained **May and June 2022**, with 61 dates and
 854 event values. Every date/value matches an independent Poppler extraction.
+That original is not redistributed. The similarly named repository fixture
+`mosque_a_monthly_2022.pdf` is a synthetic example, not that publication.
 It is not a complete Ramadan-only publication: May 1 is printed Hijri 30, May 2
 resets to Hijri 1, and June is outside Ramadan. Its moonsighting note is preserved
 as document context and does not confirm any activation dates.
@@ -285,8 +300,9 @@ unrecognized footer still fails validation, rather than fabricating a time.
 
 ### Mosque B annual calendar (`mosque_b_annual_v1`)
 
-Choose **Annual**, year **2026**, and upload the supplied fourteen-page
-`mosque_b_2026.pdf`. The adapter imports its twelve
+Choose **Annual**, year **2026**, and upload a matching fourteen-page publication.
+The repository's `mosque_b_2026.pdf` is a synthetic fixture; the originally
+inspected publication is not redistributed. The adapter imports its twelve
 annual tables only. The separate Ramadan page remains an independently approved
 Ramadan source; importing the annual tables never activates Ramadan.
 
@@ -318,7 +334,8 @@ and reload. Unknown clipping or missing time cells are rejected.
 
 ### Mosque B Ramadan page (`mosque_b_ramadan_v1`)
 
-Choose **Ramadan**, year **2026**, and upload the matching PDF. The supplied 3,213,250-byte, fourteen-page publication fits the bounded
+Choose **Ramadan**, year **2026**, and upload the matching PDF. The originally
+inspected 3,213,250-byte, fourteen-page publication fits the bounded
 4 MiB input limit. The cover and twelve ordered monthly titles establish the known
 publication; only its final **Ramadhan 2026 / 1447 AH** table is imported. This does
 not import its annual tables; choose Annual to import those separately. Other editions
@@ -506,7 +523,9 @@ declared first year and the following year, spanning at most 366 calendar days.
 One cross-year source (`annual-YYYY-cross-year`) exists per declared first year. Approving another CSV for
 that first year replaces the complete previous cross-year source after review;
 overlap with other ordinary sources is rejected. The two years are approved as
-one source. PDF and URL imports remain limited to one declared year. Earlier
+one source. When a replacement would remove approved dates, the review prominently
+reports their count and first and last dates; use Compare changes to inspect every
+removed date. PDF and URL imports remain limited to one declared year. Earlier
 integration versions cannot load an approved cross-year source; retain a backup
 before downgrading. The supplied MOSQUE_A sample does not validate a complete
 Ramadan publication. Mosque B's annual and Ramadan tables use separate explicit

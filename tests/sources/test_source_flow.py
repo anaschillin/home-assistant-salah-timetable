@@ -1037,6 +1037,25 @@ def test_publisher_template_renders_the_next_year():
     )
 
 
+@pytest.mark.parametrize(
+    ("template", "year"),
+    [
+        (None, 2027),
+        ("x" * 2049, 2027),
+        ("https://example.org/{year}", True),
+        ("https://example.org/{year}", 1899),
+    ],
+)
+def test_publisher_template_rejects_invalid_input_or_year(template, year):
+    from custom_components.salah_timetable.sources.source_flow import (
+        PublisherTemplateError,
+        render_publisher_url,
+    )
+
+    with pytest.raises(PublisherTemplateError, match="invalid_publisher_template"):
+        render_publisher_url(template, year)
+
+
 async def test_publisher_template_preview_requires_confirmation():
     from types import SimpleNamespace
 
@@ -1083,7 +1102,7 @@ async def test_publisher_template_is_validated_saved_and_removed(hass, entry):
     invalid = await hass.config_entries.options.async_configure(
         form["flow_id"], {"template": "http://example.org/{year}.csv"}
     )
-    assert invalid["errors"] == {"base": "invalid_publisher_template"}
+    assert invalid["errors"] == {"base": "publisher_template_invalid_url"}
     assert dict(entry.options) == original
 
     template = "https://example.org/timetable-{year}.csv"
@@ -1125,5 +1144,28 @@ async def test_rollover_rejects_missing_url_and_invalid_saved_template():
         invalid = await flow.async_step_annual_rollover(
             {"source_id": "annual-2026", "use_template": True}
         )
-        assert invalid["errors"] == {"base": "invalid_publisher_template"}
+        assert invalid["errors"] == {"base": "publisher_template_invalid_url"}
         download.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    ("template", "expected"),
+    [
+        ("https://example.org/timetable.pdf", "publisher_template_missing_year"),
+        ("https://example.org/{year}/{year}.pdf", "publisher_template_multiple_years"),
+        ("https://example.org/{year}/{month}.pdf", "publisher_template_extra_braces"),
+        ("http://example.org/{year}.pdf", "publisher_template_invalid_url"),
+    ],
+)
+async def test_publisher_template_reports_specific_form_error(
+    hass, entry, template, expected
+):
+    await setup_mosque(hass, entry)
+    staged = await stage_url(hass, entry)
+    await approve(hass, staged)
+    form = await open_step(hass, entry, "publisher_template")
+    result = await hass.config_entries.options.async_configure(
+        form["flow_id"], {"template": template}
+    )
+    assert result["errors"] == {"base": expected}
+    assert "publisher_url_template" not in entry.options

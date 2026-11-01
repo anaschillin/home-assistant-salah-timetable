@@ -38,9 +38,9 @@ configuration; prayer values become available after a supported import is approv
 5. Choose **Approve and save timetable** to activate it, or reject it to retain existing approved data. If importing Ramadan times, confirm the Ramadan date window separately in mosque settings.
 
 Reopen **Configure → Getting started and readiness** to check the saved mosque
-timezone, whether approved data covers today and tomorrow, and how many required
-fields are missing. A covered date can still lack individual prayer fields. The
-screen also links to mosque settings; it does not check the timetable against the
+timezone, whether approved data covers today and tomorrow, and the names and counts
+of missing required fields. A covered date can still lack individual prayer fields. The
+screen also links to mosque settings for changing the required fields or timezone; it does not check the timetable against the
 original publication or automatically approve an import. When the integration is
 not loaded, check its status before importing.
 

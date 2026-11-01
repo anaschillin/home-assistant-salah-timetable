@@ -18,7 +18,7 @@ from homeassistant.util import dt as dt_util
 from ..domain.model import PrayerField, normalize_field
 from ..domain.ramadan import RamadanSettings
 from ..domain.ramadan_validation import ramadan_review
-from ..parsers.csv_parser import CsvParser
+from ..parsers.csv_parser import CsvParser, suggest_approved_mapping
 from ..parsers.import_model import MAX_SOURCE_BYTES, ImportValidationError
 from ..persistence.storage import (
     PendingImportError,
@@ -109,6 +109,17 @@ def import_summary(candidate, existing, settings=None) -> str:
             "Dates overlapping another ordinary source are rejected; replacing a "
             "source replaces all previously approved dates for the same starting year."
         )
+        if previous:
+            removed = sorted(
+                {row.day for row in previous.days} - {row.day for row in table.days}
+            )
+            if removed:
+                lines.append(
+                    f"**Warning: approval removes {len(removed)} previously approved "
+                    f"date(s)** from this cross-year source. First removed date: "
+                    f"{removed[0].isoformat()}; last removed date: {removed[-1].isoformat()}. "
+                    "Use Compare changes to review all removed dates before approval."
+                )
     lines.append(
         "Choose **Compare changes** to inspect every canonical and original-cell change "
         "before approval. The comparison never activates a pending import."
@@ -183,6 +194,7 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         self._year: int | None = None
         self._review_stage_id: str | None = None
         self._mapping_input: dict[str, Any] = {}
+        self._mapping_suggested = False
         self._review_runtime = None
         self._review_baseline = None
         self._review_page = 0
@@ -234,6 +246,25 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
                     raise ImportValidationError("Select a valid timetable type")
                 self._cross_year = user_input["kind"] == "cross_year"
                 self._kind = "annual" if self._cross_year else user_input["kind"]
+                prior = suggest_approved_mapping(
+                    coordinator.storage.approved_sources.values(),
+                    self._headers,
+                    self._kind,
+                    self._cross_year,
+                )
+                self._mapping_suggested = prior is not None
+                if prior is not None:
+                    self._mapping_input = {
+                        field.value: IGNORE_COLUMN for field in PrayerField
+                    }
+                    self._mapping_input.update(
+                        {field: source for source, field in prior.columns.items()}
+                    )
+                    self._mapping_input.update(
+                        date_column=prior.date_column, time_format=prior.time_format
+                    )
+                else:
+                    self._mapping_input = {}
             except (ValueError, OSError, HomeAssistantError) as err:
                 errors["base"] = "invalid_csv"
                 detail = _safe_text(str(err))
@@ -405,7 +436,12 @@ class CsvImportOptionsFlow(config_entries.OptionsFlow):
         if coordinator is None:
             return self.async_abort(reason="integration_not_loaded")
         errors = {}
-        detail = ""
+        detail = (
+            "A previously approved manual CSV mapping is suggested. Check every "
+            "column and the time format against this publication before continuing."
+            if self._mapping_suggested
+            else ""
+        )
         if user_input is not None:
             self._mapping_input = dict(user_input)
             columns = self._selected_columns(user_input)

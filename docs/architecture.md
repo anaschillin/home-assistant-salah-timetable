@@ -1,6 +1,6 @@
 # Architecture
 
-Current integration version: <!-- docs:version -->0.9.20<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->1.0.0<!-- /docs:version -->.
 
 ## Boundaries
 
@@ -51,10 +51,11 @@ The authoritative [production module inventory](architecture.md#production-modul
 
 ## Import lifecycle
 
-The options menu offers URL sources first, manual PDF/CSV imports,
+The options menu offers a getting-started screen, URL and manual PDF/CSV imports,
 mosque/Ramadan settings, and pending review. Eligible approved annual URL
 profiles also offer guided next-year rollover through the same mapping and
-review flow, using an explicitly supplied URL and a separate new-year source ID.
+review flow, using a supplied URL or a reviewed suggestion from a configured
+publisher template and a separate new-year source ID.
 Supported PDF layouts are recognized automatically; there is no inspected-edition selection flow.
 HA's authenticated `file_upload` dependency receives the file and returns an opaque
 UUID. A single executor operation consumes and cleans up the upload context, reads
@@ -67,13 +68,15 @@ The review shows coverage, missing counts, source hash, sample values and replac
 scope. Approval atomically replaces the reviewed source identity and clears staging;
 other sources and years remain available. Annual and Ramadan sources use a
 kind/year identity, whereas monthly ordinary sources use a distinct identity
-for their exact published date span. Rejection clears staging and retains active data.
+for their exact published date span. A manual cross-year CSV uses a distinct
+`annual-YYYY-cross-year` identity for its starting year and is approved as one
+source. Rejection clears staging and retains active data.
 Closing the review leaves the proposal durable. A resumed flow reads it from storage.
 A stale preview identity cannot approve/reject a different proposal. A pending proposal
 cannot be overwritten by another concurrent import.
 
 `imports/import_comparison.py` compares the candidate with the exact approved source ID,
-including all dates retained by a legacy multi-year source. It keeps canonical
+including all dates retained by a cross-year or legacy multi-year source. It keeps canonical
 published field differences separate from original-token and provenance changes;
 it does not substitute effective Ramadan defaults into the comparison. The review
 renders full summary counts and offers **Compare changes before approval**, a
@@ -102,15 +105,18 @@ text, including any BOM, is stored with an exact UTF-8 SHA-256 digest. Annual an
 Ramadan sources remain distinct. User confirmation of an explicit year avoids
 system-date inference. Annual and Ramadan sources are keyed by kind/year. Monthly ordinary
 sources are keyed by year and exact published date span, so independent months
-coexist; re-importing the same span replaces that source only. Replacement is
+coexist; re-importing the same span replaces that source only. Manual cross-year
+CSV sources use a separate starting-year identity and replace that whole source
+after review. Replacement is
 whole-source, not a row merge. Legacy IDs are retained during migration; overlapping legacy annual
 sources are rejected rather than overwritten through an unrelated import ID.
 
 Dates are strict ISO and increasing. Times must match the explicitly selected 24-hour
 or AM/PM format. Jamaat ditto markers resolve only in their own column from a prior
 explicit value and reset on blanks; they never fill missing beginnings. Coverage counts
-missing fields per supplied row. Annual missing dates span the declared calendar year;
-Ramadan missing dates span only the first/last supplied dates and do not confirm lunar
+missing fields per supplied row. Annual missing dates span the declared calendar year,
+except cross-year CSV coverage, which spans its first and last supplied dates;
+Ramadan missing dates also span only the first/last supplied dates and do not confirm lunar
 dates. Review separately compares the proposed effective data with the adjusted
 confirmed Ramadan window, including missing edge dates and annual/default fallback.
 Absent source fields and unavailable effective timestamps are reported separately.
