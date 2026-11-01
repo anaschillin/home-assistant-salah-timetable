@@ -104,6 +104,34 @@ async def test_upload_preview_approve_and_reload(hass, entry, freezer, upload_cl
     assert entry.options == {}
 
 
+async def test_cross_year_upload_approves_both_dates_together(
+    hass, entry, upload_client
+):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await stage_upload(
+        hass,
+        entry,
+        upload_client,
+        b"Date,Fajr Start,Fajr Jamaat\n2026-12-31,06:00,06:30\n2027-01-01,06:01,06:31\n",
+        kind="cross_year",
+    )
+    storage = entry.runtime_data.storage
+    assert storage.for_date(date(2026, 12, 31)) is None
+    assert storage.for_date(date(2027, 1, 1)) is None
+    assert "2026-12-31 to 2027-01-01" in result["description_placeholders"]["summary"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"decision": "approve"}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert storage.for_date(date(2026, 12, 31)) is not None
+    assert storage.for_date(date(2027, 1, 1)) is not None
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.runtime_data.storage.for_date(date(2027, 1, 1)) is not None
+
+
 async def test_pending_survives_cancel_reload_and_new_flow(hass, entry, upload_client):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -167,6 +195,28 @@ async def test_invalid_upload_is_removed(hass, entry, upload_client, content):
     assert result["errors"] == {"base": "invalid_csv"}
     assert not await hass.async_add_executor_job(path.exists)
     assert file_id not in hass.data[UPLOAD_DATA].files
+    assert entry.runtime_data.storage.staged is None
+
+
+async def test_unknown_csv_kind_is_rejected_after_upload(hass, entry, upload_client):
+    """A direct flow call cannot stage a kind outside the offered choices."""
+    from custom_components.salah_timetable.imports.import_flow import (
+        CsvImportOptionsFlow,
+    )
+
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    file_id, path = await upload(hass, upload_client)
+    flow = CsvImportOptionsFlow()
+    flow.hass = hass
+    flow._coordinator = lambda: entry.runtime_data
+    result = await flow.async_step_import_csv(
+        {"file": file_id, "kind": "unknown", "year": 2026}
+    )
+    assert result["step_id"] == "import_csv"
+    assert result["errors"] == {"base": "invalid_csv"}
+    assert "valid timetable type" in result["description_placeholders"]["detail"]
+    assert not await hass.async_add_executor_job(path.exists)
     assert entry.runtime_data.storage.staged is None
 
 

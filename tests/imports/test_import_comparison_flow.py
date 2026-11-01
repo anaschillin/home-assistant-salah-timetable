@@ -103,7 +103,7 @@ async def test_first_import_shows_additions_and_keeps_approval_explicit(hass, en
     result = await compare(hass, result)
     assert "Import comparison — page 1 of 1" in summary(result)
     assert "2026-10-21 — fajr begin" in summary(result)
-    assert choices(result) == ["review"]
+    assert choices(result) == ["review", "canonical"]
     assert storage.staged.stage_id == stage_id
     assert storage.timetables == ()
     result = await act(hass, result, "review")
@@ -161,6 +161,15 @@ async def test_all_original_only_changes_are_paged_without_claiming_prayer_chang
     assert "2026-11-10 — original cell Notes: “old note” → “new note”" in summary(
         result
     )
+    result = await act(hass, result, "canonical")
+    assert "Import comparison — page 1 of 1" in summary(result)
+    assert "No dated value changes to display" in summary(result)
+    assert "original cell Notes" not in summary(result)
+    assert "Additional original-cell changes: **21**" in summary(result)
+    assert storage.timetables == (previous.timetable,)
+    result = await act(hass, result, "all")
+    assert "Import comparison — page 1 of 3" in summary(result)
+    assert "original cell Notes" in summary(result)
     result = await act(hass, result, "review")
     result = await choose(hass, result, "reject")
     assert result["type"] is FlowResultType.CREATE_ENTRY
@@ -201,7 +210,7 @@ async def test_byte_only_update_is_distinguished_from_dated_value_changes(hass, 
     assert choices(result) == ["compare", "approve", "reject"]
     result = await compare(hass, result)
     assert "No dated value or original-cell changes to display." in summary(result)
-    assert choices(result) == ["review"]
+    assert choices(result) == ["review", "canonical"]
 
 
 @pytest.mark.parametrize("existing", [False, True])

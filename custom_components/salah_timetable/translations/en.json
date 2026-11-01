@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Add a mosque",
-        "description": "Choose a stable mosque ID (lowercase letters, numbers, underscores or hyphens). After setup, open Configure to add a timetable URL or upload a supported PDF/CSV.",
+        "description": "Choose a stable mosque ID (lowercase letters, numbers, underscores or hyphens). After setup, open Configure → Getting started to import and approve a timetable, check coverage, and add a dashboard card.",
         "data": {
           "name": "Mosque name",
           "mosque_id": "Stable mosque ID",
@@ -35,6 +35,7 @@
       "init": {
         "title": "Mosque options",
         "menu_options": {
+          "getting_started": "Getting started and readiness",
           "settings": "Mosque settings",
           "import_csv": "Import CSV timetable",
           "review": "Review pending import",
@@ -43,7 +44,20 @@
           "check_updates": "Check URL sources now",
           "manage_sources": "Manage URL sources",
           "ramadan": "Ramadan settings",
-          "annual_rollover": "Prepare next year's URL publication"
+          "annual_rollover": "Prepare next year's URL publication",
+          "publisher_template": "Configure publisher URL template"
+        }
+      },
+      "getting_started": {
+        "title": "Getting started and readiness",
+        "description": "{status}\n\nChoose a public HTTPS URL, supported PDF or CSV below. Review the dates and values and explicitly approve them. Then add the Salah Timetable dashboard card and select this mosque's Prayer timetable sensor. Optionally import a prayer or health-alert blueprint. Reopen this screen to check coverage; verify the publication and timezone yourself.",
+        "menu_options": {
+          "import_url": "Add a public HTTPS timetable URL",
+          "import_pdf": "Upload a supported PDF",
+          "import_csv": "Upload a CSV",
+          "review": "Review pending import",
+          "settings": "Check mosque settings",
+          "init": "Return to mosque options"
         }
       },
       "settings": {
@@ -56,7 +70,7 @@
       },
       "import_csv": {
         "title": "Upload a CSV timetable",
-        "description": "Upload a UTF-8 CSV, at most 512 KiB, with a header row and ISO dates (YYYY-MM-DD) in the chosen year. Annual imports may be incomplete; missing dates and fields remain unavailable. Ramadan sources override annual data only on confirmed dates or with explicit manual activation.\n\n{detail}",
+        "description": "Upload a UTF-8 CSV, at most 512 KiB, with a header and ISO dates (YYYY-MM-DD). For Cross-year, choose the first Gregorian year; dates must span that year and the next within 366 days. Annual imports may be incomplete; missing values remain unavailable. Ramadan sources override annual data only on confirmed dates or with explicit manual activation.\n\n{detail}",
         "data": {
           "file": "CSV file",
           "kind": "Timetable type",
@@ -148,8 +162,19 @@
         "description": "Select an approved annual URL source and enter the NEXT year's published HTTPS URL. The current year will remain active; downloaded new-year values must be mapped and explicitly approved. The source year is inferred from the selected approved profile, not the URL.",
         "data": {
           "source_id": "Approved current-year source",
-          "url": "Next year's published HTTPS URL"
+          "url": "Next year's published HTTPS URL",
+          "use_template": "Generate URL from saved publisher template"
         }
+      },
+      "publisher_template": {
+        "title": "Configure publisher URL template",
+        "description": "Optionally save one public HTTPS URL template for this mosque. Include {year_placeholder} exactly once. It applies to any selected annual URL source. Clear the field to remove it. The generated address is shown for review before downloading.",
+        "data": {"template": "Publisher URL template"}
+      },
+      "annual_rollover_preview": {
+        "title": "Review next year's generated URL",
+        "description": "Verify this is the publisher's actual new-year publication. You can edit the address. Submitting starts a download and the timetable still requires explicit approval.",
+        "data": {"url": "Next year's published HTTPS URL"}
       }
     },
     "error": {
@@ -165,6 +190,8 @@
       "invalid_import_decision": "Choose one of the review actions shown.",
       "invalid_completeness_fields": "Select at least one unique supported prayer field.",
       "invalid_rollover": "Choose an approved annual URL source.",
+      "invalid_publisher_template": "Enter a public HTTPS template containing the year placeholder exactly once and no other braces. See the documentation for its format.",
+      "rollover_url_required": "Enter the published URL or select the saved template.",
       "rollover_already_approved": "The next year already has approved annual timetable data.",
       "rollover_already_configured": "The next year's URL source is already configured."
     },
@@ -306,6 +333,7 @@
     "timetable_kind": {
       "options": {
         "annual": "Annual",
+        "cross_year": "Cross-year CSV",
         "monthly": "Monthly",
         "ramadan": "Ramadan"
       }
@@ -327,7 +355,9 @@
       "options": {
         "review": "Return to approval/rejection",
         "previous": "Previous page",
-        "next": "Next page"
+        "next": "Next page",
+        "canonical": "Show date and prayer changes only",
+        "all": "Show all changes"
       }
     },
     "source_format": {

@@ -140,6 +140,14 @@ def test_canonical_projection_and_original_cell_review_share_published_values():
     assert full.added_fields == 2 and canonical.added_fields == 0
     assert full.removed_fields == 3 and canonical.removed_fields == 1
     assert DEFAULT_PAGE_SIZE == 10 and DIFF_PAGE_SIZE == 20
+    filtered = "\n".join(
+        render_comparison_page(full, page, canonical_only=True)
+        for page in range(full.page_count(canonical_only=True))
+    )
+    assert "date added" in filtered and "date removed" in filtered
+    assert "fajr begin" in filtered
+    assert "original cell Note" not in filtered
+    assert "Original-cell-only changes are hidden" in filtered
 
 
 def test_comparison_overview_summarizes_provenance_without_copying_dated_entries():

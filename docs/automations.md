@@ -1,7 +1,7 @@
 # Prayer automations and coverage alerts
 
 The integration supplies timestamp sensors, a [prayer calendar](automations.md#prayer-calendar) and
-five optional Home Assistant blueprints. Import a blueprint, choose the mosque's sensors and your own actions,
+six optional Home Assistant blueprints. Import a blueprint, choose the mosque's sensors and your own actions,
 and save the resulting automation. No recording, notification service or speaker
 credentials are bundled with the integration.
 
@@ -66,6 +66,7 @@ one of these GitHub URLs:
 - [Before Jamaat reminder](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/jamaat_reminder.yaml)
 - [Sehri reminder](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/sehri_reminder.yaml)
 - [Timetable health alert](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/timetable_health_alert.yaml)
+- [Prayer completeness alert](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/prayer_completeness_alert.yaml)
 
 Choose **Create automation** for the imported blueprint. Use the sensors belonging
 to one mosque; create separate automations for other mosques. Home Assistant imports
@@ -81,6 +82,7 @@ and review its inputs before relying on the update.
 | Before Jamaat | Next Jamaat and a negative minute offset | Schedules each successive congregation, including multiple Jumu’ah times. Action variables include `prayer` and `scheduled_time`. |
 | Sehri | Next Sehri and a negative minute offset | Uses the target event's active Ramadan date, so an offset before midnight can precede the first confirmed fast. `scheduled_time` is available to actions. |
 | Timetable health | Timetable coverage and Source status for the same mosque | Runs selected actions on a new missing/expiring coverage state or a transition into pending review. |
+| Prayer completeness | Prayer completeness sensor | Runs selected actions when required fields become missing today or tomorrow. |
 
 For Adhan, select daily beginning entities rather than Next Salah. The form filters
 timestamp sensors, so check their names: the selector cannot determine your intended
@@ -173,9 +175,19 @@ Tomorrow's omissions do not change today's state. Future ambiguous sources
 are not treated as complete. Only approved effective sources count, including
 explicitly active Ramadan overrides.
 
-The existing **Timetable coverage** sensor and timetable-health blueprint
-retain their date-based meaning. Completeness alerts are deferred until
-the optional blueprint behaviour is separately reviewed.
+The optional **Prayer completeness alert** blueprint watches this sensor. Select
+whether to alert for today, tomorrow, or both (both are enabled by default),
+and choose your own notification or other actions. It runs when a field is added
+to the relevant missing-fields list. An unchanged list or a change that only
+removes missing fields does not repeat an alert. Existing missing fields are not
+replayed on startup or when the sensor recovers from unknown or unavailable.
+If missing fields are resolved and later become missing again, a new alert can run.
+
+The actions can use `alert_kind` (`missing_today` or `missing_tomorrow`),
+`missing_fields` (the current list), `newly_missing_fields` (the fields just
+added), and `required_fields`. The blueprint queues runs and does not change
+the timetable. The existing **Timetable coverage** sensor and timetable-health
+blueprint retain their date-based meaning.
 
 ## Read timetable coverage
 

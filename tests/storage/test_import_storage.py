@@ -41,6 +41,55 @@ async def reload_storage(hass, entry):
     return result
 
 
+async def test_cross_year_approval_is_atomic_and_rejects_overlap(hass, entry):
+    storage = await reload_storage(hass, entry)
+    existing = candidate()
+    stage = await storage.async_stage(existing)
+    await storage.async_approve(stage)
+    proposal = CsvParser().parse(
+        b"Date,Fajr Begin\n2026-12-31,06:00\n2027-01-01,06:01\n",
+        timetable_id="annual-2026-cross-year",
+        kind="annual",
+        year=2026,
+        date_column="Date",
+        columns={"Fajr Begin": "fajr_begin"},
+    )
+    stage = await storage.async_stage(proposal)
+    assert storage.timetables == (existing.timetable,)
+    await storage.async_approve(stage)
+    reloaded = await reload_storage(hass, entry)
+    assert reloaded.timetables == (existing.timetable, proposal.timetable)
+    for year, day in ((2026, "2026-12-31"), (2027, "2027-01-01")):
+        conflicting = CsvParser().parse(
+            f"Date,Fajr Begin\n{day},06:30\n".encode(),
+            timetable_id=f"annual-{year}",
+            kind="annual",
+            year=year,
+            date_column="Date",
+            columns={"Fajr Begin": "fajr_begin"},
+        )
+        with pytest.raises(ValueError, match="Overlapping annual"):
+            await reloaded.async_stage(conflicting)
+    assert reloaded.timetables == (existing.timetable, proposal.timetable)
+    assert reloaded.staged is None
+    replacement = CsvParser().parse(
+        b"Date,Fajr Begin\n2026-12-30,05:59\n2027-01-02,06:02\n",
+        timetable_id="annual-2026-cross-year",
+        kind="annual",
+        year=2026,
+        date_column="Date",
+        columns={"Fajr Begin": "fajr_begin"},
+    )
+    stage = await reloaded.async_stage(replacement)
+    assert reloaded.for_date(date(2026, 12, 31)) is not None
+    await reloaded.async_approve(stage)
+    reloaded = await reload_storage(hass, entry)
+    assert reloaded.for_date(date(2026, 12, 31)) is None
+    assert reloaded.for_date(date(2026, 12, 30)) is not None
+    assert reloaded.for_date(date(2027, 1, 2)) is not None
+    assert reloaded.for_date(date(2026, 10, 21)) is not None
+
+
 async def test_staging_survives_restart_without_activation(hass, entry):
     proposal = candidate()
     storage = await reload_storage(hass, entry)

@@ -4,6 +4,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.salah_timetable.const import DOMAIN
+from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 
 
 async def test_create_and_duplicate(hass):
@@ -77,6 +78,86 @@ async def test_options(hass, entry):
         "isha_begin",
     ]
     assert entry.options.get("completeness_required_fields", expected) == expected
+
+
+async def test_getting_started_reports_unloaded_entry_without_changing_options(
+    hass, entry
+):
+    original = dict(entry.options)
+    menu = await hass.config_entries.options.async_init(entry.entry_id)
+    guide = await hass.config_entries.options.async_configure(
+        menu["flow_id"], {"next_step_id": "getting_started"}
+    )
+    assert guide["type"] == FlowResultType.MENU
+    assert guide["menu_options"] == ["settings", "init"]
+    assert "not ready" in guide["description_placeholders"]["status"]
+    assert dict(entry.options) == original
+
+
+async def test_getting_started_guides_import_and_pending_review(hass, entry):
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    menu = await hass.config_entries.options.async_init(entry.entry_id)
+    guide = await hass.config_entries.options.async_configure(
+        menu["flow_id"], {"next_step_id": "getting_started"}
+    )
+    assert guide["type"] == FlowResultType.MENU
+    assert guide["menu_options"] == [
+        "import_url",
+        "import_pdf",
+        "import_csv",
+        "settings",
+        "init",
+    ]
+    assert "No approved timetable" in guide["description_placeholders"]["status"]
+    upload = await hass.config_entries.options.async_configure(
+        guide["flow_id"], {"next_step_id": "import_csv"}
+    )
+    assert upload["step_id"] == "import_csv"
+    assert entry.runtime_data.storage.timetables == ()
+    entry.runtime_data.last_update_success = False
+    retry = await hass.config_entries.options.async_init(entry.entry_id)
+    retry = await hass.config_entries.options.async_configure(
+        retry["flow_id"], {"next_step_id": "getting_started"}
+    )
+    assert "not ready" in retry["description_placeholders"]["status"]
+    entry.runtime_data.last_update_success = True
+    candidate = CsvParser().parse(
+        b"Date,Fajr Begin\n2026-10-21,05:45\n",
+        timetable_id="annual-2026",
+        kind="annual",
+        year=2026,
+        date_column="Date",
+        columns={"Fajr Begin": "fajr_begin"},
+    )
+    storage = entry.runtime_data.storage
+    await storage.async_stage(candidate)
+    menu = await hass.config_entries.options.async_init(entry.entry_id)
+    guide = await hass.config_entries.options.async_configure(
+        menu["flow_id"], {"next_step_id": "getting_started"}
+    )
+    assert guide["menu_options"] == ["review", "settings", "init"]
+    assert "awaiting review" in guide["description_placeholders"]["status"]
+    assert storage.timetables == ()
+    review = await hass.config_entries.options.async_configure(
+        guide["flow_id"], {"next_step_id": "review"}
+    )
+    assert review["step_id"] == "review"
+    assert storage.timetables == ()
+
+
+async def test_getting_started_reports_approved_coverage(hass, populated, freezer):
+    freezer.move_to("2026-10-21 10:00:00+00:00")
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    menu = await hass.config_entries.options.async_init(populated.entry_id)
+    guide = await hass.config_entries.options.async_configure(
+        menu["flow_id"], {"next_step_id": "getting_started"}
+    )
+    status = guide["description_placeholders"]["status"]
+    assert "Europe/London" in status
+    assert "today: available; tomorrow: available" in status
+    assert "Required fields missing today: 4" in status
 
 
 async def test_hijri_mosque_setting_at_setup_and_afterwards(hass):

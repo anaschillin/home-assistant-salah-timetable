@@ -78,8 +78,11 @@ def build_coverage(timetable: Timetable, year: int) -> ImportCoverage:
     """Count exact missing dates/fields for the declared source kind."""
     days = tuple(row.day for row in timetable.days)
     first, last = min(days), max(days)
-    start = date(year, 1, 1) if timetable.kind == "annual" else first
-    end = date(year, 12, 31) if timetable.kind == "annual" else last
+    full_year = timetable.kind == "annual" and not timetable.timetable_id.endswith(
+        "-cross-year"
+    )
+    start = date(year, 1, 1) if full_year else first
+    end = date(year, 12, 31) if full_year else last
     present = set(days)
     missing_dates = tuple(
         start + timedelta(days=offset)
@@ -171,7 +174,25 @@ class ImportCandidate:
         validate_validator(self.etag)
         validate_validator(self.last_modified)
         self._validate_provenance()
-        if any(row.day.year != self.year for row in self.timetable.days):
+        table = self.timetable
+        if table.timetable_id.endswith("-cross-year"):
+            first = min(row.day for row in table.days)
+            last = max(row.day for row in table.days)
+            expected_id = f"annual-{self.year}-cross-year"
+            if (
+                table.timetable_id != expected_id
+                or table.kind != "annual"
+                or self.source_format != "csv"
+                or self.source_url is not None
+                or not 1900 <= self.year < 2199
+                or first.year != self.year
+                or last.year != self.year + 1
+                or (last - first).days >= 366
+            ):
+                raise ImportValidationError(
+                    "Invalid cross-year source identity or date span"
+                )
+        elif any(row.day.year != self.year for row in table.days):
             raise ImportValidationError("Every date must match the declared year")
         if self.coverage != build_coverage(self.timetable, self.year):
             raise ImportValidationError(
