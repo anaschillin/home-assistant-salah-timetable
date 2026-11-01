@@ -63,6 +63,7 @@ one of these GitHub URLs:
 
 - [Adhan playback](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/adhan.yaml)
 - [Pause and resume media](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/pause_resume_media.yaml)
+- [Before Salah reminder](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/salah_reminder.yaml)
 - [Before Jamaat reminder](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/jamaat_reminder.yaml)
 - [Sehri reminder](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/sehri_reminder.yaml)
 - [Timetable health alert](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/timetable_health_alert.yaml)
@@ -79,6 +80,7 @@ the integration; reimport changed blueprints and review their inputs.
 | --- | --- | --- |
 | Adhan playback | Daily Beginning sensors, selected media players and your recording | Plays at each enabled published beginning, with optional Fajr audio, per-prayer volume, quiet hours and conservative volume restoration. |
 | Pause and resume media | One daily Beginning sensor, a later published anchor and selected media players | Pauses players currently playing; resumes unchanged players after the anchor plus an explicit user-selected delay. |
+| Before Salah | Next Salah and a negative minute offset | Runs chosen notification and/or sound actions before the next published beginning. `prayer` and `scheduled_time` are available. |
 | Before Jamaat | Next Jamaat and a negative minute offset | Schedules each successive congregation, including multiple Jumu’ah times. Action variables include `prayer` and `scheduled_time`. |
 | Sehri | Next Sehri and a negative minute offset | Uses the target event's active Ramadan date, so an offset before midnight can precede the first confirmed fast. `scheduled_time` is available to actions. |
 | Timetable health | Timetable coverage and Source status for the same mosque | Runs selected actions on a new missing/expiring coverage state or a transition into pending review. |
@@ -91,8 +93,34 @@ be reachable by the selected speakers. Omitted prayer times are not estimated.
 Time triggers must be loaded before their event or offset. Unknown or unavailable
 values do not schedule actions, and past events are not replayed after startup or
 reload. Changing an approved timestamp replaces its pending trigger. Daily beginning
-entities become available on their local date, so use the rolling Next Jamaat or
+entities become available on their local date, so use the rolling Next Salah, Next Jamaat or
 Next Sehri reminders for an offset that may fall before that date.
+
+## Before Salah notifications and sounds
+
+Import **Before Salah reminder**, select your mosque's **Next Salah** sensor,
+and set **Reminder offset** to `-10` for ten minutes before each next beginning
+(range: 1–180 minutes before). Under **Reminder actions**, add a Companion app
+notification action, a media player **Play media** action with your chosen sound,
+or both. Add more actions for other devices or notification groups supported by
+Home Assistant. Sound playback requires a compatible player and reachable media;
+phone notification sounds depend on the Companion app and device settings.
+
+For example, a Companion app action can use:
+
+```yaml
+action: notify.mobile_app_your_phone
+data:
+  title: Salah reminder
+  message: "{{ prayer | title }} begins at {{ as_local(as_datetime(scheduled_time)).strftime('%H:%M') }}."
+```
+
+Replace the action name with your registered notification action. The variables
+refer to the upcoming prayer. This can prompt users who have delayed praying,
+but it does not know whether you have prayed and does not establish the end of
+the current prayer's valid time. In particular, the next Salah beginning must not
+be treated as a universal prayer deadline. Create separate automations if you
+want several advance reminders with different offsets.
 
 ## Adhan playback controls
 

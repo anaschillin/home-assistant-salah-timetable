@@ -56,7 +56,11 @@ def reminder(name, entity, alias="Reminder"):
     return expanded(
         name,
         {
-            "next_jamaat" if name == "jamaat_reminder" else "next_sehri": entity,
+            {
+                "jamaat_reminder": "next_jamaat",
+                "salah_reminder": "next_salah",
+                "sehri_reminder": "next_sehri",
+            }[name]: entity,
             "offset": -10,
             "reminder_actions": [
                 {
@@ -204,8 +208,9 @@ async def test_adhan_plays_selected_media_and_targets_at_published_beginning(
     assert len(playback) == 1
 
 
-async def test_jamaat_reminder_reschedules_changed_approved_time_and_each_friday_event(
-    hass, freezer
+@pytest.mark.parametrize("name", ["jamaat_reminder", "salah_reminder"])
+async def test_reminder_reschedules_changed_approved_time_and_successive_events(
+    hass, freezer, name
 ):
     freezer.move_to("2026-10-23T11:00:00Z")
     events = async_capture_events(hass, "test_reminder")
@@ -213,7 +218,7 @@ async def test_jamaat_reminder_reschedules_changed_approved_time_and_each_friday
     hass.states.async_set(
         entity, "2026-10-23T12:00:00+00:00", {**ATTRS, "prayer": "jumuah"}
     )
-    await start(hass, [reminder("jamaat_reminder", entity)])
+    await start(hass, [reminder(name, entity)])
     # An approved replacement must cancel the old reminder rather than trigger both.
     hass.states.async_set(
         entity, "2026-10-23T12:15:00+00:00", {**ATTRS, "prayer": "jumuah"}
@@ -249,9 +254,10 @@ async def test_sehri_reminder_before_midnight_uses_next_event_not_today_activati
     assert hass.states.get("sensor.today_ramadan_status").state == "inactive"
 
 
+@pytest.mark.parametrize("name", ["jamaat_reminder", "salah_reminder"])
 @pytest.mark.parametrize("unavailable", ["unknown", "unavailable"])
 async def test_missing_timestamps_cancel_reminders_and_other_mosque_is_independent(
-    hass, freezer, unavailable
+    hass, freezer, unavailable, name
 ):
     freezer.move_to("2026-10-23T11:00:00Z")
     events = async_capture_events(hass, "test_reminder")
@@ -259,10 +265,7 @@ async def test_missing_timestamps_cancel_reminders_and_other_mosque_is_independe
         hass.states.async_set(f"sensor.{mosque}", "2026-10-23T12:00:00+00:00", ATTRS)
     await start(
         hass,
-        [
-            reminder("jamaat_reminder", f"sensor.{mosque}", mosque)
-            for mosque in ["first", "second"]
-        ],
+        [reminder(name, f"sensor.{mosque}", mosque) for mosque in ["first", "second"]],
     )
     hass.states.async_set("sensor.first", unavailable, ATTRS)
     await hass.async_block_till_done()
@@ -270,14 +273,15 @@ async def test_missing_timestamps_cancel_reminders_and_other_mosque_is_independe
     assert [event.data["mosque"] for event in events] == ["second"]
 
 
+@pytest.mark.parametrize("name", ["jamaat_reminder", "salah_reminder"])
 async def test_late_known_target_and_reenabled_automation_do_not_catch_up(
-    hass, freezer
+    hass, freezer, name
 ):
     freezer.move_to("2026-10-23T11:51:00Z")
     events = async_capture_events(hass, "test_reminder")
     # The 11:50 offset instant passed before loading the automation.
     hass.states.async_set("sensor.next_jamaat", "2026-10-23T12:00:00+00:00", ATTRS)
-    config = reminder("jamaat_reminder", "sensor.next_jamaat")
+    config = reminder(name, "sensor.next_jamaat")
     await start(hass, [config])
     await advance(hass, freezer, "2026-10-23T11:52:00Z")
     assert not events
@@ -998,3 +1002,51 @@ async def test_changed_reload_cancels_active_media_resumption(hass, freezer):
         await asyncio.sleep(0)
     assert len(pause) == 1
     assert not resume
+
+
+async def test_salah_reminder_notifies_and_plays_sound_before_midnight(hass, freezer):
+    """One reminder supports both delivery actions for a next-day beginning."""
+    freezer.move_to("2026-10-23T23:00:00Z")
+    notifications = async_mock_service(hass, "notify", "mobile_app_phone")
+    playback = async_mock_service(hass, "media_player", "play_media")
+    hass.states.async_set(
+        "sensor.next_salah",
+        "2026-10-24T00:05:00+00:00",
+        {**ATTRS, "prayer": "isha"},
+    )
+    config = expanded(
+        "salah_reminder",
+        {
+            "next_salah": "sensor.next_salah",
+            "offset": -10,
+            "reminder_actions": [
+                {
+                    "action": "notify.mobile_app_phone",
+                    "data": {
+                        "message": "{{ prayer }} begins at {{ scheduled_time }}",
+                    },
+                },
+                {
+                    "action": "media_player.play_media",
+                    "target": {
+                        "entity_id": "media_player.hall",
+                    },
+                    "data": {
+                        "media_content_id": "https://example.com/reminder.mp3",
+                        "media_content_type": "audio/mpeg",
+                    },
+                },
+            ],
+        },
+    )
+    await start(hass, [config])
+    await advance(hass, freezer, "2026-10-23T23:54:59Z")
+    assert not notifications and not playback
+    await advance(hass, freezer, "2026-10-23T23:55:00Z")
+    assert len(notifications) == len(playback) == 1
+    assert (
+        notifications[0].data["message"] == "isha begins at 2026-10-24T00:05:00+00:00"
+    )
+    assert playback[0].data["entity_id"] == ["media_player.hall"]
+    await advance(hass, freezer, "2026-10-24T00:05:00Z")
+    assert len(notifications) == len(playback) == 1
