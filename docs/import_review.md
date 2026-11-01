@@ -22,6 +22,15 @@ currently approved publication.
 5. Choose **Approve and save timetable** to activate it, or reject it to keep
    the currently approved data. Confirm Ramadan dates separately when needed.
 
+![Mosque menu with Review pending import](screenshots/pending-import.png)
+
+![Import review showing the detected PDF layout, date range and missing fields](screenshots/review-summary.png)
+
+![Review actions for comparing, approving or rejecting a timetable](screenshots/review-decision.png)
+
+These captures show different scroll positions of the review. Inspect the summary
+and comparison before selecting an action; opening review does not activate data.
+
 Each approval replaces a whole source. A shorter replacement can remove dates
 or fields; missing values are never invented. See [replacement scope](#replacement-scope)
 and [Ramadan validation](#ramadan-timetable-validation) before approving.
@@ -33,6 +42,10 @@ the printed Gregorian year. The PDF must contain selectable text and match a
 [supported layout](#supported-pdf-layouts); scanned pages are not recognised.
 The [configuration reference](#configuration-fields-and-defaults) gives the
 file and page limits. Check the detected columns before approval.
+
+![Supported PDF upload form with Annual, Monthly and Ramadan choices](screenshots/upload-pdf.png)
+
+The Gregorian year field is further down the form; select the year printed on the publication.
 
 ### Upload a CSV
 
@@ -104,6 +117,8 @@ continuing; a suggestion never approves or activates an import.
 | Confirmed first / last date | Both empty | Inclusive Gregorian window of 1–35 days. Set both dates or clear both; imported rows and calculated Hijri dates do not confirm them. |
 | Adjust confirmed window (days) | `0` | Whole days from −3 to +3, shifting the activation window only; source row dates stay unchanged. |
 | Ramadan source | Use the unique matching source | Automatic selection requires a unique source on each active date. Alternatively choose an approved Ramadan source explicitly; other Ramadan sources are then excluded. |
+
+![Ramadan settings with activation modes and separately confirmed Gregorian dates](screenshots/ramadan-settings.png)
 
 An import and its activation settings are separate. See [Ramadan timetable
 validation](#ramadan-timetable-validation) for merging, warnings and Iftar/Taraweeh

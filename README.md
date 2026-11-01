@@ -23,7 +23,7 @@ A Home Assistant custom integration for importing **published mosque Salah and J
 
 ## Dashboard preview
 
-![Salah Timetable detailed card with next Salah and Jamaat countdowns, five-prayer timetable and optional mosque photograph](docs/screenshots/main-card.jpg)
+![Salah Timetable detailed card with next Salah and Jamaat countdowns, five-prayer timetable and optional mosque photograph](docs/screenshots/main-card.png)
 
 *Example of the detailed dashboard card. The pictured mosque photograph is decorative; displayed prayer times belong to the configured mosque and are not a universal prayer timetable.*
 

@@ -18,6 +18,14 @@ Use Home Assistant OS or Home Assistant Container on Linux; these supply the pro
 This is a **HACS custom repository**, not a listing in the default HACS catalogue. For manual installation, download the desired [stable release](https://github.com/anaschillin/home-assistant-salah-timetable/releases), extract it, and copy the complete `custom_components/salah_timetable` directory into Home Assistant's configuration directory as `config/custom_components/salah_timetable/`. The `manifest.json` must be directly inside that directory, with its `frontend/`, `translations/` and other bundled files alongside it. Restart Home Assistant, then follow steps 3–4 above.
 <!-- /docs:excerpt installation -->
 
+![Add a mosque form with display name, stable ID and timezone](screenshots/add-mosque.png)
+
+Enter a name, a unique stable ID and the mosque timezone before submitting.
+
+![Name and assign the new mosque device](screenshots/name-and-assign.png)
+
+Finish device assignment, then open the mosque’s **Configure** menu.
+
 ### Installation fields
 
 | Field | Required / initial value | Meaning |
@@ -31,6 +39,8 @@ Setup requires no account, credentials or timetable connection. It creates a mos
 prayer values become available after you approve a supported import. To add another
 mosque, repeat the installation's **Add integration** step with a different ID.
 
+![Configured mosque device with its configuration controls](screenshots/mosque-device.png)
+
 ## Import prayer times
 
 1. Under **Devices & services**, open the mosque's **Configure** menu and choose **Getting started and readiness**.
@@ -38,6 +48,8 @@ mosque, repeat the installation's **Add integration** step with a different ID.
 3. Choose the printed Gregorian year and timetable type. Map only fields your mosque published; check any suggested CSV mapping against the file.
 4. Review the layout, dates, warnings and prayer values. When replacing data, use **Compare changes before approval** to check additions, removals and changed times.
 5. Choose **Approve and save timetable** to activate it, or reject it to retain existing approved data. Ramadan imports also require separate [activation settings](import_review.md#ramadan-settings).
+
+![Mosque options with readiness, import and settings shortcuts](screenshots/mosque-options.png)
 
 Reopen **Configure → Getting started and readiness** to check the saved mosque
 timezone, today's and tomorrow's coverage, and the names and counts of missing
@@ -69,20 +81,24 @@ The calculated Hijri header is for display; it does not activate Ramadan or chan
 published timestamps. See [Dashboard](dashboard.md) for card options and
 [Automations](automations.md) for alerts and speaker playback.
 
+![Add to dashboard dialog with Salah Timetable selected by card](screenshots/add-dashboard-card.png)
+
 ### Card configuration
 
-![Salah Timetable card editor with mosque selection, card detail dropdown, grouped configuration sections and a live preview](screenshots/card-settings.jpg)
+![Desktop card editor with mosque identities redacted, Standard detail and a live preview](screenshots/card-editor-standard.png)
+
+Mosque names and identifying entity IDs are obscured in these dashboard examples.
 
 The editor groups settings by topic. The mosque checkboxes choose which configured
 mosques appear on this card; planned Islamic-history options are disabled.
 
 ### Browse yesterday and the monthly timetable
 
-![Yesterday tab showing the previous date and its published five-prayer timetable without live countdown panels](screenshots/yesterday.jpg)
+![Yesterday tab showing the previous date and its published five-prayer timetable without live countdown panels](screenshots/yesterday.png)
 
 Yesterday and Tomorrow omit live countdowns and current-prayer highlighting.
 
-![Gregorian monthly timetable view with previous and next month navigation, year CSV export and source details](screenshots/monthly-view.jpg)
+![Gregorian monthly timetable view with previous and next month navigation, year CSV export and source details](screenshots/monthly-view.png)
 
 Enable **Monthly timetable, CSV export and source details** under **Timetable & information** to open the Gregorian month browser. Scroll to see the rest of the month; only approved dates and fields appear. The export is for the current displayed Gregorian year, not the mosque's source PDF.
 
@@ -95,6 +111,8 @@ publishes. The default is the five daily Salah beginnings. The **Prayer complete
 diagnostic identifies missing fields, while **Timetable coverage** reports date
 coverage. To receive alerts, import the optional [Prayer completeness alert blueprint](automations.md#prayer-completeness)
 and select your mosque's diagnostic sensor and your own actions.
+
+![Mosque settings showing timezone, calculated Hijri display and required prayer fields](screenshots/mosque-settings.png)
 
 ## Reconfigure or remove a mosque
 

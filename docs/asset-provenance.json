@@ -177,36 +177,28 @@
       "sha256": "800ab5e6f641a43fa841026435307819d4396405cdbe2539f08bbd277af8d070"
     },
     {
-      "path": "docs/screenshots/card-settings.jpg",
+      "path": "docs/screenshots/main-card.png",
       "rights": "permission_documented",
       "owner": "Project maintainer (UI capture); Naveed Ahmed (bundled photograph)",
-      "basis": "Maintainer-supplied screenshot of project UI; includes bundled Jama Masjid, Delhi background photograph separately governed by its Unsplash License and existing provenance entry",
+      "basis": "Maintainer-supplied screenshot of project UI; includes bundled Jama Masjid, Delhi background photograph separately governed by its Unsplash License and existing provenance entry; AI-assisted privacy redaction and resampling obscure the mosque display name",
       "evidence": "docs/asset-provenance.md",
-      "sha256": "bbb16b4250f8ca6ea6f6de15a28bfb449130ec451c4073b463472ba60c6f8424"
+      "sha256": "da2f0e00a16a975835aec58018d0246bfc2e3449ceb3f51913277438b71c0034"
     },
     {
-      "path": "docs/screenshots/main-card.jpg",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Naveed Ahmed (bundled photograph)",
-      "basis": "Maintainer-supplied screenshot of project UI; includes bundled Jama Masjid, Delhi background photograph separately governed by its Unsplash License and existing provenance entry",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "6bd61a619479ea3237b7ecdf1a320c000105ec98a930cb880b9b6c5bc8fac846"
-    },
-    {
-      "path": "docs/screenshots/monthly-view.jpg",
+      "path": "docs/screenshots/monthly-view.png",
       "rights": "permission_documented",
       "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of the project UI showing an approved monthly timetable; no original publisher document is redistributed",
+      "basis": "Maintainer-supplied screenshot of the project UI showing an approved monthly timetable; no original publisher document is redistributed; AI-assisted privacy redaction and resampling obscure the mosque display name",
       "evidence": "docs/asset-provenance.md",
-      "sha256": "b7a1d1e74ee4993d68da4fe3331c12ce538ec911a7f32abb8b8d73fb398d20dd"
+      "sha256": "1b0f1a0ec41cc0d33de7e13dcc0116a7cfd7a412756507b0f6a6a45cf8f9b28c"
     },
     {
-      "path": "docs/screenshots/yesterday.jpg",
+      "path": "docs/screenshots/yesterday.png",
       "rights": "permission_documented",
       "owner": "Project maintainer (UI capture); Naveed Ahmed (bundled photograph)",
-      "basis": "Maintainer-supplied screenshot of project UI; includes bundled Jama Masjid, Delhi background photograph separately governed by its Unsplash License and existing provenance entry",
+      "basis": "Maintainer-supplied screenshot of project UI; includes bundled Jama Masjid, Delhi background photograph separately governed by its Unsplash License and existing provenance entry; AI-assisted privacy redaction and resampling obscure the mosque display name",
       "evidence": "docs/asset-provenance.md",
-      "sha256": "3555b5a6bb26cdcce0d9029f141824e65e5a2095b505e2d8ec44198cd17e12a0"
+      "sha256": "2d9d9e67756dce53c801266dd9d3b7950fc83d1d1553b36779e4da099f847e51"
     },
     {
       "path": "tests/fixtures/csv/annual.csv",
@@ -303,6 +295,126 @@
       "basis": "Synthetic historical import/approval state with fictional values",
       "evidence": "tests/fixtures/storage/README.md",
       "sha256": "3bded584866ef16de79a2a6afc4febad309cb46311c28c56b251bf4f61d5df73"
+    },
+    {
+      "path": "docs/screenshots/add-dashboard-card.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "d5bf02686e21ae105ccfd5074aff90b561bdc075c36a567857ef3b0bf6e1c71d"
+    },
+    {
+      "path": "docs/screenshots/add-mosque.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "f71d518721bafcc5922a36aa6010b99e91ba689a69e3dda51106d1b3af280d50"
+    },
+    {
+      "path": "docs/screenshots/card-editor-compact.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); The Simple Travel (bundled photograph)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present; includes bundled National Mosque of Malaysia photograph under its separately recorded Unsplash License",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "a634be51b02cca7080e6e4d50a019068c1320c9bb1d8a84d7af0c59ee594e477"
+    },
+    {
+      "path": "docs/screenshots/card-editor-mobile.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "66db6d288d469957d4d88ef7a1f2d34a1480f371c89fdb219b308bdc11cca885"
+    },
+    {
+      "path": "docs/screenshots/card-editor-standard.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); The Simple Travel (bundled photograph)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present; includes bundled National Mosque of Malaysia photograph under its separately recorded Unsplash License",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "a3bf553f471f0ec8f361b9a12930414d98ba9fa19cba4f4a0ac8f7ac023ef5c8"
+    },
+    {
+      "path": "docs/screenshots/dashboard-mobile.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Jimmy Whitson (bundled photograph)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present; includes bundled Sultan Omar Ali Saifuddien Mosque photograph under its separately recorded Unsplash License",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "95b4c99395cf22e588acbda4afa570a0527568f213399dfbc18287e7473698d6"
+    },
+    {
+      "path": "docs/screenshots/mosque-device.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "bed8ecb49fedd89b3a384185324f062675cfef3e2200def60eec48ebdf32af8e"
+    },
+    {
+      "path": "docs/screenshots/mosque-options.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "7a80567d4594e267e329e74d268fb8dd0629dce8e0b56647edb38294c10bb39a"
+    },
+    {
+      "path": "docs/screenshots/mosque-settings.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "4789d4c3ce44fa71020d8d46b28208b3ade92eb0b0525e1870973d0b38e98997"
+    },
+    {
+      "path": "docs/screenshots/name-and-assign.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "1f1a97e9f7635cf5c2aae29937538982ae453ceab82347d66d2239753ecab9ca"
+    },
+    {
+      "path": "docs/screenshots/pending-import.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "445c340226dfd1621b3ee4301a7e2176393270a150ff2bb271134055a91543d8"
+    },
+    {
+      "path": "docs/screenshots/ramadan-settings.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "2d07b31db8f7677a8cba42e14f1713f418002957ecbd76744d4c94434417aeb3"
+    },
+    {
+      "path": "docs/screenshots/review-decision.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "6707ba5d898ba9d63184c68f95b4ea3d28f175446ef2c5b5aa37297311b9c536"
+    },
+    {
+      "path": "docs/screenshots/review-summary.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "8d4017011921ef6ed1ba71daa23252f2106daf6d4811ca0d082ff0a345d04705"
+    },
+    {
+      "path": "docs/screenshots/upload-pdf.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "92dc4ed45b92b2c32be2eff1e58986a307b51174326b4f336fc4f2cf494ad099"
     }
   ]
 }

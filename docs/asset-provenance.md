@@ -13,16 +13,26 @@ on 29 October 2026. Current PDF/CSV/JSON fixture data was independently
 generated using fictional mosque names and times. This statement is retained
 because the brand icon's inventory entry refers to it as evidence.
 
-The four interface screenshots in [docs/screenshots](screenshots/) were supplied by the
+The original interface screenshots in [docs/screenshots](screenshots/) were supplied by the
 project maintainer on 30 October 2026 for README and dashboard documentation.
 They reproduce the project's own Home Assistant UI and show example mosque
 names and published timetable values; the screenshots do not grant rights to
 the original mosque publications or imply mosque endorsement. The main,
-Yesterday and editor-preview screenshots include the bundled Jama Masjid,
+Yesterday screenshots include the bundled Jama Masjid,
 Delhi photograph by Naveed Ahmed (whose separate Unsplash source and licence
 are recorded in the inventory). Those photo rights are not converted into
 MIT rights by including the image in a screenshot. The screenshot files
 are checksummed in the same inventory and included in its integrity check.
+
+Additional setup, import, settings and desktop/mobile dashboard captures were
+supplied by the maintainer on 1 November 2026 for the guides. Dashboard captures
+have AI-assisted privacy redactions and image resampling: mosque names and
+identifying entity IDs are obscured. They are illustrative interface examples,
+not authoritative timetable publications. Unredacted uploads are not stored in
+the repository. The new dashboard previews retain the bundled National Mosque
+of Malaysia photograph by The Simple Travel and the Sultan Omar Ali Saifuddien
+Mosque photograph by Jimmy Whitson; their separate source and licence entries
+remain authoritative. See the inventory for each capture's hash and rights basis.
 
 The 20 bundled backgrounds come from reviewed free Unsplash photograph listings.
 Their named photographers and source pages are recorded individually in the

@@ -78,6 +78,19 @@ Under **Appearance → Mosque background**, choose **Off — no background**,
 **Rotate daily**, or a fixed photograph. Turning the background off preserves
 the saved photograph choice. See [background options](#optional-mosque-photograph-backgrounds).
 
+### Mobile card setup
+
+<img src="screenshots/card-editor-mobile.png" width="360" alt="Mobile card editor with mosque names redacted and date settings expanded">
+
+Select the mosques available on the card, choose its detail level, then expand
+the relevant settings group. The mobile editor scrolls; lower groups may be below
+the visible area.
+
+<img src="screenshots/dashboard-mobile.png" width="360" alt="Mobile dashboard with mosque name redacted, bilingual prayers and day navigation">
+
+Example approved timetable values are shown for illustration. Mosque identities
+are obscured; the background photograph is decorative.
+
 ## Day navigation
 
 The **Yesterday / Today / Tomorrow** controls sit in the timetable footer.
@@ -106,6 +119,8 @@ Home Assistant sensor state.
 | Compact | Next Salah countdown with beginning and Jamaat, plus context-aware upcoming/previous Jamaat; active Ramadan details when enabled |
 | Standard (default) | Both matching prayer cards, full timetable, Hijri date (if enabled), and active Ramadan details |
 | Detailed | Standard plus published Fajr sunrise/end and second Friday khutbah (if present) |
+
+![Compact card preview showing countdown panels without the full Today table](screenshots/card-editor-compact.png)
 
 **Next Salah** always means the next *beginning* time, even if the current
 prayer's Jamaat is still upcoming. The countdown and published times from that
