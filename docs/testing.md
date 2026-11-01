@@ -49,9 +49,9 @@ Every domain folder has a short [README](../tests/README.md) explaining **what b
 
 | Area | Guide | What it owns |
 | --- | --- | --- |
-| Automations | [tests/automations](../tests/automations/README.md) | Adhan and media blueprints |
+| Automations | [tests/automations](../tests/automations/README.md) | Prayer reminders, Adhan/media, coverage and completeness alert blueprints |
 | Calendar | [tests/calendar](../tests/calendar/README.md) | Calendar/event calculations and HA delivery |
-| Core | [tests/core](../tests/core/README.md) | Entities, coordinator, models, diagnostics |
+| Core | [tests/core](../tests/core/README.md) | Entities, coordinator, models, coverage/completeness diagnostics |
 | Frontend | [tests/frontend](../tests/frontend/README.md) | Dashboard, Node unit tests and browser smoke |
 | Imports | [tests/imports](../tests/imports/README.md) | Setup, mapping, comparison and approval flows |
 | Parsers | [tests/parsers](../tests/parsers/README.md) | CSV, PDF, layout recognition and worker limits |
@@ -176,7 +176,10 @@ The README **coverage** badge is generated from the *measured Python line-covera
 | `.github/workflows/codeql.yml` | Python/JavaScript security analysis on PRs targeting `main`, all `main` pushes, manual runs and weekly; superseded PR scans cancel |
 | `.github/workflows/unit-compatibility.yml` | **All recursively discovered Python test files**, in one pytest run on each pinned Home Assistant compatibility lane |
 | `.github/workflows/live-smoke.yml` | Real disposable HA Container onboarding/browser smoke (manual and weekly; reusable workflow) |
-| `.github/workflows/release.yml` | Tag, checksums, assets and release eligibility; not an alternative to functional testing |
+| `.github/workflows/feature-release-event.yml` | Read-only notification of PR lifecycle changes, including draft/ready transitions |
+| `.github/workflows/feature-release.yml` | Reconcile temporary prereleases for eligible, passing non-draft PRs; cleanup after pushes, draft/closed state or merge |
+| `.github/workflows/stable-release.yml` | Publish a new stable version only after Validate/CodeQL on the exact latest `main`; preserve existing tags/releases |
+| `.github/workflows/release.yml` | Optional manual draft preparation from an existing validated tag; checks provenance, archive and checksum without publishing |
 
 Pull requests changing **only Markdown files** (including shared excerpts) run the documentation integrity check but skip heavyweight Python/Node, HACS/hassfest and HA integration/compatibility jobs in Validate. CodeQL still analyzes PRs targeting `main`. Any non-Markdown file—including code, configuration, workflow definitions or asset metadata—activates full validation. Every push to `main`, manual run and scheduled security/compatibility check retains the full checks; the draft-release requirement for a successful full `Validate` push run on the tagged commit is preserved.
 
@@ -403,5 +406,5 @@ node scripts/compare_screenshots.mjs /tmp/salah-base /tmp/salah-current
 ```
 
 The images use synthetic fixture data. Physical Home Assistant acceptance
-on a phone/tablet, as described in [CSS acceptance](dashboard.md),
+on a phone/tablet, as described in [dashboard validation limits](dashboard.md#validation-limits),
 remains a separate release gate.

@@ -78,6 +78,19 @@ Under **Appearance → Mosque background**, choose **Off — no background**,
 **Rotate daily**, or a fixed photograph. Turning the background off preserves
 the saved photograph choice. See [background options](#optional-mosque-photograph-backgrounds).
 
+### Mobile card setup
+
+<img src="screenshots/card-editor-mobile.png" width="360" alt="Mobile card editor with mosque names redacted and date settings expanded">
+
+Select the mosques available on the card, choose its detail level, then expand
+the relevant settings group. The mobile editor scrolls; lower groups may be below
+the visible area.
+
+<img src="screenshots/dashboard-mobile.png" width="360" alt="Mobile dashboard with mosque name redacted, bilingual prayers and day navigation">
+
+Example approved timetable values are shown for illustration. Mosque identities
+are obscured; the background photograph is decorative.
+
 ## Day navigation
 
 The **Yesterday / Today / Tomorrow** controls sit in the timetable footer.
@@ -106,6 +119,8 @@ Home Assistant sensor state.
 | Compact | Next Salah countdown with beginning and Jamaat, plus context-aware upcoming/previous Jamaat; active Ramadan details when enabled |
 | Standard (default) | Both matching prayer cards, full timetable, Hijri date (if enabled), and active Ramadan details |
 | Detailed | Standard plus published Fajr sunrise/end and second Friday khutbah (if present) |
+
+![Compact card preview showing countdown panels without the full Today table](screenshots/card-editor-compact.png)
 
 **Next Salah** always means the next *beginning* time, even if the current
 prayer's Jamaat is still upcoming. The countdown and published times from that
@@ -233,12 +248,14 @@ not shift imported records, prayer events, Ramadan confirmation or Ramadan's sep
 date adjustment. The date is labelled calculated; unsupported browsers show
 **Hijri date unavailable** rather than silently substituting another calendar.
 
-The following *card-specific* options are available in the graphical editor.
+The following are supported *card-specific* configuration options. The graphical
+editor exposes the current controls; legacy YAML settings are identified below.
 The mosque-wide Hijri preference is managed separately in the integration settings:
 
 | YAML option | Values and default |
 | --- | --- |
 | `entity` | The initial/primary `sensor.*_prayer_timetable` entity on the card |
+| `title` | Optional text, at most 100 characters; overrides the primary mosque's display label on this card |
 | `mosque_entities` | Optional list of enabled Prayer timetable sensor IDs; omit to show all configured mosques (legacy behaviour); requires at least one when set |
 | `language` | `auto` (default), `en`, `ar`; automatic follows the HA interface language with English label fallback |
 | `bilingual_prayer_labels` | `false` (default); show English and Arabic known prayer names |

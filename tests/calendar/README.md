@@ -16,4 +16,4 @@ Freeze time explicitly in boundary cases, and distinguish calculation tests from
 
 Shared Home Assistant fixtures belong in [`tests/conftest.py`](../conftest.py). The authoritative per-file inventory, Node/browser commands, and CI scope are in [the test suite guide](../../docs/testing.md).
 
-Approved monthly timetable range queries, CSV export and redacted source details are tested in `test_month_data.py` using the real HA WebSocket interface. Keep missing dates and unauthorised users out of any result.
+Approved monthly timetable range queries, CSV export and redacted source details are tested in `test_month_data.py` using the real HA WebSocket interface. Keep missing dates explicit with empty values; reject unauthorised access and exclude pending imports from results.

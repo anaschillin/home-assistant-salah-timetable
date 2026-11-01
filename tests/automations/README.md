@@ -1,6 +1,6 @@
 # Automation and blueprint tests
 
-Protect blueprint configuration, rendered templates, adhan selection, and pausing/resuming media. Keep tests of Home Assistant service calls and entity triggers here, rather than in generic integration tests.
+Protect blueprint configuration, rendered templates, prayer reminders, Adhan selection, pausing/resuming media, date-coverage alerts and required-field completeness alerts. Keep tests of Home Assistant service calls and entity triggers here, rather than in generic integration tests.
 
 ## Run just this area
 

@@ -1,6 +1,6 @@
 # Core integration and model tests
 
-Protect component setup/unload, coordinator lifecycle, timetable models, coverage/expiry reporting, and diagnostics/redaction. `test_coverage.py` covers **timetable coverage**, not the pytest coverage tool.
+Protect component setup/unload, coordinator lifecycle, timetable models, date coverage/expiry, required-field completeness and diagnostics/redaction. `test_coverage.py` covers **timetable coverage and completeness**, not the pytest coverage tool.
 
 ## Run just this area
 

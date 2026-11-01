@@ -32,11 +32,14 @@ Set `REQUIRE_BROWSER_TESTS=1` to fail when no browser is available, as CI does; 
 that setting the browser test is skipped when no executable is found. The harness
 uses HA element stand-ins and does not replace a live HA/frontend installation check.
 
-Validate also runs full pinned Python compatibility suites on HA <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min -->
+For code/asset PRs and all pushes to `main`, Validate also runs full pinned Python compatibility suites on HA <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min -->
 and <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested -->, plus one real Docker-based live acceptance on HA <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested -->.
 For requirements, local commands, dependency verification and proxy CA handling,
 see [disposable Home Assistant live testing](docs/testing.md#disposable-home-assistant-live-testing).
 The runner uses synthetic data and removes its private configuration and container.
+Markdown-only PRs run the documentation integrity check and skip Validate's
+runtime jobs; CodeQL still runs for PRs targeting `main`. See
+[CI ownership](docs/testing.md#ci-coverage-and-ownership) for the exact boundary.
 
 Run `uv run --frozen python scripts/build_release.py --check` to check runtime
 assets and synchronized integration/frontend cache versions. See

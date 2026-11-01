@@ -61,7 +61,8 @@ HA's authenticated `file_upload` dependency receives the file and returns an opa
 UUID. A single executor operation consumes and cleans up the upload context, reads
 at most the format limit plus one byte, and inspects structure/encoding. The mapping flow keeps
 only bounded content in memory until the user selects explicit date/prayer columns,
-year, kind and time format. Parsing and timezone validation occur off the event loop.
+year, kind and time format. PDF extraction runs in its bounded subprocess;
+parsing and timezone validation run in an executor off the event loop.
 
 Staging writes a candidate with a random identity without changing active records.
 The review shows coverage, missing counts, source hash, sample values and replacement
@@ -356,7 +357,7 @@ release acceptance on the exact version and relevant physical devices. See the
 
 ## Remaining limitations
 
-PDF support is restricted to [inspected layouts](import_review.md#supported-pdf-layouts); scanned PDFs and OCR are unsupported. The live MOSQUE_A HTTPS source is unverified. DST gaps and ambiguous folds are rejected rather than guessed; fold support requires an explicitly reviewed source model. Hijri headers are display-only and cannot activate Ramadan.
+PDF support is restricted to [documented layouts](import_review.md#supported-pdf-layouts), including the bounded generic table adapters; scanned PDFs and OCR are unsupported. URL imports require a working public HTTPS publication independently of layout support. DST gaps and ambiguous folds are rejected rather than guessed; fold support requires an explicitly reviewed source model. Hijri headers are display-only and cannot activate Ramadan.
 
 See [test compatibility and coverage](testing.md#compatibility-test-environments) and [release acceptance](releasing.md#validation-and-acceptance-scope) for current evidence; do not treat CI alone as proof of user-facing HACS or Home Assistant OS acceptance. Full Home Assistant OS/Supervisor restoration remains optional. Invalid stored records have Repairs guidance, and packaging and synchronised frontend versions are checked by release tooling.
 

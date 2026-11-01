@@ -2,9 +2,9 @@
 
 Python tests verify Home Assistant frontend resources, HTTP endpoints, and dashboard presentation. JavaScript `*.test.mjs` files verify card/editor behavior, state, styling, localisation, backgrounds, and visual test infrastructure.
 
-The dependency-free Node suite also owns `feature-releases.test.mjs`, which tests
-release automation against a simulated GitHub API without publishing or deleting
-real releases.
+The dependency-free Node suite also owns `feature-releases.test.mjs` and
+`stable-releases.test.mjs`, which test release automation against a simulated
+GitHub API without publishing or deleting real releases.
 
 ## Run just this area
 

@@ -96,7 +96,8 @@ Next Sehri reminders for an offset that may fall before that date.
 
 ## Adhan playback controls
 
-Only the ordinary recording and selected beginnings are required. Optional controls:
+Select the ordinary recording, prayer-beginning sensors and media players.
+Optional controls:
 
 - **Disabled prayer beginnings** skips selected triggers without changing the timetable.
 - Expand **Fajr recording and per-prayer volume** to identify the daily Beginning
