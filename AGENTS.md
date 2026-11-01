@@ -174,6 +174,26 @@ Update relevant documentation whenever functionality, configuration, architectur
 
 Do not create new documentation files when existing files can be updated appropriately.
 
+### Codex documentation simplification handoff
+
+When asked to simplify the repository documentation, follow the dedicated
+[Documentation Simplification — Action Plan](docs/documentation-simplification-plan.md).
+It contains the document-by-document audit, the PR #119/#120 review findings,
+ordered checklists, source-of-truth ownership, safety requirements and acceptance
+criteria. It is the canonical task checklist; do not duplicate it in AGENTS.md.
+
+Before editing guides, verify that PRs #119 and #120 have both merged into the
+latest `main`, review their actual merged behaviour, and start a fresh
+implementation branch from that updated `main`. If they are still pending,
+perform only read-only analysis and report the dependency. Respect all other
+project rules and avoid unrelated code changes.
+
+Implement the plan in small reviewable steps: user guides first, contributor
+references second, link/version consistency last. Run documentation/version
+checks and applicable CI, report evidence and residual limitations, and leave
+the implementation PR open for review. Never merge or publish without
+explicit authorisation.
+
 ## 10. GitHub and Pull Request Workflow
 
 Use the following workflow:
