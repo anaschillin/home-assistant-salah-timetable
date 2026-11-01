@@ -1,6 +1,7 @@
 # Start using Salah Timetable
 
-This quickstart is for Home Assistant users installing the integration for the first time. For detailed developer internals see [architecture](architecture.md), [test guide](testing.md) and [release acceptance](releasing.md).
+Follow this guide to install the integration, approve a mosque timetable and add
+its dashboard card. For detailed options, see the linked reference guides.
 
 ## Install the integration
 
@@ -26,34 +27,34 @@ This is a **HACS custom repository**, not a listing in the default HACS catalogu
 | Mosque timezone | Required; defaults to Home Assistant's timezone | A valid IANA zone such as `Europe/London`. Published local clock times are interpreted in this zone, including DST validation. |
 | Show full calculated Hijri date on dashboards | Optional; enabled initially | Enables the calculated dashboard date; it does not activate Ramadan or alter imported dates/times. Individual cards can also hide the header. |
 
-Setup requires no account, credentials or timetable connection. It creates a mosque
-configuration; prayer values become available after a supported import is approved.
+Setup requires no account, credentials or timetable connection. It creates a mosque;
+prayer values become available after you approve a supported import. To add another
+mosque, repeat the installation's **Add integration** step with a different ID.
 
 ## Import prayer times
 
 1. Under **Devices & services**, open the mosque's **Configure** menu and choose **Getting started and readiness**.
 2. Choose the public HTTPS URL, PDF or CSV option. If an import is already pending, choose **Review pending import** instead.
-3. Select the printed Gregorian year and source type: **Annual**, **Monthly** or **Ramadan** for PDF/URL imports; **Annual**, **Ramadan** or **Cross-year** for CSV uploads. For a cross-year CSV, select its first Gregorian year; the upload must include that year and the next, and span at most 366 days. Map only columns that the mosque actually published.
-4. Review the detected layout, dates, warnings and prayer values. Use **Compare changes before approval** when replacing approved data.
-5. Choose **Approve and save timetable** to activate it, or reject it to retain existing approved data. If importing Ramadan times, confirm the Ramadan date window separately in mosque settings.
+3. Choose the printed Gregorian year and timetable type. Map only fields your mosque published; check any suggested CSV mapping against the file.
+4. Review the layout, dates, warnings and prayer values. When replacing data, use **Compare changes before approval** to check additions, removals and changed times.
+5. Choose **Approve and save timetable** to activate it, or reject it to retain existing approved data. Ramadan imports also require separate [activation settings](import_review.md#ramadan-settings).
 
 Reopen **Configure → Getting started and readiness** to check the saved mosque
-timezone, whether approved data covers today and tomorrow, and the names and counts
-of missing required fields. A covered date can still lack individual prayer fields. The
-screen also links to mosque settings for changing the required fields or timezone; it does not check the timetable against the
-original publication or automatically approve an import. When the integration is
-not loaded, check its status before importing.
+timezone, today's and tomorrow's coverage, and the names and counts of missing
+required fields.
+The screen links to mosque settings and does not verify the original publication or
+approve an import. If the integration is not loaded, check its status before importing.
 
 For an approved annual URL source, **Prepare next year's URL publication**
-starts a separate new-year import using a URL you supply. Check its
+starts a separate new-year import using a URL you supply or review from a configured template. Check its
 [eligibility and review requirements](import_review.md#guided-annual-publication-rollover);
 the current year remains available until its own published coverage ends.
 
-PDF imports recognise **only** [documented layouts](import_review.md#supported-pdf-layouts). Scanned pages and unknown layouts are unsupported; CSV may be a suitable alternative. Never invent missing times.
+PDF imports recognise **only** [documented layouts](import_review.md#supported-pdf-layouts). Scanned pages and unknown layouts are unsupported; CSV may be a suitable alternative. Missing times remain unavailable.
 
 See the [configuration reference](import_review.md#configuration-fields-and-defaults)
-for import, source-management and Ramadan controls, and the [entity reference](automations.md#entities-per-mosque)
-for the sensors and calendar created for each mosque.
+for CSV cross-year limits, source management and Ramadan controls. The [entity reference](automations.md#entities-per-mosque)
+lists the sensors and calendar created for each mosque.
 
 ## Add the dashboard card
 
@@ -63,21 +64,23 @@ for the sensors and calendar created for each mosque.
 4. Expand the relevant settings section to configure dates, countdowns, Ramadan, appearance or timetable tools. On/off features use switches; background choices are in **Appearance → Mosque background**.
 5. If more than one mosque is configured, use **Mosques available on this card** to select which mosques appear. Separate cards and dashboards may show different mosques.
 
-The Yesterday, Today and Tomorrow controls display approved source rows for the selected day. The calculated Hijri header is for display only; it does not activate Ramadan or change published timestamps.
-
-For appearance, mobile layouts and language options see [Dashboard](dashboard.md). For prayer alerts and speaker playback see [Automations](automations.md).
+The Yesterday, Today and Tomorrow controls show approved rows for the selected day.
+The calculated Hijri header is for display; it does not activate Ramadan or change
+published timestamps. See [Dashboard](dashboard.md) for card options and
+[Automations](automations.md) for alerts and speaker playback.
 
 ### Card configuration
 
 ![Salah Timetable card editor with mosque selection, card detail dropdown, grouped configuration sections and a live preview](screenshots/card-settings.jpg)
 
-The graphical editor groups settings for dates, countdowns, Ramadan, appearance, timetable information, Islamic history (planned options are disabled), and advanced preferences. Switches control individual features; the mosque checkboxes choose which configured mosques appear in this card.
+The editor groups settings by topic. The mosque checkboxes choose which configured
+mosques appear on this card; planned Islamic-history options are disabled.
 
 ### Browse yesterday and the monthly timetable
 
 ![Yesterday tab showing the previous date and its published five-prayer timetable without live countdown panels](screenshots/yesterday.jpg)
 
-Use **Yesterday / Today / Tomorrow** in the card footer to browse each day's approved timetable. Yesterday and Tomorrow intentionally omit live countdowns and current-prayer highlighting.
+Yesterday and Tomorrow omit live countdowns and current-prayer highlighting.
 
 ![Gregorian monthly timetable view with previous and next month navigation, year CSV export and source details](screenshots/monthly-view.jpg)
 
@@ -87,12 +90,11 @@ These are example interface captures, not a substitute for checking your mosque'
 
 ## Check prayer completeness
 
-**Configure → Mosque settings** allows selecting the published fields required
-by the Prayer completeness diagnostic. The default is the five daily Salah
-beginning times. Add Jamaat or Sunrise only when your mosque publishes those
-consistently. The **Prayer completeness** diagnostic identifies today's
-missing fields, tomorrow's gaps and the first incomplete future date, without
-altering the existing **Timetable coverage** sensor.
+Under **Configure → Mosque settings**, select the fields your mosque consistently
+publishes. The default is the five daily Salah beginnings. The **Prayer completeness**
+diagnostic identifies missing fields, while **Timetable coverage** reports date
+coverage. To receive alerts, import the optional [Prayer completeness alert blueprint](automations.md#prayer-completeness)
+and select your mosque's diagnostic sensor and your own actions.
 
 ## Reconfigure or remove a mosque
 
@@ -147,8 +149,6 @@ Salah Timetable is a community-maintained, MIT-licensed integration without guar
 <!-- /docs:excerpt support-summary -->
 
 The supported Home Assistant versions are determined by the pinned compatibility test projects, not an open-ended promise of compatibility. See [testing environments](testing.md#compatibility-test-environments) for exact versions and [release validation](releasing.md#validation-and-acceptance-scope) for the scope of automated versus manual testing. Home Assistant OS/Container on Linux supplies the process resource limits used to isolate PDF extraction; other installation methods are outside the recorded acceptance matrix.
-
-Only the specific inspected PDF structures in [Supported PDF layouts](import_review.md#supported-pdf-layouts) are recognised; scanned and other unknown layouts are unsupported. CSV may be used for unsupported publication layouts. Missing values stay unavailable, and the Hijri date display does not activate Ramadan or modify published Salah times. See [dashboard](dashboard.md) for Fajr sunrise/end, Friday notes and Hijri options.
 
 When reporting a bug, follow [When asking for support](#when-asking-for-support) and provide redacted diagnostics. For a new PDF layout, provide a public publication URL and clarify whether it can legally be redistributed as a test fixture. Compatibility is added only after inspection and tests; resemblance to an existing layout is not sufficient.
 

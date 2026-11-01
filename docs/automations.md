@@ -1,9 +1,11 @@
 # Prayer automations and coverage alerts
 
-The integration supplies timestamp sensors, a [prayer calendar](automations.md#prayer-calendar) and
-six optional Home Assistant blueprints. Import a blueprint, choose the mosque's sensors and your own actions,
-and save the resulting automation. No recording, notification service or speaker
-credentials are bundled with the integration.
+Use the [blueprints](#import-a-blueprint) for prayer reminders, Adhan or media
+playback, and timetable alerts. For example, set up a
+[prayer completeness alert](#prayer-completeness) to notify you when a required
+field becomes missing. You can also use the [prayer calendar](#prayer-calendar)
+or the [entity reference](#entities-per-mosque) with Home Assistant's standard
+automation triggers. Provide your own recordings, speakers and notification actions.
 
 ## Entities per mosque
 
@@ -36,25 +38,22 @@ event.
 | Prayer timetable / `dashboard` | Mosque-local date plus approved yesterday/today/tomorrow rows, event selections and display/status attributes for the bundled card. |
 | Prayer calendar | Read-only approved prayer events, as described [below](#prayer-calendar). It omits Istewa and untimed Taraweeh. |
 
-**Previous Jamaat** is disabled by default for new entity registrations: the
-bundled card reads the same event from **Prayer timetable**, and no bundled
-blueprint requires the standalone sensor. Enable it in **Settings → Devices &
-services → Entities → Previous Jamaat → Settings** if needed. The other sensors
-and calendar are enabled by default. Existing enabled/disabled entity preferences
-are retained during upgrades. Keep **Prayer timetable** enabled for the card and
-choose the needed timestamp/status sensors for your automations.
+**Previous Jamaat** is disabled by default for new registrations; the card uses
+the same event from **Prayer timetable**, and no bundled blueprint needs the
+standalone sensor. Enable it under **Settings → Devices & services → Entities →
+Previous Jamaat → Settings** if needed. Other sensors and the calendar are enabled
+by default, and upgrades retain existing preferences. Keep **Prayer timetable**
+enabled for the card.
 
 The sixteen daily timestamp sensors expose `timetable_date` and `scheduled_times`
 when an effective daily row exists. The five rolling event sensors expose `prayer`
 and `field` when a matching event exists.
 Missing dates or fields make the affected timestamp sensor unavailable; they
 never reuse another date's time. Ramadan and Taraweeh status describe activation
-even when a date has no published prayer values. The Prayer timetable sensor is
-the bundled card's data source; choose it when adding the card.
+even when a date has no published prayer values.
 
-The integration provides no integration-owned actions, conditions or automation
-trigger platform. Use Home Assistant's standard time/calendar/state triggers with
-these entities, or the optional blueprints below. Importing, approval and source
+The integration provides no actions, conditions or trigger platform of its own.
+Use Home Assistant's standard triggers or the blueprints below. Import and source
 management use the mosque's **Configure** menu.
 
 ## Import a blueprint
@@ -69,10 +68,10 @@ one of these GitHub URLs:
 - [Timetable health alert](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/timetable_health_alert.yaml)
 - [Prayer completeness alert](https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/prayer_completeness_alert.yaml)
 
-Choose **Create automation** for the imported blueprint. Use the sensors belonging
-to one mosque; create separate automations for other mosques. Home Assistant imports
-blueprints separately from HACS integration updates. Reimport a changed blueprint
-and review its inputs before relying on the update.
+Choose **Create automation**, select sensors for one mosque and configure the
+blueprint's inputs, including your actions where offered. Create a separate
+automation for another mosque. Blueprints update separately from
+the integration; reimport changed blueprints and review their inputs.
 
 ## Select the right timestamp
 
@@ -85,25 +84,21 @@ and review its inputs before relying on the update.
 | Timetable health | Timetable coverage and Source status for the same mosque | Runs selected actions on a new missing/expiring coverage state or a transition into pending review. |
 | Prayer completeness | Prayer completeness sensor | Runs selected actions when required fields become missing today or tomorrow. |
 
-For Adhan, select daily beginning entities rather than Next Salah. The form filters
-timestamp sensors, so check their names: the selector cannot determine your intended
-prayer. The media recording must be reachable by the selected speakers. No daily
-prayer value is estimated when a publication omits it.
+For Adhan, select daily beginning entities rather than Next Salah. Check the names:
+the timestamp selector cannot determine your intended prayer. The recording must
+be reachable by the selected speakers. Omitted prayer times are not estimated.
 
-Time triggers must be loaded before their event/offset instant. Unknown or
-unavailable values do not schedule actions. Changing an approved timestamp replaces
-its pending trigger; a time already passed is not replayed after reload/startup.
-Daily beginning entities become available on their local timetable date, so they
-cannot promise reminders before that date. The two reminder blueprints use the
-rolling Next Jamaat/Next Sehri events instead.
+Time triggers must be loaded before their event or offset. Unknown or unavailable
+values do not schedule actions, and past events are not replayed after startup or
+reload. Changing an approved timestamp replaces its pending trigger. Daily beginning
+entities become available on their local date, so use the rolling Next Jamaat or
+Next Sehri reminders for an offset that may fall before that date.
 
 ## Adhan playback controls
 
-The ordinary recording and selected beginnings remain the only required prayer
-inputs. Extra controls are optional:
+Only the ordinary recording and selected beginnings are required. Optional controls:
 
-- **Disabled prayer beginnings** skips selected sensor triggers without changing
-  the timetable or the other selected beginnings.
+- **Disabled prayer beginnings** skips selected triggers without changing the timetable.
 - Expand **Fajr recording and per-prayer volume** to identify the daily Beginning
   sensor for each override. Keep that sensor in **Prayer beginning sensors** as
   well: the override slots do not add triggers. Enable the separate Fajr recording
@@ -124,39 +119,34 @@ inputs. Extra controls are optional:
   attribute changes also skip restoration, even if the player later returns to the
   same volume and recording.
 
-Unavailable/unknown players are skipped. Player support and network latency affect
-playback; conservative ownership checks can leave the chosen volume in place when
-a player does not report the action context. Check your speakers before relying on
-restoration. This automation permits one active run, so a trigger arriving while
-restoration is pending is ignored. Choose a restoration delay shorter than the
-interval between your selected beginnings. Disabling the automation or reloading a
-changed automation cancels a pending restoration. On the supported HA version,
-reloading unchanged automation configuration preserves its active run and restoration.
+Unavailable or unknown players are skipped. Test your speakers: player support,
+network latency and missing action context can prevent restoration. The automation
+allows one active run and ignores triggers while restoration is pending, so choose a
+delay shorter than the interval between selected beginnings. Disabling the automation
+or reloading changed settings cancels restoration; reloading unchanged automation
+configuration on the supported HA version retains its active run.
 
 ## Pause and resume media
 
 Create a separate automation for each prayer or policy. Choose its daily
-**Beginning** sensor and a **published resume anchor** later than that beginning,
-such as the same prayer's daily Jamaat sensor. Set the desired delay after the
-anchor. The published anchor is captured when the operation starts; the delay is
-your policy and is never an inferred prayer ending.
+**Beginning** sensor, a later **published resume anchor** such as that prayer's
+Jamaat sensor, and your desired delay after it. The anchor is captured at the start;
+the delay is your preference, not an inferred prayer ending.
 
-The automation checks the anchor before pausing. Missing, invalid or earlier anchors,
-or a resume instant already passed, skip the whole operation. Only selected players
-currently **playing** are paused. Already paused, idle, unavailable and unknown
-players are left alone. It claims only players whose resulting pause reports this
-operation's context and unchanged content. At the resume instant a claimed player
-must still be paused with the same content, application, context and last-update
-time. A manual change, another automation or an unsupported context report prevents
-automatic resumption. Resume those players manually when appropriate.
+The operation is skipped if the anchor is missing, invalid or earlier than the
+beginning, or if the anchor plus delay has already passed. Only selected players
+currently **playing** are paused.
+Automatic resume requires the player to report this operation's pause context and
+unchanged content, application, context and last-update time at the resume instant.
+A manual change, another automation or an unsupported context report prevents
+resumption; resume the player manually when appropriate.
 
-Each automation permits one active window and ignores overlapping triggers. Separate
-automations do not combine or extend pause windows: a second automation skips a
-player already paused by the first. Avoid competing policies on the same speaker.
-Disabling, restarting or reloading changed automation settings cancels pending
-resumption. Paused players then remain under manual control. An incremental HA
-reload can retain an unchanged automation and its pending resumption; turn it off
-to cancel explicitly. There is no catch-up playback on startup.
+Each automation permits one active window and ignores overlapping triggers. A
+separate automation skips a player already paused by the first; avoid competing
+policies on one speaker. Disabling, restarting or reloading changed settings cancels
+pending resumption, leaving players under manual control. An incremental HA reload
+can retain unchanged automations; turn one off to cancel explicitly. There is no
+catch-up playback on startup.
 
 ## Prayer completeness
 
@@ -176,13 +166,16 @@ Tomorrow's omissions do not change today's state. Future ambiguous sources
 are not treated as complete. Only approved effective sources count, including
 explicitly active Ramadan overrides.
 
-The optional **Prayer completeness alert** blueprint watches this sensor. Select
-whether to alert for today, tomorrow, or both (both are enabled by default),
-and choose your own notification or other actions. It runs when a field is added
-to the relevant missing-fields list. An unchanged list or a change that only
-removes missing fields does not repeat an alert. Existing missing fields are not
-replayed on startup or when the sensor recovers from unknown or unavailable.
-If missing fields are resolved and later become missing again, a new alert can run.
+To set up a completeness alert:
+
+1. [Import the Prayer completeness alert blueprint](#import-a-blueprint) and choose **Create automation**.
+2. Select the mosque's **Prayer completeness** sensor. Choose today, tomorrow or both (both are enabled by default).
+3. Add your notification or other actions and save the automation.
+
+The alert runs when a field is added to the corresponding missing-fields list.
+Unchanged or removal-only lists do not repeat it, and existing gaps are not replayed
+on startup or recovery from unknown/unavailable. A resolved field that later becomes
+missing can alert again.
 
 The actions can use `alert_kind` (`missing_today` or `missing_tomorrow`),
 `missing_fields` (the current list), `newly_missing_fields` (the fields just
