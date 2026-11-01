@@ -9,7 +9,8 @@ Include the affected integration/Home Assistant versions, installation method,
 reproduction steps using synthetic input, impact and any proposed fix. Maintainers
 will assess reports on a best-effort basis; no response-time guarantee is offered.
 
-The current candidate is the maintained development version. Older snapshots do
+The latest stable release is the maintained release; fixes are developed on
+`main`. Older releases and development snapshots do
 not have a separate long-term security maintenance commitment. See
 [compatibility and support](docs/getting-started.md#support-and-compatibility-policy) for the tested platforms and source
 limitations.

@@ -95,12 +95,10 @@ GitHub's API and never checks out or executes feature code with write credential
 Publication is serialized; current PR state is rechecked around creation. Fork PRs
 do not receive releases. Only the built-in `GITHUB_TOKEN` is needed.
 
-For already-green PRs after initial installation, or to recover after a failed or
-cancelled automation run, run **Actions → Reconcile feature releases → Run workflow**
-on `main`. This reconciles all eligible PRs and cleans orphan candidate tags. The
-workflow must be on `main` before automatic publication can operate; its own PR
-cannot exercise the full publication lifecycle before that merge. GitHub event
-delivery/runner queues determine cleanup timing.
+To recover after a failed or cancelled automation run, run **Actions → Reconcile
+feature releases → Run workflow** on `main`. This reconciles all eligible PRs and
+cleans orphan candidate tags. The workflows are already installed; GitHub event
+delivery and runner queues determine publication and cleanup timing.
 
 ## Automatic stable releases
 
@@ -126,10 +124,12 @@ The pipeline:
    then publishes a **stable** GitHub release with the changelog notes,
    deterministic installation ZIP and checksum. HACS installs the tagged
    integration directory; the attached ZIP is also available for manual installs.
-4. Skips subsequent pushes with the **same already published version**. It will
-   never move an existing tag, overwrite an existing release, or publish a lower
-   stable version after a newer one. Existing draft/prerelease releases with the
-   same tag cause a safe error requiring a maintainer decision.
+4. Skips an already published stable release when its tag matches the checked
+   commit. The current script checks tag identity first: a later `main` commit
+   retaining the same version instead fails safely because the tag points to the
+   older commit. It never moves the tag or overwrites the release. Existing
+   draft/prerelease releases with that tag and attempts to publish a lower stable
+   version also require a maintainer decision.
 5. Rechecks the latest `main` and both CI results immediately before creating
    the release. All writes use the built-in `GITHUB_TOKEN`, with serialisation to
    prevent overlapping stable-release runs.
@@ -139,6 +139,12 @@ version.** Run `python scripts/sync_versions.py --write`, regenerate the
 relevant lockfiles, and merge the usual reviewed PR. The stable pipeline only
 publishes a new version; it deliberately never invents a version number or
 publishes modified source code under an existing version.
+
+For documentation-only commits after publication, a same-version tag conflict
+does not mean the published artifact has changed. Review the workflow result;
+do not delete or move the stable tag, or invent a version bump merely to clear
+that follow-up run. Same-version reconciliation is tracked in the
+[documentation audit follow-ups](documentation-simplification-plan.md#remaining-documentation-work).
 
 **HACS catalogue inclusion is a separate one-time submission.** This release
 pipeline publishes GitHub releases, which HACS can install as a custom repository
@@ -166,11 +172,13 @@ Review the release notes and draft artifact before publishing.
 
 ## Publishing to the HACS / Home Assistant Marketplace catalogue
 
-Salah Timetable is already installable as a **custom HACS repository**. Listing it in the
-default catalogue requires an additional pull request to
-[`hacs/default`](https://github.com/hacs/default). Home Assistant 2026.11's built-in
-Marketplace uses the same catalogue; the existing HACS repository link continues
-to work in both.
+Salah Timetable is installable as a **custom HACS repository**. The
+[existing catalogue submission](https://github.com/hacs/default/pull/12993) is
+open at this audit baseline; it is not catalogue approval. Continue using the
+custom-repository instructions until upstream merges the submission and the
+listing is available. Do not open a duplicate submission. The procedure below
+describes the requirements for maintaining or replacing that submission when
+needed, rather than an unstarted installation feature.
 
 1. Complete the [release acceptance](releasing.md#manual-hacs-and-home-assistant-acceptance)
    for the **exact** candidate on `main`. Confirm both HACS and hassfest pass
@@ -228,13 +236,11 @@ is optional and does not replace that checklist.
 
 ## Optional full backup and restore acceptance
 
-**Status: optional full HAOS restore exercise, deferred (29 October 2026).** Reproducible
-tooling and passing disposable Home Assistant Container archive/restore checks
-are available. A **full, observed restore on a separate disposable HAOS
-instance** has not been performed; the existing migration/per-entry storage
-checks are narrower and must not be represented as a full HAOS restore.
-The maintainer reports routine HAOS/HACS testing after PRs; this does not
-by itself establish that the particular full-backup restore below has passed. See the
+This is an optional resilience exercise. Container archive/restore helpers and
+migration/per-entry storage tests are available, but their scope is narrower
+than a **full, observed restore on a separate disposable HAOS instance**.
+Record the result for the candidate in its PR or release review; do not infer it
+from routine installation checks or an older acceptance report. See the
 [release sign-off list](releasing.md#current-release-readiness)
 for the current separation between required PR checks and this optional
 resilience check.
@@ -273,7 +279,8 @@ mosque times. Never target your existing Home Assistant installation.
    resources, no unexpected Repairs items and correct source isolation.
 7. Record supported Core version, backup archive format, restore mechanism,
    redacted counts, restart results and any limitations in
-   [validation.md](releasing.md#validation-and-acceptance-scope). Do not commit backups/auth tokens.
+   the candidate's pull request or release review, following
+   [validation and acceptance scope](#validation-and-acceptance-scope). Do not commit backups/auth tokens.
 
 ### Reproducible Home Assistant Container preflight
 

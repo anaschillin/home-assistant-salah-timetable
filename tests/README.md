@@ -6,7 +6,7 @@ Tests are grouped by the **behavior they protect**, with one folder for each pro
 
 | Directory | Main responsibility |
 | --- | --- |
-| [automations/](automations/README.md) | Adhan, triggers, and media blueprints |
+| [automations/](automations/README.md) | Prayer reminders, Adhan/media, coverage and completeness alert blueprints |
 | [calendar/](calendar/README.md) | Prayer events, calendar entities, and timezone boundaries |
 | [core/](core/README.md) | Setup/unload, models, coordinators, and diagnostics |
 | [frontend/](frontend/README.md) | Card/editor, resources, JS tests, and browser smoke |

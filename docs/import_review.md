@@ -89,7 +89,7 @@ import; no timetable is active until you explicitly approve it.
 | Map columns → Prayer fields | A matching approved manual CSV mapping may be suggested; otherwise unique recognised headers are suggested, or Do not import this field | Map only published fields. At least one prayer field is required; a physical column cannot be reused or also mapped as the date. All sixteen supported fields are listed in the [entity reference](automations.md#entities-per-mosque). |
 | Review → Action | Compare changes, Approve and save timetable, or Reject and keep the active timetable; no default decision | Comparison is read-only. Approval replaces the complete target source; rejection retains approved data. |
 | Compare → Next step | Return to approval/rejection, switch between all changes and date/prayer changes only, or choose Previous/Next page when available | Navigate change pages without approving or changing the timetable. Filtering hides original-cell-only changes; return to all changes to inspect those entries. |
-| Prepare next year's URL publication → Approved current-year source | Required eligible approved annual URL profile; no default | Derives the next Gregorian year and reuses the source's PDF/CSV format. See [guided rollover](#guided-annual-publication-rollover). |
+| Prepare next year's URL publication → Approved annual source | Required eligible approved annual URL profile; no default | Derives the following Gregorian year from that source, not today's year, and reuses its PDF/CSV format. See [guided rollover](#guided-annual-publication-rollover). |
 | Configure publisher URL template | Optional; empty by default | Save one public HTTPS template for this mosque with `{year}` exactly once. It applies to any annual URL source chosen for rollover. Clear the field to remove it. |
 | Prepare next year's URL publication → Next year's published HTTPS URL | Enter a URL or choose the saved template | Template-generated URLs are shown for review and can be edited before downloading. Mapping and explicit approval are still required. |
 | Manage URL sources → Source | One configured source; no default | Select the source to check or remove. |
@@ -154,8 +154,10 @@ URLs or published prayer values. Its states are:
 | `error` | A URL source check or source-state storage operation failed. |
 
 With several sources this is a summary; **Manage URL sources** shows each
-source's check status. Pending review takes precedence over errors in the summary;
-the `error_count` attribute still exposes failures. This sensor remains readable
+source's check status. With URL sources configured, pending review takes
+precedence over errors in the summary; the `error_count` attribute still exposes
+failures. Without URL sources the state remains `not_configured`, while
+`pending_review` can still be true for a manual upload. This sensor remains readable
 when prayer data is unavailable. Use the [Timetable coverage](automations.md#read-timetable-coverage)
 sensor to check approved date coverage separately.
 
@@ -250,7 +252,7 @@ source accuracy or redistribution permission.
 
 ## Guided annual publication rollover
 
-When an approved full-year HTTPS URL profile is configured, **Configure →
+When an eligible approved annual HTTPS URL profile is configured, **Configure →
 Prepare next year's URL publication** can start a new-year import from that
 approved profile. Select the previous year's source and enter the actual
 new year's public HTTPS URL, or choose a saved template. The integration derives the next Gregorian
@@ -285,9 +287,11 @@ Every supported layout has a bounded adapter, explicit column meanings and golde
 tests. For ordinary PDF uploads and PDF/HTTPS sources, choose **Annual**,
 **Monthly** or **Ramadan** plus the printed Gregorian year. Recognition is
 automatic; there is no PDF-layout selector.
-The bounded PDF is extracted once for inspection and every *known strict adapter*
-is checked against that same text. Only one recognized matching adapter may
-proceed; an unsupported or ambiguous PDF is rejected with no guessed time.
+The bounded PDF is extracted once for inspection and the registered adapters
+are checked against that same text. Recognition is restricted to adapters allowed
+for the selected timetable type. Established adapters take precedence over the
+generic `pdf_spaced_v1` fallback; exactly one remaining match may proceed.
+An unsupported or ambiguous PDF is rejected with no guessed time.
 There is no OCR, fuzzy layout guessing or fallback to calculated prayer times.
 
 **Monthly** describes normal partial coverage and remains internal `annual`
@@ -478,11 +482,9 @@ MIT-licensed; the user-uploaded original and its extracted text are not redistri
 Fixture tests include leap-year coverage and rejection of changed/malformed structures.
 This validates the identified layout, not every MOSQUE_A publication or arbitrary mosque PDF.
 
-Manual import of the attachment works without external access. The user also provided
-`http://mosque-a.example.org/timetables/time-table.pdf`; HTTP is not accepted by the secure URL
-path. The website's live HTTPS availability and current file have not been verified.
-This is separate from the verified attachment/parser support. Configuring automatic
-checks requires a public working HTTPS source with the same supported layout.
+Manual PDF upload does not require a publisher website. Configuring URL checks
+requires a working public HTTPS address serving the supported publication;
+layout support does not guarantee a publisher's current URL or availability.
 
 ### Sample table layout (`pdf_table_v1`)
 

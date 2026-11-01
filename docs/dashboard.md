@@ -248,12 +248,14 @@ not shift imported records, prayer events, Ramadan confirmation or Ramadan's sep
 date adjustment. The date is labelled calculated; unsupported browsers show
 **Hijri date unavailable** rather than silently substituting another calendar.
 
-The following *card-specific* options are available in the graphical editor.
+The following are supported *card-specific* configuration options. The graphical
+editor exposes the current controls; legacy YAML settings are identified below.
 The mosque-wide Hijri preference is managed separately in the integration settings:
 
 | YAML option | Values and default |
 | --- | --- |
 | `entity` | The initial/primary `sensor.*_prayer_timetable` entity on the card |
+| `title` | Optional text, at most 100 characters; overrides the primary mosque's display label on this card |
 | `mosque_entities` | Optional list of enabled Prayer timetable sensor IDs; omit to show all configured mosques (legacy behaviour); requires at least one when set |
 | `language` | `auto` (default), `en`, `ar`; automatic follows the HA interface language with English label fallback |
 | `bilingual_prayer_labels` | `false` (default); show English and Arabic known prayer names |

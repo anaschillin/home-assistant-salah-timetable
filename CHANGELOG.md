@@ -1,6 +1,11 @@
 # Changelog
 
-## 1.0.0 — unreleased
+Older entries labelled **unreleased** describe historical development snapshots,
+not the current backlog. For available features see the [README](README.md#features);
+for pending work see the [roadmap](docs/roadmap.md). Published releases and their
+exact source tags are listed on [GitHub Releases](https://github.com/anaschillin/home-assistant-salah-timetable/releases).
+
+## 1.0.0 — 1 November 2026
 
 - Show missing prayer field names in the readiness screen and clarify the settings shortcut.
 - Explain invalid publisher templates and highlight dates removed by cross-year replacements.
