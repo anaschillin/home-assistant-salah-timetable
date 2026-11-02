@@ -83,7 +83,7 @@ function stopBrowser(child) {
   try { process.kill(process.platform === "win32" ? child.pid : -child.pid, "SIGKILL"); } catch { /* Already exited. */ }
 }
 
-test("real Chromium card and editor smoke", {skip, timeout: 90000}, async t => {
+test("real Chromium card, editor and reminder wizard smoke", {skip, timeout: 90000}, async t => {
   assert.ok(browser, "A Chromium browser is required for this run");
   t.diagnostic(`Browser executable: ${browser}`);
   const directory = await mkdtemp(join(tmpdir(), "salah-card-browser-"));
@@ -112,6 +112,7 @@ nextFixture();
 </script></body></html>`;
   const frame = '<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:8px;box-sizing:border-box;font-family:sans-serif}html{--primary-text-color:rgb(20,20,20);--primary-color:#387f8d;--secondary-text-color:#687478;--secondary-background-color:#f2f5f5;--divider-color:#ddd;--card-background-color:white}</style></head><body><script type="module" src="/tests/frontend/browser-harness.js"></script></body></html>';
   const files = new Map([
+    ["/custom_components/salah_timetable/frontend/reminder-wizard.js", join(root, "custom_components/salah_timetable/frontend/reminder-wizard.js")],
     ["/tests/frontend/browser-harness.js", join(root, "tests/frontend/browser-harness.js")],
     ["/custom_components/salah_timetable/frontend/salah-timetable-card.js", join(root, "custom_components/salah_timetable/frontend/salah-timetable-card.js")],
     ["/custom_components/salah_timetable/frontend/card-utils.js", join(root, "custom_components/salah_timetable/frontend/card-utils.js")],
@@ -160,7 +161,7 @@ nextFixture();
       const report = reports.find(item => item.width === width && item.language === language && item.bilingual === bilingual);
       assert.ok(report, `No report for ${width}px ${language} bilingual=${bilingual}: ${JSON.stringify(reports)}`);
       assert.equal(report.status, "passed", report.error);
-      for (const name of ["card contains 200% text without overflowing", "Gregorian and calculated Hijri dates are visible", "Hijri date appears before the independent Gregorian date", "Gregorian can be hidden while Hijri remains visible", "Hijri can be hidden while Gregorian remains visible", "mosque-configured Hijri visibility remains authoritative", "countdown tick preserves table keyboard focus", "date navigation retains keyboard focus on tab 2", "date navigation retains keyboard focus on tab 0", "date navigation retains keyboard focus on tab 1", "ordinary ticks retain table nodes and text selection", "numeric times use LTR isolation", "prayer labels use the selected languages", "long mixed-direction title fits without overflow", "graphical language and bilingual controls round trip", "all graphical options survive configuration reload", "RTL overflow uses Chromium negative scrollLeft"]) assert.ok(report.checks.includes(name), `Missing browser check: ${name}`);
+      for (const name of ["card contains 200% text without overflowing", "Gregorian and calculated Hijri dates are visible", "Hijri date appears before the independent Gregorian date", "Gregorian can be hidden while Hijri remains visible", "Hijri can be hidden while Gregorian remains visible", "mosque-configured Hijri visibility remains authoritative", "countdown tick preserves table keyboard focus", "reminder opens native modal", "reminder review contains full configuration", "reminder no write before Finish", "reminder saves one normal automation", "reminder duplicate Finish blocked", "reminder review fits mobile", "date navigation retains keyboard focus on tab 2", "date navigation retains keyboard focus on tab 0", "date navigation retains keyboard focus on tab 1", "ordinary ticks retain table nodes and text selection", "numeric times use LTR isolation", "prayer labels use the selected languages", "long mixed-direction title fits without overflow", "graphical language and bilingual controls round trip", "all graphical options survive configuration reload", "RTL overflow uses Chromium negative scrollLeft"]) assert.ok(report.checks.includes(name), `Missing browser check: ${name}`);
       for (const option of ["show_hijri_date", "show_gregorian_date", "show_salah_countdown", "show_jamaat_countdown", "show_ramadan_details", "show_sehri_countdown", "show_iftar_countdown", "show_timezone_note"]) for (const value of [false, true]) assert.ok(report.checks.includes(`editor ${option}=${value} changes the expected visible content`), `Missing browser visibility check: ${option}=${value}`);
     });
     if (process.env.BROWSER_SCREENSHOT_DIR) {

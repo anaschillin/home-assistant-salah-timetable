@@ -169,12 +169,16 @@
       "publisher_template": {
         "title": "Configure publisher URL template",
         "description": "Optionally save one public HTTPS URL template for this mosque. Include {year_placeholder} exactly once. It applies to any selected annual URL source. Clear the field to remove it. The generated address is shown for review before downloading.",
-        "data": {"template": "Publisher URL template"}
+        "data": {
+          "template": "Publisher URL template"
+        }
       },
       "annual_rollover_preview": {
         "title": "Review next year's generated URL",
         "description": "Verify this is the publisher's actual new-year publication. You can edit the address. Submitting starts a download and the timetable still requires explicit approval.",
-        "data": {"url": "Next year's published HTTPS URL"}
+        "data": {
+          "url": "Next year's published HTTPS URL"
+        }
       }
     },
     "error": {
@@ -405,6 +409,24 @@
     },
     "invalid_stored_timetable": {
       "message": "The stored timetable is invalid. Its original data has been retained. Restore a working backup and reload the mosque integration."
+    }
+  },
+  "triggers": {
+    "prayer_time": {
+      "name": "Published prayer reminder",
+      "description": "Triggers before the selected approved beginning or congregation times for a masjid.",
+      "fields": {
+        "mosque_id": {
+          "name": "Masjid"
+        },
+        "fields": {
+          "name": "Prayer times"
+        },
+        "minutes_before": {
+          "name": "Minutes before",
+          "description": "Whole minutes before the published time. Use 0 to trigger at the time."
+        }
+      }
     }
   }
 }

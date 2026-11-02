@@ -1,3 +1,4 @@
+import {openReminderWizard} from "./reminder-wizard.js?v=1.0.0";
 import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=1.0.0";
 import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=1.0.0";
 import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=1.0.0";
@@ -179,7 +180,7 @@ export class SalahTimetableCard extends HTMLElement {
       this._activeEntity(), this._mosques().map(item => [item.entity, item.name]), Boolean(state), state?.state,
       ...RENDER_ATTRIBUTES.map(key => data?.[key]),
       data?.time_zone || this._hass?.config?.time_zone || "UTC",
-      ui.language, ui.locale, ui.dir,
+      ui.language, ui.locale, ui.dir, Boolean(this._hass?.user?.is_admin),
       this._hass?.connection?.connected === false,
     ]);
   }
@@ -348,6 +349,24 @@ export class SalahTimetableCard extends HTMLElement {
     return panel;
   }
 
+  _reminderButton(ui) {
+    if (!this._hass?.user?.is_admin || this._config.kiosk_mode) return null;
+    const button = node("button", tr(ui, "card.prayer_reminders"), "month-toggle");
+    button.type = "button";
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      try {
+        const wizard = openReminderWizard(this._hass);
+        await wizard.ready;
+      } catch {
+        button.insertAdjacentText("afterend", tr(ui, "card.reminders_load_error"));
+      } finally {
+        button.disabled = false;
+      }
+    });
+    return button;
+  }
+
   _render(now = Date.now()) {
     if (!this.shadowRoot) return;
     const ui = resolveUi(this._config, this._hass);
@@ -380,6 +399,8 @@ export class SalahTimetableCard extends HTMLElement {
     if (!this._activeEntity() || !state || ["unavailable", "unknown"].includes(state.state) || !isTimetableState(state)) {
       const key = !this._activeEntity() ? "card.choose_entity" : !state ? "card.entity_missing" : "card.unavailable";
       card.append(node("div", tr(ui, key), "empty"));
+      const reminders = this._reminderButton(ui);
+      if (reminders) card.append(reminders);
       this.shadowRoot.replaceChildren(style, card);
       return;
     }
@@ -459,6 +480,8 @@ export class SalahTimetableCard extends HTMLElement {
       summary.append(tools);
     }
     summary.append(header);
+    const reminders = this._reminderButton(ui);
+    if (reminders) summary.append(reminders);
     if (this._config.show_month_view) {
       const viewButton = node("button", tr(ui, this._monthView ? "month.daily" : "month.title"), "month-toggle");
       viewButton.type = "button";

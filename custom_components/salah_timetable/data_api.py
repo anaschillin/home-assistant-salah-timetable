@@ -17,6 +17,7 @@ from .domain.month_data import (
     approved_year_csv,
 )
 from .domain.ramadan import RamadanSettings
+from .reminders import ws_reminder_options, ws_reminder_preview
 
 
 def _entry_for_dashboard(hass: HomeAssistant, connection, entity_id: str):
@@ -139,6 +140,12 @@ def register_websocket_commands(hass: HomeAssistant) -> None:
     key = f"{DOMAIN}_data_api_registered"
     if hass.data.get(key):
         return
-    for handler in (ws_month, ws_year_csv, ws_sources):
+    for handler in (
+        ws_month,
+        ws_year_csv,
+        ws_sources,
+        ws_reminder_options,
+        ws_reminder_preview,
+    ):
         websocket_api.async_register_command(hass, handler)
     hass.data[key] = True

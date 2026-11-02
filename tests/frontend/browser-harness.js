@@ -1,3 +1,4 @@
+import {openReminderWizard} from "/custom_components/salah_timetable/frontend/reminder-wizard.js?v=1.0.0";
 /** Real-browser fixture: native shadow DOM/CSS with small HA control stand-ins. */
 import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.19";
 import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.19";
@@ -355,6 +356,84 @@ try {
     }
     return control.value === String(lastConfig[key]);
   }));
+  const reminderFields = [
+    {value: "fajr_begin", label: "Fajr beginning"},
+    {value: "fajr_jamaat", label: "Fajr Jamaat"},
+    {value: "jumuah", label: "Jumu’ah Jamaat"},
+  ];
+  const reminderOptions = {
+    mosques: ["First", "Second"].map(name => ({
+      id: name.toLowerCase(), name: `${name} masjid`,
+      time_zone: "Europe/London", fields: reminderFields, ready: true,
+    })),
+    notification_actions: [{value: "notify.mobile_app_phone", label: "Phone Companion app"}],
+    notification_entities: [],
+  };
+  const reminderWrites = [];
+  let finishSave;
+  const reminderHass = {
+    states: {"media_player.hall": {attributes: {friendly_name: "Hall speaker"}}},
+    async callWS(payload) {
+      return payload.type === "salah_timetable/reminder_options"
+        ? reminderOptions : {config: {alias: payload.name}};
+    },
+    callApi(...args) {
+      reminderWrites.push(args);
+      return new Promise(resolve => { finishSave = resolve; });
+    },
+  };
+  input.focus();
+  const wizard = openReminderWizard(reminderHass);
+  await wizard.ready;
+  const wr = wizard.shadowRoot;
+  const wi = key => [...wr.querySelectorAll("input")].find(node => node.dataset.key === key);
+  const wb = text => [...wr.querySelectorAll("button")].find(node => node.textContent === text);
+  const wc = text => wb(text).click();
+  const wt = (key, value) => {
+    wi(key).value = value;
+    wi(key).dispatchEvent(new Event("input"));
+  };
+  const wizardFits = () => {
+    const dialog = wr.querySelector("dialog"), main = wr.querySelector("main");
+    return dialog.getBoundingClientRect().width <= width &&
+      dialog.scrollWidth <= dialog.clientWidth + 1 &&
+      main.scrollWidth <= main.clientWidth + 1;
+  };
+  check("reminder opens native modal", wr.querySelector("dialog").matches(":modal"));
+  wi("mosque:first").click(); wi("mosque:second").click(); wc("Next");
+  check("reminder step receives keyboard focus", wr.activeElement === wr.querySelector("main"));
+  wi("field:fajr_begin").click(); wi("field:fajr_jamaat").click(); wc("Next");
+  wi("field:fajr_begin").click(); wi("field:jumuah").click(); wc("Next");
+  wt("begin_minutes", "5"); wt("jamaat_minutes", "15"); wc("Next");
+  check("reminder hides unused beginning offset", !wi("begin_minutes"));
+  wt("jamaat_minutes", "20"); wc("Back");
+  check("reminder Back retains input", wi("begin_minutes").value === "5");
+  wc("Next"); wc("Next");
+  wi("notification_actions:notify.mobile_app_phone").click();
+  wi("media_player:media_player.hall").click();
+  wt("name", "LongReminderName".repeat(6));
+  wt("media_content_id", "media-source://media_source/local/" + "recording".repeat(40) + ".mp3");
+  check("reminder delivery fits mobile", wizardFits());
+  wc("Next");
+  check("reminder review fits mobile", wizardFits());
+  check("reminder review contains full configuration",
+    wr.textContent.includes("5 minutes before") &&
+    wr.textContent.includes("20 minutes before") &&
+    wr.textContent.includes("all published congregations") &&
+    wr.textContent.includes("Hall speaker"));
+  check("reminder no write before Finish", reminderWrites.length === 0);
+  wc("Finish"); await Promise.resolve(); await Promise.resolve();
+  check("reminder saves one normal automation",
+    reminderWrites.length === 1 && reminderWrites[0][0] === "POST" &&
+    reminderWrites[0][1].startsWith("config/automation/config/salah_reminders_"));
+  check("reminder save locks buttons", [...wr.querySelectorAll("button")].every(node => node.disabled));
+  wizard._next();
+  check("reminder duplicate Finish blocked", reminderWrites.length === 1);
+  finishSave({result: "ok"}); await Promise.resolve(); await Promise.resolve();
+  check("reminder saved automation link",
+    wr.querySelector("a")?.getAttribute("href").startsWith("/config/automation/edit/salah_reminders_"));
+  wc("Close");
+  check("reminder Close restores launch focus", editor.shadowRoot.activeElement === input);
   check("countdowns never write HA service or state", serviceCalls === 0);
   check("real browser resource registration", customElements.get("salah-timetable-card") === SalahTimetableCard && window.customCards.some(item => item.type === "salah-timetable-card"));
   card.remove(); check("disconnected card clears local timer", card._timer === null);

@@ -62,6 +62,9 @@ async def test_bundled_modules_are_served_and_paths_registered_once(hass, hass_c
     source = await translations.text()
     assert "CATALOGS" in source
     assert "الفجر" in source
+    wizard = await client.get("/salah_timetable/reminder-wizard.js")
+    assert wizard.status == 200
+    assert "openReminderWizard" in await wizard.text()
 
 
 async def test_resource_created_once_across_entries_and_reload(hass):

@@ -4,7 +4,7 @@ Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.4<!-- /docs:pypdf --> (fro
 
 Pinned compatibility targets: Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested --> (pinned current).
 
-This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 54 Python test modules are grouped by the behaviour they protect, not by test framework. All 15 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
+This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 56 Python test modules are grouped by the behaviour they protect, not by test framework. All 16 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
 
@@ -64,7 +64,7 @@ The suite is intentionally grouped at one domain level rather than making single
 
 `tests/tooling/test_suite_inventory.py` runs in normal pytest CI and fails if a Python/Node test module is missing from this inventory, a module is listed twice, the count is stale, or a category guide is absent. Whenever a module is added, moved, or removed, update the inventory table and relevant guide in the same PR.
 
-## Python test modules (54)
+## Python test modules (56)
 
 The files below are the complete set of pytest test modules. When adding a regression, extend the relevant existing module before introducing a second module for the same responsibility.
 
@@ -73,6 +73,8 @@ The files below are the complete set of pytest test modules. When adding a regre
 | **automations** | `test_adhan_controls.py` | Adhan blueprint controls and settings |
 | | `test_blueprints.py` | Blueprint inputs, templates, triggers and rendered behaviour |
 | | `test_media_blueprint.py` | Media pause/resume blueprint behaviour |
+| | `test_reminder_setup.py` | Authenticated reminder options, validated automation previews and delivery configuration |
+| | `test_reminder_trigger.py` | Approved prayer scheduling, future-date offsets, replacement, Jumu’ah sessions and cleanup |
 | **calendar** | `test_calendar.py` | Calendar entities, triggers, timezone and date boundaries |
 | | `test_events.py` | Prayer event calculation and scheduling rules |
 | | `test_month_data.py` | Approved Gregorian month queries, CSV export, source redaction and authenticated WebSocket reads |
@@ -129,7 +131,7 @@ Names indicate the primary module ownership; some tests deliberately span unit, 
 
 ## JavaScript and browser tests
 
-The following 15 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
+The following 16 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
 
 | File in `tests/frontend/` | Responsibility |
 | --- | --- |
@@ -147,6 +149,7 @@ The following 15 Node unit modules are discovered by `npm test` (`node --test te
 | `live-readiness.test.mjs` | HA startup/readiness polling rules |
 | `live-report.test.mjs` | Sanitised live smoke reporting |
 | `mosque-backgrounds.test.mjs` | Mosque background catalogue and metadata |
+| `reminder-wizard.test.mjs` | Guided reminder steps, conditional fields, review, draft navigation and automation saving |
 | `visual-regression.test.mjs` | Screenshot comparison behaviour |
 
 `tests/frontend/browser-smoke.mjs` is a separately executed Chromium smoke test via `npm run test:browser` (it intentionally has no `.test.mjs` suffix). `tests/frontend/browser-harness.js` supplies the synthetic HA card environment used by that smoke test. The comparator is `scripts/compare_screenshots.mjs`; pull-request CI compares the base and candidate screenshots, and requires explicit approval for intentional pixel differences. See [visual regression](testing.md#frontend-visual-regression).

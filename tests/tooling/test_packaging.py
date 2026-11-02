@@ -202,7 +202,9 @@ def test_production_modules_have_single_canonical_location():
         "diagnostics.py",
         "frontend.py",
         "pdf_worker.py",
+        "reminders.py",
         "sensor.py",
+        "trigger.py",
     }
     assert {path.name for path in package.glob("*.py")} == root_modules
 

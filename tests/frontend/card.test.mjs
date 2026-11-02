@@ -928,3 +928,21 @@ test("month view defaults off and validates a strict boolean", () => {
   assert.equal(normalizeConfig({show_month_view: true}).show_month_view, true);
   assert.throws(() => normalizeConfig({show_month_view: "yes"}));
 });
+
+
+test("prayer reminder setup is available to admins, including before timetable availability", () => {
+  const card = new SalahTimetableCard();
+  const state = hass();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = state;
+  const reminderButtons = () => find(card.shadowRoot, "button").filter(button => button.textContent === "Prayer reminders");
+  assert.equal(reminderButtons().length, 0);
+  card.hass = {...state, user: {is_admin: true}};
+  assert.equal(reminderButtons().length, 1);
+  card.hass = {...state, user: {is_admin: false}};
+  assert.equal(reminderButtons().length, 0);
+  card.hass = {...state, user: {is_admin: true}, states: {}};
+  assert.equal(reminderButtons().length, 1);
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", kiosk_mode: true});
+  assert.equal(reminderButtons().length, 0);
+});

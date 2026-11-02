@@ -1,11 +1,58 @@
 # Prayer automations and coverage alerts
 
-Use the [blueprints](#import-a-blueprint) for prayer reminders, Adhan or media
-playback, and timetable alerts. For example, set up a
-[prayer completeness alert](#prayer-completeness) to notify you when a required
-field becomes missing. You can also use the [prayer calendar](#prayer-calendar)
-or the [entity reference](#entities-per-mosque) with Home Assistant's standard
-automation triggers. Provide your own recordings, speakers and notification actions.
+Use [Prayer reminders](#guided-prayer-reminders) to configure beginning and Jamaat
+alerts for one or more masjids. The [blueprints](#import-a-blueprint) also provide
+manual reminders, Adhan/media playback and timetable alerts, including
+[prayer completeness alerts](#prayer-completeness) for missing fields. You can use
+the [prayer calendar](#prayer-calendar) or [entities](#entities-per-mosque) with
+Home Assistant's standard automation triggers. Provide your own recordings,
+speakers and notification destinations.
+
+## Guided prayer reminders
+
+The guided setup is proposed in this branch. An older installed release may not
+include it; use the [manual blueprint setup](#import-a-blueprint) until your
+installed version includes **Prayer reminders**. Update the integration, restart
+Home Assistant and reload the dashboard after installing the feature.
+
+As a Home Assistant administrator, open **Prayer reminders** on the timetable
+card. The button is hidden in kiosk mode. The wizard creates one normal Home
+Assistant automation, without requiring individual sensor selection:
+
+1. Select one or more masjids. This screen is skipped when only one is configured.
+2. Select beginning and/or Jamaat times for each masjid. You can apply the same
+   prayer choices to all selected masjids, then adjust individual selections.
+3. For each masjid, enter **minutes before** the selected beginnings and Jamaat
+   times. Only selected categories appear. Use a whole number from
+   `0` to `180`; `10` means ten minutes before and `0` means at the published time.
+   Beginning and Jamaat offsets can differ, as can each masjid's offsets.
+4. Choose a name and shared delivery destinations: Companion app notification
+   actions, notification entities, media players with your chosen sound, or a
+   combination. These destinations apply to every selected masjid and prayer.
+5. Review the masjids, selected times, offsets and destinations. Use **Back** to
+   revise choices, or **Cancel** to discard the draft.
+6. Choose **Finish** to save the automation, then open it to check that it is
+   enabled. No automation is saved and no test notification or sound is sent
+   while stepping through the wizard.
+
+Follow the saved automation link, or open **Settings → Automations & scenes**, to
+edit, disable or delete it. The wizard creates new automations; reopening it does
+not edit the existing one. If replacing a blueprint reminder, disable the old
+automation yourself after checking the replacement, to avoid duplicate alerts.
+Existing imported Before Salah and Before Jamaat blueprint automations keep working.
+
+The reminder uses approved timetable values, including tomorrow's events when an
+offset falls before midnight. Selecting Jumu’ah covers every published
+congregation. Approved time changes replace pending alerts; unavailable masjids,
+missing dates and omitted fields do not produce estimated reminders. Past alerts
+are not replayed after setup, restart or reload. Simultaneous selected events each
+run the delivery actions.
+
+A media player must support the chosen media ID or URL and content type. Optional
+playback volume changes the selected players' volume without restoring it
+later. Phone notification sounds depend on the Companion app and device settings.
+These reminders do not track whether you have prayed or determine the end of the
+current prayer's valid time.
 
 ## Entities per mosque
 
@@ -52,11 +99,16 @@ Missing dates or fields make the affected timestamp sensor unavailable; they
 never reuse another date's time. Ramadan and Taraweeh status describe activation
 even when a date has no published prayer values.
 
-The integration provides no actions, conditions or trigger platform of its own.
-Use Home Assistant's standard triggers or the blueprints below. Import and source
-management use the mosque's **Configure** menu.
+The guided reminder automation uses the integration's prayer-time trigger to
+follow approved timetable changes. For other policies, use Home Assistant's
+standard triggers or the blueprints below. Import and source management use the
+mosque's **Configure** menu.
 
 ## Import a blueprint
+
+For new beginning or Jamaat reminders, prefer the [guided setup](#guided-prayer-reminders).
+The separate reminder blueprints remain available for existing installations and
+manual automation policies. They are not removed or automatically migrated.
 
 Open **Settings → Automations & scenes → Blueprints → Import blueprint** and paste
 one of these GitHub URLs:
@@ -98,7 +150,8 @@ Next Sehri reminders for an offset that may fall before that date.
 
 ## Before Salah notifications and sounds
 
-Import **Before Salah reminder**, select your mosque's **Next Salah** sensor,
+For the manual blueprint path, import **Before Salah reminder**, select your
+mosque's **Next Salah** sensor,
 and set **Reminder offset** to `-10` for ten minutes before each next beginning
 (range: 1–180 minutes before). Under **Reminder actions**, add a Companion app
 notification action, a media player **Play media** action with your chosen sound,
@@ -318,4 +371,5 @@ not be interpreted as the end of prayer or congregation. Home Assistant fetches
 calendar events periodically, so load the automation before its event and offset.
 Recently approved or changed events near their trigger time may not be fetched
 in time. Past triggers are not replayed after startup/reload. Use the
-[timestamp blueprints](automations.md) for ready-made playback and reminder policies.
+[guided reminders](#guided-prayer-reminders) for approved prayer-time alerts, or the
+[timestamp blueprints](#import-a-blueprint) for manual playback and reminder policies.

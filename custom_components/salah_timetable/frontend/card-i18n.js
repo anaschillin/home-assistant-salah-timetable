@@ -2,6 +2,8 @@
 export const CATALOGS = Object.freeze({
   en: Object.freeze({
     "card.name": "Salah Timetable",
+    "card.prayer_reminders": "Prayer reminders",
+    "card.reminders_load_error": "Could not open reminder setup. Refresh and retry.",
     "card.select_mosque": "Select mosque",
     "card.day_navigation": "Timetable date",
     "card.yesterday": "Yesterday",
@@ -167,6 +169,8 @@ export const CATALOGS = Object.freeze({
   }),
   ar: Object.freeze({
     "card.name": "مواقيت الصلاة",
+    "card.prayer_reminders": "تذكيرات الصلاة",
+    "card.reminders_load_error": "تعذر فتح إعداد التذكيرات. حدّث الصفحة وحاول مرة أخرى.",
     "card.description": "مواقيت الصلاة في المسجد، والجماعة بحسب السياق، والعد التنازلي في رمضان",
     "card.choose_entity": "اختر مستشعر جدول مواقيت الصلاة للمسجد في محرر البطاقة.",
     "card.entity_missing": "لم يُعثر على كيان جدول المواقيت. تحقق من المسجد المحدد.",

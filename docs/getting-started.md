@@ -79,7 +79,10 @@ lists the sensors and calendar created for each mosque.
 The Yesterday, Today and Tomorrow controls show approved rows for the selected day.
 The calculated Hijri header is for display; it does not activate Ramadan or change
 published timestamps. See [Dashboard](dashboard.md) for card options and
-[Automations](automations.md) for alerts and speaker playback.
+[Automations](automations.md) for alerts and speaker playback. The proposed
+[Prayer reminders wizard](automations.md#guided-prayer-reminders) guides
+administrators through masjid selection, prayers, advance minutes and delivery;
+it requires an installed version that includes the feature.
 
 ![Add to dashboard dialog with Salah Timetable selected by card](screenshots/add-dashboard-card.png)
 

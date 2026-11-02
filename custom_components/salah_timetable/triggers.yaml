@@ -1,0 +1,45 @@
+prayer_time:
+  fields:
+    mosque_id:
+      required: true
+      selector:
+        config_entry:
+          integration: salah_timetable
+    fields:
+      required: true
+      selector:
+        select:
+          multiple: true
+          options:
+            - value: fajr_begin
+              label: "Fajr beginning"
+            - value: dhuhr_begin
+              label: "Dhuhr beginning"
+            - value: asr_begin
+              label: "Asr beginning"
+            - value: maghrib_begin
+              label: "Maghrib beginning"
+            - value: isha_begin
+              label: "Isha beginning"
+            - value: fajr_jamaat
+              label: "Fajr Jamaat"
+            - value: dhuhr_jamaat
+              label: "Dhuhr Jamaat"
+            - value: asr_jamaat
+              label: "Asr Jamaat"
+            - value: maghrib_jamaat
+              label: "Maghrib Jamaat"
+            - value: isha_jamaat
+              label: "Isha Jamaat"
+            - value: jumuah
+              label: "Jumu’ah (all published congregations)"
+    minutes_before:
+      required: true
+      default: 10
+      selector:
+        number:
+          min: 0
+          max: 180
+          step: 1
+          mode: box
+          unit_of_measurement: min
