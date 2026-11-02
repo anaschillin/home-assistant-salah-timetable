@@ -30,9 +30,15 @@ Assistant automation, without requiring individual sensor selection:
    times. Only selected categories appear. Use a whole number from
    `0` to `180`; `10` means ten minutes before and `0` means at the published time.
    Beginning and Jamaat offsets can differ, as can each masjid's offsets.
-4. Choose a name and shared delivery destinations: Companion app notification
-   actions, notification entities, media players with your chosen sound, or a
-   combination. These destinations apply to every selected masjid and prayer.
+4. Choose a name, then configure **Beginning reminders** and **Jamaat reminders**
+   separately. Only selected reminder types appear. Each page has **Notifications**
+   and **Sound** tabs, and keeps your choices when switching tabs or using Back.
+   Choose different phones, speakers, recordings, media types and optional volumes
+   for each reminder type. Each type's delivery settings apply across the selected
+   masjids; advance minutes remain configurable per masjid.
+   Friendly names and exact action/entity IDs appear in selection and review.
+   Notification actions and notification entities are listed separately: a phone
+   can appear through both routes, so choose one route per device to avoid doubles.
 5. Review the masjids, selected times, offsets and destinations. Use **Back** to
    revise choices, or **Cancel** to discard the draft.
 6. Choose **Finish** to save the automation, then open it to check that it is
@@ -45,9 +51,12 @@ not edit the existing one. If replacing a blueprint reminder, disable the old
 automation yourself after checking the replacement, to avoid duplicate alerts.
 Existing imported Before Salah and Before Jamaat blueprint automations keep working.
 
-**Testing delivery:** running an individual action or choosing Run actions in Home
-Assistant does not supply the prayer trigger payload. Newly generated notification
-messages send an explicit test notification in that case. Real scheduled runs use
+**Testing delivery:** in the saved automation, expand the **Beginning reminders**
+or **Jamaat reminders** Choose branch and run an individual delivery action. Running
+the entire separate-delivery automation manually does not select a prayer category,
+so it does not broadcast both configurations. Individual actions do not supply the
+prayer trigger payload; their generated messages send an explicit test notification
+in that case. Real scheduled runs use
 the masjid, prayer, published time and advance minutes. For a custom title, use a
 manual-test fallback such as `{{ trigger.prayer if trigger is defined and
 trigger.prayer is defined else 'Prayer reminder test' }}`. Updating the integration

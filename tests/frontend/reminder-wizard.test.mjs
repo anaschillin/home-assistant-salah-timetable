@@ -104,6 +104,8 @@ test("multi-masjid setup carries prayers, supports per-masjid adjustments and se
   assert.equal(input(wizard, "begin_minutes"), undefined);
   type(wizard, "jamaat_minutes", "20"); click(wizard, "Next");
   choose(wizard, "notification_entities:notify.tablet"); click(wizard, "Next");
+  assert.equal(wizard._activeDeliveryKind(), "jamaat");
+  choose(wizard, "notification_actions:notify.mobile_app_phone"); click(wizard, "Next");
   assert.match(wizard.shadowRoot.textContent, /5 minutes before/);
   assert.match(wizard.shadowRoot.textContent, /15 minutes before/);
   assert.match(wizard.shadowRoot.textContent, /20 minutes before/);
@@ -112,7 +114,8 @@ test("multi-masjid setup carries prayers, supports per-masjid adjustments and se
   assert.equal(writes.length, 0);
   const payload = wizard._payload();
   assert.deepEqual(payload.mosques.map(item => [item.id, item.fields]), [["1", ["fajr_begin", "fajr_jamaat"]], ["2", ["fajr_jamaat", "jumuah"]]]);
-  assert.deepEqual(payload.delivery.notification_entities, ["notify.tablet"]);
+  assert.deepEqual(payload.delivery.beginning.notification_entities, ["notify.tablet"]);
+  assert.deepEqual(payload.delivery.jamaat.notification_actions, ["notify.mobile_app_phone"]);
 });
 
 test("notification and sound delivery validate recording, volume and final combined payload", async () => {
@@ -120,20 +123,22 @@ test("notification and sound delivery validate recording, volume and final combi
   choose(wizard, "field:fajr_begin"); click(wizard, "Next"); click(wizard, "Next");
   click(wizard, "Next"); assert.match(wizard.shadowRoot.textContent, /Choose at least one notification/);
   assert.equal(input(wizard, "media_content_id"), undefined);
+  click(wizard, "Sound");
   choose(wizard, "media_player:media_player.hall");
   click(wizard, "Next"); assert.match(wizard.shadowRoot.textContent, /recording's media URL/);
   type(wizard, "media_content_id", "media-source://media_source/local/reminder.mp3");
   choose(wizard, "set_volume"); type(wizard, "volume", "1.5");
   click(wizard, "Next"); assert.match(wizard.shadowRoot.textContent, /volume from 0 to 1/);
-  type(wizard, "volume", "0.3"); choose(wizard, "notification_actions:notify.mobile_app_phone");
+  type(wizard, "volume", "0.3"); click(wizard, "Notifications");
+  choose(wizard, "notification_actions:notify.mobile_app_phone");
   click(wizard, "Next"); assert.match(wizard.shadowRoot.textContent, /Hall speaker/);
   assert.match(wizard.shadowRoot.textContent, /without restoring/);
   assert.equal(writes.length, 0);
   click(wizard, "Finish"); await settle();
   assert.equal(writes.length, 1); assert.equal(previews.length, 1);
-  assert.deepEqual(previews[0].delivery.media_players, ["media_player.hall"]);
-  assert.equal(previews[0].delivery.volume, 0.3);
-  assert.equal(previews[0].delivery.notification_actions[0], "notify.mobile_app_phone");
+  assert.deepEqual(previews[0].delivery.beginning.media_players, ["media_player.hall"]);
+  assert.equal(previews[0].delivery.beginning.volume, 0.3);
+  assert.equal(previews[0].delivery.beginning.notification_actions[0], "notify.mobile_app_phone");
   assert.equal(wizard._step, "done");
   assert.equal(nodes(wizard).find(node => node.tagName === "a").href, `/config/automation/edit/${wizard._automationId}`);
 });
@@ -221,4 +226,98 @@ test("dialog startup failures clean up and reject the launch readiness promise",
     await assert.rejects(wizard.ready, /Dialog unavailable/);
     assert.equal(wizard.isConnected, false);
   } finally { Element.prototype.showModal = original; }
+});
+
+
+test("beginning and Jamaat retain independent delivery and recordings across tabs and Back", async () => {
+  const {wizard, writes, previews} = await create();
+  choose(wizard, "field:fajr_begin"); choose(wizard, "field:fajr_jamaat"); click(wizard, "Next");
+  type(wizard, "begin_minutes", "5"); type(wizard, "jamaat_minutes", "15"); click(wizard, "Next");
+  assert.equal(wizard._activeDeliveryKind(), "beginning");
+  assert.match(wizard.shadowRoot.textContent, /Beginning reminders/);
+  assert.match(wizard.shadowRoot.textContent, /Phone Companion app \(notify.mobile_app_phone\)/);
+  assert.match(wizard.shadowRoot.textContent, /Tablet \(notify.tablet\)/);
+  choose(wizard, "notification_actions:notify.mobile_app_phone");
+  click(wizard, "Sound");
+  assert.equal(input(wizard, "notification_actions:notify.mobile_app_phone"), undefined);
+  assert.match(wizard.shadowRoot.textContent, /Hall speaker \(media_player.hall\)/);
+  choose(wizard, "media_player:media_player.hall");
+  type(wizard, "media_content_id", "beginning.mp3");
+  choose(wizard, "set_volume"); type(wizard, "volume", "0.2");
+  click(wizard, "Next");
+  assert.equal(wizard._activeDeliveryKind(), "jamaat");
+  assert.equal(input(wizard, "notification_actions:notify.mobile_app_phone").checked, false);
+  choose(wizard, "notification_entities:notify.tablet");
+  click(wizard, "Sound"); choose(wizard, "media_player:media_player.hall");
+  type(wizard, "media_content_id", "library://track/123");
+  type(wizard, "media_content_type", "music");
+  choose(wizard, "set_volume"); type(wizard, "volume", "0.7");
+  click(wizard, "Back");
+  assert.equal(wizard._activeDeliveryKind(), "beginning");
+  assert.equal(input(wizard, "media_content_id").value, "beginning.mp3");
+  assert.equal(Number(input(wizard, "volume").value), 0.2);
+  click(wizard, "Notifications");
+  assert.equal(input(wizard, "notification_actions:notify.mobile_app_phone").checked, true);
+  assert.equal(input(wizard, "notification_entities:notify.tablet").checked, false);
+  click(wizard, "Next");
+  assert.equal(wizard._activeDeliveryKind(), "jamaat");
+  assert.equal(input(wizard, "media_content_id").value, "library://track/123");
+  assert.equal(Number(input(wizard, "volume").value), 0.7);
+  click(wizard, "Next");
+  assert.equal(wizard._step, "review");
+  assert.match(wizard.shadowRoot.textContent, /Beginning reminders delivery/);
+  assert.match(wizard.shadowRoot.textContent, /Jamaat reminders delivery/);
+  assert.match(wizard.shadowRoot.textContent, /notify.mobile_app_phone/);
+  assert.match(wizard.shadowRoot.textContent, /notify.tablet/);
+  assert.match(wizard.shadowRoot.textContent, /media_player.hall/);
+  assert.match(wizard.shadowRoot.textContent, /Media content type: music/);
+  assert.equal(writes.length, 0);
+  click(wizard, "Finish"); await settle();
+  assert.deepEqual(previews[0].delivery.beginning.notification_actions, ["notify.mobile_app_phone"]);
+  assert.deepEqual(previews[0].delivery.beginning.notification_entities, []);
+  assert.deepEqual(previews[0].delivery.jamaat.notification_actions, []);
+  assert.deepEqual(previews[0].delivery.jamaat.notification_entities, ["notify.tablet"]);
+  assert.equal(previews[0].delivery.beginning.media_content_id, "beginning.mp3");
+  assert.equal(previews[0].delivery.jamaat.media_content_id, "library://track/123");
+  assert.equal(writes.length, 1);
+});
+
+test("delivery tabs expose accessible selection and support keyboard switching", async () => {
+  const {wizard} = await create();
+  choose(wizard, "field:fajr_begin"); click(wizard, "Next"); click(wizard, "Next");
+  const notifications = button(wizard, "Notifications");
+  assert.equal(notifications.attributes.role, "tab");
+  assert.equal(notifications.attributes["aria-selected"], "true");
+  assert.equal(notifications.tabIndex, 0);
+  assert.equal(button(wizard, "Sound").tabIndex, -1);
+  const right = new Event("keydown", {cancelable: true});
+  Object.defineProperty(right, "key", {value: "ArrowRight"});
+  notifications.dispatchEvent(right);
+  assert.equal(button(wizard, "Sound").attributes["aria-selected"], "true");
+  assert.equal(document.activeElement, button(wizard, "Sound"));
+  assert.equal(nodes(wizard).find(node => node.attributes.role === "tabpanel").attributes["aria-labelledby"], "delivery-beginning-tab-sound");
+  assert.equal(input(wizard, "notification_actions:notify.mobile_app_phone"), undefined);
+  const home = new Event("keydown", {cancelable: true});
+  Object.defineProperty(home, "key", {value: "Home"});
+  button(wizard, "Sound").dispatchEvent(home);
+  assert.equal(button(wizard, "Notifications").attributes["aria-selected"], "true");
+  assert.ok(input(wizard, "notification_actions:notify.mobile_app_phone"));
+});
+
+test("Jamaat-only reminders skip beginning delivery and validate sound on its own tab", async () => {
+  const {wizard} = await create();
+  choose(wizard, "field:fajr_jamaat"); click(wizard, "Next"); click(wizard, "Next");
+  assert.deepEqual(wizard._deliveryKinds(), ["jamaat"]);
+  assert.equal(wizard._activeDeliveryKind(), "jamaat");
+  click(wizard, "Sound"); choose(wizard, "media_player:media_player.hall");
+  click(wizard, "Notifications"); click(wizard, "Next");
+  assert.equal(button(wizard, "Sound").attributes["aria-selected"], "true");
+  assert.match(wizard.shadowRoot.textContent, /recording's media URL/);
+  type(wizard, "media_content_id", "jamaat.mp3"); click(wizard, "Next");
+  assert.equal(wizard._step, "review");
+  assert.deepEqual(Object.keys(wizard._payload().delivery), ["jamaat"]);
+  assert.ok(!wizard.shadowRoot.textContent.includes("Beginning reminders delivery"));
+  click(wizard, "Back");
+  assert.equal(wizard._activeDeliveryKind(), "jamaat");
+  click(wizard, "Back"); assert.equal(wizard._step, "timing");
 });

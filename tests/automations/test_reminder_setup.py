@@ -27,7 +27,11 @@ from custom_components.salah_timetable.domain.model import (
     Timetable,
 )
 from custom_components.salah_timetable.persistence.storage import TimetableStorage
-from custom_components.salah_timetable.reminders import _DELIVERY, reminder_automation
+from custom_components.salah_timetable.reminders import (
+    _DELIVERIES,
+    _DELIVERY,
+    reminder_automation,
+)
 
 
 @pytest.fixture
@@ -431,4 +435,242 @@ async def test_manual_automation_run_without_prayer_trigger_sends_test_notificat
         destinations["phone"][0]
         .data["message"]
         .startswith("Test notification from Salah Timetable.")
+    )
+
+
+async def test_separate_delivery_preview_routes_each_category_without_sending(
+    hass, entry, destinations, reminder_client
+):
+    payload = request(entry)
+    payload["delivery"] = {
+        "beginning": {"notification_actions": ["notify.mobile_app_phone"]},
+        "jamaat": {
+            "notification_entities": ["notify.phone"],
+            "media_players": ["media_player.hall"],
+            "media_content_id": "library://track/jamaat",
+            "media_content_type": "music",
+            "volume": 0.6,
+        },
+    }
+    result = await send(reminder_client, payload)
+    assert result["success"], result
+    config = result["result"]["config"]
+    assert [trigger["id"] for trigger in config["triggers"]] == ["beginning", "jamaat"]
+    assert [trigger["options"]["minutes_before"] for trigger in config["triggers"]] == [
+        10,
+        20,
+    ]
+    choices = config["actions"][0]["choose"]
+    assert len(choices) == 2
+    by_kind = {choice["conditions"][0]["id"]: choice["sequence"] for choice in choices}
+    assert [action["action"] for action in by_kind["beginning"]] == [
+        "notify.mobile_app_phone"
+    ]
+    assert [action["action"] for action in by_kind["jamaat"]] == [
+        "notify.send_message",
+        "media_player.volume_set",
+        "media_player.play_media",
+    ]
+    assert by_kind["jamaat"][-1]["data"]["media_content_id"] == "library://track/jamaat"
+    assert all(
+        action["continue_on_error"]
+        for sequence in by_kind.values()
+        for action in sequence
+    )
+    assert config["actions"][0].get("default", []) == []
+    assert not any(destinations.values())
+    assert not hass.states.async_all("automation")
+
+
+@pytest.mark.parametrize("missing", ["beginning", "jamaat"])
+async def test_selected_category_requires_its_own_delivery(
+    entry, destinations, reminder_client, missing
+):
+    payload = request(entry)
+    payload["delivery"] = {
+        "beginning": {"notification_actions": ["notify.mobile_app_phone"]},
+        "jamaat": {"notification_entities": ["notify.phone"]},
+    }
+    del payload["delivery"][missing]
+    result = await send(reminder_client, payload)
+    assert not result["success"]
+    assert result["error"]["code"] == "invalid_reminder"
+    assert not any(destinations.values())
+
+
+@pytest.mark.parametrize(
+    "kind,field", [("beginning", "fajr_begin"), ("jamaat", "jumuah")]
+)
+async def test_only_selected_delivery_category_is_validated_and_generated(
+    entry, destinations, reminder_client, kind, field
+):
+    payload = request(entry)
+    payload["mosques"][0]["fields"] = [field]
+    unused = "jamaat" if kind == "beginning" else "beginning"
+    payload["delivery"] = {
+        kind: {"notification_actions": ["notify.mobile_app_phone"]},
+        unused: {"notification_actions": ["notify.removed_destination"]},
+    }
+    result = await send(reminder_client, payload)
+    assert result["success"], result
+    config = result["result"]["config"]
+    assert len(config["triggers"]) == 1
+    assert config["triggers"][0]["id"] == kind
+    choices = config["actions"][0]["choose"]
+    assert len(choices) == 1
+    assert choices[0]["conditions"][0]["id"] == kind
+    assert choices[0]["sequence"][0]["action"] == "notify.mobile_app_phone"
+    assert not any(destinations.values())
+
+
+@pytest.mark.parametrize("empty", ["beginning", "jamaat"])
+async def test_each_selected_delivery_category_must_have_a_destination(
+    entry, destinations, reminder_client, empty
+):
+    payload = request(entry)
+    payload["delivery"] = {
+        "beginning": {"notification_actions": ["notify.mobile_app_phone"]},
+        "jamaat": {"notification_entities": ["notify.phone"]},
+    }
+    payload["delivery"][empty] = {}
+    result = await send(reminder_client, payload)
+    assert not result["success"]
+    assert result["error"]["code"] == "invalid_reminder"
+    assert not any(destinations.values())
+
+
+async def test_scheduled_beginning_and_jamaat_use_independent_destinations_and_sounds(
+    hass, entry, destinations, freezer
+):
+    """Real scheduler runs only the delivery branch belonging to that prayer kind."""
+    freezer.move_to("2026-11-02T04:00:00Z")
+    storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
+    await storage.async_replace(
+        (
+            Timetable(
+                "annual-2026",
+                "annual",
+                (
+                    DailyPrayers(
+                        date(2026, 11, 2),
+                        {
+                            PrayerField.FAJR_BEGIN: (time(5),),
+                            PrayerField.FAJR_JAMAAT: (time(5, 30),),
+                        },
+                        {},
+                    ),
+                ),
+            ),
+        )
+    )
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    config = reminder_automation(
+        hass,
+        "Separate prayer delivery",
+        [
+            {
+                "id": entry.entry_id,
+                "fields": ["fajr_begin", "fajr_jamaat"],
+                "begin_minutes": 10,
+                "jamaat_minutes": 15,
+            }
+        ],
+        _DELIVERIES(
+            {
+                "beginning": {
+                    "notification_actions": ["notify.mobile_app_phone"],
+                    "media_players": ["media_player.hall"],
+                    "media_content_id": "beginning.mp3",
+                    "volume": 0.2,
+                },
+                "jamaat": {
+                    "notification_entities": ["notify.phone"],
+                    "media_players": ["media_player.hall"],
+                    "media_content_id": "jamaat.mp3",
+                    "volume": 0.7,
+                },
+            }
+        ),
+    )
+    assert await async_setup_component(hass, "automation", {"automation": [config]})
+    await hass.async_start()
+    await hass.async_block_till_done()
+    assert not any(destinations.values())
+
+    freezer.move_to("2026-11-02T04:50:00Z")
+    async_fire_time_changed(hass, dt_util.parse_datetime("2026-11-02T04:50:00Z"))
+    await hass.async_block_till_done()
+    assert len(destinations["phone"]) == 1
+    assert "Fajr beginning" in destinations["phone"][0].data["message"]
+    assert "10 minutes remaining" in destinations["phone"][0].data["message"]
+    assert not destinations["notify_entity"]
+    assert [call.data["media_content_id"] for call in destinations["play"]] == [
+        "beginning.mp3"
+    ]
+    assert [call.data["volume_level"] for call in destinations["volume"]] == [0.2]
+
+    freezer.move_to("2026-11-02T05:14:59Z")
+    async_fire_time_changed(hass, dt_util.parse_datetime("2026-11-02T05:14:59Z"))
+    await hass.async_block_till_done()
+    assert len(destinations["play"]) == 1
+    freezer.move_to("2026-11-02T05:15:00Z")
+    async_fire_time_changed(hass, dt_util.parse_datetime("2026-11-02T05:15:00Z"))
+    await hass.async_block_till_done()
+    assert len(destinations["phone"]) == 1
+    assert len(destinations["notify_entity"]) == 1
+    assert "Fajr Jamaat" in destinations["notify_entity"][0].data["message"]
+    assert "15 minutes remaining" in destinations["notify_entity"][0].data["message"]
+    assert [call.data["media_content_id"] for call in destinations["play"]] == [
+        "beginning.mp3",
+        "jamaat.mp3",
+    ]
+    assert [call.data["volume_level"] for call in destinations["volume"]] == [0.2, 0.7]
+
+
+async def test_manual_grouped_run_does_not_broadcast_both_delivery_categories(
+    hass, entry, destinations
+):
+    config = reminder_automation(
+        hass,
+        "Separate manual delivery",
+        [
+            {
+                "id": entry.entry_id,
+                "fields": ["fajr_begin", "fajr_jamaat"],
+                "begin_minutes": 10,
+                "jamaat_minutes": 10,
+            }
+        ],
+        _DELIVERIES(
+            {
+                "beginning": {"notification_actions": ["notify.mobile_app_phone"]},
+                "jamaat": {"notification_entities": ["notify.phone"]},
+            }
+        ),
+    )
+    assert await async_setup_component(hass, "automation", {"automation": [config]})
+    await hass.async_start()
+    await hass.async_block_till_done()
+    await hass.services.async_call(
+        "automation",
+        "trigger",
+        {
+            "entity_id": hass.states.async_all("automation")[0].entity_id,
+        },
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+    assert not any(destinations.values())
+    # Testing a selected category explicitly still uses the safe manual message.
+    await Script(
+        hass, cv.SCRIPT_SCHEMA(config["actions"]), "Jamaat test", DOMAIN
+    ).async_run(
+        {"trigger": {"id": "jamaat"}},
+        context=Context(),
+    )
+    assert not destinations["phone"]
+    assert len(destinations["notify_entity"]) == 1
+    assert (
+        destinations["notify_entity"][0].data["message"].startswith("Test notification")
     )

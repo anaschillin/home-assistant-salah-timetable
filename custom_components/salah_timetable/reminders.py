@@ -62,6 +62,18 @@ _DELIVERY = vol.Schema(
 )
 
 
+_DELIVERY_BY_KIND = vol.All(
+    vol.Schema(
+        {
+            vol.Optional("beginning"): _DELIVERY,
+            vol.Optional("jamaat"): _DELIVERY,
+        }
+    ),
+    vol.Length(min=1),
+)
+_DELIVERIES = vol.Any(_DELIVERY_BY_KIND, _DELIVERY)
+
+
 def _mosque(hass: HomeAssistant, entry_id: str):
     entry = hass.config_entries.async_get_entry(entry_id)
     if entry is None or entry.domain != DOMAIN or entry.disabled_by is not None:
@@ -77,35 +89,10 @@ def _notifications(hass: HomeAssistant) -> list[str]:
     ]
 
 
-def reminder_automation(hass: HomeAssistant, name, selections, delivery):
-    """Build a preview only; the browser saves through HA's admin config API."""
-    name = name.strip()
-    if not name:
-        raise ValueError("Enter a name for the reminder automation")
-    triggers = []
-    for selection in selections:
-        entry = _mosque(hass, selection["id"])
-        for beginning in (True, False):
-            fields = sorted(
-                {
-                    field
-                    for field in selection["fields"]
-                    if field.endswith("_begin") == beginning
-                }
-            )
-            if fields:
-                triggers.append(
-                    {
-                        "trigger": f"{DOMAIN}.prayer_time",
-                        "options": {
-                            "mosque_id": entry.entry_id,
-                            "fields": fields,
-                            "minutes_before": selection[
-                                "begin_minutes" if beginning else "jamaat_minutes"
-                            ],
-                        },
-                    }
-                )
+def _delivery_actions(
+    hass: HomeAssistant, delivery: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """Validate one delivery configuration and build independent destination actions."""
     available_actions = set(_notifications(hass))
     message = (
         "{% if trigger is defined and trigger.mosque is defined "
@@ -180,6 +167,61 @@ def reminder_automation(hass: HomeAssistant, name, selections, delivery):
     # A failed phone or speaker must not prevent delivery to another destination.
     for action in actions:
         action["continue_on_error"] = True
+    return actions
+
+
+def reminder_automation(hass: HomeAssistant, name, selections, delivery):
+    """Build a preview only; the browser saves through HA's admin config API."""
+    name = name.strip()
+    if not name:
+        raise ValueError("Enter a name for the reminder automation")
+    triggers = []
+    for selection in selections:
+        entry = _mosque(hass, selection["id"])
+        for beginning in (True, False):
+            fields = sorted(
+                {
+                    field
+                    for field in selection["fields"]
+                    if field.endswith("_begin") == beginning
+                }
+            )
+            if fields:
+                triggers.append(
+                    {
+                        "trigger": f"{DOMAIN}.prayer_time",
+                        "id": "beginning" if beginning else "jamaat",
+                        "options": {
+                            "mosque_id": entry.entry_id,
+                            "fields": fields,
+                            "minutes_before": selection[
+                                "begin_minutes" if beginning else "jamaat_minutes"
+                            ],
+                        },
+                    }
+                )
+    if any(kind in delivery for kind in ("beginning", "jamaat")):
+        choices = []
+        for kind in dict.fromkeys(trigger["id"] for trigger in triggers):
+            label = "Beginning" if kind == "beginning" else "Jamaat"
+            if kind not in delivery:
+                raise ValueError(f"Choose delivery for {label.lower()} reminders")
+            try:
+                sequence = _delivery_actions(hass, delivery[kind])
+            except ValueError as err:
+                raise ValueError(f"{label} reminders: {err}") from err
+            choices.append(
+                {
+                    "alias": f"{label} reminders",
+                    "conditions": [{"condition": "trigger", "id": kind}],
+                    "sequence": sequence,
+                }
+            )
+        actions = [{"choose": choices}]
+    else:
+        # Keep previews from an older open wizard compatible with their shared
+        # delivery format. Existing saved automations are never rewritten.
+        actions = _delivery_actions(hass, delivery)
     return {
         "alias": name,
         "description": (
@@ -243,7 +285,7 @@ async def ws_reminder_options(hass, connection, msg):
         vol.Required("type"): "salah_timetable/reminder_preview",
         vol.Required("name"): vol.All(cv.string, vol.Length(min=1, max=100)),
         vol.Required("mosques"): vol.All([_SELECTION], vol.Length(min=1, max=20)),
-        vol.Required("delivery"): _DELIVERY,
+        vol.Required("delivery"): _DELIVERIES,
     }
 )
 @websocket_api.require_admin

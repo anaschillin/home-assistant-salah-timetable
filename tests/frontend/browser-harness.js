@@ -367,15 +367,16 @@ try {
       time_zone: "Europe/London", fields: reminderFields, ready: true,
     })),
     notification_actions: [{value: "notify.mobile_app_phone", label: "Phone Companion app"}],
-    notification_entities: [],
+    notification_entities: [{value: "notify.tablet", label: "Tablet"}],
   };
-  const reminderWrites = [];
+  const reminderWrites = [], reminderPreviews = [];
   let finishSave;
   const reminderHass = {
-    states: {"media_player.hall": {attributes: {friendly_name: "Hall speaker"}}},
+    states: {"media_player.hall": {attributes: {friendly_name: "Hall speaker"}}, "media_player.kitchen": {attributes: {friendly_name: "Kitchen speaker"}}},
     async callWS(payload) {
-      return payload.type === "salah_timetable/reminder_options"
-        ? reminderOptions : {config: {alias: payload.name}};
+      if (payload.type === "salah_timetable/reminder_options") return reminderOptions;
+      reminderPreviews.push(payload);
+      return {config: {alias: payload.name}};
     },
     callApi(...args) {
       reminderWrites.push(args);
@@ -409,23 +410,48 @@ try {
   wt("jamaat_minutes", "20"); wc("Back");
   check("reminder Back retains input", wi("begin_minutes").value === "5");
   wc("Next"); wc("Next");
+  check("beginning delivery opens Notifications tab", wizard._activeDeliveryKind() === "beginning" && wb("Notifications").getAttribute("aria-selected") === "true" && !wi("media_player:media_player.hall"));
+  check("notification selection shows exact action and entity IDs", wr.textContent.includes("notify.mobile_app_phone") && wr.textContent.includes("notify.tablet"));
   wi("notification_actions:notify.mobile_app_phone").click();
+  // Exercise actual keyboard navigation and roving focus on the tab controls.
+  wb("Notifications").dispatchEvent(new KeyboardEvent("keydown", {key: "ArrowRight", bubbles: true}));
+  check("Sound tab keyboard selection retains focus", wb("Sound").getAttribute("aria-selected") === "true" && wr.activeElement === wb("Sound"));
+  check("speaker selection shows friendly name and entity ID", wr.textContent.includes("Hall speaker (media_player.hall)"));
   wi("media_player:media_player.hall").click();
   wt("name", "LongReminderName".repeat(6));
-  wt("media_content_id", "media-source://media_source/local/" + "recording".repeat(40) + ".mp3");
+  const beginningRecording = "media-source://media_source/local/" + "recording".repeat(40) + ".mp3";
+  wt("media_content_id", beginningRecording);
   check("reminder delivery fits mobile", wizardFits());
+  wc("Notifications");
+  check("notification selection survives Sound tab", wi("notification_actions:notify.mobile_app_phone").checked);
+  wc("Next");
+  check("Jamaat delivery is separate", wizard._activeDeliveryKind() === "jamaat" && !wi("notification_actions:notify.mobile_app_phone").checked);
+  wi("notification_entities:notify.tablet").click(); wc("Sound");
+  check("Jamaat sound does not inherit beginning speakers", !wi("media_player:media_player.hall").checked);
+  wi("media_player:media_player.kitchen").click();
+  wt("media_content_id", "library://track/456"); wt("media_content_type", "music");
+  wc("Back");
+  check("Back restores beginning delivery", wizard._activeDeliveryKind() === "beginning" && wi("notification_actions:notify.mobile_app_phone").checked);
+  wc("Sound");
+  check("beginning sound survives independent Jamaat setup", wi("media_player:media_player.hall").checked && wi("media_content_id").value === beginningRecording);
+  wc("Next");
+  check("Jamaat settings survive Back", wizard._activeDeliveryKind() === "jamaat" && wi("media_player:media_player.kitchen").checked && wi("media_content_id").value === "library://track/456");
   wc("Next");
   check("reminder review fits mobile", wizardFits());
   check("reminder review contains full configuration",
     wr.textContent.includes("5 minutes before") &&
     wr.textContent.includes("20 minutes before") &&
     wr.textContent.includes("all published congregations") &&
-    wr.textContent.includes("Hall speaker"));
+    wr.textContent.includes("Beginning reminders delivery") &&
+    wr.textContent.includes("Jamaat reminders delivery") &&
+    wr.textContent.includes("Hall speaker (media_player.hall)") &&
+    wr.textContent.includes("Kitchen speaker (media_player.kitchen)"));
   check("reminder no write before Finish", reminderWrites.length === 0);
   wc("Finish"); await Promise.resolve(); await Promise.resolve();
   check("reminder saves one normal automation",
     reminderWrites.length === 1 && reminderWrites[0][0] === "POST" &&
     reminderWrites[0][1].startsWith("config/automation/config/salah_reminders_"));
+  check("saved delivery preserves category routing", reminderPreviews[0].delivery.beginning.notification_actions[0] === "notify.mobile_app_phone" && reminderPreviews[0].delivery.beginning.media_players[0] === "media_player.hall" && reminderPreviews[0].delivery.jamaat.notification_entities[0] === "notify.tablet" && reminderPreviews[0].delivery.jamaat.media_content_id === "library://track/456");
   check("reminder save locks buttons", [...wr.querySelectorAll("button")].every(node => node.disabled));
   wizard._next();
   check("reminder duplicate Finish blocked", reminderWrites.length === 1);

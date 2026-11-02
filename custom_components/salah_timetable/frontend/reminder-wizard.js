@@ -2,7 +2,7 @@
 const STYLE = `
 :host{font-family:var(--paper-font-body1_-_font-family,Roboto,sans-serif);color:var(--primary-text-color,#222)}
 dialog{box-sizing:border-box;width:min(42rem,calc(100vw - 2rem));max-height:calc(100dvh - 2rem);padding:0;border:1px solid var(--divider-color,#bbb);border-radius:12px;background:var(--card-background-color,#fff);color:inherit;box-shadow:0 12px 40px #0005}
-dialog::backdrop{background:#0008}form{display:flex;flex-direction:column;max-height:calc(100dvh - 2rem);margin:0}header,main,footer{padding:1rem 1.25rem}header{border-bottom:1px solid var(--divider-color,#ddd)}h2{font-size:1.35rem;margin:0 0 .3rem}h3{font-size:1.1rem;margin:.4rem 0 1rem}p{line-height:1.5;margin:.5rem 0}main{overflow:auto;min-height:8rem}footer{display:flex;gap:.6rem;flex-wrap:wrap;border-top:1px solid var(--divider-color,#ddd)}.spacer{flex:1}fieldset{min-width:0;border:1px solid var(--divider-color,#ddd);border-radius:8px;margin:1rem 0;padding:.75rem}legend{font-weight:600}.choice{display:flex;align-items:flex-start;gap:.6rem;padding:.5rem 0;line-height:1.4}.choice input{margin-top:.2rem;flex:none;min-height:1.1rem;min-width:1.1rem}label.field{display:block;margin:.8rem 0}label.field span{display:block;margin-bottom:.4rem}input[type=text],input[type=number]{box-sizing:border-box;width:100%;padding:.7rem;border:1px solid var(--divider-color,#888);border-radius:6px;background:var(--secondary-background-color,#f5f5f5);color:inherit;font:inherit}button{cursor:pointer;min-height:44px;padding:.5rem .9rem;border:1px solid var(--divider-color,#888);border-radius:6px;background:var(--secondary-background-color,#eee);color:inherit;font:inherit}button.primary{background:var(--primary-color,#0366d6);border-color:var(--primary-color,#0366d6);color:var(--text-primary-color,#fff)}button:disabled{opacity:.6;cursor:wait}:focus-visible{outline:3px solid var(--primary-color,#0366d6);outline-offset:2px}.muted{color:var(--secondary-text-color,#666);font-size:.9rem}.error{padding:.7rem;border:1px solid var(--error-color,#b00020);border-radius:6px;color:var(--error-color,#b00020)}h2,h3,p{overflow-wrap:anywhere}ul{padding-inline-start:1.3rem}li{line-height:1.5;overflow-wrap:anywhere}a{color:var(--primary-color,#0366d6)}.review{border-bottom:1px solid var(--divider-color,#ddd);padding:.4rem 0 .8rem}summary{cursor:pointer}.status{min-height:1.4rem} @media(max-width:420px){header,main,footer{padding:.8rem}dialog{width:calc(100vw - 1rem);max-height:calc(100dvh - 1rem)}}
+dialog::backdrop{background:#0008}form{display:flex;flex-direction:column;max-height:calc(100dvh - 2rem);margin:0}header,main,footer{padding:1rem 1.25rem}header{border-bottom:1px solid var(--divider-color,#ddd)}h2{font-size:1.35rem;margin:0 0 .3rem}h3{font-size:1.1rem;margin:.4rem 0 1rem}p{line-height:1.5;margin:.5rem 0}main{overflow:auto;min-height:8rem}footer{display:flex;gap:.6rem;flex-wrap:wrap;border-top:1px solid var(--divider-color,#ddd)}.spacer{flex:1}fieldset{min-width:0;border:1px solid var(--divider-color,#ddd);border-radius:8px;margin:1rem 0;padding:.75rem}legend{font-weight:600}.choice{display:flex;align-items:flex-start;gap:.6rem;padding:.5rem 0;line-height:1.4}.choice span{min-width:0;overflow-wrap:anywhere}.delivery-tabs{display:flex;gap:.5rem;border-bottom:1px solid var(--divider-color,#ddd);padding-bottom:.6rem;margin:.8rem 0}.delivery-tabs button{flex:1}.delivery-tabs [aria-selected=true]{border-color:var(--primary-color,#0366d6);box-shadow:inset 0 -3px var(--primary-color,#0366d6)}.choice input{margin-top:.2rem;flex:none;min-height:1.1rem;min-width:1.1rem}label.field{display:block;margin:.8rem 0}label.field span{display:block;margin-bottom:.4rem}input[type=text],input[type=number]{box-sizing:border-box;width:100%;padding:.7rem;border:1px solid var(--divider-color,#888);border-radius:6px;background:var(--secondary-background-color,#f5f5f5);color:inherit;font:inherit}button{cursor:pointer;min-height:44px;padding:.5rem .9rem;border:1px solid var(--divider-color,#888);border-radius:6px;background:var(--secondary-background-color,#eee);color:inherit;font:inherit}button.primary{background:var(--primary-color,#0366d6);border-color:var(--primary-color,#0366d6);color:var(--text-primary-color,#fff)}button:disabled{opacity:.6;cursor:wait}:focus-visible{outline:3px solid var(--primary-color,#0366d6);outline-offset:2px}.muted{color:var(--secondary-text-color,#666);font-size:.9rem}.error{padding:.7rem;border:1px solid var(--error-color,#b00020);border-radius:6px;color:var(--error-color,#b00020)}h2,h3,p{overflow-wrap:anywhere}ul{padding-inline-start:1.3rem}li{line-height:1.5;overflow-wrap:anywhere}a{color:var(--primary-color,#0366d6)}.review{border-bottom:1px solid var(--divider-color,#ddd);padding:.4rem 0 .8rem}summary{cursor:pointer}.status{min-height:1.4rem} @media(max-width:420px){header,main,footer{padding:.8rem}dialog{width:calc(100vw - 1rem);max-height:calc(100dvh - 1rem)}}
 `;
 const el = (tag, text, className) => {
   const element = document.createElement(tag);
@@ -13,6 +13,9 @@ const el = (tag, text, className) => {
 const beginning = value => value.endsWith("_begin");
 const jamaat = value => value.endsWith("_jamaat") || value === "jumuah";
 const isMinutes = value => Number.isInteger(value) && value >= 0 && value <= 180;
+const newDelivery = () => ({notification_actions: [], notification_entities: [], media_players: [], media_content_id: "", media_content_type: "audio/mpeg", volume: null});
+const deliveryName = kind => kind === "beginning" ? "Beginning reminders" : "Jamaat reminders";
+const destinationLabel = (id, name) => name && name !== id ? `${name} (${id})` : id;
 // Local HTTP Home Assistant addresses do not expose crypto.randomUUID.
 const newAutomationId = () => {
   if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
@@ -29,7 +32,9 @@ export class SalahReminderWizard extends HTMLElement {
     this._settings = new Map();
     this._prayerIndex = 0;
     this._timingIndex = 0;
-    this._delivery = {notification_actions: [], notification_entities: [], media_players: [], media_content_id: "", media_content_type: "audio/mpeg", volume: null};
+    this._delivery = {beginning: newDelivery(), jamaat: newDelivery()};
+    this._deliveryIndex = 0;
+    this._deliveryTabs = {beginning: "notifications", jamaat: "notifications"};
     this._name = "Prayer reminders";
     this._error = "";
     this._status = "";
@@ -85,6 +90,16 @@ export class SalahReminderWizard extends HTMLElement {
 
   _mosques() { return (this._options?.mosques || []).filter(mosque => this._selected.has(mosque.id)); }
   _setting(mosque) { return this._settings.get(mosque.id); }
+  _deliveryKinds() {
+    const selected = this._mosques().flatMap(mosque => this._setting(mosque).fields);
+    return [selected.some(beginning) ? "beginning" : null, selected.some(jamaat) ? "jamaat" : null].filter(Boolean);
+  }
+  _activeDeliveryKind() { return this._deliveryKinds()[this._deliveryIndex]; }
+  _switchDeliveryTab(tab) {
+    this._deliveryTabs[this._activeDeliveryKind()] = tab;
+    this._render();
+    this.shadowRoot.querySelector(`[data-key="tab:${tab}"]`)?.focus();
+  }
   _button(text, action, className) {
     const button = el("button", text, className);
     button.type = "button";
@@ -205,28 +220,62 @@ export class SalahReminderWizard extends HTMLElement {
   }
 
   _renderDelivery(main) {
+    const kind = this._activeDeliveryKind(), delivery = this._delivery[kind];
+    if (!delivery) return;
     this._field(main, "Automation name", this._name, value => { this._name = value; }, {key: "name"});
-    main.append(el("p", "These delivery choices apply to all selected masjids. Choose notifications, sound playback, or both."));
-    const notifications = this._group(main, "Notifications");
-    const choices = [["notification_actions", this._options.notification_actions || []], ["notification_entities", this._options.notification_entities || []]];
-    for (const [key, values] of choices) for (const choice of values) this._choice(notifications, choice.label, this._delivery[key].includes(choice.value), checked => {
-      this._delivery[key] = this._toggle(this._delivery[key], choice.value, checked);
-    }, `${key}:${choice.value}`);
-    if (!choices.some(([, values]) => values.length)) notifications.append(el("p", "No notification destinations found. Connect a Companion app or another notify integration, or choose a speaker below.", "muted"));
-    const players = this._group(main, "Sound playback");
-    const available = Object.entries(this._hass.states || {}).filter(([id]) => id.startsWith("media_player."));
-    for (const [id, state] of available) this._choice(players, state.attributes?.friendly_name || id, this._delivery.media_players.includes(id), checked => {
-      this._delivery.media_players = this._toggle(this._delivery.media_players, id, checked);
-      this._render();
-      this.shadowRoot.querySelector(`[data-key="media_player:${id}"]`)?.focus();
-    }, `media_player:${id}`);
-    if (!available.length) players.append(el("p", "No media players found.", "muted"));
-    if (this._delivery.media_players.length) {
-      this._field(main, "Sound media URL or media-source ID", this._delivery.media_content_id, value => { this._delivery.media_content_id = value; }, {key: "media_content_id"});
-      main.append(el("p", "Use your own recording that the chosen speakers can reach. Phone notification sounds follow the app and device settings.", "muted"));
-      this._field(main, "Media content type", this._delivery.media_content_type, value => { this._delivery.media_content_type = value; }, {key: "media_content_type"});
-      this._choice(main, "Set speaker volume", this._delivery.volume !== null, checked => { this._delivery.volume = checked ? 0.5 : null; this._render(); }, "set_volume");
-      if (this._delivery.volume !== null) this._field(main, "Speaker volume (0–1)", this._delivery.volume, value => { this._delivery.volume = value; }, {type: "number", min: 0, max: 1, step: 0.05, key: "volume"});
+    main.append(el("h3", deliveryName(kind)));
+    main.append(el("p", `Configure notifications and/or sound for selected ${kind === "beginning" ? "beginning" : "Jamaat"} times across all selected masjids. The other reminder type has its own delivery settings.`));
+    const tabs = el("div", undefined, "delivery-tabs");
+    tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-label", `${deliveryName(kind)} delivery`);
+    const current = this._deliveryTabs[kind];
+    for (const [key, title] of [["notifications", "Notifications"], ["sound", "Sound"]]) {
+      const button = this._button(title, () => this._switchDeliveryTab(key));
+      button.id = `delivery-${kind}-tab-${key}`;
+      button.dataset.key = `tab:${key}`;
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-selected", String(current === key));
+      button.setAttribute("aria-controls", `delivery-${kind}-panel`);
+      button.tabIndex = current === key ? 0 : -1;
+      button.addEventListener("keydown", event => {
+        if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+          event.preventDefault();
+          this._switchDeliveryTab(event.key === "Home" ? "notifications" : event.key === "End" ? "sound" : key === "notifications" ? "sound" : "notifications");
+        }
+      });
+      tabs.append(button);
+    }
+    const panel = el("section");
+    panel.id = `delivery-${kind}-panel`;
+    panel.setAttribute("role", "tabpanel");
+    panel.setAttribute("aria-labelledby", `delivery-${kind}-tab-${current}`);
+    main.append(tabs, panel);
+    if (current === "notifications") {
+      const choices = [["notification_actions", "Notification actions"], ["notification_entities", "Notification entities"]];
+      for (const [key, title] of choices) {
+        const group = this._group(panel, title);
+        for (const choice of this._options[key] || []) this._choice(group, destinationLabel(choice.value, choice.label), delivery[key].includes(choice.value), checked => {
+          delivery[key] = this._toggle(delivery[key], choice.value, checked);
+        }, `${key}:${choice.value}`);
+        if (!(this._options[key] || []).length) group.append(el("p", `No ${title.toLowerCase()} found.`, "muted"));
+      }
+      panel.append(el("p", "Choose one notification route per device to avoid duplicate alerts. Phone notification sounds follow the Companion app and device settings.", "muted"));
+    } else {
+      const players = this._group(panel, "Sound playback");
+      const available = Object.entries(this._hass.states || {}).filter(([id]) => id.startsWith("media_player."));
+      for (const [id, state] of available) this._choice(players, destinationLabel(id, state.attributes?.friendly_name), delivery.media_players.includes(id), checked => {
+        delivery.media_players = this._toggle(delivery.media_players, id, checked);
+        this._render();
+        this.shadowRoot.querySelector(`[data-key="media_player:${id}"]`)?.focus();
+      }, `media_player:${id}`);
+      if (!available.length) players.append(el("p", "No media players found.", "muted"));
+      if (delivery.media_players.length) {
+        this._field(panel, "Sound media URL or media-source ID", delivery.media_content_id, value => { delivery.media_content_id = value; }, {key: "media_content_id"});
+        panel.append(el("p", "Use your own recording that the chosen speakers can reach. For a Music Assistant URI, select its Music Assistant player and use music as the media content type.", "muted"));
+        this._field(panel, "Media content type", delivery.media_content_type, value => { delivery.media_content_type = value; }, {key: "media_content_type"});
+        this._choice(panel, "Set speaker volume", delivery.volume !== null, checked => { delivery.volume = checked ? 0.5 : null; this._render(); }, "set_volume");
+        if (delivery.volume !== null) this._field(panel, "Speaker volume (0–1)", delivery.volume, value => { delivery.volume = value; }, {type: "number", min: 0, max: 1, step: 0.05, key: "volume"});
+      }
     }
   }
 
@@ -242,16 +291,19 @@ export class SalahReminderWizard extends HTMLElement {
       }
       section.append(list); main.append(section);
     }
-    const list = el("ul");
-    for (const key of ["notification_actions", "notification_entities"]) for (const id of this._delivery[key]) {
-      list.append(el("li", `Notify: ${(this._options[key] || []).find(item => item.value === id)?.label || id}`));
+    for (const kind of this._deliveryKinds()) {
+      const delivery = this._delivery[kind], list = el("ul");
+      for (const key of ["notification_actions", "notification_entities"]) for (const id of delivery[key]) {
+        list.append(el("li", `Notify: ${destinationLabel(id, (this._options[key] || []).find(item => item.value === id)?.label)}`));
+      }
+      for (const id of delivery.media_players) list.append(el("li", `Play sound: ${destinationLabel(id, this._hass.states[id]?.attributes?.friendly_name)}`));
+      main.append(el("h3", `${deliveryName(kind)} delivery`), list);
+      if (delivery.media_players.length) {
+        main.append(el("p", `Recording: ${delivery.media_content_id}`), el("p", `Media content type: ${delivery.media_content_type}`, "muted"));
+        if (delivery.volume !== null) main.append(el("p", `Set volume: ${delivery.volume}. This changes the speaker's volume without restoring it afterward.`, "muted"));
+      }
     }
-    for (const id of this._delivery.media_players) list.append(el("li", `Play sound: ${this._hass.states[id]?.attributes?.friendly_name || id}`));
-    main.append(el("h3", "Delivery"), list);
-    if (this._delivery.media_players.length) {
-      main.append(el("p", `Recording: ${this._delivery.media_content_id}`));
-      if (this._delivery.volume !== null) main.append(el("p", `Set volume: ${this._delivery.volume}. This changes the speaker's volume without restoring it afterward.`, "muted"));
-    }
+    main.append(el("p", "To test delivery after saving, expand the Beginning or Jamaat reminders branch in Home Assistant and run an individual action. A manual whole-automation run does not select a reminder type.", "muted"));
     main.append(el("p", "Existing reminder automations keep running. Disable any reminders you are replacing to avoid duplicate alerts.", "muted"));
     main.append(el("p", "Only approved published times are used. Missing times are skipped, and missed reminders are not replayed. A reminder does not track whether you have prayed or establish a prayer deadline.", "muted"));
   }
@@ -280,13 +332,18 @@ export class SalahReminderWizard extends HTMLElement {
       const settings = this._setting(mosques[this._timingIndex]);
       if ((settings.fields.some(beginning) && !isMinutes(settings.begin_minutes)) || (settings.fields.some(jamaat) && !isMinutes(settings.jamaat_minutes))) this._error = "Enter whole minutes from 0 to 180.";
       else if (this._timingIndex < mosques.length - 1) this._timingIndex++;
-      else this._step = "delivery";
+      else { this._deliveryIndex = 0; this._step = "delivery"; }
     } else if (this._step === "delivery") {
-      const delivery = this._delivery;
+      const kind = this._activeDeliveryKind(), delivery = this._delivery[kind];
       if (!this._name.trim() || this._name.trim().length > 100) this._error = "Enter an automation name of 1–100 characters.";
       else if (!delivery.notification_actions.length && !delivery.notification_entities.length && !delivery.media_players.length) this._error = "Choose at least one notification destination or media player.";
-      else if (delivery.media_players.length && (!delivery.media_content_id.trim() || !delivery.media_content_type.trim())) this._error = "Enter the recording's media URL or ID and content type.";
-      else if (delivery.media_players.length && delivery.volume !== null && (!Number.isFinite(delivery.volume) || delivery.volume < 0 || delivery.volume > 1)) this._error = "Enter a speaker volume from 0 to 1.";
+      else if (delivery.media_players.length && (!delivery.media_content_id.trim() || !delivery.media_content_type.trim())) {
+        this._error = "Enter the recording's media URL or ID and content type.";
+        this._deliveryTabs[kind] = "sound";
+      } else if (delivery.media_players.length && delivery.volume !== null && (!Number.isFinite(delivery.volume) || delivery.volume < 0 || delivery.volume > 1)) {
+        this._error = "Enter a speaker volume from 0 to 1.";
+        this._deliveryTabs[kind] = "sound";
+      } else if (this._deliveryIndex < this._deliveryKinds().length - 1) this._deliveryIndex++;
       else this._step = "review";
     } else if (this._step === "review") { this._save(); return; }
     this._render();
@@ -301,14 +358,19 @@ export class SalahReminderWizard extends HTMLElement {
     } else if (this._step === "timing") {
       if (this._timingIndex > 0) this._timingIndex--;
       else { this._prayerIndex = this._mosques().length - 1; this._step = "prayers"; }
-    } else if (this._step === "delivery") { this._timingIndex = this._mosques().length - 1; this._step = "timing"; }
-    else if (this._step === "review") this._step = "delivery";
+    } else if (this._step === "delivery") {
+      if (this._deliveryIndex > 0) this._deliveryIndex--;
+      else { this._timingIndex = this._mosques().length - 1; this._step = "timing"; }
+    } else if (this._step === "review") { this._deliveryIndex = this._deliveryKinds().length - 1; this._step = "delivery"; }
     this._render();
   }
 
   _payload() {
-    const delivery = structuredClone(this._delivery);
-    if (!delivery.media_players.length) { delivery.media_content_id = ""; delivery.media_content_type = "audio/mpeg"; delivery.volume = null; }
+    const delivery = {};
+    for (const kind of this._deliveryKinds()) {
+      delivery[kind] = structuredClone(this._delivery[kind]);
+      if (!delivery[kind].media_players.length) { delivery[kind].media_content_id = ""; delivery[kind].media_content_type = "audio/mpeg"; delivery[kind].volume = null; }
+    }
     return {type: "salah_timetable/reminder_preview", name: this._name.trim(), mosques: this._mosques().map(mosque => {
       const setting = structuredClone(this._setting(mosque));
       if (!setting.fields.some(beginning)) setting.begin_minutes = 10;
