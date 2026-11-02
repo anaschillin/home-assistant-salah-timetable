@@ -1049,11 +1049,23 @@ ha-card.kiosk:fullscreen {
   cursor: pointer;
   min-height: 40px;
 }
+/* The header action sits in the title row, above (not beside) the
+   Gregorian date. Reserve space in the title only: the date retains its
+   entire grid column, including on narrow and RTL cards. */
 .summary-shell .header { position: relative; }
-.summary-shell .header.has-month-action { padding-inline-end: 52px; min-height: 44px; }
-.month-toggle { position: absolute; inset-block-start: 0; right: 0; width: 44px; height: 44px; padding: 8px; display: grid; place-items: center; }
-[dir="rtl"] .header.has-month-action { padding-inline-end: 0; padding-inline-start: 52px; }
-.month-toggle ha-icon { width: 24px; height: 24px; }
+.summary-shell .header.has-month-action { min-height: 36px; }
+.summary-shell .header.has-month-action h2 { padding-inline-end: 42px; }
+.month-toggle {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  display: grid;
+  place-items: center;
+}
+.month-toggle ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; --ha-icon-size: 18px; }
 .month-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .month-toolbar h3 { font-size: clamp(1rem,2.4cqi,1.5rem); margin: 0; text-align: center; }
 .month-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
