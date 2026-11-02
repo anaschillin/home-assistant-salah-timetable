@@ -318,9 +318,9 @@ try {
   const input = editor.shadowRoot.querySelector("input#mosque-title");
   input.focus(); input.value = "My Mosque"; input.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
   check("graphical title editor emits configuration", lastConfig?.title === "My Mosque");
-  check("configuration echo preserves focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === launch);
+  check("configuration echo preserves focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
   editor.hass = {...hass, states: {...hass.states}};
-  check("hass state updates preserve focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === launch);
+  check("hass state updates preserve focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
   check("obsolete Jamaat mode editor removed", !editor.shadowRoot.textContent.includes("Jamaat panel"));
   const update = (key, value) => {
     const control = editor.shadowRoot.querySelector(`[data-option="${key}"]`);
@@ -332,7 +332,7 @@ try {
     update("language", value);
     const expected = value === "ar" ? "rtl" : "ltr";
     check(`editor language=${value} updates direction`, editor.getAttribute("dir") === expected && card.getAttribute("dir") === expected);
-    check(`editor language=${value} preserves focused title`, editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === launch);
+    check(`editor language=${value} preserves focused title`, editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
   }
   for (const value of [false, true, bilingual]) update("bilingual_prayer_labels", value);
   check("graphical language and bilingual controls round trip", lastConfig.language === language && lastConfig.bilingual_prayer_labels === bilingual);
