@@ -70,10 +70,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await until(expression(`const card=${findCard};return card?.shadowRoot?.textContent?.includes('Smoke Mosque')`), "Bundled card did not render in real HA");
     originalLocale = await evaluate("({...document.querySelector('home-assistant').hass.locale})");
     console.log("Real HA frontend loaded the bundled card");
-    assert.equal(await evaluate(expression(`const card=${findCard};const button=[...card.shadowRoot.querySelectorAll('button')].find(item=>item.textContent==='Prayer reminders');if(!button)return false;button.click();return true`)), true, "Administrator card is missing Prayer reminders");
-    await until(expression("const wizard=deep().find(element=>element.localName==='salah-reminder-wizard');return wizard?.shadowRoot.querySelector('dialog')?.matches(':modal')&&['mosques','prayers'].includes(wizard._step)"), "Prayer reminder setup did not load from the installed integration");
-    assert.equal(await evaluate(expression("const wizard=deep().find(element=>element.localName==='salah-reminder-wizard');const cancel=[...wizard.shadowRoot.querySelectorAll('button')].find(item=>item.textContent==='Cancel');if(!cancel)return false;cancel.click();return !wizard.isConnected")), true, "Prayer reminder setup did not close cleanly");
-    console.log("Real HA administrator card exposes Prayer reminders and loads its wizard");
+    assert.equal(await evaluate(expression(`const card=${findCard};return ![...card.shadowRoot.querySelectorAll('button')].some(item=>item.textContent==='Prayer reminders')`)), true, "Prayer reminders must be configured through the editor");
     for (const width of [320, 360, 400, 900]) {
       await call("Emulation.setDeviceMetricsOverride", {width, height: 1100, deviceScaleFactor: 1, mobile: width === 360}); await pause(250);
       assert.equal(await evaluate(expression(`const card=${findCard};const content=card.shadowRoot.querySelector('.content');return content.scrollWidth<=content.clientWidth+1&&card.getBoundingClientRect().right<=innerWidth+1`)), true, `Card overflows at ${width}px`);
@@ -95,6 +92,15 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await until(expression("const dialog=deep().find(element=>element.localName==='hui-dialog-create-card');const tab=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='ha-tab-group-tab'&&element.getAttribute('panel')==='card');if(!tab)return false;tab.click();return true"), "Real card picker tab missing");
     await until(expression("const picker=deep().find(element=>element.localName==='hui-card-picker');const option=picker&&deep(picker.shadowRoot).find(element=>element.classList.contains('overlay')&&element.config?.type==='custom:salah-timetable-card');if(!option)return false;option.click();return true"), "Salah Timetable missing from actual custom-card picker");
     await until(expression("const dialog=deep().find(element=>element.localName==='hui-dialog-edit-card');const editor=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='salah-timetable-card-editor');if(!editor?.shadowRoot?.querySelector('#mosque-title'))return false;window.salahEditor=editor;return Boolean(editor.shadowRoot.querySelector('[data-option=detail_level]'))"), "Actual card editor controls did not render");
+    await until("window.salahEditor.shadowRoot.querySelector('.reminder-setup')?.hidden===false", "Administrator editor is missing Prayer reminders");
+    await setEditorOption("kiosk_mode", true);
+    assert.equal(await evaluate("window.salahEditor.shadowRoot.querySelector('.reminder-setup').hidden"), true, "Kiosk editor must hide reminder setup");
+    await setEditorOption("kiosk_mode", false);
+    assert.equal(await evaluate("(()=>{const button=window.salahEditor.shadowRoot.querySelector('.reminder-setup');if(!button||button.hidden)return false;button.focus();button.click();return true})()"), true, "Administrator editor could not launch Prayer reminders");
+    await until(expression("const wizard=deep().find(element=>element.localName==='salah-reminder-wizard');return wizard?.shadowRoot.querySelector('dialog')?.matches(':modal')&&['mosques','prayers'].includes(wizard._step)"), "Prayer reminder setup did not load from the installed integration");
+    assert.equal(await evaluate(expression("const wizard=deep().find(element=>element.localName==='salah-reminder-wizard');const cancel=[...wizard.shadowRoot.querySelectorAll('button')].find(item=>item.textContent==='Cancel');if(!cancel)return false;cancel.click();return !wizard.isConnected")), true, "Prayer reminder setup did not close cleanly");
+    assert.equal(await evaluate("window.salahEditor.shadowRoot.activeElement===window.salahEditor.shadowRoot.querySelector('.reminder-setup')"), true, "Closing reminders lost editor launch focus");
+    console.log("Real HA administrator editor exposes Prayer reminders and loads its wizard");
     await setEditorOption("detail_level", "detailed");
     await until("window.salahEditor._config.detail_level==='detailed'", "Actual detail level did not update configuration");
     await evaluate("window.salahEditor.shadowRoot.querySelector('#mosque-title').focus()");
