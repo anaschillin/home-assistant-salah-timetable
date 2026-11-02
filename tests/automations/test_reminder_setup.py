@@ -8,6 +8,9 @@ from zoneinfo import ZoneInfo
 import pytest
 from homeassistant.components.config import automation as automation_api
 from homeassistant.config_entries import ConfigEntryDisabler
+from homeassistant.core import Context
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.script import Script
 from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
@@ -351,3 +354,81 @@ async def test_generated_automation_renders_actual_reminder_notification(
     assert "05:00" in message
     assert "10 minutes remaining" in message
     assert "{{" not in message
+
+
+@pytest.mark.parametrize(
+    "variables", [{}, {"trigger": None}, {"trigger": {"platform": None}}]
+)
+async def test_individual_actions_without_prayer_trigger_send_test_notification(
+    hass, entry, destinations, variables
+):
+    """The action editor test has no automation variables or real trigger payload."""
+    config = reminder_automation(
+        hass,
+        "Manual reminder test",
+        [
+            {
+                "id": entry.entry_id,
+                "fields": ["fajr_begin"],
+                "begin_minutes": 10,
+                "jamaat_minutes": 10,
+            }
+        ],
+        _DELIVERY(
+            {
+                "notification_actions": ["notify.mobile_app_phone"],
+                "notification_entities": ["notify.phone"],
+                "media_players": ["media_player.hall"],
+                "media_content_id": "library://track/123",
+                "media_content_type": "music",
+            }
+        ),
+    )
+    for action in config["actions"]:
+        action["continue_on_error"] = False
+    await Script(
+        hass, cv.SCRIPT_SCHEMA(config["actions"]), "Manual reminder actions", DOMAIN
+    ).async_run(variables, context=Context())
+    for destination in ("phone", "notify_entity"):
+        assert len(destinations[destination]) == 1
+        message = destinations[destination][0].data["message"]
+        assert (
+            message
+            == "Test notification from Salah Timetable. No prayer event triggered this test."
+        )
+        assert "Fajr" not in message
+    assert len(destinations["play"]) == 1
+    assert destinations["play"][0].data["media_content_id"] == "library://track/123"
+
+
+async def test_manual_automation_run_without_prayer_trigger_sends_test_notification(
+    hass, entry, destinations
+):
+    config = reminder_automation(
+        hass,
+        "Manual reminder test",
+        [
+            {
+                "id": entry.entry_id,
+                "fields": ["fajr_begin"],
+                "begin_minutes": 10,
+                "jamaat_minutes": 10,
+            }
+        ],
+        _DELIVERY({"notification_actions": ["notify.mobile_app_phone"]}),
+    )
+    config["actions"][0]["continue_on_error"] = False
+    assert await async_setup_component(hass, "automation", {"automation": [config]})
+    await hass.async_start()
+    await hass.async_block_till_done()
+    automation = hass.states.async_all("automation")[0]
+    await hass.services.async_call(
+        "automation", "trigger", {"entity_id": automation.entity_id}, blocking=True
+    )
+    await hass.async_block_till_done()
+    assert len(destinations["phone"]) == 1
+    assert (
+        destinations["phone"][0]
+        .data["message"]
+        .startswith("Test notification from Salah Timetable.")
+    )

@@ -45,6 +45,14 @@ not edit the existing one. If replacing a blueprint reminder, disable the old
 automation yourself after checking the replacement, to avoid duplicate alerts.
 Existing imported Before Salah and Before Jamaat blueprint automations keep working.
 
+**Testing delivery:** running an individual action or choosing Run actions in Home
+Assistant does not supply the prayer trigger payload. Newly generated notification
+messages send an explicit test notification in that case. Real scheduled runs use
+the masjid, prayer, published time and advance minutes. For a custom title, use a
+manual-test fallback such as `{{ trigger.prayer if trigger is defined and
+trigger.prayer is defined else 'Prayer reminder test' }}`. Updating the integration
+does not rewrite messages or titles in automations you already saved.
+
 The reminder uses approved timetable values, including tomorrow's events when an
 offset falls before midnight. Selecting Jumu’ah covers every published
 congregation. Approved time changes replace pending alerts; unavailable masjids,

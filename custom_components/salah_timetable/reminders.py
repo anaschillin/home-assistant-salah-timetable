@@ -108,9 +108,14 @@ def reminder_automation(hass: HomeAssistant, name, selections, delivery):
                 )
     available_actions = set(_notifications(hass))
     message = (
+        "{% if trigger is defined and trigger.mosque is defined "
+        "and trigger.prayer is defined and trigger.scheduled_time is defined "
+        "and trigger.minutes_before is defined %}"
         "{{ trigger.mosque }}: {{ trigger.prayer }} at "
         "{{ as_datetime(trigger.scheduled_time).strftime('%H:%M') }} "
         "({{ trigger.minutes_before }} minutes remaining)."
+        "{% else %}Test notification from Salah Timetable. "
+        "No prayer event triggered this test.{% endif %}"
     )
     actions = []
     for action in dict.fromkeys(delivery["notification_actions"]):
