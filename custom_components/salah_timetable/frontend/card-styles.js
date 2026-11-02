@@ -1054,7 +1054,7 @@ ha-card.kiosk:fullscreen {
    entire grid column, including on narrow and RTL cards. */
 .summary-shell .header { position: relative; }
 .summary-shell .header.has-month-action { min-height: 36px; }
-.summary-shell .header.has-month-action h2 { padding-inline-end: 42px; }
+.summary-shell .header.has-month-action h2 { padding-inline-end: 42px; min-height: 36px; }
 .month-toggle {
   position: absolute;
   inset-block-start: 0;
