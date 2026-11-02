@@ -1,4 +1,3 @@
-import {openReminderWizard} from "/custom_components/salah_timetable/frontend/reminder-wizard.js?v=1.0.0";
 /** Real-browser fixture: native shadow DOM/CSS with small HA control stand-ins. */
 import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.19";
 import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.19";
@@ -319,9 +318,9 @@ try {
   const input = editor.shadowRoot.querySelector("input#mosque-title");
   input.focus(); input.value = "My Mosque"; input.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
   check("graphical title editor emits configuration", lastConfig?.title === "My Mosque");
-  check("configuration echo preserves focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
+  check("configuration echo preserves focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === launch);
   editor.hass = {...hass, states: {...hass.states}};
-  check("hass state updates preserve focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
+  check("hass state updates preserve focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === launch);
   check("obsolete Jamaat mode editor removed", !editor.shadowRoot.textContent.includes("Jamaat panel"));
   const update = (key, value) => {
     const control = editor.shadowRoot.querySelector(`[data-option="${key}"]`);
@@ -333,7 +332,7 @@ try {
     update("language", value);
     const expected = value === "ar" ? "rtl" : "ltr";
     check(`editor language=${value} updates direction`, editor.getAttribute("dir") === expected && card.getAttribute("dir") === expected);
-    check(`editor language=${value} preserves focused title`, editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
+    check(`editor language=${value} preserves focused title`, editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === launch);
   }
   for (const value of [false, true, bilingual]) update("bilingual_prayer_labels", value);
   check("graphical language and bilingual controls round trip", lastConfig.language === language && lastConfig.bilingual_prayer_labels === bilingual);
@@ -392,8 +391,14 @@ try {
       return new Promise(resolve => { finishSave = resolve; });
     },
   };
-  input.focus();
-  const wizard = openReminderWizard(reminderHass);
+  editor.hass = {...reminderHass, user: {is_admin: true}};
+  const launch = editor.shadowRoot.querySelector(".reminder-setup");
+  check("reminder setup is in the editor", launch && !launch.hidden && !card.shadowRoot.querySelector(".reminder-setup"));
+  launch.focus();
+  launch.click();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const wizard = document.querySelector("salah-reminder-wizard");
+  check("editor launches reminder wizard", !!wizard);
   await wizard.ready;
   const wr = wizard.shadowRoot;
   const wi = key => [...wr.querySelectorAll("input")].find(node => node.dataset.key === key);
@@ -487,7 +492,7 @@ try {
   check("reminder saved automation link",
     wr.querySelector("a")?.getAttribute("href").startsWith("/config/automation/edit/salah_reminders_"));
   wc("Close");
-  check("reminder Close restores launch focus", editor.shadowRoot.activeElement === input);
+  check("reminder Close restores launch focus", editor.shadowRoot.activeElement === launch);
   check("countdowns never write HA service or state", serviceCalls === 0);
   check("real browser resource registration", customElements.get("salah-timetable-card") === SalahTimetableCard && window.customCards.some(item => item.type === "salah-timetable-card"));
   card.remove(); check("disconnected card clears local timer", card._timer === null);
@@ -497,3 +502,4 @@ try {
 } catch (error) {
   parent.postMessage({kind: "salah-browser-result", status: "failed", width, language, bilingual, checks, error: error.stack || String(error)}, location.origin);
 }
+

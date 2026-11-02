@@ -176,7 +176,7 @@ Automated browser checks do not establish full Arabic/RTL acceptance on physical
 ## Monthly timetable and CSV/source information
 
 Enable **Monthly timetable, CSV export and source details** in the card editor
-(`show_month_view: true`). The **Monthly timetable** control opens a
+(`show_month_view: true`). The calendar icon in the card's top-right corner (**Monthly timetable**) opens a
 Gregorian month browser. Previous/next month and Refresh retrieve at most
 31 days of **approved effective** times for the selected mosque; missing
 dates and prayer fields display as missing, never calculated or filled.
@@ -427,3 +427,8 @@ Future event records require independent date evidence, original summaries,
 explicit editorial approval and redistribution review. See the canonical
 [history research and proposed delivery](../research/islamic-history/islamic-history-source-audit.md)
 and [Dorar source review](../research/islamic-history/islamic-history-dorar-coverage-audit.md).
+
+
+Administrator reminder setup is available through **Edit card → Prayer reminders**,
+below the detail-level selection. It is hidden in kiosk mode. See
+[guided prayer reminders](automations.md#guided-prayer-reminders).

@@ -5,6 +5,11 @@ not the current backlog. For available features see the [README](README.md#featu
 for pending work see the [roadmap](docs/roadmap.md). Published releases and their
 exact source tags are listed on [GitHub Releases](https://github.com/anaschillin/home-assistant-salah-timetable/releases).
 
+## Unreleased
+
+- Move administrator Prayer reminders setup into the card editor below the detail-level selection.
+- Use an accessible top-right calendar icon for monthly timetable browsing in every display mode.
+
 ## 1.0.0 — 1 November 2026
 
 - Show missing prayer field names in the readiness screen and clarify the settings shortcut.
@@ -347,3 +352,4 @@ the card-facing mode selector was subsequently removed in 0.9.18 (see above).
 
 Earlier milestones established HACS repository structure, mosque configuration,
 immutable prayer data, persistent storage, sensors and graphical CSV import.
+

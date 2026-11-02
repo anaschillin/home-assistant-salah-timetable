@@ -15,8 +15,8 @@ include it; use the [manual blueprint setup](#import-a-blueprint) until your
 installed version includes **Prayer reminders**. Update the integration, restart
 Home Assistant and reload the dashboard after installing the feature.
 
-As a Home Assistant administrator, open **Prayer reminders** on the timetable
-card. The button is hidden in kiosk mode. If it is missing after deploying the
+As a Home Assistant administrator, edit the timetable card and open **Prayer reminders** below the
+detail-level selection. The button is hidden in kiosk mode. If it is missing after deploying the
 feature, check that you are an administrator and kiosk mode is off. The integration
 registers a content-fingerprinted frontend URL to replace cached same-version PR
 builds; see [resource troubleshooting](dashboard.md#resource-troubleshooting) for
@@ -405,3 +405,4 @@ Recently approved or changed events near their trigger time may not be fetched
 in time. Past triggers are not replayed after startup/reload. Use the
 [guided reminders](#guided-prayer-reminders) for approved prayer-time alerts, or the
 [timestamp blueprints](#import-a-blueprint) for manual playback and reminder policies.
+

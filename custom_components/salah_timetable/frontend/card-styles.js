@@ -1049,7 +1049,11 @@ ha-card.kiosk:fullscreen {
   cursor: pointer;
   min-height: 40px;
 }
-.month-toggle { margin: 8px 0; }
+.summary-shell .header { position: relative; }
+.summary-shell .header.has-month-action { padding-inline-end: 52px; min-height: 44px; }
+.month-toggle { position: absolute; inset-block-start: 0; right: 0; width: 44px; height: 44px; padding: 8px; display: grid; place-items: center; }
+[dir="rtl"] .header.has-month-action { padding-inline-end: 0; padding-inline-start: 52px; }
+.month-toggle ha-icon { width: 24px; height: 24px; }
 .month-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .month-toolbar h3 { font-size: clamp(1rem,2.4cqi,1.5rem); margin: 0; text-align: center; }
 .month-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
@@ -1078,6 +1082,10 @@ ha-card.kiosk:fullscreen {
 
 /** Card configuration editor styles, scoped to its separate shadow root. */
 export const EDITOR_CSS = `
+.reminder-setup { font: inherit; color: var(--primary-text-color); background: var(--secondary-background-color); border: 1px solid var(--divider-color); border-radius: 8px; padding: 8px 12px; min-height: 44px; cursor: pointer; justify-self: start; }
+.reminder-setup[hidden] { display: none; }
+.reminder-setup:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+
 :host { display: block; }
 .form { display: grid; gap: 14px; padding: 12px 0; color: var(--primary-text-color); }
 .help { color: var(--secondary-text-color); font-size: .85rem; line-height: 1.45; }
