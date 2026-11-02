@@ -366,8 +366,17 @@ try {
       id: name.toLowerCase(), name: `${name} masjid`,
       time_zone: "Europe/London", fields: reminderFields, ready: true,
     })),
-    notification_actions: [{value: "notify.mobile_app_phone", label: "Phone Companion app"}],
-    notification_entities: [{value: "notify.tablet", label: "Tablet"}],
+    notification_actions: [
+      {value: "notify.mobile_app_phone", label: "Phone Companion app", integration: "mobile_app", integration_name: "Companion app", device_type: "phone", device_type_name: "Phone"},
+      {value: "notify.browser", label: "Browser", integration: "html5", integration_name: "HTML5", device_type: "computer", device_type_name: "Computer"},
+    ],
+    notification_entities: [{value: "notify.tablet", label: "Tablet", integration: "mobile_app", integration_name: "Companion app", device_type: "tablet", device_type_name: "Tablet"}],
+    media_players: [
+      {value: "media_player.hall", label: "Hall speaker", integration: "music_assistant", integration_name: "Music Assistant", device_type: "speaker", device_type_name: "Speaker"},
+      {value: "media_player.kitchen", label: "Kitchen speaker", integration: "music_assistant", integration_name: "Music Assistant", device_type: "speaker", device_type_name: "Speaker"},
+      {value: "media_player.hall_cast", label: "Hall speaker", integration: "cast", integration_name: "Google Cast", device_type: "speaker", device_type_name: "Speaker"},
+      {value: "media_player.tv", label: "Living room TV", integration: "cast", integration_name: "Google Cast", device_type: "tv", device_type_name: "TV"},
+    ],
   };
   const reminderWrites = [], reminderPreviews = [];
   let finishSave;
@@ -394,6 +403,10 @@ try {
     wi(key).value = value;
     wi(key).dispatchEvent(new Event("input"));
   };
+  const wf = (key, value) => {
+    const select = wr.querySelector(`[data-key="filter:${key}"]`);
+    select.value = value; select.dispatchEvent(new Event("change"));
+  };
   const wizardFits = () => {
     const dialog = wr.querySelector("dialog"), main = wr.querySelector("main");
     return dialog.getBoundingClientRect().width <= width &&
@@ -412,26 +425,41 @@ try {
   wc("Next"); wc("Next");
   check("beginning delivery opens Notifications tab", wizard._activeDeliveryKind() === "beginning" && wb("Notifications").getAttribute("aria-selected") === "true" && !wi("media_player:media_player.hall"));
   check("notification selection shows exact action and entity IDs", wr.textContent.includes("notify.mobile_app_phone") && wr.textContent.includes("notify.tablet"));
+  wf("integration", "mobile_app");
+  check("Companion app filter includes both notification routes", !!wi("notification_actions:notify.mobile_app_phone") && !!wi("notification_entities:notify.tablet") && !wi("notification_actions:notify.browser"));
+  wf("device_type", "phone");
+  check("notification provider and type filters combine", !!wi("notification_actions:notify.mobile_app_phone") && !wi("notification_entities:notify.tablet"));
   wi("notification_actions:notify.mobile_app_phone").click();
   // Exercise actual keyboard navigation and roving focus on the tab controls.
   wb("Notifications").dispatchEvent(new KeyboardEvent("keydown", {key: "ArrowRight", bubbles: true}));
   check("Sound tab keyboard selection retains focus", wb("Sound").getAttribute("aria-selected") === "true" && wr.activeElement === wb("Sound"));
   check("speaker selection shows friendly name and entity ID", wr.textContent.includes("Hall speaker (media_player.hall)"));
+  wf("integration", "music_assistant"); wf("device_type", "speaker");
+  check("Music Assistant filter separates duplicate speaker names", !!wi("media_player:media_player.hall") && !wi("media_player:media_player.hall_cast") && !wi("media_player:media_player.tv"));
   wi("media_player:media_player.hall").click();
   wt("name", "LongReminderName".repeat(6));
   const beginningRecording = "media-source://media_source/local/" + "recording".repeat(40) + ".mp3";
   wt("media_content_id", beginningRecording);
   check("reminder delivery fits mobile", wizardFits());
+  wf("integration", "cast"); wf("device_type", "tv");
+  check("filters retain hidden speaker and media settings", !wi("media_player:media_player.hall") && !!wi("media_player:media_player.tv") && wi("media_content_id").value === beginningRecording && wr.textContent.includes("1 selected destination hidden"));
+  wf("integration", "music_assistant");
+  check("combined filters report no matches without clearing selections", wr.textContent.includes("No destinations match these filters") && wi("media_content_id").value === beginningRecording);
+  wf("device_type", "speaker");
+  check("returning to Music Assistant retains selected player", wi("media_player:media_player.hall").checked);
   wc("Notifications");
   check("notification selection survives Sound tab", wi("notification_actions:notify.mobile_app_phone").checked);
   wc("Next");
   check("Jamaat delivery is separate", wizard._activeDeliveryKind() === "jamaat" && !wi("notification_actions:notify.mobile_app_phone").checked);
+  check("Jamaat starts with independent filters", wr.querySelector('[data-key="filter:integration"]').value === "" && wr.querySelector('[data-key="filter:device_type"]').value === "");
+  wf("integration", "mobile_app"); wf("device_type", "tablet");
   wi("notification_entities:notify.tablet").click(); wc("Sound");
   check("Jamaat sound does not inherit beginning speakers", !wi("media_player:media_player.hall").checked);
   wi("media_player:media_player.kitchen").click();
   wt("media_content_id", "library://track/456"); wt("media_content_type", "music");
   wc("Back");
   check("Back restores beginning delivery", wizard._activeDeliveryKind() === "beginning" && wi("notification_actions:notify.mobile_app_phone").checked);
+  check("Back retains category-specific filters", wr.querySelector('[data-key="filter:integration"]').value === "mobile_app" && wr.querySelector('[data-key="filter:device_type"]').value === "phone");
   wc("Sound");
   check("beginning sound survives independent Jamaat setup", wi("media_player:media_player.hall").checked && wi("media_content_id").value === beginningRecording);
   wc("Next");

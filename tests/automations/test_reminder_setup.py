@@ -10,6 +10,9 @@ from homeassistant.components.config import automation as automation_api
 from homeassistant.config_entries import ConfigEntryDisabler
 from homeassistant.core import Context
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import label_registry as lr
 from homeassistant.helpers.script import Script
 from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
@@ -103,12 +106,19 @@ async def test_discovery_lists_masjids_and_notification_destinations(
     assert len(fields) == 11
     assert {"fajr_begin", "isha_jamaat", "jumuah"} <= fields
     assert "sunrise" not in fields
-    assert options["notification_actions"] == [
-        {"value": "notify.mobile_app_phone", "label": "mobile app phone"}
-    ]
-    assert options["notification_entities"] == [
-        {"value": "notify.phone", "label": "Phone"}
-    ]
+    assert [
+        (item["value"], item["label"]) for item in options["notification_actions"]
+    ] == [("notify.mobile_app_phone", "mobile app phone")]
+    assert options["notification_actions"][0]["integration"] == "mobile_app"
+    assert options["notification_actions"][0]["integration_name"] == "Companion app"
+    assert options["notification_actions"][0]["device_type"] == "unknown"
+    assert [
+        (item["value"], item["label"]) for item in options["notification_entities"]
+    ] == [("notify.phone", "Phone")]
+    assert options["notification_entities"][0]["integration"] == "unknown"
+    assert options["notification_entities"][0]["device_type_name"] == "Other / unknown"
+    assert options["media_players"][0]["value"] == "media_player.hall"
+    assert options["media_players"][0]["integration"] == "unknown"
     assert not any(destinations.values())
 
 
@@ -674,3 +684,166 @@ async def test_manual_grouped_run_does_not_broadcast_both_delivery_categories(
     assert (
         destinations["notify_entity"][0].data["message"].startswith("Test notification")
     )
+
+
+async def test_destination_filters_use_registered_provider_and_device_class(
+    hass, destinations, reminder_client
+):
+    source = MockConfigEntry(domain="music_assistant", title="Music Assistant")
+    source.add_to_hass(hass)
+    registered = er.async_get(hass).async_get_or_create(
+        "media_player",
+        "music_assistant",
+        "ma-speaker",
+        config_entry=source,
+        suggested_object_id="ma_speaker",
+    )
+    hass.states.async_set(
+        registered.entity_id,
+        "idle",
+        {"friendly_name": "Office speaker", "device_class": "speaker"},
+    )
+    result = await send(reminder_client, {"type": "salah_timetable/reminder_options"})
+    options = result["result"]
+    player = next(
+        item
+        for item in options["media_players"]
+        if item["value"] == registered.entity_id
+    )
+    assert player == {
+        "value": registered.entity_id,
+        "label": "Office speaker",
+        "integration": "music_assistant",
+        "integration_name": "Music Assistant",
+        "device_type": "speaker",
+        "device_type_name": "Speaker",
+    }
+    assert not any(destinations.values())
+
+
+async def test_companion_action_and_entity_share_explicit_device_label(
+    hass, destinations, reminder_client
+):
+    source = MockConfigEntry(
+        domain="mobile_app",
+        title="Phone registration",
+        unique_id="handset",
+        data={"device_name": "Phone", "push_token": "must-not-be-exposed"},
+    )
+    source.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=source.entry_id,
+        identifiers={("mobile_app", "handset")},
+        name="Handset",
+        model="SM-S928B",
+    )
+    phone_label = lr.async_get(hass).async_create("Phone")
+    dr.async_get(hass).async_update_device(device.id, labels={phone_label.label_id})
+    registered = er.async_get(hass).async_get_or_create(
+        "notify",
+        "mobile_app",
+        "handset-notify",
+        config_entry=source,
+        device_id=device.id,
+        suggested_object_id="handset_push",
+    )
+    hass.states.async_set(
+        registered.entity_id, "unknown", {"friendly_name": "Phone push"}
+    )
+    result = await send(reminder_client, {"type": "salah_timetable/reminder_options"})
+    options = result["result"]
+    action = next(
+        item
+        for item in options["notification_actions"]
+        if item["value"] == "notify.mobile_app_phone"
+    )
+    entity = next(
+        item
+        for item in options["notification_entities"]
+        if item["value"] == registered.entity_id
+    )
+    for target in (action, entity):
+        assert target["integration"] == "mobile_app"
+        assert target["integration_name"] == "Companion app"
+        assert target["device_type"] == "phone"
+        assert target["device_type_name"] == "Phone"
+    assert "must-not-be-exposed" not in str(result)
+    assert "push_token" not in str(result)
+    assert not any(destinations.values())
+
+
+@pytest.mark.parametrize(
+    "labels,reported,expected",
+    [
+        (["Tablet"], None, "tablet"),
+        (["Phone", "Tablet"], None, "unknown"),
+        (["Phone", "Tablet"], "tv", "tv"),
+        (["Something else"], None, "unknown"),
+        ([], "unsupported", "unknown"),
+    ],
+)
+async def test_filter_types_honor_explicit_labels_without_guessing_models(
+    hass, destinations, reminder_client, labels, reported, expected
+):
+    source = MockConfigEntry(domain="cast", title="Google Cast")
+    source.add_to_hass(hass)
+    registry = er.async_get(hass)
+    registered = registry.async_get_or_create(
+        "media_player",
+        "cast",
+        "display",
+        config_entry=source,
+        suggested_object_id="cast_display",
+    )
+    label_ids = {lr.async_get(hass).async_create(name).label_id for name in labels}
+    registry.async_update_entity(registered.entity_id, labels=label_ids)
+    attributes = {"friendly_name": "Display"}
+    if reported is not None:
+        attributes["device_class"] = reported
+    hass.states.async_set(registered.entity_id, "idle", attributes)
+    result = await send(reminder_client, {"type": "salah_timetable/reminder_options"})
+    target = next(
+        item
+        for item in result["result"]["media_players"]
+        if item["value"] == registered.entity_id
+    )
+    assert target["integration"] == "cast"
+    assert target["integration_name"] == "Google Cast"
+    assert target["device_type"] == expected
+    assert not any(destinations.values())
+
+
+async def test_ambiguous_legacy_registration_does_not_choose_a_device_type(
+    hass, destinations, reminder_client
+):
+    for unique_id, label_name in (("one", "Phone"), ("two", "Tablet")):
+        source = MockConfigEntry(
+            domain="mobile_app",
+            title=unique_id,
+            unique_id=unique_id,
+            data={"device_name": "Phone"},
+        )
+        source.add_to_hass(hass)
+        device = dr.async_get(hass).async_get_or_create(
+            config_entry_id=source.entry_id,
+            identifiers={("mobile_app", unique_id)},
+        )
+        label = lr.async_get(hass).async_create(label_name)
+        dr.async_get(hass).async_update_device(device.id, labels={label.label_id})
+    async_mock_service(hass, "notify", "custom_alias")
+    result = await send(reminder_client, {"type": "salah_timetable/reminder_options"})
+    action = next(
+        item
+        for item in result["result"]["notification_actions"]
+        if item["value"] == "notify.mobile_app_phone"
+    )
+    assert action["integration_name"] == "Companion app"
+    assert action["device_type"] == "unknown"
+    alias = next(
+        item
+        for item in result["result"]["notification_actions"]
+        if item["value"] == "notify.custom_alias"
+    )
+    assert alias["integration"] == "unknown"
+    assert alias["device_type"] == "unknown"
+    assert not any(destinations.values())

@@ -321,3 +321,129 @@ test("Jamaat-only reminders skip beginning delivery and validate sound on its ow
   assert.equal(wizard._activeDeliveryKind(), "jamaat");
   click(wizard, "Back"); assert.equal(wizard._step, "timing");
 });
+
+
+const select = (wizard, key) => nodes(wizard).find(node => node.tagName === "select" && node.dataset.key === `filter:${key}`);
+const filter = (wizard, key, value) => {
+  const control = select(wizard, key); assert.ok(control, `Missing filter ${key}`);
+  control.value = value; control.dispatchEvent(new Event("change"));
+};
+const metadata = (value, label, integration, integration_name, device_type, device_type_name) => ({value, label, integration, integration_name, device_type, device_type_name});
+async function createWithMetadata() {
+  const mock = mockHass(), wizard = new SalahReminderWizard(), original = mock.hass.callWS;
+  const enriched = {...options(1),
+    notification_actions: [
+      metadata("notify.mobile_app_phone", "Phone Companion app", "mobile_app", "Companion app", "phone", "Phone"),
+      metadata("notify.browser", "Browser notification", "html5", "HTML5", "desktop", "Desktop"),
+    ],
+    notification_entities: [
+      metadata("notify.mobile_phone", "Second phone", "mobile_app", "Companion app", "phone", "Phone"),
+      metadata("notify.tablet", "Tablet", "fully_kiosk", "Fully Kiosk", "tablet", "Tablet"),
+      {value: "notify.other", label: "Unclassified"},
+    ],
+    media_players: [
+      metadata("media_player.hall", "Hall metadata name", "music_assistant", "Music Assistant", "speaker", "Speaker"),
+      metadata("media_player.television", "Living room TV", "cast", "Google Cast", "tv", "TV"),
+    ],
+  };
+  mock.hass.callWS = payload => payload.type === "salah_timetable/reminder_options" ? Promise.resolve(enriched) : original(payload);
+  await wizard.start(mock.hass);
+  return {...mock, wizard};
+}
+function toDelivery(wizard, both = false) {
+  choose(wizard, "field:fajr_begin");
+  if (both) choose(wizard, "field:fajr_jamaat");
+  click(wizard, "Next"); click(wizard, "Next");
+}
+
+test("Companion app filter covers both notification routes and combines with device type", async () => {
+  const {wizard} = await createWithMetadata(); toDelivery(wizard);
+  assert.equal(select(wizard, "integration").value, "");
+  assert.equal(select(wizard, "device_type").value, "");
+  assert.deepEqual(new Set(select(wizard, "integration").children.map(option => option.value)), new Set(["", "mobile_app", "html5", "fully_kiosk", "unknown"]));
+  choose(wizard, "notification_actions:notify.mobile_app_phone");
+  filter(wizard, "integration", "mobile_app");
+  assert.equal(document.activeElement, select(wizard, "integration"));
+  assert.ok(input(wizard, "notification_actions:notify.mobile_app_phone"));
+  assert.ok(input(wizard, "notification_entities:notify.mobile_phone"));
+  assert.equal(input(wizard, "notification_actions:notify.browser"), undefined);
+  assert.equal(input(wizard, "notification_entities:notify.tablet"), undefined);
+  assert.match(wizard.shadowRoot.textContent, /notify.mobile_app_phone/);
+  filter(wizard, "device_type", "tablet");
+  assert.match(wizard.shadowRoot.textContent, /No destinations match these filters/);
+  assert.match(wizard.shadowRoot.textContent, /1 selected destination hidden/);
+  assert.equal(input(wizard, "notification_actions:notify.mobile_app_phone"), undefined);
+  assert.deepEqual(wizard._payload().delivery.beginning.notification_actions, ["notify.mobile_app_phone"]);
+  filter(wizard, "integration", "");
+  assert.ok(input(wizard, "notification_entities:notify.tablet"));
+  assert.equal(input(wizard, "notification_entities:notify.mobile_phone"), undefined);
+  filter(wizard, "device_type", "");
+  assert.equal(input(wizard, "notification_actions:notify.mobile_app_phone").checked, true);
+  assert.ok(!wizard.shadowRoot.textContent.includes("1 selected destination hidden"));
+});
+
+test("provider and device filters preserve hidden sound selections and recording controls", async () => {
+  const {wizard, previews} = await createWithMetadata(); toDelivery(wizard);
+  click(wizard, "Sound");
+  assert.deepEqual(new Set(select(wizard, "integration").children.map(option => option.value)), new Set(["", "music_assistant", "cast"]));
+  assert.match(wizard.shadowRoot.textContent, /Hall metadata name \(media_player.hall\)/);
+  choose(wizard, "media_player:media_player.hall");
+  type(wizard, "media_content_id", "library://track/123");
+  type(wizard, "media_content_type", "music");
+  filter(wizard, "integration", "cast"); filter(wizard, "device_type", "tv");
+  assert.equal(input(wizard, "media_player:media_player.hall"), undefined);
+  assert.ok(input(wizard, "media_player:media_player.television"));
+  assert.equal(input(wizard, "media_content_id").value, "library://track/123");
+  assert.match(wizard.shadowRoot.textContent, /1 selected destination hidden/);
+  choose(wizard, "media_player:media_player.television");
+  assert.match(wizard.shadowRoot.textContent, /2 selected destinations/);
+  click(wizard, "Next");
+  assert.equal(wizard._step, "review");
+  assert.match(wizard.shadowRoot.textContent, /Hall metadata name \(media_player.hall\)/);
+  assert.match(wizard.shadowRoot.textContent, /Living room TV \(media_player.television\)/);
+  click(wizard, "Finish"); await settle();
+  assert.deepEqual(previews[0].delivery.beginning.media_players, ["media_player.hall", "media_player.television"]);
+  assert.ok(!("integration" in previews[0].delivery.beginning));
+});
+
+test("filter choices are independent across beginning, Jamaat and each delivery tab", async () => {
+  const {wizard} = await createWithMetadata(); toDelivery(wizard, true);
+  filter(wizard, "integration", "mobile_app"); filter(wizard, "device_type", "phone");
+  choose(wizard, "notification_actions:notify.mobile_app_phone");
+  click(wizard, "Sound");
+  assert.equal(select(wizard, "integration").value, "");
+  filter(wizard, "integration", "music_assistant"); filter(wizard, "device_type", "speaker");
+  click(wizard, "Notifications");
+  assert.equal(select(wizard, "integration").value, "mobile_app");
+  assert.equal(select(wizard, "device_type").value, "phone");
+  click(wizard, "Next");
+  assert.equal(wizard._activeDeliveryKind(), "jamaat");
+  assert.equal(select(wizard, "integration").value, "");
+  filter(wizard, "integration", "fully_kiosk"); filter(wizard, "device_type", "tablet");
+  choose(wizard, "notification_entities:notify.tablet");
+  click(wizard, "Back");
+  assert.equal(select(wizard, "integration").value, "mobile_app");
+  assert.equal(select(wizard, "device_type").value, "phone");
+  click(wizard, "Sound");
+  assert.equal(select(wizard, "integration").value, "music_assistant");
+  assert.equal(select(wizard, "device_type").value, "speaker");
+  click(wizard, "Next");
+  assert.equal(select(wizard, "integration").value, "fully_kiosk");
+  assert.equal(select(wizard, "device_type").value, "tablet");
+  click(wizard, "Next"); click(wizard, "Back");
+  assert.equal(select(wizard, "integration").value, "fully_kiosk");
+  assert.equal(select(wizard, "device_type").value, "tablet");
+});
+
+test("older options without metadata use explicit unknown filters and state-based players", async () => {
+  const {wizard} = await create(); toDelivery(wizard);
+  for (const key of ["integration", "device_type"]) {
+    assert.deepEqual(select(wizard, key).children.map(option => [option.value, option.textContent]), [["", "All"], ["unknown", "Other / unknown"]]);
+    filter(wizard, key, "unknown");
+  }
+  assert.ok(input(wizard, "notification_actions:notify.mobile_app_phone"));
+  click(wizard, "Sound");
+  assert.deepEqual(select(wizard, "integration").children.map(option => option.value), ["", "unknown"]);
+  assert.ok(input(wizard, "media_player:media_player.hall"));
+  assert.match(wizard.shadowRoot.textContent, /Hall speaker \(media_player.hall\)/);
+});

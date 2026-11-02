@@ -2,7 +2,7 @@
 const STYLE = `
 :host{font-family:var(--paper-font-body1_-_font-family,Roboto,sans-serif);color:var(--primary-text-color,#222)}
 dialog{box-sizing:border-box;width:min(42rem,calc(100vw - 2rem));max-height:calc(100dvh - 2rem);padding:0;border:1px solid var(--divider-color,#bbb);border-radius:12px;background:var(--card-background-color,#fff);color:inherit;box-shadow:0 12px 40px #0005}
-dialog::backdrop{background:#0008}form{display:flex;flex-direction:column;max-height:calc(100dvh - 2rem);margin:0}header,main,footer{padding:1rem 1.25rem}header{border-bottom:1px solid var(--divider-color,#ddd)}h2{font-size:1.35rem;margin:0 0 .3rem}h3{font-size:1.1rem;margin:.4rem 0 1rem}p{line-height:1.5;margin:.5rem 0}main{overflow:auto;min-height:8rem}footer{display:flex;gap:.6rem;flex-wrap:wrap;border-top:1px solid var(--divider-color,#ddd)}.spacer{flex:1}fieldset{min-width:0;border:1px solid var(--divider-color,#ddd);border-radius:8px;margin:1rem 0;padding:.75rem}legend{font-weight:600}.choice{display:flex;align-items:flex-start;gap:.6rem;padding:.5rem 0;line-height:1.4}.choice span{min-width:0;overflow-wrap:anywhere}.delivery-tabs{display:flex;gap:.5rem;border-bottom:1px solid var(--divider-color,#ddd);padding-bottom:.6rem;margin:.8rem 0}.delivery-tabs button{flex:1}.delivery-tabs [aria-selected=true]{border-color:var(--primary-color,#0366d6);box-shadow:inset 0 -3px var(--primary-color,#0366d6)}.choice input{margin-top:.2rem;flex:none;min-height:1.1rem;min-width:1.1rem}label.field{display:block;margin:.8rem 0}label.field span{display:block;margin-bottom:.4rem}input[type=text],input[type=number]{box-sizing:border-box;width:100%;padding:.7rem;border:1px solid var(--divider-color,#888);border-radius:6px;background:var(--secondary-background-color,#f5f5f5);color:inherit;font:inherit}button{cursor:pointer;min-height:44px;padding:.5rem .9rem;border:1px solid var(--divider-color,#888);border-radius:6px;background:var(--secondary-background-color,#eee);color:inherit;font:inherit}button.primary{background:var(--primary-color,#0366d6);border-color:var(--primary-color,#0366d6);color:var(--text-primary-color,#fff)}button:disabled{opacity:.6;cursor:wait}:focus-visible{outline:3px solid var(--primary-color,#0366d6);outline-offset:2px}.muted{color:var(--secondary-text-color,#666);font-size:.9rem}.error{padding:.7rem;border:1px solid var(--error-color,#b00020);border-radius:6px;color:var(--error-color,#b00020)}h2,h3,p{overflow-wrap:anywhere}ul{padding-inline-start:1.3rem}li{line-height:1.5;overflow-wrap:anywhere}a{color:var(--primary-color,#0366d6)}.review{border-bottom:1px solid var(--divider-color,#ddd);padding:.4rem 0 .8rem}summary{cursor:pointer}.status{min-height:1.4rem} @media(max-width:420px){header,main,footer{padding:.8rem}dialog{width:calc(100vw - 1rem);max-height:calc(100dvh - 1rem)}}
+dialog::backdrop{background:#0008}form{display:flex;flex-direction:column;max-height:calc(100dvh - 2rem);margin:0}header,main,footer{padding:1rem 1.25rem}header{border-bottom:1px solid var(--divider-color,#ddd)}h2{font-size:1.35rem;margin:0 0 .3rem}h3{font-size:1.1rem;margin:.4rem 0 1rem}p{line-height:1.5;margin:.5rem 0}main{overflow:auto;min-height:8rem}footer{display:flex;gap:.6rem;flex-wrap:wrap;border-top:1px solid var(--divider-color,#ddd)}.spacer{flex:1}fieldset{min-width:0;border:1px solid var(--divider-color,#ddd);border-radius:8px;margin:1rem 0;padding:.75rem}legend{font-weight:600}.choice{display:flex;align-items:flex-start;gap:.6rem;padding:.5rem 0;line-height:1.4}.choice span{min-width:0;overflow-wrap:anywhere}.delivery-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}.delivery-filters label{min-width:0}.delivery-filters select{min-width:0}.delivery-tabs{display:flex;gap:.5rem;border-bottom:1px solid var(--divider-color,#ddd);padding-bottom:.6rem;margin:.8rem 0}.delivery-tabs button{flex:1}.delivery-tabs [aria-selected=true]{border-color:var(--primary-color,#0366d6);box-shadow:inset 0 -3px var(--primary-color,#0366d6)}.choice input{margin-top:.2rem;flex:none;min-height:1.1rem;min-width:1.1rem}label.field{display:block;margin:.8rem 0}label.field span{display:block;margin-bottom:.4rem}input[type=text],input[type=number],select{box-sizing:border-box;width:100%;padding:.7rem;border:1px solid var(--divider-color,#888);border-radius:6px;background:var(--secondary-background-color,#f5f5f5);color:inherit;font:inherit}button{cursor:pointer;min-height:44px;padding:.5rem .9rem;border:1px solid var(--divider-color,#888);border-radius:6px;background:var(--secondary-background-color,#eee);color:inherit;font:inherit}button.primary{background:var(--primary-color,#0366d6);border-color:var(--primary-color,#0366d6);color:var(--text-primary-color,#fff)}button:disabled{opacity:.6;cursor:wait}:focus-visible{outline:3px solid var(--primary-color,#0366d6);outline-offset:2px}.muted{color:var(--secondary-text-color,#666);font-size:.9rem}.error{padding:.7rem;border:1px solid var(--error-color,#b00020);border-radius:6px;color:var(--error-color,#b00020)}h2,h3,p{overflow-wrap:anywhere}ul{padding-inline-start:1.3rem}li{line-height:1.5;overflow-wrap:anywhere}a{color:var(--primary-color,#0366d6)}.review{border-bottom:1px solid var(--divider-color,#ddd);padding:.4rem 0 .8rem}summary{cursor:pointer}.status{min-height:1.4rem} @media(max-width:420px){header,main,footer{padding:.8rem}dialog{width:calc(100vw - 1rem);max-height:calc(100dvh - 1rem)}}
 `;
 const el = (tag, text, className) => {
   const element = document.createElement(tag);
@@ -14,6 +14,14 @@ const beginning = value => value.endsWith("_begin");
 const jamaat = value => value.endsWith("_jamaat") || value === "jumuah";
 const isMinutes = value => Number.isInteger(value) && value >= 0 && value <= 180;
 const newDelivery = () => ({notification_actions: [], notification_entities: [], media_players: [], media_content_id: "", media_content_type: "audio/mpeg", volume: null});
+const newFilters = () => ({integration: "", device_type: ""});
+const normalizeChoice = (choice, key) => ({
+  ...choice, key,
+  integration: choice.integration || "unknown",
+  integration_name: choice.integration_name || (choice.integration && choice.integration !== "unknown" ? choice.integration : "Other / unknown"),
+  device_type: choice.device_type || "unknown",
+  device_type_name: choice.device_type_name || (choice.device_type && choice.device_type !== "unknown" ? choice.device_type : "Other / unknown"),
+});
 const deliveryName = kind => kind === "beginning" ? "Beginning reminders" : "Jamaat reminders";
 const destinationLabel = (id, name) => name && name !== id ? `${name} (${id})` : id;
 // Local HTTP Home Assistant addresses do not expose crypto.randomUUID.
@@ -35,6 +43,10 @@ export class SalahReminderWizard extends HTMLElement {
     this._delivery = {beginning: newDelivery(), jamaat: newDelivery()};
     this._deliveryIndex = 0;
     this._deliveryTabs = {beginning: "notifications", jamaat: "notifications"};
+    this._deliveryFilters = {
+      beginning: {notifications: newFilters(), sound: newFilters()},
+      jamaat: {notifications: newFilters(), sound: newFilters()},
+    };
     this._name = "Prayer reminders";
     this._error = "";
     this._status = "";
@@ -219,6 +231,48 @@ export class SalahReminderWizard extends HTMLElement {
     if (settings.fields.some(jamaat)) this._field(main, "Minutes before selected Jamaat times", settings.jamaat_minutes, value => { settings.jamaat_minutes = value; }, {type: "number", min: 0, max: 180, step: 1, key: "jamaat_minutes"});
   }
 
+  _destinationChoices(tab) {
+    if (tab === "notifications") return ["notification_actions", "notification_entities"].flatMap(key =>
+      (this._options[key] || []).map(choice => normalizeChoice(choice, key)));
+    const players = Array.isArray(this._options.media_players) ? this._options.media_players :
+      Object.entries(this._hass.states || {}).filter(([id]) => id.startsWith("media_player.")).map(([value, state]) => ({value, label: state.attributes?.friendly_name || value}));
+    return players.map(choice => normalizeChoice(choice, "media_players"));
+  }
+
+  _filteredDestinations(parent, tab, delivery) {
+    const all = this._destinationChoices(tab);
+    const filters = this._deliveryFilters[this._activeDeliveryKind()][tab];
+    const controls = el("div", undefined, "delivery-filters");
+    for (const [key, title, name] of [["integration", "Integration", "integration_name"], ["device_type", "Device type", "device_type_name"]]) {
+      const values = new Map(all.map(item => [item[key], item[name]]));
+      if (filters[key] && !values.has(filters[key])) filters[key] = "";
+      const label = el("label", undefined, "field"), select = el("select");
+      select.id = `delivery-filter-${key}`;
+      select.dataset.key = `filter:${key}`;
+      const options = [["", "All"], ...[...values].sort((a, b) => a[1].localeCompare(b[1]))];
+      for (const [value, text] of options) {
+        const option = el("option", text); option.value = value; select.append(option);
+      }
+      select.value = filters[key];
+      select.addEventListener("change", () => {
+        filters[key] = select.value;
+        this._render();
+        this.shadowRoot.querySelector(`[data-key="filter:${key}"]`)?.focus();
+      });
+      label.append(el("span", title), select); controls.append(label);
+    }
+    const visible = all.filter(item => (!filters.integration || item.integration === filters.integration) && (!filters.device_type || item.device_type === filters.device_type));
+    const keys = tab === "notifications" ? ["notification_actions", "notification_entities"] : ["media_players"];
+    const shown = new Set(visible.map(item => `${item.key}:${item.value}`));
+    const selected = keys.flatMap(key => delivery[key].map(value => `${key}:${value}`));
+    const hidden = selected.filter(key => !shown.has(key)).length;
+    const summary = el("p", `${selected.length} selected destination${selected.length === 1 ? "" : "s"}.${hidden ? ` ${hidden} selected destination${hidden === 1 ? "" : "s"} hidden from this list.` : ""} Filters only change this list; selections are kept.`, "muted");
+    summary.dataset.role = "delivery-filter-summary";
+    parent.append(controls, summary);
+    if (!visible.length) parent.append(el("p", "No destinations match these filters.", "muted"));
+    return visible;
+  }
+
   _renderDelivery(main) {
     const kind = this._activeDeliveryKind(), delivery = this._delivery[kind];
     if (!delivery) return;
@@ -250,25 +304,29 @@ export class SalahReminderWizard extends HTMLElement {
     panel.setAttribute("role", "tabpanel");
     panel.setAttribute("aria-labelledby", `delivery-${kind}-tab-${current}`);
     main.append(tabs, panel);
+    const destinations = this._filteredDestinations(panel, current, delivery);
+    panel.append(el("p", "Device types use the integration's reported type or Home Assistant device/entity labels when available. Other devices appear under Other / unknown.", "muted"));
     if (current === "notifications") {
       const choices = [["notification_actions", "Notification actions"], ["notification_entities", "Notification entities"]];
       for (const [key, title] of choices) {
         const group = this._group(panel, title);
-        for (const choice of this._options[key] || []) this._choice(group, destinationLabel(choice.value, choice.label), delivery[key].includes(choice.value), checked => {
+        const available = destinations.filter(choice => choice.key === key);
+        for (const choice of available) this._choice(group, destinationLabel(choice.value, choice.label), delivery[key].includes(choice.value), checked => {
           delivery[key] = this._toggle(delivery[key], choice.value, checked);
+          this._render();
+          this.shadowRoot.querySelector(`[data-key="${key}:${choice.value}"]`)?.focus();
         }, `${key}:${choice.value}`);
-        if (!(this._options[key] || []).length) group.append(el("p", `No ${title.toLowerCase()} found.`, "muted"));
+        if (!available.length) group.append(el("p", `No matching ${title.toLowerCase()}.`, "muted"));
       }
       panel.append(el("p", "Choose one notification route per device to avoid duplicate alerts. Phone notification sounds follow the Companion app and device settings.", "muted"));
     } else {
       const players = this._group(panel, "Sound playback");
-      const available = Object.entries(this._hass.states || {}).filter(([id]) => id.startsWith("media_player."));
-      for (const [id, state] of available) this._choice(players, destinationLabel(id, state.attributes?.friendly_name), delivery.media_players.includes(id), checked => {
-        delivery.media_players = this._toggle(delivery.media_players, id, checked);
+      for (const choice of destinations) this._choice(players, destinationLabel(choice.value, choice.label), delivery.media_players.includes(choice.value), checked => {
+        delivery.media_players = this._toggle(delivery.media_players, choice.value, checked);
         this._render();
-        this.shadowRoot.querySelector(`[data-key="media_player:${id}"]`)?.focus();
-      }, `media_player:${id}`);
-      if (!available.length) players.append(el("p", "No media players found.", "muted"));
+        this.shadowRoot.querySelector(`[data-key="media_player:${choice.value}"]`)?.focus();
+      }, `media_player:${choice.value}`);
+      if (!destinations.length) players.append(el("p", "No matching media players.", "muted"));
       if (delivery.media_players.length) {
         this._field(panel, "Sound media URL or media-source ID", delivery.media_content_id, value => { delivery.media_content_id = value; }, {key: "media_content_id"});
         panel.append(el("p", "Use your own recording that the chosen speakers can reach. For a Music Assistant URI, select its Music Assistant player and use music as the media content type.", "muted"));
@@ -296,7 +354,7 @@ export class SalahReminderWizard extends HTMLElement {
       for (const key of ["notification_actions", "notification_entities"]) for (const id of delivery[key]) {
         list.append(el("li", `Notify: ${destinationLabel(id, (this._options[key] || []).find(item => item.value === id)?.label)}`));
       }
-      for (const id of delivery.media_players) list.append(el("li", `Play sound: ${destinationLabel(id, this._hass.states[id]?.attributes?.friendly_name)}`));
+      for (const id of delivery.media_players) list.append(el("li", `Play sound: ${destinationLabel(id, this._options.media_players?.find(item => item.value === id)?.label || this._hass.states[id]?.attributes?.friendly_name)}`));
       main.append(el("h3", `${deliveryName(kind)} delivery`), list);
       if (delivery.media_players.length) {
         main.append(el("p", `Recording: ${delivery.media_content_id}`), el("p", `Media content type: ${delivery.media_content_type}`, "muted"));

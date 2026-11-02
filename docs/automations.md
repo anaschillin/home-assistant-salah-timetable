@@ -37,6 +37,17 @@ Assistant automation, without requiring individual sensor selection:
    for each reminder type. Each type's delivery settings apply across the selected
    masjids; advance minutes remain configurable per masjid.
    Friendly names and exact action/entity IDs appear in selection and review.
+   Both tabs offer **Integration** and **Device type** filters. For example, choose
+   **Companion app** for phone notification routes, or **Music Assistant** for
+   Music Assistant player entities. Filters combine and only change the visible
+   list: already-selected destinations remain selected and appear in review, with
+   a hidden-selection count shown when appropriate.
+   Device types use Home Assistant's reported class. When a phone or tablet has no
+   reported type, assign its HA device or entity an explicit **Phone** or **Tablet**
+   label, then reopen setup. Unclassified or conflicting labels appear under
+   **Other / unknown**; hardware models are not guessed. Streaming devices follow
+   their integration's reported class: Android TV/Fire TV commonly use **TV**,
+   while standalone Roku players commonly use **Receiver**.
    Notification actions and notification entities are listed separately: a phone
    can appear through both routes, so choose one route per device to avoid doubles.
 5. Review the masjids, selected times, offsets and destinations. Use **Back** to

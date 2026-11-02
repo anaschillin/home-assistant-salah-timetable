@@ -8,6 +8,10 @@ from homeassistant.components import websocket_api
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import label_registry as lr
+from homeassistant.util import slugify
 
 from .const import DOMAIN
 from .trigger import FIELD_LABELS, REMINDER_FIELDS
@@ -87,6 +91,112 @@ def _notifications(hass: HomeAssistant) -> list[str]:
         for name in hass.services.async_services().get("notify", {})
         if name != "send_message"
     ]
+
+
+_UNKNOWN = "Other / unknown"
+_DEVICE_TYPES = {
+    "phone": "Phone",
+    "tablet": "Tablet",
+    "speaker": "Speaker",
+    "tv": "TV",
+    "receiver": "Receiver",
+    "computer": "Computer",
+    "wearable": "Wearable",
+    "display": "Display",
+}
+_INTEGRATION_NAMES = {
+    "mobile_app": "Companion app",
+    "music_assistant": "Music Assistant",
+    "cast": "Google Cast",
+    "sonos": "Sonos",
+    "androidtv": "Android Debug Bridge",
+    "androidtv_remote": "Android TV Remote",
+    "roku": "Roku",
+    "unknown": _UNKNOWN,
+}
+
+
+def _filter_metadata(integration: str, device_type: str) -> dict[str, str]:
+    """Use registered providers and reported or explicitly labelled device types."""
+    return {
+        "integration": integration,
+        "integration_name": _INTEGRATION_NAMES.get(
+            integration, integration.replace("_", " ").title()
+        ),
+        "device_type": device_type,
+        "device_type_name": _DEVICE_TYPES.get(device_type, _UNKNOWN),
+    }
+
+
+def _labelled_type(hass: HomeAssistant, label_ids: set[str]) -> str:
+    labels = lr.async_get(hass)
+    types = {
+        label.name.strip().casefold()
+        for label_id in label_ids
+        if (label := labels.async_get_label(label_id)) is not None
+        and label.name.strip().casefold() in _DEVICE_TYPES
+    }
+    # Contradictory labels do not identify a reliable device category.
+    return types.pop() if len(types) == 1 else "unknown"
+
+
+def _entity_filter_metadata(hass: HomeAssistant, entity_id: str) -> dict[str, str]:
+    registry_entry = er.async_get(hass).async_get(entity_id)
+    state = hass.states.get(entity_id)
+    reported_type = state.attributes.get("device_class") if state else None
+    integration = registry_entry.platform if registry_entry else "unknown"
+    labels = set(registry_entry.labels) if registry_entry else set()
+    if registry_entry and registry_entry.device_id:
+        if device := dr.async_get(hass).async_get(registry_entry.device_id):
+            labels.update(device.labels)
+    device_type = (
+        reported_type
+        if isinstance(reported_type, str) and reported_type in _DEVICE_TYPES
+        else _labelled_type(hass, labels)
+    )
+    return _filter_metadata(integration, device_type)
+
+
+def _action_filter_metadata(hass: HomeAssistant, action: str) -> dict[str, str]:
+    """Correlate Companion actions only when their registration is unambiguous."""
+    if not action.startswith("notify.mobile_app_"):
+        return _filter_metadata("unknown", "unknown")
+    matches = [
+        entry
+        for entry in hass.config_entries.async_entries("mobile_app")
+        if entry.disabled_by is None
+        and isinstance(entry.data.get("device_name"), str)
+        and f"notify.mobile_app_{slugify(entry.data['device_name'])}" == action
+    ]
+    if len(matches) != 1:
+        return _filter_metadata("mobile_app", "unknown")
+    entry = matches[0]
+    entity_registry = er.async_get(hass)
+    device_registry = dr.async_get(hass)
+    entities = [
+        entity
+        for entity in er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+        if entity.domain == "notify" and entity.disabled_by is None
+    ]
+    labels = set()
+    reported_types = set()
+    for entity in entities:
+        labels.update(entity.labels)
+        if entity.device_id and (device := device_registry.async_get(entity.device_id)):
+            labels.update(device.labels)
+        if state := hass.states.get(entity.entity_id):
+            reported = state.attributes.get("device_class")
+            if isinstance(reported, str) and reported in _DEVICE_TYPES:
+                reported_types.add(reported)
+    for device in dr.async_entries_for_config_entry(device_registry, entry.entry_id):
+        labels.update(device.labels)
+    if len(reported_types) == 1:
+        device_type = next(iter(reported_types))
+    elif reported_types:
+        device_type = "unknown"
+    else:
+        device_type = _labelled_type(hass, labels)
+    return _filter_metadata("mobile_app", device_type)
 
 
 def _delivery_actions(
@@ -269,12 +379,25 @@ async def ws_reminder_options(hass, connection, msg):
                 {
                     "value": action,
                     "label": action.removeprefix("notify.").replace("_", " "),
+                    **_action_filter_metadata(hass, action),
                 }
                 for action in sorted(_notifications(hass))
             ],
             "notification_entities": [
-                {"value": state.entity_id, "label": state.name}
+                {
+                    "value": state.entity_id,
+                    "label": state.name,
+                    **_entity_filter_metadata(hass, state.entity_id),
+                }
                 for state in hass.states.async_all("notify")
+            ],
+            "media_players": [
+                {
+                    "value": state.entity_id,
+                    "label": state.name,
+                    **_entity_filter_metadata(hass, state.entity_id),
+                }
+                for state in hass.states.async_all("media_player")
             ],
         },
     )
