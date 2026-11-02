@@ -1,8 +1,10 @@
 """Use HA's real resource collection and authenticated static HTTP endpoint."""
 
+import re
 from asyncio import gather
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
+from urllib.parse import urljoin
 
 import pytest
 from homeassistant.components import frontend as ha_frontend
@@ -15,8 +17,11 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.setup import async_setup_component
 
 from custom_components.salah_timetable.frontend import (
+    BUNDLE_PATH,
     CARD_PATH,
     CARD_URL,
+    CARD_VERSION,
+    _bundle_fingerprint,
     async_setup_frontend,
 )
 
@@ -197,3 +202,76 @@ async def test_frontend_component_listener_removed_on_homeassistant_stop(hass):
     await hass.async_block_till_done()
     assert not state.listening
     assert state.unsubscribe_loaded is None
+
+
+def test_frontend_namespace_changes_when_only_an_imported_helper_changes(tmp_path):
+    entry = tmp_path / "salah-timetable-card.js"
+    entry.write_text('import "./card-i18n.js?v=1.0.0";')
+    helper = tmp_path / "card-i18n.js"
+    helper.write_text('export const label = "old";')
+    first = _bundle_fingerprint(tmp_path)
+    assert first == _bundle_fingerprint(tmp_path)
+    helper.write_text('export const label = "Prayer reminders";')
+    assert _bundle_fingerprint(tmp_path) != first
+    assert entry.read_text() == 'import "./card-i18n.js?v=1.0.0";'
+
+
+async def test_same_version_deployment_replaces_resource_and_versions_all_imports(
+    hass, hass_client
+):
+    assert await async_setup_component(hass, "http", {})
+    resources = await make_resources(hass)
+    old = await resources.async_create_item(
+        {"url": f"{CARD_PATH}?v={CARD_VERSION}", "res_type": "module"}
+    )
+    await async_setup_frontend(hass)
+    assert resources.async_items() == [
+        {"id": old["id"], "url": CARD_URL, "type": "module"}
+    ]
+    assert f"?v={CARD_VERSION}" in CARD_URL
+    assert CARD_URL != old["url"]
+    client = await hass_client()
+    response = await client.get(CARD_URL)
+    assert response.status == 200
+    source = await response.text()
+    assert "_reminderButton" in source
+    imports = re.findall(r'from "(\./[^"\n]+\.js[^"\n]*)"', source)
+    assert imports
+    for imported in imports:
+        resolved = urljoin(CARD_URL, imported)
+        assert resolved.startswith(BUNDLE_PATH + "/")
+        helper = await client.get(resolved)
+        assert helper.status == 200, resolved
+        content = await helper.text()
+        if "card-i18n.js" in resolved:
+            assert "Prayer reminders" in content
+        if "reminder-wizard.js" in resolved:
+            assert "openReminderWizard" in content
+    # Preserve old manual URLs while managed resources move to the new namespace.
+    assert (await client.get(CARD_PATH)).status == 200
+
+
+async def test_old_fingerprinted_resources_are_migrated_without_touching_other_urls(
+    hass,
+):
+    assert await async_setup_component(hass, "http", {})
+    resources = await make_resources(hass)
+    old_url = "/salah_timetable/0123456789abcdef/salah-timetable-card.js?v=1.0.0"
+    old = await resources.async_create_item({"url": old_url, "res_type": "module"})
+    remote = await resources.async_create_item(
+        {"url": "https://example.com" + old_url, "res_type": "module"}
+    )
+    other = await resources.async_create_item(
+        {
+            "url": "/salah_timetable/user-custom/salah-timetable-card.js",
+            "res_type": "module",
+        }
+    )
+    await async_setup_frontend(hass)
+    assert {
+        "id": old["id"],
+        "url": CARD_URL,
+        "type": "module",
+    } in resources.async_items()
+    assert remote in resources.async_items()
+    assert other in resources.async_items()

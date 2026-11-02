@@ -16,7 +16,11 @@ installed version includes **Prayer reminders**. Update the integration, restart
 Home Assistant and reload the dashboard after installing the feature.
 
 As a Home Assistant administrator, open **Prayer reminders** on the timetable
-card. The button is hidden in kiosk mode. The wizard creates one normal Home
+card. The button is hidden in kiosk mode. If it is missing after deploying the
+feature, check that you are an administrator and kiosk mode is off. The integration
+registers a content-fingerprinted frontend URL to replace cached same-version PR
+builds; see [resource troubleshooting](dashboard.md#resource-troubleshooting) for
+obsolete manual resource entries. The wizard creates one normal Home
 Assistant automation, without requiring individual sensor selection:
 
 1. Select one or more masjids. This screen is skipped when only one is configured.

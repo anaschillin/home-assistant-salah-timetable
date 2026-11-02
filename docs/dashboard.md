@@ -332,7 +332,7 @@ rules, see [Ramadan settings](import_review.md#ramadan-settings).
 
 ## Resource troubleshooting
 
-The integration serves versioned assets and automatically registers the card in
+The integration serves assets under a content-fingerprinted URL and automatically registers the card in
 storage-mode Lovelace resources. With YAML-managed resources it uses HA's supported
 extra-JavaScript registration without editing your YAML. A second manual resource
 is normally unnecessary.
@@ -347,8 +347,13 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an
-old card version persists. The integration updates its own registration on upgrades;
-for manual fallback resources, add the installed version as a cache key only if required after an upgrade. The version is shown at the top of this guide.
+old card version persists. The integration updates its own registration when the
+frontend changes, including when testing a PR with the same release version. Its
+registered URL includes a content fingerprint, so relative helper imports also
+load the matching build. Keep the automatically registered resource and remove
+obsolete manual duplicates that may load an older definition first. YAML-managed
+manual resources remain yours to edit; do not keep an old manual card URL alongside
+the integration's automatic module registration.
 
 If the card reports a missing entity, choose the mosque's Prayer timetable sensor
 again. If prayer values are unavailable, check the approved source's date coverage,

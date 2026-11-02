@@ -70,6 +70,10 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await until(expression(`const card=${findCard};return card?.shadowRoot?.textContent?.includes('Smoke Mosque')`), "Bundled card did not render in real HA");
     originalLocale = await evaluate("({...document.querySelector('home-assistant').hass.locale})");
     console.log("Real HA frontend loaded the bundled card");
+    assert.equal(await evaluate(expression(`const card=${findCard};const button=[...card.shadowRoot.querySelectorAll('button')].find(item=>item.textContent==='Prayer reminders');if(!button)return false;button.click();return true`)), true, "Administrator card is missing Prayer reminders");
+    await until(expression("const wizard=deep().find(element=>element.localName==='salah-reminder-wizard');return wizard?.shadowRoot.querySelector('dialog')?.matches(':modal')&&['mosques','prayers'].includes(wizard._step)"), "Prayer reminder setup did not load from the installed integration");
+    assert.equal(await evaluate(expression("const wizard=deep().find(element=>element.localName==='salah-reminder-wizard');const cancel=[...wizard.shadowRoot.querySelectorAll('button')].find(item=>item.textContent==='Cancel');if(!cancel)return false;cancel.click();return !wizard.isConnected")), true, "Prayer reminder setup did not close cleanly");
+    console.log("Real HA administrator card exposes Prayer reminders and loads its wizard");
     for (const width of [320, 360, 400, 900]) {
       await call("Emulation.setDeviceMetricsOverride", {width, height: 1100, deviceScaleFactor: 1, mobile: width === 360}); await pause(250);
       assert.equal(await evaluate(expression(`const card=${findCard};const content=card.shadowRoot.querySelector('.content');return content.scrollWidth<=content.clientWidth+1&&card.getBoundingClientRect().right<=innerWidth+1`)), true, `Card overflows at ${width}px`);
@@ -251,7 +255,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
       return retained && card._selectedDay===0;
     })()`),true,"Real HA day navigation changed mosque photo crop after a scrollbar-sized width change");
     console.log("Real card picker, all graphical options, language/bilingual reload, Arabic/English HA locale, keyboard focus, themes and 200% text passed");
-    return {viewports: [320, 360, 400, 900], languages: ["en", "ar"], bilingual_modes: [false, true], automatic_locale: ["en", "ar", "en"], configuration_reload: true, picker: true, editor: true, keyboard: true, themes: ["light", "dark"], root_text_scale: "200%"};
+    return {viewports: [320, 360, 400, 900], languages: ["en", "ar"], bilingual_modes: [false, true], automatic_locale: ["en", "ar", "en"], configuration_reload: true, prayer_reminders: true, picker: true, editor: true, keyboard: true, themes: ["light", "dark"], root_text_scale: "200%"};
   } finally {
     if (originalLocale && socket?.readyState === WebSocket.OPEN) {
       await evaluate(`document.documentElement.style.fontSize='';document.querySelector('home-assistant')?.dispatchEvent(new CustomEvent('hass-language-select',{detail:${JSON.stringify(originalLocale.language)},bubbles:true,composed:true}))`).catch(() => {});
