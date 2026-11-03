@@ -298,7 +298,9 @@ export class SalahTimetableCard extends HTMLElement {
       icon.setAttribute("icon", iconName);
       icon.setAttribute("aria-hidden", "true");
       button.append(icon);
-      if (mode !== "compact") button.append(node("span", label));
+      // Compact uses a disclosure menu, where action labels must remain visible.
+      // Narrow-card icon-only styling applies only to the Standard/Detailed toolbar.
+      button.append(node("span", label));
       button.addEventListener("click", event => {
         event.stopPropagation();
         onClick();
