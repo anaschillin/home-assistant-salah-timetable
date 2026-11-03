@@ -14,6 +14,11 @@ ha-card.has-mosque-background {
   min-height: calc(100vh - var(--header-height, 0px));
   min-height: calc(100dvh - var(--header-height, 0px));
 }
+/* Keep the full photograph on the dashboard, but let Home Assistant's
+   edit-card controls remain near the content while editing or previewing. */
+:host([dashboard-editing]) ha-card.has-mosque-background {
+  min-height: 0;
+}
 ha-card.has-mosque-background::before {
   content: "";
   position: absolute;
