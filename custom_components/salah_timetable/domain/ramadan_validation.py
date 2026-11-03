@@ -3,7 +3,7 @@
 from collections import Counter
 from datetime import date, timedelta
 
-from .model import DailyPrayers, PrayerField, STANDARD_PRAYER_FIELDS, Timetable
+from .model import STANDARD_PRAYER_FIELDS, DailyPrayers, PrayerField, Timetable
 from .ramadan import RamadanSettings, resolve_day
 
 _SAMPLE_DATES = 5

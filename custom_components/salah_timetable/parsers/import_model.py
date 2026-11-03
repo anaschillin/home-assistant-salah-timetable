@@ -10,7 +10,7 @@ from hashlib import sha256
 from types import MappingProxyType
 from typing import Mapping, Protocol
 
-from ..domain.model import PrayerField, STANDARD_PRAYER_FIELDS, Timetable
+from ..domain.model import STANDARD_PRAYER_FIELDS, PrayerField, Timetable
 
 MAX_SOURCE_BYTES = 512 * 1024
 MAX_PDF_BYTES = 4 * 1024 * 1024

@@ -20,7 +20,10 @@ async def test_empty_setup_and_unload(hass, entry):
     for field in ("jumuah_bayaan", "jumuah_adhaan", "jumuah_khutbah"):
         entity_id = registry.async_get_entity_id("sensor", DOMAIN, f"example_{field}")
         assert entity_id is not None
-        assert registry.async_get(entity_id).disabled_by == er.RegistryEntryDisabler.INTEGRATION
+        assert (
+            registry.async_get(entity_id).disabled_by
+            == er.RegistryEntryDisabler.INTEGRATION
+        )
         assert hass.states.get(entity_id) is None
     assert (
         hass.states.get("sensor.example_mosque_fajr_beginning").state == "unavailable"

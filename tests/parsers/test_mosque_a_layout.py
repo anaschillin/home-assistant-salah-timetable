@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 
 from custom_components.salah_timetable.domain.model import (
-    PrayerField,
     STANDARD_PRAYER_FIELDS,
+    PrayerField,
 )
 from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 from custom_components.salah_timetable.parsers.import_model import ImportValidationError
