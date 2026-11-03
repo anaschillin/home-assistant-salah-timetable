@@ -12,6 +12,22 @@ import {waitForDebuggerPort} from "./browser-startup.mjs";
 import {MOSQUE_BACKGROUNDS} from "../../custom_components/salah_timetable/frontend/mosque-backgrounds.js";
 
 const root = resolve(fileURLToPath(new URL("../../", import.meta.url)));
+const JS_EMBED_ESCAPE_MAP = {
+  "<": "\\u003C",
+  ">": "\\u003E",
+  "/": "\\u002F",
+  "\\": "\\\\",
+  "\b": "\\b",
+  "\f": "\\f",
+  "\n": "\\n",
+  "\r": "\\r",
+  "\t": "\\t",
+  "\0": "\\0",
+  "\u2028": "\\u2028",
+  "\u2029": "\\u2029",
+};
+const JS_EMBED_UNSAFE_PATTERN = /[<>/\\\b\f\n\r\t\0\u2028\u2029]/g;
+const escapeForJsEmbedding = value => value.replace(JS_EMBED_UNSAFE_PATTERN, char => JS_EMBED_ESCAPE_MAP[char]);
 let browser;
 for (const candidate of [process.env.CHROME_BIN, "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/opt/google/chrome/chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser"].filter(Boolean)) {
   try { await access(candidate, constants.X_OK); browser = candidate; break; } catch { /* Try the next installed browser. */ }
@@ -182,7 +198,7 @@ nextFixture();
       await t.test(`${width}px ${language} timetable action placement and pointer navigation`, async () => {
         const evaluate = async source => {
           const result = await debuggerSession.call("Runtime.evaluate", {
-            expression: `(() => {const frame = document.querySelectorAll('iframe')[${index}]; ${source}})()`,
+            expression: `(() => {const frame = document.querySelectorAll('iframe')[${index}]; ${escapeForJsEmbedding(source)}})()`,
             returnByValue: true,
           });
           assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
@@ -190,7 +206,7 @@ nextFixture();
         };
         const click = async selector => {
           const point = await evaluate(`
-            const button = frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelector(${JSON.stringify(selector)});
+            const button = frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelector(${escapeForJsEmbedding(JSON.stringify(selector))});
             button.scrollIntoView({block: "center", inline: "nearest"});
             const rect = button.getBoundingClientRect();
             const offset = frame.getBoundingClientRect();
@@ -204,12 +220,12 @@ nextFixture();
           ["standard", ".header .card-action-strip", ".header .card-action-strip"],
           ["detailed", ".header .card-action-strip", ".header .card-action-strip"],
         ]) {
-          await evaluate(`frame.contentWindow.actionFixture = frame.contentWindow.mountActionCard(${JSON.stringify(mode)});`);
+          await evaluate(`frame.contentWindow.actionFixture = frame.contentWindow.mountActionCard(${escapeForJsEmbedding(JSON.stringify(mode))});`);
           const placement = (selector, surface) => evaluate(`
             const root = frame.contentWindow.actionFixture.actionCard.shadowRoot;
-            const container = root.querySelector(${JSON.stringify(selector)});
+            const container = root.querySelector(${escapeForJsEmbedding(JSON.stringify(selector))});
             const buttons = [...(container?.querySelectorAll("button") || [])];
-            const bounds = container?.closest(${JSON.stringify(surface)})?.getBoundingClientRect();
+            const bounds = container?.closest(${escapeForJsEmbedding(JSON.stringify(surface))})?.getBoundingClientRect();
             return buttons.length && buttons.every(button => {
               const rect = button.getBoundingClientRect();
               return rect.width > 0 && rect.height > 0 && bounds &&
