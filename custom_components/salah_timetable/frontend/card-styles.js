@@ -700,10 +700,8 @@ tbody tr th,tbody tr td {
   row-gap: 5px;
 }
 .header h2 {
-  grid-column: 1;
-  grid-row: 1;
+  grid-column: 1 / -1;
   min-width: 0;
-  flex-basis: auto;
 }
 .header .hijri {
   grid-column: 1;
@@ -733,11 +731,12 @@ tbody tr th,tbody tr td {
 /* When card space is truly narrow, dates stack instead of competing for
    horizontal space. Use container width, not overall device viewport. */
 @container(max-width:23rem) {
+  .header { grid-template-columns: minmax(0,1fr); }
   .header .hijri,.header .gregorian,.header .month-description {
-    grid-column: 1 / -1;
+    grid-column: 1;
     grid-row: auto;
   }
-  .header .gregorian { text-align: end; }
+  .header .gregorian { text-align: start; }
 }
 /* Full-bleed mosque photograph across the entire canvas allocated by
    Home Assistant. Limit only the inner content width, never the background.
@@ -1053,7 +1052,13 @@ ha-card.kiosk:fullscreen {
 /* Monthly actions share the mosque title row. The Gregorian date stays
    directly underneath; compact keeps its accessible More disclosure. */
 .summary-shell .header { position: relative; }
+/* Only override the original full-width title when an inline toolbar exists.
+   Cards with the monthly feature disabled keep their original RTL/date layout. */
 .summary-shell .header.has-month-action h2 { min-height: 36px; }
+.summary-shell .header:has(.card-action-strip) h2 {
+  grid-column: 1;
+  grid-row: 1;
+}
 .card-action-strip {
   grid-column: 2;
   grid-row: 1;
@@ -1116,13 +1121,22 @@ ha-card.kiosk:fullscreen {
   }
 }
 @container(max-width:23rem) {
+  /* Keep a two-column title/action row despite the one-column default
+     header at mobile widths. Date text then spans the full header width. */
+  .header:has(.card-action-strip) {
+    grid-template-columns: minmax(0,1fr) max-content;
+  }
+  .header:has(.card-action-strip) .hijri,
+  .header:has(.card-action-strip) .gregorian,
+  .header:has(.card-action-strip) .month-description {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+  .header:has(.card-action-strip) .gregorian { text-align: end; }
   .header.has-many-month-actions .card-action-strip {
     grid-column: 1 / -1;
     grid-row: 2;
   }
-  .header.has-many-month-actions .hijri,
-  .header.has-many-month-actions .gregorian,
-  .header.has-many-month-actions .month-description { grid-row: auto; }
 }
 /* Keep the disclosure in the summary's flow so its clipped glass surface
    cannot cover actions when the countdowns are short or hidden. */
