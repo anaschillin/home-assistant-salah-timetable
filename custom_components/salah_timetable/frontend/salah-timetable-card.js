@@ -298,7 +298,7 @@ export class SalahTimetableCard extends HTMLElement {
       icon.setAttribute("icon", iconName);
       icon.setAttribute("aria-hidden", "true");
       button.append(icon);
-      if (mode !== "standard") button.append(node("span", label));
+      if (mode !== "compact") button.append(node("span", label));
       button.addEventListener("click", event => {
         event.stopPropagation();
         onClick();
@@ -341,8 +341,7 @@ export class SalahTimetableCard extends HTMLElement {
       menu.append(trigger, list);
       return menu;
     }
-    const toolbar = node(mode === "detailed" ? "nav" : "div", undefined,
-      mode === "detailed" ? "card-actions-footer" : "card-action-strip");
+    const toolbar = node("nav", undefined, "card-action-strip");
     toolbar.setAttribute("aria-label", tr(ui, "card.timetable_actions"));
     toolbar.append(...actions);
     return toolbar;
@@ -523,15 +522,16 @@ export class SalahTimetableCard extends HTMLElement {
     }
     summary.append(header);
     const cardActions = this._cardActions(ui, displayDate);
-    if (cardActions && this._config.detail_level !== "detailed") {
+    if (cardActions) {
       header.classList.add("has-month-action");
-      header.style.setProperty("--card-action-count", String(this._monthView ? 4 : 1));
+      if (this._monthView && this._config.detail_level !== "compact") {
+        header.classList.add("has-many-month-actions");
+      }
       header.append(cardActions);
     }
     content.append(summary);
     if (this._monthView && this._config.show_month_view && this._monthState) {
       const monthlyPanel = this._monthlyPanel(ui);
-      if (cardActions && this._config.detail_level === "detailed") monthlyPanel.append(cardActions);
       content.append(monthlyPanel);
       card.append(content);
       this.shadowRoot.replaceChildren(style, card);
