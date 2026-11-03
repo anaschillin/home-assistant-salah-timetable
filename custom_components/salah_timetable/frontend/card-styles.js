@@ -1098,16 +1098,17 @@ export const EDITOR_CSS = `
 .reminder-setup[hidden] { display: none; }
 .reminder-setup:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
 
-:host { display: block; }
+:host { display: block; container-type: inline-size; }
 .form { display: grid; gap: 14px; padding: 12px 0; color: var(--primary-text-color); }
 .help { color: var(--secondary-text-color); font-size: .85rem; line-height: 1.45; }
 .error { color: var(--error-color); }
-.title-field { display: grid; gap: 7px; }
-.title-field label { font: inherit; }
+/* Compact title editor: label and input share one row. */
+.title-field { display: grid; grid-template-columns: minmax(0,135px) minmax(0,1fr); align-items: center; gap: 12px; }
+.title-field label { font: inherit; font-size: .88rem; }
 .title-field input {
   box-sizing: border-box;
   width: 100%;
-  padding: 12px;
+  padding: 9px 10px;
   border: 1px solid var(--divider-color);
   border-radius: 6px;
   background: var(--card-background-color);
@@ -1120,12 +1121,22 @@ export const EDITOR_CSS = `
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
-.mosque-options { display: grid; gap: 8px; }
+.mosque-options { display: grid; gap: 7px; }
 .mosque-options[hidden] { display: none; }
 .mosque-options-heading { font-weight: 600; }
-.mosque-options-list { display: grid; gap: 8px; }
-.mosque-choice { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.mosque-choice input { accent-color: var(--primary-color); }
+.mosque-options-hint { font-size: .8rem; line-height: 1.35; color: var(--secondary-text-color); }
+.mosque-options-list { display: grid; }
+.mosque-choice { display: grid; grid-template-columns: 14px minmax(0,1fr) 34px 34px; gap: 6px; align-items: center; min-width: 0; padding: 8px 0; border-top: 1px solid var(--divider-color); }
+.mosque-choice[draggable="true"] { cursor: grab; }
+.mosque-choice-label { display: flex; align-items: center; gap: 8px; min-width: 0; overflow-wrap: anywhere; font-size: .88rem; }
+.mosque-choice input { flex-shrink: 0; accent-color: var(--primary-color); }
+.mosque-first { font-size: .7rem; color: var(--primary-color); }
+.mosque-grip { text-align: center; color: var(--secondary-text-color); user-select: none; }
+.mosque-choice button { width: 34px; height: 34px; padding: 3px; border: 0; background: transparent; border-radius: 7px; color: var(--primary-text-color); display: grid; place-items: center; cursor: pointer; }
+.mosque-choice button:disabled { opacity: .3; cursor: default; }
+.mosque-choice button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 1px; }
+.mosque-choice button ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; }
+@container(max-width: 22rem) { .title-field { grid-template-columns: minmax(0,1fr); gap: 6px; } .mosque-choice { grid-template-columns: 12px minmax(0,1fr) 32px 32px; } }
 .setting {
   display: grid;
   grid-template-columns: minmax(0,1fr) auto;

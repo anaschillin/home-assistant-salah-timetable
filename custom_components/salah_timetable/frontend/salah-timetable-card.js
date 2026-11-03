@@ -142,7 +142,13 @@ export class SalahTimetableCard extends HTMLElement {
 
   static getConfigElement() { return document.createElement("salah-timetable-card-editor"); }
   static getStubConfig(hass) { return normalizeConfig({entity: discoverEntity(hass)}); }
-  setConfig(config) { this._config = normalizeForUi(config, this._hass); this._render(); }
+  setConfig(config) {
+    const next = normalizeForUi(config, this._hass);
+    // Reordered mosque lists establish a new first (default) mosque.
+    if (this._config?.entity !== next.entity) this._selectedMosque = null;
+    this._config = next;
+    this._render();
+  }
   set hass(value) {
     this._hass = value;
     if (this._hassRenderKey() !== this._renderedHassKey) this._render();
@@ -161,8 +167,9 @@ export class SalahTimetableCard extends HTMLElement {
   _mosques() {
     const available = discoverTimetableEntities(this._hass);
     if (!this._config.mosque_entities) return available;
-    const enabled = new Set(this._config.mosque_entities);
-    return available.filter(mosque => enabled.has(mosque.entity));
+    // The saved list is ordered; alphabetic discovery must not override it.
+    const byEntity = new Map(available.map(mosque => [mosque.entity, mosque]));
+    return this._config.mosque_entities.map(entity => byEntity.get(entity)).filter(Boolean);
   }
   _activeEntity() {
     const mosques = this._mosques();
@@ -720,7 +727,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       this._reminderAction.textContent = tr(ui, "card.prayer_reminders");
     }
     this._updateSections(ui);
-    const {entity, title, titleLabel, error, help, mosqueGroup, mosqueHeading, mosqueList} = this._controls;
+    const {entity, title, titleLabel, error, help, mosqueGroup, mosqueHeading, mosqueHint, mosqueList} = this._controls;
     entity.hass = this._hass; entity.label = tr(ui, "editor.entity");
     const mosques = discoverTimetableEntities(this._hass);
     const options = mosques.map(({entity: value, name}) => ({value, label: `${name} (${value})`}));
@@ -731,33 +738,88 @@ export class SalahTimetableCardEditor extends HTMLElement {
     }
     entity.selector = {select: {options}};
     mosqueHeading.textContent = tr(ui, "editor.mosques");
-    const listed = options.map(option => ({entity: option.value, name: mosques.find(item => item.entity === option.value)?.name || option.value}));
-    // Preserve any selected-but-temporarily-missing mosque during HA startup.
-    for (const value of this._config.mosque_entities || []) {
+    mosqueHint.textContent = tr(ui, "editor.mosque_reorder_hint");
+    const listed = options.map(option => ({
+      entity: option.value,
+      name: mosques.find(item => item.entity === option.value)?.name || option.value,
+    }));
+    // Existing cards continue with all mosques. Their original primary remains
+    // first when an ordered list is first saved; missing sensors remain listed.
+    const selected = this._config.mosque_entities
+      ? [...this._config.mosque_entities]
+      : [...new Set([this._config.entity, ...listed.map(item => item.entity)].filter(Boolean))];
+    for (const value of selected) {
       if (!listed.some(item => item.entity === value)) listed.push({entity: value, name: value});
     }
-    mosqueGroup.hidden = listed.length < 2;
+    const ordered = [
+      ...selected.map(value => listed.find(item => item.entity === value)).filter(Boolean),
+      ...listed.filter(item => !selected.includes(item.entity)),
+    ];
+    mosqueGroup.hidden = ordered.length < 2;
     mosqueList.replaceChildren();
-    const enabled = new Set(this._config.mosque_entities || listed.map(item => item.entity));
-    for (const mosque of listed) {
-      const row = node("label", undefined, "mosque-choice");
+    const enabled = new Set(selected);
+    const reorder = (source, destination) => {
+      const from = selected.indexOf(source), to = selected.indexOf(destination);
+      if (from < 0 || to < 0 || from === to) return;
+      const entities = [...selected];
+      entities.splice(to, 0, entities.splice(from, 1)[0]);
+      this._changed({mosque_entities: entities, entity: entities[0]});
+    };
+    for (const mosque of ordered) {
+      const index = selected.indexOf(mosque.entity);
+      const row = node("div", undefined, "mosque-choice");
+      row.draggable = index >= 0 && selected.length > 1;
+      row.setAttribute("data-mosque-row", mosque.entity);
+      const grip = node("span", "⋮⋮", "mosque-grip");
+      grip.setAttribute("aria-hidden", "true");
+      const choice = node("label", undefined, "mosque-choice-label");
       const checkbox = node("input"); checkbox.type = "checkbox";
       checkbox.checked = enabled.has(mosque.entity);
       checkbox.disabled = checkbox.checked && enabled.size === 1;
       checkbox.setAttribute("data-mosque-entity", mosque.entity);
-      row.append(checkbox, node("span", mosque.name));
+      choice.append(checkbox, node("span", mosque.name));
+      if (index === 0) choice.append(node("small", tr(ui, "editor.mosque_first"), "mosque-first"));
       checkbox.addEventListener("change", () => {
-        const allowed = new Set(this._config.mosque_entities || listed.map(item => item.entity));
-        if (checkbox.checked) allowed.add(mosque.entity);
-        else allowed.delete(mosque.entity);
-        if (!allowed.size) { this._updateControls(); return; }
-        const entities = [...allowed];
-        this._changed({mosque_entities: entities,
-          entity: entities.includes(this._config.entity) ? this._config.entity : entities[0]});
+        const entities = [...selected];
+        if (checkbox.checked) entities.push(mosque.entity);
+        else entities.splice(entities.indexOf(mosque.entity), 1);
+        if (!entities.length) { this._updateControls(); return; }
+        this._changed({mosque_entities: entities, entity: entities[0]});
+      });
+      const move = (delta, label, iconName) => {
+        const button = node("button", undefined, delta < 0 ? "mosque-move-up" : "mosque-move-down");
+        button.type = "button";
+        button.disabled = index < 0 || index + delta < 0 || index + delta >= selected.length;
+        button.setAttribute("aria-label", tr(ui, label, {name: mosque.name}));
+        button.title = tr(ui, label, {name: mosque.name});
+        const icon = node("ha-icon"); icon.setAttribute("icon", iconName);
+        icon.setAttribute("aria-hidden", "true");
+        button.append(icon);
+        button.addEventListener("click", () => reorder(mosque.entity, selected[index + delta]));
+        return button;
+      };
+      row.append(grip, choice,
+        move(-1, "editor.mosque_move_up", "mdi:chevron-up"),
+        move(1, "editor.mosque_move_down", "mdi:chevron-down"));
+      row.addEventListener("dragstart", event => {
+        if (!row.draggable) { event.preventDefault(); return; }
+        event.dataTransfer?.setData("text/plain", mosque.entity);
+        if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+      });
+      row.addEventListener("dragover", event => {
+        if (index < 0) return;
+        event.preventDefault();
+        if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+      });
+      row.addEventListener("drop", event => {
+        event.preventDefault();
+        const source = event.dataTransfer?.getData("text/plain");
+        if (source) reorder(source, mosque.entity);
       });
       mosqueList.append(row);
     }
     titleLabel.textContent = tr(ui, "editor.title");
+    title.placeholder = tr(ui, "editor.title_placeholder");
     error.textContent = this._entityError ? tr(ui, "editor.invalid_entity") : "";
     help.textContent = tr(ui, "editor.help");
     if (entity.value !== this._config.entity) entity.value = this._config.entity;
@@ -787,10 +849,11 @@ export class SalahTimetableCardEditor extends HTMLElement {
     title.addEventListener("input", event => this._changed({title: event.target.value}));
     const mosqueGroup = node("div", undefined, "mosque-options");
     const mosqueHeading = node("div", undefined, "mosque-options-heading");
+    const mosqueHint = node("div", undefined, "mosque-options-hint");
     const mosqueList = node("div", undefined, "mosque-options-list");
-    mosqueGroup.append(mosqueHeading, mosqueList);
+    mosqueGroup.append(mosqueHeading, mosqueHint, mosqueList);
     const help = node("div", undefined, "help");
-    this._controls = {entity, title, titleLabel, error, help, mosqueGroup, mosqueHeading, mosqueList};
+    this._controls = {entity, title, titleLabel, error, help, mosqueGroup, mosqueHeading, mosqueHint, mosqueList};
     this._extraControls = {};
     const settings = [
       ["detail_level", ["compact", "standard", "detailed"]],
@@ -853,7 +916,9 @@ export class SalahTimetableCardEditor extends HTMLElement {
     }
     // Keep reminder setup beside the detail selector, outside the dashboard card.
     this._reminderAction = this._reminderButton(resolveUi(this._config, this._hass));
-    form.append(entity, error, titleField, mosqueGroup, fields.get("detail_level"));
+    // The earlier single-mosque sensor selector duplicated the checkbox list.
+    // Retain its configuration handler for backwards compatibility, not its UI.
+    form.append(titleField, mosqueGroup, fields.get("detail_level"));
     if (this._reminderAction) form.append(this._reminderAction);
     form.append(...groups, help);
     this._updateControls();
