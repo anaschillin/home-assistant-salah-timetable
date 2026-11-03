@@ -77,9 +77,21 @@ try {
   render({show_mosque_background: true, mosque_background: "masjid-al-haram"});
   check("bundled mosque background resolves to local WebP", card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-background-image").includes("/salah_timetable/backgrounds/masjid-al-haram.webp"));
   check("photo includes a photographer credit", card.shadowRoot.querySelector(".background-credit a")?.href.includes("unsplash.com/photos/"));
+  // Wait for the card's layout measurement, which is scheduled after HA
+  // inserts the custom element. Every browser fixture uses a real viewport.
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   const photoCard = card.shadowRoot.querySelector("ha-card");
   const photoStyle = getComputedStyle(photoCard);
   const viewingMinHeight = photoStyle.minHeight;
+  const visualBottom = window.visualViewport?.height
+    ? window.visualViewport.height + (window.visualViewport.offsetTop || 0) : innerHeight;
+  const expectedHeight = Math.max(0, Math.floor(visualBottom - Math.max(0, card.getBoundingClientRect().top) - 12));
+  check("photo minimum matches the space remaining below the card, not the whole viewport",
+    Math.abs(Number.parseFloat(viewingMinHeight) - expectedHeight) <= 1 &&
+    card.style.getPropertyValue("--salah-viewport-card-height") === `${expectedHeight}px`);
+  check("short cards reach the screen bottom without forcing overflow; taller content grows naturally",
+    photoCard.getBoundingClientRect().height >= expectedHeight - 1 &&
+    !photoStyle.maxHeight.includes("px"));
   check("photo fills the normal dashboard and edit preview shortens the canvas",
     Number.parseFloat(viewingMinHeight) > 0);
   card.preview = true;
