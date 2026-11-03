@@ -207,6 +207,41 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
           header.scrollWidth<=header.clientWidth+1;
       })()`), true, `Real HA header description shares date row or overflows at ${width}px`);
     }
+    // Home Assistant keeps the dashboard in edit mode after saving a card.
+    // First confirm that preview intentionally removes the full-height canvas,
+    // so the native card Edit controls remain reachable without scrolling.
+    await evaluate("window.salahAutoCard.setConfig({...window.salahAutoCard._config,show_mosque_background:true})");
+    assert.equal(await evaluate(`(()=>{
+      const card=window.salahAutoCard;
+      const surface=card.shadowRoot.querySelector("ha-card");
+      return card.preview === true &&
+        card.hasAttribute("dashboard-editing") &&
+        surface.classList.contains("has-mosque-background") &&
+        getComputedStyle(surface).minHeight === "0px";
+    })()`), true, "Real HA dashboard editing did not reduce the full-height photo canvas");
+    // Leave edit mode through the real Home Assistant toolbar, rather than
+    // forcing the custom card's preview property. Only then assert that
+    // Yesterday/Tomorrow retain the full-viewport photo in normal viewing.
+    await until(expression(`
+      const exit=deep().find(element=>element.localName==="ha-button" &&
+        element.classList.contains("exit-edit-mode"));
+      if(!exit)return false;
+      exit.click();
+      return true;
+    `), "Real HA dashboard exit-edit control missing");
+    await until(expression(`
+      const saved=window.salahAutoCard;
+      const card=saved.isConnected ? saved : deep().find(element=>
+        element.localName==="salah-timetable-card" &&
+        element._config?.entity && element._config?.hijri_adjustment!==2);
+      if(!card?.shadowRoot)return false;
+      window.salahAutoCard=card;
+      const surface=card.shadowRoot.querySelector("ha-card");
+      return card.preview === false &&
+        !card.hasAttribute("dashboard-editing") &&
+        surface?.classList.contains("has-mosque-background") &&
+        parseFloat(getComputedStyle(surface).minHeight)>0;
+    `), "Real HA dashboard exit did not restore the full-height photo canvas");
     // The full-bleed photograph should reach the dashboard viewport bottom
     // even when Yesterday/Tomorrow omit both live countdowns. The timetable
     // itself stays compact at the top; only the photo canvas fills the view.
