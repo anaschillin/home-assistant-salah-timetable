@@ -40,6 +40,48 @@ test("bundled card and graphical editor register once", () => {
   assert.equal(SalahTimetableCard.getStubConfig(hass()).entity, "sensor.mosque_prayer_timetable");
 });
 
+test("viewport sizing follows the rendered card top and available mobile screen", () => {
+  const oldViewport = window.visualViewport;
+  const oldHeight = window.innerHeight;
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: true});
+  card.hass = hass();
+  let top = 92;
+  card.getBoundingClientRect = () => ({top, width: 360});
+  try {
+    window.visualViewport = {height: 700, offsetTop: 0};
+    window.innerHeight = 850;
+    card._measureViewportHeight();
+    assert.equal(card.style.values["--salah-viewport-card-height"], "596px",
+      "Use the visual viewport minus actual card top and a 12px bottom gap");
+    top = 160;
+    window.visualViewport.height = 640;
+    card._measureViewportHeight();
+    assert.equal(card.style.values["--salah-viewport-card-height"], "468px",
+      "Recompute when the mobile toolbar or card position changes");
+    top = 800;
+    card._measureViewportHeight();
+    assert.equal(card.style.values["--salah-viewport-card-height"], "0px",
+      "Cards below the visible screen keep their natural content height");
+    top = -100;
+    card._measureViewportHeight();
+    assert.equal(card.style.values["--salah-viewport-card-height"], "628px",
+      "A scrolled card cannot force a minimum taller than the viewport");
+    window.visualViewport = null;
+    top = 92;
+    card._measureViewportHeight();
+    assert.equal(card.style.values["--salah-viewport-card-height"], "746px",
+      "Fall back to innerHeight where visualViewport is unavailable");
+    card.getBoundingClientRect = () => ({top: 92, width: 0});
+    card._measureViewportHeight();
+    assert.equal(card.style.values["--salah-viewport-card-height"], "746px",
+      "Ignore hidden or unmeasurable cards");
+  } finally {
+    window.visualViewport = oldViewport;
+    window.innerHeight = oldHeight;
+  }
+});
+
 test("HA dashboard preview shrinks only editing canvas, and restores viewing mode", () => {
   const card = new SalahTimetableCard();
   card.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: true});
