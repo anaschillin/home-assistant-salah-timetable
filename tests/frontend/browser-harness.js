@@ -334,6 +334,36 @@ try {
   input.focus(); input.value = "My Mosque"; input.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
   check("graphical title editor emits configuration", lastConfig?.title === "My Mosque");
   check("configuration echo preserves focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
+  check("editor removes duplicate timetable sensor selector",
+    !editor.shadowRoot.querySelector("ha-selector"));
+  const secondEntity = "sensor.second_prayer_timetable";
+  const multiEditor = new SalahTimetableCardEditor();
+  multiEditor.setConfig({entity: "sensor.example_prayer_timetable",
+    mosque_entities: ["sensor.example_prayer_timetable", secondEntity]});
+  multiEditor.hass = {...hass, states: {...hass.states, [secondEntity]: {
+    state: data.date, attributes: {...data, mosque_name: "Second Mosque"},
+  }}};
+  document.body.append(multiEditor);
+  multiEditor.addEventListener("config-changed", event => multiEditor.setConfig(event.detail.config));
+  const mosqueRows = () => [...multiEditor.shadowRoot.querySelectorAll(".mosque-choice")];
+  check("ordered mosque editor shows six-dot grips and first-mosque indicator",
+    mosqueRows().length === 2 &&
+    mosqueRows()[0].querySelector(".mosque-grip ha-icon")?.getAttribute("icon") === "mdi:drag-vertical" &&
+    mosqueRows()[0].textContent.includes(tr(ui, "editor.mosque_first")) &&
+    !mosqueRows()[0].hasAttribute("draggable"));
+  mosqueRows()[1].querySelector(".mosque-move-up").click();
+  check("keyboard-friendly reorder updates primary mosque",
+    multiEditor._config.entity === secondEntity &&
+    multiEditor._config.mosque_entities[0] === secondEntity);
+  const firstBox = multiEditor.shadowRoot.querySelector(".mosque-choice input");
+  firstBox.checked = false;
+  firstBox.dispatchEvent(new Event("change", {bubbles: true}));
+  check("unselected mosque cannot be dragged or moved",
+    multiEditor.shadowRoot.querySelectorAll(".mosque-choice").length === 2 &&
+    [...multiEditor.shadowRoot.querySelectorAll(".mosque-choice")].some(row =>
+      row.getAttribute("data-selected") === "false" &&
+      row.querySelector(".mosque-grip")?.disabled &&
+      row.querySelector(".mosque-move-up")?.disabled));
   editor.hass = {...hass, states: {...hass.states}};
   check("hass state updates preserve focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
   check("obsolete Jamaat mode editor removed", !editor.shadowRoot.textContent.includes("Jamaat panel"));

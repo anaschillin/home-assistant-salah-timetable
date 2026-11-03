@@ -17,15 +17,21 @@ Screenshots show example configurations, not authoritative prayer times.
 
 1. Install the integration, configure a mosque and approve a timetable.
 2. Choose **Edit dashboard → Add card → Salah Timetable**.
-3. Choose a **Prayer timetable** sensor in the graphical editor.
-4. Select **Card detail**: **Compact**, **Standard** (default) or **Detailed**.
-   Set optional title, language, time format and visibility preferences in the grouped sections, then save.
+3. In **Mosques available on this card**, tick the mosque timetable sensors to display.
+   All discovered mosques remain enabled for existing cards until you save a selection.
+   At least one mosque must remain selected.
+4. Drag a selected mosque by its six-dot handle or use the up/down arrow buttons
+   to set the order. The first selected mosque is marked **Shown first** and is
+   the default when the card loads. Unselected mosques remain visible but cannot
+   be reordered until selected.
+5. Select **Card detail**: **Compact**, **Standard** (default) or **Detailed**.
+   Set the optional inline title, language, time format and visibility preferences,
+   then save.
 
-When two or more mosque timetable sensors are available, the editor shows
-**Mosques available on this card** checkboxes. By default all mosques are enabled
-for backwards compatibility. Uncheck mosques to exclude them from this card;
-at least one mosque must remain enabled. The primary **Prayer timetable** selection
-controls which mosque appears first, and is kept within the enabled set.
+The editor has one ordered checkbox list, not a separate primary-sensor radio
+selector. Existing cards without `mosque_entities` still show all discovered
+mosques for backwards compatibility. Reordering or changing a checkbox saves an
+ordered `mosque_entities` list and updates the default `entity` to its first entry.
 
 With multiple mosques enabled, use the header selector to switch between them;
 switching resets day navigation to Today. With one mosque, the header displays
@@ -36,7 +42,7 @@ discovered mosques, including newly added ones.
 
 ## Graphical editor: grouped settings
 
-The card editor places the Prayer timetable sensor, optional title and
+The card editor places the compact title row, ordered mosque checkboxes and
 **Card detail** selector at the top. Seven collapsible sections organise the
 remaining options: **Dates & calendar**, **Prayer countdowns**,
 **Ramadan & night**, **Appearance**, **Timetable & information**,
@@ -82,9 +88,11 @@ the saved photograph choice. See [background options](#optional-mosque-photograp
 
 <img src="screenshots/card-editor-mobile.png" width="360" alt="Mobile card editor with mosque names redacted and date settings expanded">
 
-Select the mosques available on the card, choose its detail level, then expand
-the relevant settings group. The mobile editor scrolls; lower groups may be below
-the visible area.
+Select and order the mosques available on the card, choose its detail level,
+then expand the relevant settings group. The six-dot drag grip is for pointer
+reordering; the up/down buttons work with touch and keyboard. The mobile editor
+scrolls; lower groups may be below the visible area. The screenshot above is
+from the previous editor revision and will be replaced after HA acceptance.
 
 <img src="screenshots/dashboard-mobile.png" width="360" alt="Mobile dashboard with mosque name redacted, bilingual prayers and day navigation">
 
@@ -176,9 +184,17 @@ Automated browser checks do not establish full Arabic/RTL acceptance on physical
 ## Monthly timetable and CSV/source information
 
 Enable **Monthly timetable, CSV export and source details** in the card editor
-(`show_month_view: true`). The calendar icon in the card's top-right corner (**Monthly timetable**) opens a
-Gregorian month browser. Previous/next month and Refresh retrieve at most
-31 days of **approved effective** times for the selected mosque; missing
+(`show_month_view: true`). Action placement follows the chosen card detail mode:
+
+- **Compact:** open **More** in the header to switch to the monthly timetable.
+- **Standard:** use the small calendar icon in the header above the Gregorian date.
+- **Detailed:** use **Monthly timetable** in the footer below the timetable.
+
+While browsing a month, **Return to daily timetable**, **Export year CSV**,
+**Source details**, and **Refresh** appear in the same mode-specific location:
+Compact's More menu, Standard's header icon strip, or Detailed's footer.
+The calendar opens a Gregorian month browser. Previous/next month and Refresh
+retrieve at most 31 days of **approved effective** times for the selected mosque; missing
 dates and prayer fields display as missing, never calculated or filled.
 Ramadan overrides apply only when explicitly active for those dates.
 The card's original Yesterday/Today/Tomorrow and live countdowns are unchanged.
@@ -256,7 +272,7 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | --- | --- |
 | `entity` | The initial/primary `sensor.*_prayer_timetable` entity on the card |
 | `title` | Optional text, at most 100 characters; overrides the primary mosque's display label on this card |
-| `mosque_entities` | Optional list of enabled Prayer timetable sensor IDs; omit to show all configured mosques (legacy behaviour); requires at least one when set |
+| `mosque_entities` | Optional **ordered** list of enabled Prayer timetable sensor IDs; the first is the default mosque. Omit to show all configured mosques (legacy behaviour); requires at least one when set |
 | `language` | `auto` (default), `en`, `ar`; automatic follows the HA interface language with English label fallback |
 | `bilingual_prayer_labels` | `false` (default); show English and Arabic known prayer names |
 | `detail_level` | `standard` (default), `compact`, `detailed` |
