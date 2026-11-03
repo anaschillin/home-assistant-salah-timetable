@@ -190,7 +190,8 @@ Enable **Monthly timetable, CSV export and source details** in the card editor
 name, above the Gregorian date. Its calendar icon and label share the same text
 size. On narrow cards, the label hides to keep the title readable; the button's
 accessible name and tooltip remain available. In **Compact**, open **More** in
-the header and select **Monthly timetable**.
+the header and select **Monthly timetable**. Its dropdown floats over the card
+rather than moving the countdown panels or timetable.
 
 While browsing a month, **Return to daily timetable**, **Export year CSV**,
 **Source details**, and **Refresh** appear in the same location:
