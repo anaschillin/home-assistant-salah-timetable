@@ -8,6 +8,7 @@ class Element {
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this._text = ""; this.children = children; }
   setAttribute(name, value) { this.attributes[name] = value; }
+  removeAttribute(name) { delete this.attributes[name]; }
   attachShadow() { this.shadowRoot = new Element("shadow-root"); return this.shadowRoot; }
   addEventListener(name, callback) { if (!this.listeners.has(name)) this.listeners.set(name, []); this.listeners.get(name).push(callback); }
   dispatchEvent(event) { if (!event.target) Object.defineProperty(event, "target", {value: this}); for (const callback of this.listeners.get(event.type) || []) callback(event); return true; }
@@ -37,6 +38,24 @@ test("bundled card and graphical editor register once", () => {
   assert.equal(window.customCards.length, 1);
   assert.equal(SalahTimetableCard.getConfigElement() instanceof SalahTimetableCardEditor, true);
   assert.equal(SalahTimetableCard.getStubConfig(hass()).entity, "sensor.mosque_prayer_timetable");
+});
+
+test("HA dashboard preview shrinks only editing canvas, and restores viewing mode", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: true});
+  card.hass = hass();
+  assert.equal(card.preview, false);
+  assert.equal(card.attributes["dashboard-editing"], undefined);
+  card.preview = true;
+  assert.equal(card.preview, true);
+  assert.equal(card.attributes["dashboard-editing"], "");
+  card.editMode = false;
+  assert.equal(card.preview, false);
+  assert.equal(card.attributes["dashboard-editing"], undefined);
+  card.editMode = true;
+  assert.equal(card.attributes["dashboard-editing"], "");
+  card.preview = false;
+  assert.equal(card.attributes["dashboard-editing"], undefined);
 });
 
 test("mosque header and both live countdowns share one summary card", () => {
