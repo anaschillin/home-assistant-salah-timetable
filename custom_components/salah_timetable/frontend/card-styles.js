@@ -1079,6 +1079,9 @@ ha-card.kiosk:fullscreen {
   white-space: nowrap;
 }
 .card-action-strip ha-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1em;
   height: 1em;
   --mdc-icon-size: 1em;
