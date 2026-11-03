@@ -185,15 +185,16 @@ Automated browser checks do not establish full Arabic/RTL acceptance on physical
 ## Monthly timetable and CSV/source information
 
 Enable **Monthly timetable, CSV export and source details** in the card editor
-(`show_month_view: true`). Action placement follows the chosen card detail mode:
-
-- **Compact:** open **More** in the header and select **Monthly timetable**.
-- **Standard:** use the small calendar icon in the header above the Gregorian date.
-- **Detailed:** use **Monthly timetable** below the timetable, inside the card footer.
+(`show_month_view: true`). In **Standard** and **Detailed**, the labelled
+**Monthly timetable** button sits right-aligned on the same row as the mosque
+name, above the Gregorian date. Its calendar icon and label share the same text
+size. On narrow cards, the label hides to keep the title readable; the button's
+accessible name and tooltip remain available. In **Compact**, open **More** in
+the header and select **Monthly timetable**.
 
 While browsing a month, **Return to daily timetable**, **Export year CSV**,
-**Source details**, and **Refresh** appear in the same mode-specific location:
-Compact's More menu, Standard's header icon strip, or Detailed's footer.
+**Source details**, and **Refresh** appear in the same location:
+Compact's More menu or the Standard/Detailed header action strip.
 The calendar opens a Gregorian month browser. Previous/next month and Refresh
 retrieve at most 31 days of **approved effective** times for the selected mosque; missing
 dates and prayer fields display as missing, never calculated or filled.
