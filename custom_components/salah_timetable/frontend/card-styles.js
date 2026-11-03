@@ -4,15 +4,13 @@ export const CARD_CSS = `
 .background-credit a { color: var(--secondary-text-color); text-decoration: underline; text-underline-offset: 2px; }
 .background-credit a:focus-visible { outline: 2px solid var(--primary-color); }
 
-/* Fill the available dashboard viewport with the mosque photograph.
-   On Yesterday/Tomorrow the content can be shorter, but the background
-   canvas must not end halfway down the dashboard and expose a black area.
-   Any contents taller than the viewport still expand the card naturally.
-   The theme header variable is respected when Home Assistant provides it. */
+/* Fill the visible dashboard space from the card's real top edge, not
+   a whole viewport minus a guessed HA header height. JavaScript measures
+   --salah-viewport-card-height after layout and on viewport changes.
+   Content taller than the screen is never constrained or clipped. */
 ha-card.has-mosque-background {
   background: var(--ha-card-background,var(--card-background-color));
-  min-height: calc(100vh - var(--header-height, 0px));
-  min-height: calc(100dvh - var(--header-height, 0px));
+  min-height: var(--salah-viewport-card-height, calc(100dvh - var(--header-height, 0px)));
 }
 /* Keep the full photograph on the dashboard, but let Home Assistant's
    edit-card controls remain near the content while editing or previewing. */
@@ -978,10 +976,11 @@ ha-card.has-mosque-background::after {
 
 /* Kiosk is strictly opt-in. Responsive sizing avoids clipping in phone WebViews. */
 ha-card.kiosk {
-  min-height: 100dvh;
+  min-height: var(--salah-viewport-card-height, 100dvh);
   overflow: hidden;
 }
 ha-card.kiosk:fullscreen {
+  min-height: 100dvh;
   height: 100dvh;
   overflow: auto;
   background: var(--ha-card-background,var(--card-background-color));
