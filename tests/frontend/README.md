@@ -23,6 +23,6 @@ Shared Home Assistant fixtures belong in [`tests/conftest.py`](../conftest.py). 
 The editor smoke tests cover the single ordered mosque checkbox list, six-dot
 drag handle and up/down fallback, and preservation of YAML titles during graphical
 edits. Browser smoke uses pointer clicks to open and leave the monthly timetable
-in each mode (Compact More menu, Standard header icons, Detailed footer). Browser
+in each mode (Compact More menu, Standard/Detailed labelled header actions). Browser
 acceptance must also check mobile/tablet sizing, RTL and Home Assistant's
 native drag-and-drop behaviour before the PR is merged.
