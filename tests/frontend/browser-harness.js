@@ -250,7 +250,15 @@ try {
     const headerBounds = datedHeader.getBoundingClientRect();
     const iconSize = icon?.getBoundingClientRect().height;
     const labelSize = label ? Number.parseFloat(getComputedStyle(label).fontSize) : 0;
-    check(`monthly action shares the mosque title row and sits above Gregorian in ${mode}`,
+    const alignment = {
+      mode, width, dir: ui.dir,
+      title: {top: titleBounds.top, left: titleBounds.left, right: titleBounds.right, height: titleBounds.height},
+      action: actionBounds && {top: actionBounds.top, bottom: actionBounds.bottom, left: actionBounds.left, right: actionBounds.right},
+      date: {top: dateBounds.top, left: dateBounds.left, right: dateBounds.right},
+      header: {top: headerBounds.top, left: headerBounds.left, right: headerBounds.right},
+      gridColumns: getComputedStyle(datedHeader).gridTemplateColumns,
+    };
+    check(`monthly action shares the mosque title row and sits above Gregorian in ${mode}: ${JSON.stringify(alignment)}`,
       Boolean(actionBounds && titleBounds && dateBounds && headerBounds) &&
       Math.abs(actionBounds.top - titleBounds.top) <= 3 &&
       actionBounds.bottom <= dateBounds.top + 1 &&
