@@ -238,20 +238,34 @@ try {
     getComputedStyle(heading).display === "grid" &&
     descriptionBounds.top >= Math.max(hijriBounds.bottom, gregorianBounds.bottom) - 1 &&
     descriptionBounds.width >= heading.getBoundingClientRect().width - 1);
-  render({show_month_view: true, detail_level: "standard"});
-  const monthAction = card.shadowRoot.querySelector(".month-toggle");
-  const monthIcon = monthAction?.querySelector("ha-icon");
-  const datedHeader = card.shadowRoot.querySelector(".header");
-  const dateBounds = datedHeader?.querySelector(".gregorian")?.getBoundingClientRect();
-  const actionBounds = monthAction?.getBoundingClientRect();
-  const dateHeaderBounds = datedHeader?.getBoundingClientRect();
-  check("small calendar action stays above the Gregorian date without horizontal clipping",
-    Boolean(monthAction && monthIcon && dateBounds && actionBounds && dateHeaderBounds) &&
-    actionBounds.width <= 38 &&
-    monthIcon.getBoundingClientRect().width <= 20 &&
-    actionBounds.bottom <= dateBounds.top + 1 &&
-    dateBounds.left >= dateHeaderBounds.left - 1 &&
-    dateBounds.right <= dateHeaderBounds.right + 1);
+  for (const mode of ["standard", "detailed"]) {
+    render({show_month_view: true, detail_level: mode});
+    const datedHeader = card.shadowRoot.querySelector(".header");
+    const titleBounds = datedHeader.querySelector("h2").getBoundingClientRect();
+    const dateBounds = datedHeader.querySelector(".gregorian").getBoundingClientRect();
+    const action = datedHeader.querySelector(".month-toggle");
+    const icon = action?.querySelector("ha-icon");
+    const label = action?.querySelector("span");
+    const actionBounds = action?.getBoundingClientRect();
+    const headerBounds = datedHeader.getBoundingClientRect();
+    const iconSize = icon?.getBoundingClientRect().height;
+    const labelSize = label ? Number.parseFloat(getComputedStyle(label).fontSize) : 0;
+    check(`monthly action shares the mosque title row and sits above Gregorian in ${mode}`,
+      Boolean(actionBounds && titleBounds && dateBounds && headerBounds) &&
+      Math.abs(actionBounds.top - titleBounds.top) <= 3 &&
+      actionBounds.bottom <= dateBounds.top + 1 &&
+      (ui.dir === "rtl"
+        ? Math.abs(actionBounds.left - headerBounds.left) <= 2
+        : Math.abs(actionBounds.right - headerBounds.right) <= 2));
+    check(`calendar icon and label use matching sizes and stay within the header in ${mode}`,
+      Boolean(icon && label && iconSize && labelSize) &&
+      Math.abs(iconSize - labelSize) <= 2 &&
+      actionBounds.left >= headerBounds.left - 1 &&
+      actionBounds.right <= headerBounds.right + 1 &&
+      (width > 528
+        ? getComputedStyle(label).display !== "none"
+        : getComputedStyle(label).display === "none"));
+  }
   render();
   check("mosque timezone used for absolute times", card.shadowRoot.querySelector('[data-panel="salah"] .absolute').textContent === `${digits(5)}:${digits(45)}`);
   check("local beginning countdown", card.shadowRoot.querySelector('[data-panel="salah"] .count').textContent === `${digits(0)}:${digits(5)}:${digits(0)}`);
