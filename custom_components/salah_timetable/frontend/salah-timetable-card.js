@@ -838,7 +838,16 @@ export class SalahTimetableCardEditor extends HTMLElement {
         const icon = node("ha-icon"); icon.setAttribute("icon", iconName);
         icon.setAttribute("aria-hidden", "true");
         button.append(icon);
-        button.addEventListener("click", () => reorder(mosque.entity, selected[index + delta]));
+        button.addEventListener("click", () => {
+          const wasFocused = this.shadowRoot.activeElement === button;
+          reorder(mosque.entity, selected[index + delta]);
+          if (wasFocused) {
+            const movedRow = [...this._controls.mosqueList.children]
+              .find(item => item.getAttribute?.("data-mosque-row") === mosque.entity);
+            movedRow?.querySelector?.(delta < 0 ? ".mosque-move-up" : ".mosque-move-down")
+              ?.focus?.({preventScroll: true});
+          }
+        });
         return button;
       };
       row.append(grip, choice,

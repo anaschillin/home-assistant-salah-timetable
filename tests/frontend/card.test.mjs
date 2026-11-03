@@ -221,23 +221,35 @@ test("disconnected HA keeps visible source data with an explicit status", () => 
   assert.match(card.shadowRoot.textContent, /disconnected/); assert.match(card.shadowRoot.textContent, /Example Mosque/);
 });
 
-test("editor round trips entity, detail level and title through config-changed", () => {
-  const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "", mode: "context"}); editor.hass = hass(); const emitted = [];
+test("editor round trips default mosque, detail level and inline title through config-changed", () => {
+  const editor = new SalahTimetableCardEditor();
+  editor.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "context"});
+  editor.hass = hass();
+  const emitted = [];
   editor.addEventListener("config-changed", event => emitted.push(event.detail.config));
-  const [entity] = find(editor.shadowRoot, "ha-selector");
-  assert.deepEqual(entity.selector.select.options.map(option => option.value), ["sensor.mosque_prayer_timetable"]);
-  entity.dispatchEvent(new CustomEvent("value-changed", {detail: {value: "sensor.mosque_prayer_timetable"}}));
-  editor._extraControls.detail_level.control.value = "detailed"; editor._extraControls.detail_level.control.dispatchEvent(new Event("change"));
-  const title = find(editor.shadowRoot, "input")[0]; title.value = "My Mosque"; title.dispatchEvent(new Event("input"));
+  assert.equal(find(editor.shadowRoot, "ha-selector").length, 0);
+  assert.equal(find(editor._controls.mosqueList, "input").length, 1);
+  editor._extraControls.detail_level.control.value = "detailed";
+  editor._extraControls.detail_level.control.dispatchEvent(new Event("change"));
+  const title = editor._controls.title;
+  title.value = "My Mosque"; title.dispatchEvent(new Event("input"));
   assert.deepEqual(emitted.at(-1), {...new SalahTimetableCardEditor()._config, type: "custom:salah-timetable-card", entity: "sensor.mosque_prayer_timetable", detail_level: "detailed", title: "My Mosque"});
   const reconstructed = new SalahTimetableCardEditor(); reconstructed.setConfig(emitted.at(-1)); reconstructed.hass = hass();
-  assert.equal(reconstructed._extraControls.detail_level.control.value, "detailed"); assert.equal(find(reconstructed.shadowRoot, "input")[0].value, "My Mosque");
+  assert.equal(reconstructed._extraControls.detail_level.control.value, "detailed");
+  assert.equal(reconstructed._controls.title.value, "My Mosque");
 });
 
-test("editor rejects an individual prayer entity rather than emitting a broken card", () => {
-  const editor = new SalahTimetableCardEditor(); editor.hass = {states: {"sensor.fajr": {attributes: {}}}}; let emitted = false; editor.addEventListener("config-changed", () => { emitted = true; });
-  find(editor.shadowRoot, "ha-selector")[0].dispatchEvent(new CustomEvent("value-changed", {detail: {value: "sensor.fajr"}}));
-  assert.equal(emitted, false); assert.match(editor.shadowRoot.textContent, /rather than an individual prayer sensor/);
+test("editor discovers only timetable sensors, never individual prayer entities", () => {
+  const editor = new SalahTimetableCardEditor();
+  const current = hass();
+  current.states["sensor.fajr"] = {state: "2026-10-21T04:45:00Z", attributes: {}};
+  editor.hass = current;
+  let emitted = false;
+  editor.addEventListener("config-changed", () => { emitted = true; });
+  assert.equal(find(editor.shadowRoot, "ha-selector").length, 0);
+  assert.equal(find(editor._controls.mosqueList, "input").length, 1);
+  assert.doesNotMatch(editor._controls.mosqueList.textContent, /sensor.fajr/);
+  assert.equal(emitted, false);
 });
 
 
@@ -685,17 +697,14 @@ test("two configured mosques are both selectable as independent dashboard cards"
   multi.states["sensor.second_mosque_fajr_beginning"] = {state: "2026-10-21T04:45:00Z", attributes: {}};
   const editor = new SalahTimetableCardEditor();
   editor.hass = multi;
-  const options = find(editor.shadowRoot, "ha-selector")[0].selector.select.options;
-  assert.deepEqual(options.map(option => option.value), [
-    "sensor.mosque_prayer_timetable", "sensor.second_mosque_prayer_timetable"
-  ]);
-  assert.match(options[0].label, /Example Mosque/);
-  assert.match(options[1].label, /Second Mosque/);
+  const rows = () => editor._controls.mosqueList.children;
+  assert.equal(find(editor.shadowRoot, "ha-selector").length, 0);
+  assert.equal(rows().length, 2);
+  assert.match(rows()[0].textContent, /Example Mosque/);
+  assert.match(rows()[1].textContent, /Second Mosque/);
   const emitted = [];
-  editor.addEventListener("config-changed", event => emitted.push(event.detail.config));
-  find(editor.shadowRoot, "ha-selector")[0].dispatchEvent(
-    new CustomEvent("value-changed", {detail: {value: "sensor.second_mosque_prayer_timetable"}})
-  );
+  editor.addEventListener("config-changed", event => { emitted.push(event.detail.config); editor.setConfig(event.detail.config); });
+  find(rows()[1], "button").find(button => button.className === "mosque-move-up").dispatchEvent(new Event("click"));
   assert.equal(emitted.at(-1).entity, "sensor.second_mosque_prayer_timetable");
   const first = new SalahTimetableCard();
   first.setConfig({entity: "sensor.mosque_prayer_timetable"});
@@ -709,9 +718,9 @@ test("two configured mosques are both selectable as independent dashboard cards"
 
   editor.hass = {states: {}};
   assert.deepEqual(
-    find(editor.shadowRoot, "ha-selector")[0].selector.select.options.map(option => option.value),
-    ["sensor.second_mosque_prayer_timetable"],
-    "Stored card selections remain editable while their sensor is unavailable"
+    rows().map(row => row.attributes["data-mosque-row"]),
+    ["sensor.second_mosque_prayer_timetable", "sensor.mosque_prayer_timetable"],
+    "Stored ordered mosque selections remain editable while unavailable"
   );
 });
 

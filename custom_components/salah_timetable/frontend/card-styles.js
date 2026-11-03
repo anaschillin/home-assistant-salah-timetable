@@ -1064,6 +1064,7 @@ ha-card.kiosk:fullscreen {
   z-index: 3;
 }
 .card-action-strip { display: flex; gap: 4px; align-items: center; }
+.header:has(.card-actions-menu) h2 { padding-inline-end: 86px; }
 .card-action-strip .month-toggle,.card-action-strip .month-action {
   width: 36px; height: 36px; min-height: 36px; padding: 8px;
   display: grid; place-items: center;
