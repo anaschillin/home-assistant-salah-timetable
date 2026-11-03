@@ -235,8 +235,10 @@ nextFixture();
                 rect.top >= bounds.top - 1 && rect.bottom <= bounds.bottom + 1;
             }) ? buttons.length : 0;
           `);
-          const dailySurface = ".summary-shell";
-          const monthlySurface = ".summary-shell";
+          // Compact popovers may overlay the monthly panel, so their visible
+          // hit targets must fit the whole card rather than the short summary.
+          const dailySurface = mode === "compact" ? "ha-card" : ".summary-shell";
+          const monthlySurface = mode === "compact" ? "ha-card" : ".summary-shell";
           const compactLayout = () => evaluate(`
             const root = frame.contentWindow.actionFixture.actionCard.shadowRoot;
             const summary = root.querySelector(".summary-shell");
@@ -251,7 +253,7 @@ nextFixture();
             return {
               summaryHeight: summaryRect.height,
               headerHeight: header.getBoundingClientRect().height,
-              belowTop: below.getBoundingClientRect().top,
+              belowOffset: below.getBoundingClientRect().top - summaryRect.top,
               open: menu.open,
               overlay: frame.contentWindow.getComputedStyle(dropdown).position === "absolute" &&
                 frame.contentWindow.getComputedStyle(summary).overflow === "visible" &&
@@ -263,7 +265,7 @@ nextFixture();
           `);
           const assertCompactOverlay = (closed, opened, label) => {
             assert.equal(opened.open && opened.overlay, true, `${label}: More menu floats below trigger and inside card`);
-            for (const measure of ["summaryHeight", "headerHeight", "belowTop"]) {
+            for (const measure of ["summaryHeight", "headerHeight", "belowOffset"]) {
               assert.ok(Math.abs(opened[measure] - closed[measure]) <= 1,
                 `${label}: opening More must not change ${measure} (${closed[measure]} -> ${opened[measure]})`);
             }
