@@ -1,13 +1,13 @@
 """UI configuration, settings and manual CSV import for a mosque."""
 
 import re
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_NAME
 from homeassistant.core import callback
 from homeassistant.helpers import selector
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_COMPLETENESS_REQUIRED_FIELDS,
@@ -26,16 +26,11 @@ from .domain.ramadan_validation import validate_ramadan_selection
 from .sources.source_flow import SourceOptionsFlow
 
 
-def valid_zone(value: str) -> bool:
+async def async_valid_zone(value: str) -> bool:
     try:
-        ZoneInfo(value)
-    except (
-        ZoneInfoNotFoundError,
-        ValueError,
-        TypeError,
-    ):
+        return await dt_util.async_get_time_zone(value) is not None
+    except ValueError, TypeError:
         return False
-    return True
 
 
 def _readiness_field_names(fields: tuple[PrayerField, ...]) -> str:
@@ -57,7 +52,7 @@ class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_MOSQUE_ID] = "invalid_mosque_id"
             if not name or len(name) > 100:
                 errors[CONF_NAME] = "invalid_name"
-            if not valid_zone(user_input[CONF_TIME_ZONE]):
+            if not await async_valid_zone(user_input[CONF_TIME_ZONE]):
                 errors[CONF_TIME_ZONE] = "invalid_time_zone"
             if not errors:
                 await self.async_set_unique_id(mosque_id)
@@ -99,7 +94,7 @@ class SalahConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             zone = user_input[CONF_TIME_ZONE]
             if not name or len(name) > 100:
                 errors[CONF_NAME] = "invalid_name"
-            if not valid_zone(zone):
+            if not await async_valid_zone(zone):
                 errors[CONF_TIME_ZONE] = "invalid_time_zone"
             if not errors:
                 # The stable mosque ID identifies stored timetables and entities.
@@ -187,7 +182,7 @@ class SalahOptionsFlow(SourceOptionsFlow):
                 errors[CONF_COMPLETENESS_REQUIRED_FIELDS] = (
                     "invalid_completeness_fields"
                 )
-            if not valid_zone(user_input[CONF_TIME_ZONE]):
+            if not await async_valid_zone(user_input[CONF_TIME_ZONE]):
                 errors[CONF_TIME_ZONE] = "invalid_time_zone"
             if not errors:
                 return self.async_create_entry(

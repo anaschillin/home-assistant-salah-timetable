@@ -1,18 +1,25 @@
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
+from custom_components import salah_timetable
 from custom_components.salah_timetable.const import DOMAIN
 from custom_components.salah_timetable.domain.model import PrayerField
 
 
 async def test_empty_setup_and_unload(hass, entry):
-    assert await hass.config_entries.async_setup(entry.entry_id)
+    with patch.object(
+        dt_util, "async_get_time_zone", wraps=dt_util.async_get_time_zone
+    ) as get_time_zone:
+        assert await hass.config_entries.async_setup(entry.entry_id)
+    get_time_zone.assert_any_await("Europe/London")
     await hass.async_block_till_done()
     assert entry.state == ConfigEntryState.LOADED
     assert len(er.async_get(hass).entities) == len(PrayerField) + 12
@@ -61,14 +68,27 @@ async def test_invalid_store_setup_error(hass, entry):
     assert entry.state == ConfigEntryState.SETUP_ERROR
 
 
+@pytest.mark.parametrize("time_zone", ["Invalid/Zone", "../UTC"])
+async def test_invalid_time_zone_setup_error(hass, entry, caplog, time_zone):
+    hass.config_entries.async_update_entry(entry, options={"time_zone": time_zone})
+
+    assert not await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.state == ConfigEntryState.SETUP_ERROR
+    assert f"Invalid time zone: {time_zone}" in caplog.text
+
+
 async def test_options_reload(hass, populated, freezer):
     freezer.move_to("2026-10-21 10:00:00+00:00")
     assert await hass.config_entries.async_setup(populated.entry_id)
     await hass.async_block_till_done()
-    hass.config_entries.async_update_entry(
-        populated, options={"time_zone": "Asia/Riyadh"}
-    )
-    await hass.async_block_till_done()
+    with patch.object(
+        dt_util, "async_get_time_zone", wraps=dt_util.async_get_time_zone
+    ) as get_time_zone:
+        hass.config_entries.async_update_entry(
+            populated, options={"time_zone": "Asia/Riyadh"}
+        )
+        await hass.async_block_till_done()
+    get_time_zone.assert_any_await("Asia/Riyadh")
     assert str(populated.runtime_data.zone) == "Asia/Riyadh"
     entity_id = er.async_get(hass).async_get_entity_id(
         "sensor", DOMAIN, "example_fajr_begin"
@@ -78,7 +98,11 @@ async def test_options_reload(hass, populated, freezer):
 
 async def test_remove_entry_cleans_storage(hass, populated):
     key = f"{DOMAIN}.{populated.entry_id}"
-    assert await hass.config_entries.async_remove(populated.entry_id)
+    with patch.object(
+        salah_timetable, "TimetableStorage", wraps=salah_timetable.TimetableStorage
+    ) as storage:
+        assert await hass.config_entries.async_remove(populated.entry_id)
+    storage.assert_called_once_with(hass, populated.entry_id, dt_util.UTC)
     from homeassistant.helpers.storage import Store
 
     assert await Store(hass, 1, key).async_load() is None

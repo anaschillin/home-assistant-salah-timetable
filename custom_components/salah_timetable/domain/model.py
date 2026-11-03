@@ -2,11 +2,10 @@
 
 import re
 from dataclasses import dataclass
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timezone, tzinfo
 from enum import StrEnum
 from types import MappingProxyType
 from typing import Mapping
-from zoneinfo import ZoneInfo
 
 
 class PrayerField(StrEnum):
@@ -90,7 +89,7 @@ class DailyPrayers:
         object.__setattr__(self, "times", MappingProxyType(times))
         object.__setattr__(self, "original", MappingProxyType(dict(self.original)))
 
-    def timestamps(self, field: PrayerField, zone: ZoneInfo) -> tuple[datetime, ...]:
+    def timestamps(self, field: PrayerField, zone: tzinfo) -> tuple[datetime, ...]:
         """Reject ambiguous/nonexistent DST times instead of guessing a fold."""
         result = []
         for value in self.times.get(field, ()):
