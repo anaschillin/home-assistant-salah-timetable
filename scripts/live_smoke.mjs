@@ -218,14 +218,21 @@ try {
   assert.equal(ids.length, 26, "New mosques expose 26 enabled sensors by default");
   const registryWs = await websocket();
   const sensors = (await registryWs("config/entity_registry/list")).filter(item => item.config_entry_id === entry && item.entity_id.startsWith("sensor."));
-  assert.equal(sensors.length, 27, "All 27 sensors must be registered");
+  assert.equal(sensors.length, 30, "All 30 sensors must be registered");
+  const fridayAnnouncements = ["jumuah_bayaan", "jumuah_adhaan", "jumuah_khutbah"];
+  for (const field of fridayAnnouncements) {
+    const sensor = sensors.find(item => item.unique_id.endsWith(`_${field}`));
+    assert.ok(sensor, `Missing optional ${field} sensor`);
+    assert.equal(sensor.disabled_by, "integration", `${field} must be disabled by default`);
+    assert.ok(!ids.includes(sensor.entity_id), `${field} must not have a default live state`);
+  }
   const previousJamaat = sensors.find(item => item.unique_id.endsWith("_previous_jamaat"));
   assert.ok(previousJamaat, "Previous Jamaat must remain available to enable");
   assert.equal(previousJamaat.disabled_by, "integration");
   assert.equal(sensors.filter(item => item.disabled_by === null).length, 26);
   assert.ok(!ids.includes(previousJamaat.entity_id), "Disabled Previous Jamaat must not have a live state");
   activeSocket.close(); activeSocket = undefined;
-  report.checks.push("mosque_config_flow", "authenticated_csv_upload_mapping_review_approval", "26_enabled_sensors", "27_registered_sensors", "previous_jamaat_registered_disabled_by_default");
+  report.checks.push("mosque_config_flow", "authenticated_csv_upload_mapping_review_approval", "26_enabled_sensors", "30_registered_sensors", "previous_jamaat_registered_disabled_by_default");
   const calendarId = "calendar.smoke_mosque_prayer_calendar";
   const calendarPath = `/api/calendars/${calendarId}?start=${today}T00:00:00Z&end=${new Date(Date.parse(`${today}T00:00:00Z`) + 86400000).toISOString()}`;
   const calendarEvents = () => request(calendarPath);

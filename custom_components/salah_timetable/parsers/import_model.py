@@ -10,7 +10,7 @@ from hashlib import sha256
 from types import MappingProxyType
 from typing import Mapping, Protocol
 
-from ..domain.model import PrayerField, Timetable
+from ..domain.model import PrayerField, STANDARD_PRAYER_FIELDS, Timetable
 
 MAX_SOURCE_BYTES = 512 * 1024
 MAX_PDF_BYTES = 4 * 1024 * 1024
@@ -91,13 +91,8 @@ def build_coverage(timetable: Timetable, year: int) -> ImportCoverage:
     )
     missing_fields = {
         field.value: count
-        for field in PrayerField
-        if field not in {
-            PrayerField.JUMUAH_BAYAAN,
-            PrayerField.JUMUAH_ADHAAN,
-            PrayerField.JUMUAH_KHUTBAH,
-        }
-        and (count := sum(field not in row.times for row in timetable.days))
+        for field in STANDARD_PRAYER_FIELDS
+        if (count := sum(field not in row.times for row in timetable.days))
     }
     return ImportCoverage(first, last, len(days), missing_dates, missing_fields)
 

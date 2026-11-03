@@ -3,7 +3,7 @@
 from collections import Counter
 from datetime import date, timedelta
 
-from .model import DailyPrayers, PrayerField, Timetable
+from .model import DailyPrayers, PrayerField, STANDARD_PRAYER_FIELDS, Timetable
 from .ramadan import RamadanSettings, resolve_day
 
 _SAMPLE_DATES = 5
@@ -152,7 +152,11 @@ def ramadan_review(
             "Approval does not change that selection.**"
         )
 
-    omissions = sum(len(PrayerField) - len(row.times) for row in table.days)
+    omissions = sum(
+        field not in row.times
+        for row in table.days
+        for field in STANDARD_PRAYER_FIELDS
+    )
     lines.append(
         f"Source omissions: **{omissions} field values** across {len(table.days)} supplied rows. "
         "An omitted source field may retain an annual value; it is not necessarily unavailable."
@@ -196,7 +200,7 @@ def ramadan_review(
             field for field in annual_fields if field not in override_fields
         )
         values = effective.row.times if effective.row is not None else {}
-        unavailable.update(field for field in PrayerField if field not in values)
+        unavailable.update(field for field in STANDARD_PRAYER_FIELDS if field not in values)
         if (
             effective.ramadan_active
             and PrayerField.IFTAR in values

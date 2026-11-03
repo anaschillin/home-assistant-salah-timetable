@@ -62,6 +62,9 @@ def test_partial_override_retains_annual_fields_and_iftar_default_without_mutati
     before = (annual.as_dict(), previous.as_dict(), candidate.as_dict())
     result = ramadan_review(candidate, (annual, previous), confirmed())
     assert "Source omissions: **15 field values**" in result
+    assert "jumuah_bayaan: 1" not in result
+    assert "jumuah_adhaan: 1" not in result
+    assert "jumuah_khutbah: 1" not in result
     assert "fajr_begin: 1, fajr_jamaat: 1, maghrib_begin: 1" in result
     assert "Iftar defaults to effective Maghrib beginning: **1** — 2028-02-29" in result
     assert "Taraweeh is text only: After Isha Jamaat: **1**" in result

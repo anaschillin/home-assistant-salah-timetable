@@ -9,7 +9,7 @@ from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CONF_SHOW_HIJRI_DATE, DOMAIN
-from .domain.model import PrayerField
+from .domain.model import OPTIONAL_JUMUAH_FIELDS, PrayerField
 from .domain.presentation import dashboard_attributes
 
 # Sensors use coordinator snapshots; no per-entity I/O needs throttling.
@@ -20,6 +20,7 @@ DESCRIPTIONS = tuple(
         key=field.value,
         translation_key=field.value,
         device_class=SensorDeviceClass.TIMESTAMP,
+        entity_registry_enabled_default=field not in OPTIONAL_JUMUAH_FIELDS,
     )
     for field in PrayerField
 )

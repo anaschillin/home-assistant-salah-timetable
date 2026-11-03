@@ -7,7 +7,7 @@ const KNOWN_CHECKS = Object.freeze([
   "mosque_config_flow",
   "authenticated_csv_upload_mapping_review_approval",
   "26_enabled_sensors",
-  "27_registered_sensors",
+  "30_registered_sensors",
   "native_calendar_approved_instant_events",
   "automatic_resource_registration",
   "dashboard_configuration",

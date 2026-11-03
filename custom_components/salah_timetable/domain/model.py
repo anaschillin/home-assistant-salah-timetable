@@ -31,6 +31,20 @@ class PrayerField(StrEnum):
     TARAWEEH = "taraweeh"
 
 
+# Friday announcements are imported and displayed only when explicitly published.
+# They must not become required timetable fields or default-enabled sensors.
+OPTIONAL_JUMUAH_FIELDS = frozenset(
+    {
+        PrayerField.JUMUAH_BAYAAN,
+        PrayerField.JUMUAH_ADHAAN,
+        PrayerField.JUMUAH_KHUTBAH,
+    }
+)
+STANDARD_PRAYER_FIELDS = tuple(
+    field for field in PrayerField if field not in OPTIONAL_JUMUAH_FIELDS
+)
+
+
 def normalize_field(value: str) -> PrayerField:
     """Normalize explicit field labels, never infer a beginning or Jamaat."""
     key = re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")

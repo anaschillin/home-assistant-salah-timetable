@@ -449,3 +449,8 @@ unchanged. The extra announcement fields are optional and do not trigger
 missing-prayer completeness warnings. Existing imported timetables continue to
 work without any new columns. PDF import support depends on an explicit source
 parser mapping; the CSV field mapping is the supported path for these values.
+
+Optional Friday Bayaan, Adhaan and Khutbah Home Assistant timestamp sensors are
+registered **disabled by default**. Enable only the announcements you need in
+Home Assistant's entity settings. The dashboard can still show their published
+times without enabling the sensors; none become required fields or reminders.
