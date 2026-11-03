@@ -432,3 +432,20 @@ and [Dorar source review](../research/islamic-history/islamic-history-dorar-cove
 Administrator reminder setup is available through **Edit card → Prayer reminders**,
 below the detail-level selection. It is hidden in kiosk mode. See
 [guided prayer reminders](automations.md#guided-prayer-reminders).
+
+### Optional Jumu’ah announcements (issue #126)
+
+For Friday timetables, a CSV can map independent columns to `jumuah_bayaan`,
+`jumuah_adhaan`, and `jumuah_khutbah`. These are **published announcements**,
+not calculated prayer beginnings or Jumu’ah Jamaat times. Continue to map the
+actual congregation to `jumuah` (which supports multiple semicolon-separated
+congregation times). Each optional announcement uses one explicit time in the
+selected CSV time format; leave an unpublished value empty. No announcements
+are inferred from the congregation, Dhuhr, or other times.
+
+The card shows published Friday announcements as separately labelled timetable
+rows; existing Jumu’ah congregation events, countdowns and reminders are
+unchanged. The extra announcement fields are optional and do not trigger
+missing-prayer completeness warnings. Existing imported timetables continue to
+work without any new columns. PDF import support depends on an explicit source
+parser mapping; the CSV field mapping is the supported path for these values.
