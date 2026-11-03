@@ -198,7 +198,9 @@ nextFixture();
       await t.test(`${width}px ${language} timetable action placement and pointer navigation`, async () => {
         const evaluate = async source => {
           const result = await debuggerSession.call("Runtime.evaluate", {
-            expression: `(() => {const frame = document.querySelectorAll('iframe')[${index}]; ${escapeForJsEmbedding(source)}})()`,
+            // Runtime.evaluate receives raw JavaScript over CDP JSON, not HTML. Escape
+            // interpolated string literals above, but preserve executable source syntax.
+            expression: `(() => {const frame = document.querySelectorAll('iframe')[${index}]; ${source}})()`,
             returnByValue: true,
           });
           assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
