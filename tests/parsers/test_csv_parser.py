@@ -359,3 +359,26 @@ def test_original_raw_values_survive_normalization():
     assert row.times[PrayerField.FAJR_BEGIN] == (time(5, 30),)
     assert row.original["Fajr"] == " 05:30 "
     assert row.original["Notes"] == "  mosque source  "
+
+
+def test_explicit_jumuah_announcement_columns_are_optional_and_distinct():
+    content = (
+        b"Date,Bayaan,Adhaan,Khutbah,Jumuah\n"
+        b"2026-11-06,12:15,12:45,13:00,13:30\n"
+    )
+    candidate = parse(
+        content,
+        columns={
+            "Bayaan": "jumuah_bayaan",
+            "Adhaan": "jumuah_adhaan",
+            "Khutbah": "jumuah_khutbah",
+            "Jumuah": "jumuah",
+        },
+    )
+    row = candidate.timetable.days[0]
+    assert row.times[PrayerField.JUMUAH_BAYAAN] == (time(12, 15),)
+    assert row.times[PrayerField.JUMUAH_ADHAAN] == (time(12, 45),)
+    assert row.times[PrayerField.JUMUAH_KHUTBAH] == (time(13),)
+    assert row.times[PrayerField.JUMUAH] == (time(13, 30),)
+    assert "jumuah_bayaan" not in candidate.coverage.missing_fields
+    assert ImportCandidate.from_dict(candidate.as_dict()) == candidate
