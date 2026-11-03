@@ -1096,12 +1096,6 @@ ha-card.kiosk:fullscreen {
 .card-action-strip button span { font-size: inherit; line-height: inherit; }
 .compact .header.has-month-action { row-gap: 0; }
 .compact .header.has-month-action h2 { padding-inline-end: 86px; }
-.card-actions-menu .card-more-toggle {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-end: 0;
-  z-index: 3;
-}
 .card-menu-items button {
   display: flex; align-items: center; gap: 7px; font: inherit;
   min-width: 0; max-width: 100%; overflow-wrap: anywhere; text-align: start;
@@ -1138,14 +1132,17 @@ ha-card.kiosk:fullscreen {
     grid-row: 2;
   }
 }
-/* Keep the disclosure in the summary's flow so its clipped glass surface
-   cannot cover actions when the countdowns are short or hidden. */
-.card-actions-menu { grid-column: 1 / -1; min-width: 0; }
-.card-actions-menu .card-more-toggle {
+/* Compact: the More disclosure is a popover anchored to the title row.
+   Opening it must not add a grid row or move the countdown panels. */
+.card-actions-menu {
   position: absolute;
   inset-block-start: 0;
   inset-inline-end: 0;
-  z-index: 3;
+  z-index: 6;
+  width: max-content;
+  max-width: 100%;
+}
+.card-actions-menu .card-more-toggle {
   display: flex; align-items: center; gap: 3px;
   cursor: pointer; list-style: none;
   border: 1px solid var(--divider-color);
@@ -1157,13 +1154,25 @@ ha-card.kiosk:fullscreen {
 .card-actions-menu .card-more-toggle ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; }
 .card-actions-menu .card-more-toggle:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
 .card-actions-menu .card-menu-items {
-  display: grid; gap: 4px; width: min(100%,15rem); box-sizing: border-box;
-  margin-block-start: 8px; margin-inline-start: auto;
+  position: absolute;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-end: 0;
+  display: grid; gap: 4px;
+  width: min(15rem, calc(100cqi - 4rem));
+  box-sizing: border-box;
   padding: 8px; border-radius: 9px;
   border: 1px solid var(--divider-color);
   background: var(--card-background-color);
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
 }
 .card-actions-menu:not([open]) .card-menu-items { display: none; }
+/* Both glass surfaces normally clip their children. Only the expanded menu
+   can escape that clip, and it must paint above the timetable and prayer panels. */
+.summary-shell:has(.card-actions-menu[open]) {
+  overflow: visible;
+  z-index: 6;
+}
+.summary-shell .header:has(.card-actions-menu[open]) { z-index: 7; }
 .card-menu-items button { width: 100%; }
 .month-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .month-toolbar h3 { font-size: clamp(1rem,2.4cqi,1.5rem); margin: 0; text-align: center; }
