@@ -238,7 +238,17 @@ nextFixture();
           const dailySurface = ".summary-shell";
           const monthlySurface = ".summary-shell";
           try {
-            if (mode === "compact") await click(".card-more-toggle");
+            if (mode === "compact") {
+              await click(".card-more-toggle");
+              assert.equal(await evaluate(`
+                const button = frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelector(".card-menu-items .month-toggle");
+                const label = button?.querySelector("span");
+                return Boolean(label?.textContent?.trim()) &&
+                  label.textContent === button.getAttribute("aria-label") &&
+                  frame.contentWindow.getComputedStyle(label).display !== "none" &&
+                  label.getClientRects().length > 0;
+              `), true, "Compact More displays the Monthly timetable label alongside the icon");
+            }
             assert.equal(await placement(daily, dailySurface), 1, `${mode}: daily action fits its surface`);
             await click(`${daily} .month-toggle`);
             assert.deepEqual(await evaluate("return frame.contentWindow.actionFixture.requests;"), [
@@ -247,7 +257,19 @@ nextFixture();
             assert.equal(await evaluate(`
               return frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelector(".monthly-table tbody td")?.textContent;
             `), "05:45", `${mode}: monthly view renders the response`);
-            if (mode === "compact") await click(".card-more-toggle");
+            if (mode === "compact") {
+              await click(".card-more-toggle");
+              assert.equal(await evaluate(`
+                const buttons = [...frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelectorAll(".card-menu-items button")];
+                return buttons.length === 4 && buttons.every(button => {
+                  const label = button.querySelector("span");
+                  return Boolean(label?.textContent?.trim()) &&
+                    label.textContent === button.getAttribute("aria-label") &&
+                    frame.contentWindow.getComputedStyle(label).display !== "none" &&
+                    label.getClientRects().length > 0;
+                });
+              `), true, "Compact More displays all four monthly action labels");
+            }
             assert.equal(await placement(monthly, monthlySurface), 4, `${mode}: all monthly actions fit their surface`);
             await click(`${monthly} .month-toggle`);
             assert.equal(await evaluate(`
