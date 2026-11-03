@@ -1132,33 +1132,6 @@ ha-card.kiosk:fullscreen {
   inset-block-start: 0;
   inset-inline-end: 0;
   z-index: 3;
-}
-.card-action-strip { display: flex; gap: 4px; align-items: center; }
-.compact .header.has-month-action { row-gap: 0; }
-.compact .header.has-month-action h2 { padding-inline-end: 86px; }
-.card-action-strip .month-toggle,.card-action-strip .month-action {
-  width: 36px; height: 36px; min-height: 36px; padding: 8px;
-  display: grid; place-items: center;
-}
-.card-action-strip ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; --ha-icon-size: 18px; }
-.card-actions-footer {
-  display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end;
-  padding: 10px;
-  border-top: 1px solid var(--divider-color);
-}
-.monthly-shell .card-actions-footer { margin-top: 12px; padding-inline: 0; padding-bottom: 0; }
-.card-actions-footer button,.card-menu-items button {
-  display: flex; align-items: center; gap: 7px; font: inherit;
-  min-width: 0; max-width: 100%; overflow-wrap: anywhere; text-align: start;
-}
-.card-actions-footer ha-icon,.card-menu-items ha-icon {
-  width: 18px; height: 18px; --mdc-icon-size: 18px; --ha-icon-size: 18px;
-  flex: none;
-}
-/* Keep the disclosure in the summary's flow so its clipped glass surface
-   cannot cover actions when the countdowns are short or hidden. */
-.card-actions-menu { grid-column: 1 / -1; min-width: 0; }
-.card-actions-menu .card-more-toggle {
   display: flex; align-items: center; gap: 3px;
   cursor: pointer; list-style: none;
   border: 1px solid var(--divider-color);
