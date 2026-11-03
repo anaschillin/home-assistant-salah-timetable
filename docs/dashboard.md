@@ -324,14 +324,22 @@ In **Appearance → Mosque background**, choose a fixed photograph, daily
 rotation or **Off — no background**. The retired `mosque_background_opacity`
 option is ignored and stripped when saved configuration is normalised.
 
-The background fills the card width and at least the available viewport height
-in normal dashboard viewing; longer content extends it. While editing the
-dashboard or previewing the card, Home Assistant supplies its preview state and
-the full-viewport minimum height is removed so the native card editing controls
-stay near the card content. Normal full-height viewing is restored on exit.
-Home Assistant controls the parent column width; use a full-width section or
-panel view for a wider display. Switching days retains the photograph framing;
-device resizing can reframe it.
+In normal dashboard viewing, the background fills the card width and the
+**visible screen space remaining below its actual top edge** (allowing a small
+bottom gap). The card measures its position after layout and adjusts when the
+window or mobile visual viewport changes. Short Compact or Yesterday/Tomorrow
+views therefore do not create scrolling merely to accommodate the photo.
+A full timetable or other content taller than the available height expands
+naturally and the dashboard can scroll. Other cards above the timetable are
+also accounted for; no fixed Home Assistant header height is assumed.
+
+While editing the dashboard or previewing the card, Home Assistant supplies its
+preview state and the viewport minimum height is removed, so the native Edit
+controls remain near the content. The normal background sizing returns after
+editing. Home Assistant still controls the parent column width; use a
+full-width section or panel view for a wider display. Switching days retains
+the photograph framing; viewport resizing can reframe it. Full-screen kiosk
+mode continues to fill its screen.
 
 High-contrast and reduced-transparency preferences hide the photo and use opaque
 panels. Browsers without backdrop filtering also use opaque panels. The photo is
