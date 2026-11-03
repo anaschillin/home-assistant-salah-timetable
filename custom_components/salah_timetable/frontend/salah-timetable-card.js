@@ -617,7 +617,6 @@ export class SalahTimetableCard extends HTMLElement {
     }
     if (!selectedPrayers) tableShell.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
     tableShell.append(dateTabs);
-    if (cardActions && this._config.detail_level === "detailed") tableShell.append(cardActions);
     content.append(tableShell);
     if (this._selectedDay === 0 && this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
       content.append(translatedRun("p", ui, "card.second_khutbah", "time", formatTime(data.second_khutbah, zone, ui, timeFormat), "note khutbah"));
