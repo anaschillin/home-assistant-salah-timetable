@@ -1064,7 +1064,7 @@ ha-card.kiosk:fullscreen {
   z-index: 3;
 }
 .card-action-strip { display: flex; gap: 4px; align-items: center; }
-.header:has(.card-actions-menu) h2 { padding-inline-end: 86px; }
+.summary-shell .header.has-month-action:has(.card-actions-menu) h2 { padding-inline-end: 86px; }
 .card-action-strip .month-toggle,.card-action-strip .month-action {
   width: 36px; height: 36px; min-height: 36px; padding: 8px;
   display: grid; place-items: center;
@@ -1110,7 +1110,7 @@ ha-card.kiosk:fullscreen {
     justify-content: flex-end;
   }
   .header .hijri,.header .gregorian,.header .month-description { grid-row: auto; }
-  .header:has(.card-actions-menu) h2 { padding-inline-end: 86px; }
+  .summary-shell .header.has-month-action:has(.card-actions-menu) h2 { padding-inline-end: 86px; }
 }
 .month-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .month-toolbar h3 { font-size: clamp(1rem,2.4cqi,1.5rem); margin: 0; text-align: center; }
