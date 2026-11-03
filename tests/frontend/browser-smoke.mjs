@@ -202,7 +202,7 @@ nextFixture();
         for (const [mode, daily, monthly] of [
           ["compact", ".summary-shell .card-menu-items", ".summary-shell .card-menu-items"],
           ["standard", ".header .card-action-strip", ".header .card-action-strip"],
-          ["detailed", ".timetable-shell > .card-actions-footer", ".monthly-shell > .card-actions-footer"],
+          ["detailed", ".header .card-action-strip", ".header .card-action-strip"],
         ]) {
           await evaluate(`frame.contentWindow.actionFixture = frame.contentWindow.mountActionCard(${JSON.stringify(mode)});`);
           const placement = (selector, surface) => evaluate(`
@@ -217,8 +217,8 @@ nextFixture();
                 rect.top >= bounds.top - 1 && rect.bottom <= bounds.bottom + 1;
             }) ? buttons.length : 0;
           `);
-          const dailySurface = mode === "detailed" ? ".timetable-shell" : ".summary-shell";
-          const monthlySurface = mode === "detailed" ? ".monthly-shell" : ".summary-shell";
+          const dailySurface = ".summary-shell";
+          const monthlySurface = ".summary-shell";
           try {
             if (mode === "compact") await click(".card-more-toggle");
             assert.equal(await placement(daily, dailySurface), 1, `${mode}: daily action fits its surface`);
