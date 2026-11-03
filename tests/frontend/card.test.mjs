@@ -962,7 +962,8 @@ test("monthly action is labelled beside the mosque name in Standard and Detailed
     assert.equal(action.attributes["aria-expanded"], "false");
     assert.equal(find(action, "ha-icon")[0].attributes.icon, "mdi:calendar-month");
     assert.ok(find(header, "button").includes(action), "The action stays in the header for every mode");
-    assert.equal(find(action, "span").some(span => span.textContent === "Monthly timetable"), detail_level !== "compact");
+    assert.ok(find(action, "span").some(span => span.textContent === "Monthly timetable"),
+      "The labelled action is visible in both Compact More and full-sized toolbars");
     assert.equal(find(card.shadowRoot, "details").some(item => item.className === "card-actions-menu"), detail_level === "compact");
     assert.equal(find(card.shadowRoot, "nav").some(item => item.className === "card-action-strip"), detail_level !== "compact");
     assert.equal(find(card.shadowRoot, "nav").some(item => item.className === "card-actions-footer"), false);
