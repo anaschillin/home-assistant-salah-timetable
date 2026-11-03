@@ -950,7 +950,7 @@ test("reminder setup lives in the editor and follows administrator and kiosk cha
   assert.equal(action().hidden, true);
 });
 
-test("monthly actions move between Detailed footer, Standard header and Compact More menu", () => {
+test("monthly action is labelled beside the mosque name in Standard and Detailed; Compact uses More", () => {
   const card = new SalahTimetableCard(); card.hass = hass();
   for (const detail_level of ["compact", "standard", "detailed"]) {
     card.setConfig({entity: "sensor.mosque_prayer_timetable", show_month_view: true, detail_level});
@@ -961,11 +961,11 @@ test("monthly actions move between Detailed footer, Standard header and Compact 
     assert.equal(action.title, "Monthly timetable");
     assert.equal(action.attributes["aria-expanded"], "false");
     assert.equal(find(action, "ha-icon")[0].attributes.icon, "mdi:calendar-month");
-    const inHeader = find(header, "button").includes(action);
-    assert.equal(inHeader, detail_level !== "detailed");
-    assert.equal(find(card.shadowRoot, "nav").some(item => item.className === "card-actions-footer"), detail_level === "detailed");
+    assert.ok(find(header, "button").includes(action), "The action stays in the header for every mode");
+    assert.equal(find(action, "span").some(span => span.textContent === "Monthly timetable"), detail_level !== "compact");
     assert.equal(find(card.shadowRoot, "details").some(item => item.className === "card-actions-menu"), detail_level === "compact");
-    assert.equal(find(card.shadowRoot, "div").some(item => item.className === "card-action-strip"), detail_level === "standard");
+    assert.equal(find(card.shadowRoot, "nav").some(item => item.className === "card-action-strip"), detail_level !== "compact");
+    assert.equal(find(card.shadowRoot, "nav").some(item => item.className === "card-actions-footer"), false);
   }
   card.setConfig({entity: "sensor.mosque_prayer_timetable", show_month_view: false});
   assert.equal(find(card.shadowRoot, "button").some(button => button.className === "month-toggle"), false);
