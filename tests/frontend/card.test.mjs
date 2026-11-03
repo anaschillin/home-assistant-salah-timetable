@@ -221,22 +221,24 @@ test("disconnected HA keeps visible source data with an explicit status", () => 
   assert.match(card.shadowRoot.textContent, /disconnected/); assert.match(card.shadowRoot.textContent, /Example Mosque/);
 });
 
-test("editor round trips default mosque, detail level and inline title through config-changed", () => {
+test("editor omits the title field and preserves an existing YAML title through config-changed", () => {
   const editor = new SalahTimetableCardEditor();
-  editor.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "context"});
+  editor.setConfig({entity: "sensor.mosque_prayer_timetable", mode: "context", title: "My Mosque"});
   editor.hass = hass();
   const emitted = [];
   editor.addEventListener("config-changed", event => emitted.push(event.detail.config));
   assert.equal(find(editor.shadowRoot, "ha-selector").length, 0);
   assert.equal(find(editor._controls.mosqueList, "input").length, 1);
+  assert.ok(find(editor.shadowRoot, "input").every(input => input.type === "checkbox"));
+  assert.equal(find(editor.shadowRoot, "ha-textfield").length, 0);
   editor._extraControls.detail_level.control.value = "detailed";
   editor._extraControls.detail_level.control.dispatchEvent(new Event("change"));
-  const title = editor._controls.title;
-  title.value = "My Mosque"; title.dispatchEvent(new Event("input"));
   assert.deepEqual(emitted.at(-1), {...new SalahTimetableCardEditor()._config, type: "custom:salah-timetable-card", entity: "sensor.mosque_prayer_timetable", detail_level: "detailed", title: "My Mosque"});
   const reconstructed = new SalahTimetableCardEditor(); reconstructed.setConfig(emitted.at(-1)); reconstructed.hass = hass();
   assert.equal(reconstructed._extraControls.detail_level.control.value, "detailed");
-  assert.equal(reconstructed._controls.title.value, "My Mosque");
+  assert.equal(reconstructed._config.title, "My Mosque");
+  const card = new SalahTimetableCard(); card.setConfig(emitted.at(-1)); card.hass = hass();
+  assert.equal(find(card.shadowRoot, "h2")[0].textContent, "My Mosque");
 });
 
 test("editor discovers only timetable sensors, never individual prayer entities", () => {
@@ -255,22 +257,12 @@ test("editor discovers only timetable sensors, never individual prayer entities"
 
 test("editor preserves controls across config echoes and hass updates", () => {
   const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "sensor.mosque_prayer_timetable"}); editor.hass = hass();
-  const input = find(editor.shadowRoot, "input")[0];
+  const detail = editor._extraControls.detail_level.control;
   editor.addEventListener("config-changed", event => editor.setConfig(event.detail.config));
-  input.value = "A longer mosque title"; input.dispatchEvent(new Event("input"));
+  detail.value = "compact"; detail.dispatchEvent(new Event("change"));
   editor.hass = hass({...attributes, mosque_name: "Renamed"});
-  assert.equal(find(editor.shadowRoot, "input")[0], input);
-  assert.equal(input.value, "A longer mosque title");
-});
-
-
-test("editor title is a labelled native input without removed HA controls", () => {
-  const editor = new SalahTimetableCardEditor(); editor.hass = hass();
-  const input = find(editor.shadowRoot, "input")[0];
-  const label = find(editor.shadowRoot, "label")[0];
-  assert.equal(input.type, "text"); assert.equal(input.maxLength, 100);
-  assert.equal(label.htmlFor, input.id); assert.equal(label.textContent, "Title (optional)");
-  assert.equal(find(editor.shadowRoot, "ha-textfield").length, 0);
+  assert.equal(editor._extraControls.detail_level.control, detail);
+  assert.equal(detail.value, "compact");
 });
 
 test("dashboard controls hide panels and details without hiding published prayer values", () => {
@@ -637,14 +629,11 @@ test("Arabic ticks retain table and numeric runs while crossing a passed boundar
   assert.match(sehri.textContent, new RegExp(tr("ar", "status.passed")));
 });
 
-test("editor language changes localize existing controls without replacing a focused title", () => {
-  const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "sensor.mosque_prayer_timetable", title: "My مسجد"}); editor.hass = hass();
-  const title = editor._controls.title; const language = editor._extraControls.language.control; const bilingual = editor._extraControls.bilingual_prayer_labels.control;
-  title.selectionStart = 1; title.selectionEnd = 5; editor.shadowRoot.activeElement = title;
+test("editor language changes localize existing controls", () => {
+  const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "sensor.mosque_prayer_timetable"}); editor.hass = hass();
+  const language = editor._extraControls.language.control; const bilingual = editor._extraControls.bilingual_prayer_labels.control;
   editor.hass = withLanguage("ar-SA");
   assert.equal(editor.attributes.dir, "rtl"); assert.equal(editor.attributes.lang, "ar");
-  assert.equal(editor._controls.title, title); assert.equal(title.value, "My مسجد"); assert.equal(title.selectionStart, 1); assert.equal(title.selectionEnd, 5);
-  assert.equal(editor._controls.titleLabel.textContent, tr("ar", "editor.title"));
   assert.equal(find(editor.shadowRoot, "ha-selector").length, 0, "No duplicate sensor selector");
   assert.deepEqual(editor._extraControls.detail_level.control.children.map(option => option.value), ["compact", "standard", "detailed"]);
   assert.equal(language.attributes["aria-label"], tr("ar", "editor.language"));
@@ -652,9 +641,8 @@ test("editor language changes localize existing controls without replacing a foc
   const changes = []; editor.addEventListener("config-changed", event => { changes.push(event.detail.config); editor.setConfig(event.detail.config); });
   language.value = "en"; language.dispatchEvent(new Event("change"));
   bilingual.checked = true; bilingual.dispatchEvent(new Event("change"));
-  assert.equal(editor.attributes.dir, "ltr"); assert.equal(editor._controls.titleLabel.textContent, "Title (optional)");
+  assert.equal(editor.attributes.dir, "ltr"); assert.equal(language.attributes["aria-label"], tr("en", "editor.language"));
   assert.equal(editor._extraControls.language.control, language); assert.equal(editor._extraControls.bilingual_prayer_labels.control, bilingual);
-  assert.equal(editor._controls.title, title); assert.equal(title.selectionStart, 1); assert.equal(title.selectionEnd, 5);
   assert.equal(changes.at(-1).language, "en"); assert.equal(changes.at(-1).bilingual_prayer_labels, true);
   assert.equal(Object.hasOwn(changes.at(-1), "اللغة"), false);
 });

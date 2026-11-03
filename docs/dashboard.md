@@ -25,7 +25,7 @@ Screenshots show example configurations, not authoritative prayer times.
    the default when the card loads. Unselected mosques remain visible but cannot
    be reordered until selected.
 5. Select **Card detail**: **Compact**, **Standard** (default) or **Detailed**.
-   Set the optional inline title, language, time format and visibility preferences,
+   Set the language, time format and visibility preferences,
    then save.
 
 The editor has one ordered checkbox list, not a separate primary-sensor radio
@@ -35,14 +35,15 @@ ordered `mosque_entities` list and updates the default `entity` to its first ent
 
 With multiple mosques enabled, use the header selector to switch between them;
 switching resets day navigation to Today. With one mosque, the header displays
-a plain title. An optional custom title replaces the primary mosque's selector
-label. Each card has independent selections, so separate cards or dashboards
-can show different mosques. Existing cards without `mosque_entities` show all
+a plain title. To customise it, set `title` in the YAML editor. It also overrides
+the primary mosque's label when using the selector. The graphical editor preserves
+an existing title when saving other settings. Each card has independent selections,
+so separate cards or dashboards can show different mosques. Existing cards without `mosque_entities` show all
 discovered mosques, including newly added ones.
 
 ## Graphical editor: grouped settings
 
-The card editor places the compact title row, ordered mosque checkboxes and
+The card editor places the ordered mosque checkboxes and
 **Card detail** selector at the top. Seven collapsible sections organise the
 remaining options: **Dates & calendar**, **Prayer countdowns**,
 **Ramadan & night**, **Appearance**, **Timetable & information**,
@@ -186,9 +187,9 @@ Automated browser checks do not establish full Arabic/RTL acceptance on physical
 Enable **Monthly timetable, CSV export and source details** in the card editor
 (`show_month_view: true`). Action placement follows the chosen card detail mode:
 
-- **Compact:** open **More** in the header to switch to the monthly timetable.
+- **Compact:** open **More** in the header and select **Monthly timetable**.
 - **Standard:** use the small calendar icon in the header above the Gregorian date.
-- **Detailed:** use **Monthly timetable** in the footer below the timetable.
+- **Detailed:** use **Monthly timetable** below the timetable, inside the card footer.
 
 While browsing a month, **Return to daily timetable**, **Export year CSV**,
 **Source details**, and **Refresh** appear in the same mode-specific location:

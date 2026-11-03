@@ -299,7 +299,10 @@ export class SalahTimetableCard extends HTMLElement {
       icon.setAttribute("aria-hidden", "true");
       button.append(icon);
       if (mode !== "standard") button.append(node("span", label));
-      button.addEventListener("click", onClick);
+      button.addEventListener("click", event => {
+        event.stopPropagation();
+        onClick();
+      });
       actions.push(button);
       return button;
     };
@@ -328,6 +331,7 @@ export class SalahTimetableCard extends HTMLElement {
       const trigger = node("summary", undefined, "card-more-toggle");
       trigger.title = tr(ui, "card.more_actions");
       trigger.setAttribute("aria-label", trigger.title);
+      trigger.addEventListener("click", event => event.stopPropagation());
       const icon = node("ha-icon");
       icon.setAttribute("icon", "mdi:dots-vertical");
       icon.setAttribute("aria-hidden", "true");
@@ -526,8 +530,9 @@ export class SalahTimetableCard extends HTMLElement {
     }
     content.append(summary);
     if (this._monthView && this._config.show_month_view && this._monthState) {
-      content.append(this._monthlyPanel(ui));
-      if (cardActions && this._config.detail_level === "detailed") content.append(cardActions);
+      const monthlyPanel = this._monthlyPanel(ui);
+      if (cardActions && this._config.detail_level === "detailed") monthlyPanel.append(cardActions);
+      content.append(monthlyPanel);
       card.append(content);
       this.shadowRoot.replaceChildren(style, card);
       return;
@@ -612,6 +617,7 @@ export class SalahTimetableCard extends HTMLElement {
     }
     if (!selectedPrayers) tableShell.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
     tableShell.append(dateTabs);
+    if (cardActions && this._config.detail_level === "detailed") tableShell.append(cardActions);
     content.append(tableShell);
     if (this._selectedDay === 0 && this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
       content.append(translatedRun("p", ui, "card.second_khutbah", "time", formatTime(data.second_khutbah, zone, ui, timeFormat), "note khutbah"));
@@ -665,7 +671,6 @@ export class SalahTimetableCard extends HTMLElement {
       credit.append(link);
       content.append(credit);
     }
-    if (cardActions && this._config.detail_level === "detailed") content.append(cardActions);
     card.append(content); this.shadowRoot.replaceChildren(style, card);
     if (this._selectedDay === 0 && background) this._rememberBackgroundFrame();
     if (tableRegion) {
@@ -761,7 +766,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
       this._reminderAction.textContent = tr(ui, "card.prayer_reminders");
     }
     this._updateSections(ui);
-    const {title, titleLabel, help, mosqueGroup, mosqueHeading, mosqueHint, mosqueList} = this._controls;
+    const {help, mosqueGroup, mosqueHeading, mosqueHint, mosqueList} = this._controls;
     const mosques = discoverTimetableEntities(this._hass);
     // Keep temporarily missing sensors in the list without exposing a second
     // selector. The checkbox list is the sole mosque-selection control.
@@ -865,28 +870,20 @@ export class SalahTimetableCardEditor extends HTMLElement {
       });
       mosqueList.append(row);
     }
-    titleLabel.textContent = tr(ui, "editor.title");
-    title.placeholder = tr(ui, "editor.title_placeholder");
     help.textContent = tr(ui, "editor.help");
-    if (title.value !== (this._config.title || "")) title.value = this._config.title || "";
   }
   _render() {
     if (!this.shadowRoot) return;
     if (this._controls) { this._updateControls(); return; }
     const style = node("style", EDITOR_CSS);
     const form = node("div", undefined, "form"); this._form = form;
-    const titleField = node("div", undefined, "title-field");
-    const titleLabel = node("label"); titleLabel.htmlFor = "mosque-title";
-    const title = node("input"); title.id = "mosque-title"; title.type = "text"; title.value = this._config.title || ""; title.maxLength = 100; title.setAttribute("dir", "auto");
-    titleField.append(titleLabel, title);
-    title.addEventListener("input", event => this._changed({title: event.target.value}));
     const mosqueGroup = node("div", undefined, "mosque-options");
     const mosqueHeading = node("div", undefined, "mosque-options-heading");
     const mosqueHint = node("div", undefined, "mosque-options-hint");
     const mosqueList = node("div", undefined, "mosque-options-list");
     mosqueGroup.append(mosqueHeading, mosqueHint, mosqueList);
     const help = node("div", undefined, "help");
-    this._controls = {title, titleLabel, help, mosqueGroup, mosqueHeading, mosqueHint, mosqueList};
+    this._controls = {help, mosqueGroup, mosqueHeading, mosqueHint, mosqueList};
     this._extraControls = {};
     const settings = [
       ["detail_level", ["compact", "standard", "detailed"]],
@@ -950,7 +947,7 @@ export class SalahTimetableCardEditor extends HTMLElement {
     // Keep reminder setup beside the detail selector, outside the dashboard card.
     this._reminderAction = this._reminderButton(resolveUi(this._config, this._hass));
     // One ordered checkbox list replaces the old duplicate radio selector.
-    form.append(titleField, mosqueGroup, fields.get("detail_level"));
+    form.append(mosqueGroup, fields.get("detail_level"));
     if (this._reminderAction) form.append(this._reminderAction);
     form.append(...groups, help);
     this._updateControls();

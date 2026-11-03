@@ -26,7 +26,7 @@ test("catalog covers card, editor, accessible labels, statuses and configuration
     "table.caption", "table.prayer", "table.beginning", "table.jamaat", "table.region", "table.scroll_help", "table.jumuah_time", "table.fajr_end",
     "ramadan.title", "ramadan.sehri_ends", "ramadan.iftar", "ramadan.taraweeh", "ramadan.no_time",
     ...["prayer", "fajr", "sunrise", "dhuhr", "jumuah", "asr", "maghrib", "isha"].map(key => `prayer.${key}`),
-    "editor.entity", "editor.invalid_entity", "editor.mode", "editor.mode.context", "editor.mode.previous", "editor.mode.upcoming", "editor.title",
+    "editor.entity", "editor.invalid_entity", "editor.mode", "editor.mode.context", "editor.mode.previous", "editor.mode.upcoming",
     "editor.layout", "editor.layout.expanded", "editor.layout.compact", "editor.time_format", "editor.time_format.12h", "editor.time_format.24h", "editor.hijri_adjustment",
     ...["show_hijri_date", "show_salah_countdown", "show_jamaat_countdown", "show_ramadan_details", "show_sehri_countdown", "show_iftar_countdown", "show_timezone_note"].map(key => `editor.${key}`),
     "editor.language", "editor.language.auto", "editor.language.en", "editor.language.ar", "editor.bilingual_prayer_labels", "editor.help",

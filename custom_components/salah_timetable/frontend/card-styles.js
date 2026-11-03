@@ -1057,14 +1057,15 @@ ha-card.kiosk:fullscreen {
   padding-inline-end: calc(var(--card-action-count,1) * 40px + 4px);
   min-height: 36px;
 }
-.card-action-strip,.card-actions-menu {
+.card-action-strip,.card-actions-menu .card-more-toggle {
   position: absolute;
   inset-block-start: 0;
   inset-inline-end: 0;
   z-index: 3;
 }
 .card-action-strip { display: flex; gap: 4px; align-items: center; }
-.summary-shell .header.has-month-action:has(.card-actions-menu) h2 { padding-inline-end: 86px; }
+.compact .header.has-month-action { row-gap: 0; }
+.compact .header.has-month-action h2 { padding-inline-end: 86px; }
 .card-action-strip .month-toggle,.card-action-strip .month-action {
   width: 36px; height: 36px; min-height: 36px; padding: 8px;
   display: grid; place-items: center;
@@ -1072,15 +1073,21 @@ ha-card.kiosk:fullscreen {
 .card-action-strip ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; --ha-icon-size: 18px; }
 .card-actions-footer {
   display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end;
-  margin: 16px 0 6px; padding-top: 12px;
+  padding: 10px;
   border-top: 1px solid var(--divider-color);
 }
+.monthly-shell .card-actions-footer { margin-top: 12px; padding-inline: 0; padding-bottom: 0; }
 .card-actions-footer button,.card-menu-items button {
   display: flex; align-items: center; gap: 7px; font: inherit;
+  min-width: 0; max-width: 100%; overflow-wrap: anywhere; text-align: start;
 }
 .card-actions-footer ha-icon,.card-menu-items ha-icon {
   width: 18px; height: 18px; --mdc-icon-size: 18px; --ha-icon-size: 18px;
+  flex: none;
 }
+/* Keep the disclosure in the summary's flow so its clipped glass surface
+   cannot cover actions when the countdowns are short or hidden. */
+.card-actions-menu { grid-column: 1 / -1; min-width: 0; }
 .card-actions-menu .card-more-toggle {
   display: flex; align-items: center; gap: 3px;
   cursor: pointer; list-style: none;
@@ -1093,16 +1100,14 @@ ha-card.kiosk:fullscreen {
 .card-actions-menu .card-more-toggle ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; }
 .card-actions-menu .card-more-toggle:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
 .card-actions-menu .card-menu-items {
-  position: absolute; inset-inline-end: 0; inset-block-start: 42px;
-  display: grid; gap: 4px; min-width: 205px;
+  display: grid; gap: 4px; width: min(100%,15rem); box-sizing: border-box;
+  margin-block-start: 8px; margin-inline-start: auto;
   padding: 8px; border-radius: 9px;
   border: 1px solid var(--divider-color);
   background: var(--card-background-color);
-  box-shadow: 0 6px 16px rgba(0,0,0,.25);
-  z-index: 4;
 }
 .card-actions-menu:not([open]) .card-menu-items { display: none; }
-.card-menu-items button { width: 100%; text-align: start; }
+.card-menu-items button { width: 100%; }
 @container(max-width:23rem) {
   .header.has-month-action:has(.card-action-strip) h2 { padding-inline-end: 0; }
   .header .card-action-strip {
@@ -1110,7 +1115,6 @@ ha-card.kiosk:fullscreen {
     justify-content: flex-end;
   }
   .header .hijri,.header .gregorian,.header .month-description { grid-row: auto; }
-  .summary-shell .header.has-month-action:has(.card-actions-menu) h2 { padding-inline-end: 86px; }
 }
 .month-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .month-toolbar h3 { font-size: clamp(1rem,2.4cqi,1.5rem); margin: 0; text-align: center; }
@@ -1148,20 +1152,6 @@ export const EDITOR_CSS = `
 .form { display: grid; gap: 14px; padding: 12px 0; color: var(--primary-text-color); }
 .help { color: var(--secondary-text-color); font-size: .85rem; line-height: 1.45; }
 .error { color: var(--error-color); }
-/* Compact title editor: label and input share one row. */
-.title-field { display: grid; grid-template-columns: minmax(0,135px) minmax(0,1fr); align-items: center; gap: 12px; }
-.title-field label { font: inherit; font-size: .88rem; }
-.title-field input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 9px 10px;
-  border: 1px solid var(--divider-color);
-  border-radius: 6px;
-  background: var(--card-background-color);
-  color: var(--primary-text-color);
-  font: inherit;
-}
-.title-field input:focus-visible,
 .setting select:focus-visible,
 .editor-section-toggle:focus-visible {
   outline: 2px solid var(--primary-color);
@@ -1186,7 +1176,7 @@ export const EDITOR_CSS = `
 .mosque-choice button:disabled { opacity: .3; cursor: default; }
 .mosque-choice button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 1px; }
 .mosque-choice button ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; }
-@container(max-width: 22rem) { .title-field { grid-template-columns: minmax(0,105px) minmax(0,1fr); gap: 6px; } .mosque-choice { grid-template-columns: 30px minmax(0,1fr) 32px 32px; } }
+@container(max-width: 22rem) { .mosque-choice { grid-template-columns: 30px minmax(0,1fr) 32px 32px; } }
 .setting {
   display: grid;
   grid-template-columns: minmax(0,1fr) auto;

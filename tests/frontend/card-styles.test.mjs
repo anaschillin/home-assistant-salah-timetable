@@ -23,7 +23,7 @@ test("day navigation retains active and keyboard-focus treatments without obsole
 });
 
 test("graphical editor retains focus, layout, theme and narrow-screen styles", () => {
-  for (const token of [":host", ".form", ".title-field input", ".title-field input:focus", "--primary-color", "--secondary-text-color", "@media(max-width: 420px)"]) {
+  for (const token of [":host", ".form", ".setting select:focus-visible", "--primary-color", "--secondary-text-color", "@media(max-width: 420px)"]) {
     assert.ok(EDITOR_CSS.includes(token), `Missing editor style: ${token}`);
   }
 });

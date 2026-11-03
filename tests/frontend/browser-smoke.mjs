@@ -177,10 +177,76 @@ nextFixture();
         await writeFile(join(output, `salah-card-${width}${suffix}.png`), Buffer.from(screenshot.data, "base64"));
       }
     }
+    for (const [index, {width, language, bilingual}] of fixtures.entries()) {
+      if (bilingual) continue;
+      await t.test(`${width}px ${language} timetable action placement and pointer navigation`, async () => {
+        const evaluate = async source => {
+          const result = await debuggerSession.call("Runtime.evaluate", {
+            expression: `(() => {const frame = document.querySelectorAll('iframe')[${index}]; ${source}})()`,
+            returnByValue: true,
+          });
+          assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
+          return result.result.value;
+        };
+        const click = async selector => {
+          const point = await evaluate(`
+            const button = frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelector(${JSON.stringify(selector)});
+            button.scrollIntoView({block: "center", inline: "nearest"});
+            const rect = button.getBoundingClientRect();
+            const offset = frame.getBoundingClientRect();
+            return {x: offset.left + rect.left + rect.width / 2, y: offset.top + rect.top + rect.height / 2};
+          `);
+          await debuggerSession.call("Input.dispatchMouseEvent", {type: "mousePressed", button: "left", clickCount: 1, ...point});
+          await debuggerSession.call("Input.dispatchMouseEvent", {type: "mouseReleased", button: "left", clickCount: 1, ...point});
+        };
+        for (const [mode, daily, monthly] of [
+          ["compact", ".summary-shell .card-menu-items", ".summary-shell .card-menu-items"],
+          ["standard", ".header .card-action-strip", ".header .card-action-strip"],
+          ["detailed", ".timetable-shell > .card-actions-footer", ".monthly-shell > .card-actions-footer"],
+        ]) {
+          await evaluate(`frame.contentWindow.actionFixture = frame.contentWindow.mountActionCard(${JSON.stringify(mode)});`);
+          const placement = (selector, surface) => evaluate(`
+            const root = frame.contentWindow.actionFixture.actionCard.shadowRoot;
+            const container = root.querySelector(${JSON.stringify(selector)});
+            const buttons = [...(container?.querySelectorAll("button") || [])];
+            const bounds = container?.closest(${JSON.stringify(surface)})?.getBoundingClientRect();
+            return buttons.length && buttons.every(button => {
+              const rect = button.getBoundingClientRect();
+              return rect.width > 0 && rect.height > 0 && bounds &&
+                rect.left >= bounds.left - 1 && rect.right <= bounds.right + 1 &&
+                rect.top >= bounds.top - 1 && rect.bottom <= bounds.bottom + 1;
+            }) ? buttons.length : 0;
+          `);
+          const dailySurface = mode === "detailed" ? ".timetable-shell" : ".summary-shell";
+          const monthlySurface = mode === "detailed" ? ".monthly-shell" : ".summary-shell";
+          try {
+            if (mode === "compact") await click(".card-more-toggle");
+            assert.equal(await placement(daily, dailySurface), 1, `${mode}: daily action fits its surface`);
+            await click(`${daily} .month-toggle`);
+            assert.deepEqual(await evaluate("return frame.contentWindow.actionFixture.requests;"), [
+              {type: "salah_timetable/month", entity_id: "sensor.example_prayer_timetable", year: 2026, month: 10},
+            ], `${mode}: click requests the active timetable month`);
+            assert.equal(await evaluate(`
+              return frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelector(".monthly-table tbody td")?.textContent;
+            `), "05:45", `${mode}: monthly view renders the response`);
+            if (mode === "compact") await click(".card-more-toggle");
+            assert.equal(await placement(monthly, monthlySurface), 4, `${mode}: all monthly actions fit their surface`);
+            await click(`${monthly} .month-toggle`);
+            assert.equal(await evaluate(`
+              const root = frame.contentWindow.actionFixture.actionCard.shadowRoot;
+              return !root.querySelector(".monthly-shell") && !!root.querySelector(".timetable-shell .date-tabs");
+            `), true, `${mode}: Return to daily restores the daily timetable`);
+          } finally {
+            await evaluate("frame.contentWindow.actionFixture.actionCard.remove();");
+          }
+        }
+      });
+    }
   } finally {
     clearTimeout(deadline);
+    await debuggerSession?.call("Browser.close").catch(() => {});
     debuggerSession?.close(); stopBrowser(child);
     server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
-    await pause(100); await rm(directory, {recursive: true, force: true});
+    await rm(directory, {recursive: true, force: true, maxRetries: 5, retryDelay: 100});
   }
 });

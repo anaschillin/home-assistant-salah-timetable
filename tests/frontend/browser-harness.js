@@ -325,15 +325,17 @@ try {
   document.documentElement.style.setProperty("--primary-text-color", "rgb(20, 20, 20)");
   check("light theme follows HA variables", getComputedStyle(card).color === "rgb(20, 20, 20)");
 
-  const editor = new SalahTimetableCardEditor(); editor.setConfig(config); editor.hass = hass; document.body.append(editor);
+  const yamlTitle = "My Mosque";
+  const editor = new SalahTimetableCardEditor(); editor.setConfig({...config, title: yamlTitle}); editor.hass = hass; document.body.append(editor);
   const editorForm = editor.shadowRoot.querySelector(".form");
-  check("graphical editor stylesheet applies grid and HA theme colors", getComputedStyle(editorForm).display === "grid" && getComputedStyle(editor.shadowRoot.querySelector(".title-field input")).boxSizing === "border-box");
+  check("graphical editor stylesheet applies grid and HA theme colors", getComputedStyle(editorForm).display === "grid" && getComputedStyle(editorForm).color === "rgb(20, 20, 20)");
+  check("graphical editor omits the title field", !editor.shadowRoot.querySelector('input[type="text"], ha-textfield'));
   let lastConfig;
   editor.addEventListener("config-changed", event => { lastConfig = event.detail.config; editor.setConfig(event.detail.config); card.setConfig(event.detail.config); card._render(Date.parse(time(4, 40))); });
-  const input = editor.shadowRoot.querySelector("input#mosque-title");
-  input.focus(); input.value = "My Mosque"; input.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
-  check("graphical title editor emits configuration", lastConfig?.title === "My Mosque");
-  check("configuration echo preserves focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
+  const detail = editor.shadowRoot.querySelector('[data-option="detail_level"]');
+  detail.focus(); detail.value = "standard"; detail.dispatchEvent(new Event("change", {bubbles: true}));
+  check("graphical edits preserve and render the YAML title", lastConfig?.title === yamlTitle && card.shadowRoot.querySelector("h2")?.textContent === yamlTitle);
+  check("configuration echo preserves focused detail selector", editor.shadowRoot.activeElement === detail);
   check("editor removes duplicate timetable sensor selector",
     !editor.shadowRoot.querySelector("ha-selector"));
   const secondEntity = "sensor.second_prayer_timetable";
@@ -365,7 +367,7 @@ try {
       row.querySelector(".mosque-grip")?.disabled &&
       row.querySelector(".mosque-move-up")?.disabled));
   editor.hass = {...hass, states: {...hass.states}};
-  check("hass state updates preserve focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
+  check("hass state updates preserve focused detail selector", editor.shadowRoot.activeElement === detail);
   check("obsolete Jamaat mode editor removed", !editor.shadowRoot.textContent.includes("Jamaat panel"));
   const update = (key, value) => {
     const control = editor.shadowRoot.querySelector(`[data-option="${key}"]`);
@@ -377,7 +379,7 @@ try {
     update("language", value);
     const expected = value === "ar" ? "rtl" : "ltr";
     check(`editor language=${value} updates direction`, editor.getAttribute("dir") === expected && card.getAttribute("dir") === expected);
-    check(`editor language=${value} preserves focused title`, editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
+    check(`editor language=${value} preserves focused detail selector`, editor.shadowRoot.activeElement === detail);
   }
   for (const value of [false, true, bilingual]) update("bilingual_prayer_labels", value);
   check("graphical language and bilingual controls round trip", lastConfig.language === language && lastConfig.bilingual_prayer_labels === bilingual);
@@ -391,7 +393,7 @@ try {
     check(`editor ${key}=${value} changes the expected visible content`, Object.entries(visibility(card)).every(([option, visible]) => visible === expected[option]));
   }
   const restored = new SalahTimetableCardEditor(); restored.setConfig(JSON.parse(JSON.stringify(lastConfig))); restored.hass = hass;
-  check("restored graphical configuration", restored.shadowRoot.querySelector("input#mosque-title").value === "My Mosque" && restored.shadowRoot.querySelector('[data-option="detail_level"]').value === lastConfig.detail_level);
+  check("restored graphical configuration", restored._config.title === yamlTitle && restored.shadowRoot.querySelector('[data-option="detail_level"]').value === lastConfig.detail_level);
   check("all graphical options survive configuration reload", [...restored.shadowRoot.querySelectorAll("[data-option]")].every(control => {
     const key = control.getAttribute("data-option");
     if (control.localName === "ha-switch") return control.checked === lastConfig[key];
@@ -543,6 +545,17 @@ try {
   card.remove(); check("disconnected card clears local timer", card._timer === null);
   // Keep a static native-DOM preview for optional CDP screenshots.
   document.body.prepend(card); card.disconnectedCallback(); card._render(Date.parse(time(4, 40))); card.shadowRoot.querySelector(".table-scroll").scrollLeft = 0;
+  window.mountActionCard = detail_level => {
+    const actionCard = new SalahTimetableCard();
+    actionCard.setConfig({...config, detail_level, show_month_view: true, show_mosque_background: true, mosque_background: "masjid-al-haram"});
+    const requests = [];
+    actionCard.hass = {...hass, callWS(message) {
+      requests.push(message);
+      return Promise.resolve({rows: [{date: data.date, published: true, times: {fajr_begin: ["05:45"]}}]});
+    }};
+    document.body.prepend(actionCard);
+    return {actionCard, requests};
+  };
   parent.postMessage({kind: "salah-browser-result", status: "passed", width, language, bilingual, checks}, location.origin);
 } catch (error) {
   parent.postMessage({kind: "salah-browser-result", status: "failed", width, language, bilingual, checks, error: error.stack || String(error)}, location.origin);

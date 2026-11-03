@@ -73,7 +73,7 @@ lists the sensors and calendar created for each mosque.
 1. Choose **Edit dashboard → Add card → Salah Timetable**.
 2. Under **Mosques available on this card**, tick the Prayer timetable sensors to display (not individual Fajr or Dhuhr sensors). At least one mosque must remain selected.
 3. Use the six-dot drag handle or up/down arrows to reorder selected mosques. **Shown first** identifies the default mosque. Unchecked mosques cannot be reordered.
-4. Choose **Compact**, **Standard** or **Detailed** in the graphical editor; the optional title label and input share one row.
+4. Choose **Compact**, **Standard** or **Detailed** in the graphical editor. To set a custom title, use the [YAML configuration](dashboard.md#dates-and-customization).
 5. Expand the relevant settings section to configure dates, countdowns, Ramadan, appearance or timetable tools. On/off features use switches; background choices are in **Appearance → Mosque background**.
 
 Separate cards and dashboards may show different mosques. The duplicate primary-sensor radio selector has been removed.
