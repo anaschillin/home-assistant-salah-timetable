@@ -633,7 +633,7 @@ test("editor language changes localize existing controls without replacing a foc
   assert.equal(editor.attributes.dir, "rtl"); assert.equal(editor.attributes.lang, "ar");
   assert.equal(editor._controls.title, title); assert.equal(title.value, "My مسجد"); assert.equal(title.selectionStart, 1); assert.equal(title.selectionEnd, 5);
   assert.equal(editor._controls.titleLabel.textContent, tr("ar", "editor.title"));
-  assert.equal(editor._controls.entity.label, tr("ar", "editor.entity"));
+  assert.equal(find(editor.shadowRoot, "ha-selector").length, 0, "No duplicate sensor selector");
   assert.deepEqual(editor._extraControls.detail_level.control.children.map(option => option.value), ["compact", "standard", "detailed"]);
   assert.equal(language.attributes["aria-label"], tr("ar", "editor.language"));
   assert.deepEqual(language.children.map(option => option.value), ["auto", "en", "ar"]);
@@ -650,10 +650,10 @@ test("editor language changes localize existing controls without replacing a foc
 test("editor validation errors follow the UI language without changing YAML values", () => {
   const editor = new SalahTimetableCardEditor(); editor.hass = withLanguage("ar");
   let emitted = false; editor.addEventListener("config-changed", () => { emitted = true; });
-  editor._controls.entity.dispatchEvent(new CustomEvent("value-changed", {detail: {value: "sensor.fajr"}}));
-  assert.equal(emitted, false); assert.equal(editor._controls.error.textContent, tr("ar", "editor.invalid_entity"));
-  const error = editor._controls.error; editor.hass = hass();
-  assert.equal(editor._controls.error, error); assert.equal(error.textContent, tr("en", "editor.invalid_entity"));
+  assert.equal(find(editor.shadowRoot, "ha-selector").length, 0);
+  assert.equal(emitted, false);
+  editor.hass = hass();
+  assert.equal(find(editor.shadowRoot, "ha-selector").length, 0);
   for (const Type of [SalahTimetableCard, SalahTimetableCardEditor]) {
     const element = new Type(); element.hass = withLanguage("ar");
     assert.throws(() => element.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "invalid"}), {message: tr("ar", "config.detail_level")});
@@ -871,11 +871,12 @@ test("mosque selection preserves missing sensors, automatically includes new pri
   const a = "sensor.mosque_prayer_timetable", b = "sensor.second_mosque_prayer_timetable";
   const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: a, mosque_entities: [a]}); editor.hass = hass();
   editor.addEventListener("config-changed", event => editor.setConfig(event.detail.config));
-  editor._controls.entity.dispatchEvent(new CustomEvent("value-changed", {detail: {value: a}}));
   assert.deepEqual(editor._config.mosque_entities, [a]);
   const multi = hass(); multi.states[b] = {state: "2026-10-21", attributes: {...attributes, mosque_name: "Second Mosque"}};
   editor.hass = multi;
-  editor._controls.entity.dispatchEvent(new CustomEvent("value-changed", {detail: {value: b}}));
+  const choices = find(editor._controls.mosqueList, "input");
+  choices[1].checked = true;
+  choices[1].dispatchEvent(new Event("change"));
   assert.deepEqual(editor._config.mosque_entities, [a,b]);
   const missing = new SalahTimetableCard(); missing.setConfig({entity: b, mosque_entities: [b]}); missing.hass = hass();
   assert.equal(missing._activeEntity(), b);
@@ -967,4 +968,38 @@ test("monthly calendar is in the header in every mode, with an accessible label"
   }
   card.setConfig({entity: "sensor.mosque_prayer_timetable", show_month_view: false});
   assert.equal(find(card.shadowRoot, "button").some(button => button.className === "month-toggle"), false);
+});
+
+
+test("ordered mosque list uses a dedicated drag handle and arrow fallback", () => {
+  const a = "sensor.mosque_prayer_timetable", b = "sensor.second_mosque_prayer_timetable";
+  const multi = hass();
+  multi.states[b] = {state: "2026-10-21", attributes: {...attributes, mosque_name: "Second Mosque"}};
+  const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: a, mosque_entities: [a, b]}); editor.hass = multi;
+  editor.addEventListener("config-changed", event => editor.setConfig(event.detail.config));
+  const rows = () => editor._controls.mosqueList.children;
+  assert.equal(find(editor.shadowRoot, "ha-selector").length, 0);
+  assert.equal(rows()[0].draggable, undefined, "The row itself must not initiate dragging");
+  const handles = () => find(editor._controls.mosqueList, "button").filter(item => item.className === "mosque-grip");
+  assert.equal(handles().length, 2);
+  assert.equal(handles()[0].draggable, true);
+  assert.equal(find(handles()[0], "ha-icon")[0].attributes.icon, "mdi:drag-vertical");
+  assert.match(rows()[0].textContent, /Shown first/);
+  const moved = find(rows()[1], "button").find(item => item.className === "mosque-move-up");
+  moved.dispatchEvent(new Event("click"));
+  assert.deepEqual(editor._config.mosque_entities, [b, a]);
+  assert.equal(editor._config.entity, b);
+  assert.match(rows()[0].textContent, /Shown first/);
+  const card = new SalahTimetableCard(); card.setConfig({entity: a, mosque_entities: [b, a]}); card.hass = multi;
+  assert.equal(card._activeEntity(), b, "Ordered first mosque wins over legacy entity");
+  const data = new Map();
+  const transfer = {setData(type, value) { data.set(type, value); }, getData(type) { return data.get(type); }};
+  handles()[1].dispatchEvent({type: "dragstart", dataTransfer: transfer});
+  rows()[0].dispatchEvent({type: "drop", preventDefault() {}, dataTransfer: transfer});
+  assert.deepEqual(editor._config.mosque_entities, [a, b]);
+  const checkboxes = find(editor._controls.mosqueList, "input");
+  checkboxes[1].checked = false;
+  checkboxes[1].dispatchEvent(new Event("change"));
+  assert.equal(handles()[1].disabled, true);
+  assert.equal(find(rows()[1], "button").find(item => item.className === "mosque-move-up").disabled, true);
 });

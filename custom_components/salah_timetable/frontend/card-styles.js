@@ -1126,17 +1126,21 @@ export const EDITOR_CSS = `
 .mosque-options-heading { font-weight: 600; }
 .mosque-options-hint { font-size: .8rem; line-height: 1.35; color: var(--secondary-text-color); }
 .mosque-options-list { display: grid; }
-.mosque-choice { display: grid; grid-template-columns: 14px minmax(0,1fr) 34px 34px; gap: 6px; align-items: center; min-width: 0; padding: 8px 0; border-top: 1px solid var(--divider-color); }
-.mosque-choice[draggable="true"] { cursor: grab; }
+.mosque-choice { display: grid; grid-template-columns: 32px minmax(0,1fr) 34px 34px; gap: 6px; align-items: center; min-width: 0; padding: 8px 0; border-top: 1px solid var(--divider-color); }
+.mosque-choice[data-selected="false"] { opacity: .75; }
 .mosque-choice-label { display: flex; align-items: center; gap: 8px; min-width: 0; overflow-wrap: anywhere; font-size: .88rem; }
 .mosque-choice input { flex-shrink: 0; accent-color: var(--primary-color); }
 .mosque-first { font-size: .7rem; color: var(--primary-color); }
-.mosque-grip { text-align: center; color: var(--secondary-text-color); user-select: none; }
+.mosque-grip { width: 32px; height: 34px; padding: 4px; border: 0; background: transparent; border-radius: 7px; color: var(--secondary-text-color); cursor: grab; touch-action: none; user-select: none; }
+.mosque-grip:active:not(:disabled) { cursor: grabbing; }
+.mosque-grip:disabled { opacity: .3; cursor: default; }
+.mosque-grip ha-icon { width: 20px; height: 20px; --mdc-icon-size: 20px; }
+.mosque-grip:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 1px; }
 .mosque-choice button { width: 34px; height: 34px; padding: 3px; border: 0; background: transparent; border-radius: 7px; color: var(--primary-text-color); display: grid; place-items: center; cursor: pointer; }
 .mosque-choice button:disabled { opacity: .3; cursor: default; }
 .mosque-choice button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 1px; }
 .mosque-choice button ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; }
-@container(max-width: 22rem) { .title-field { grid-template-columns: minmax(0,1fr); gap: 6px; } .mosque-choice { grid-template-columns: 12px minmax(0,1fr) 32px 32px; } }
+@container(max-width: 22rem) { .title-field { grid-template-columns: minmax(0,105px) minmax(0,1fr); gap: 6px; } .mosque-choice { grid-template-columns: 30px minmax(0,1fr) 32px 32px; } }
 .setting {
   display: grid;
   grid-template-columns: minmax(0,1fr) auto;
