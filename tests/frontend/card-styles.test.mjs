@@ -117,8 +117,11 @@ test("glass readability uses the same high-contrast substrate without an extra t
   assert.match(CARD_CSS, /\.summary-shell \.date,\s*\.summary-shell \.month-description/);
 });
 
-test("monthly button shares the mosque name row, uses text-sized icon and keeps dates below", () => {
-  assert.match(CARD_CSS, /\.header h2\s*\{[^}]*grid-column:\s*1;\s*grid-row:\s*1/);
+test("monthly button shares the mosque name row without altering the default header", () => {
+  assert.match(CARD_CSS, /\.header h2\s*\{[^}]*grid-column:\s*1 \/ -1/);
+  assert.match(CARD_CSS, /\.summary-shell \.header:has\(\.card-action-strip\) h2\s*\{[^}]*grid-column:\s*1;\s*grid-row:\s*1/);
+  assert.match(CARD_CSS, /@container\(max-width:23rem\)\s*\{\s*\.header\s*\{\s*grid-template-columns:\s*minmax\(0,1fr\)/);
+  assert.match(CARD_CSS, /\.header \.gregorian\s*\{\s*text-align:\s*start/);
   assert.match(CARD_CSS, /\.card-action-strip\s*\{[^}]*grid-column:\s*2;\s*grid-row:\s*1/);
   assert.match(CARD_CSS, /\.header \.gregorian\s*\{[^}]*grid-column:\s*2;\s*grid-row:\s*2/);
   assert.match(CARD_CSS, /\.card-action-strip ha-icon\s*\{[^}]*width:\s*1em;[^}]*height:\s*1em/);
