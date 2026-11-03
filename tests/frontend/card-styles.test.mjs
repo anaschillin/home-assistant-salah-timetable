@@ -34,6 +34,14 @@ test("later responsive and modern panel overrides remain ordered", () => {
   assert.ok(CARD_CSS.includes(".panel .count"));
 });
 
+test("dashboard edit/preview removes only the full-viewport photo minimum", () => {
+  const editOnly = CARD_CSS.match(/:host\(\[dashboard-editing\]\) ha-card\.has-mosque-background\s*\{([^}]+)\}/);
+  assert.ok(editOnly, "Preview-only height override is missing");
+  assert.match(editOnly[1], /min-height:\s*0\s*;/);
+  const defaultHeight = CARD_CSS.match(/(?<!\])ha-card\.has-mosque-background\s*\{([^}]+)\}/);
+  assert.match(defaultHeight[1], /min-height:\s*calc\(100dvh - var\(--header-height, 0px\)\)/);
+});
+
 test("the mosque photograph covers the viewport below short day views", () => {
   const rule = CARD_CSS.match(/ha-card\.has-mosque-background\s*\{([^}]+)\}/);
   assert.ok(rule, "Missing full-canvas background rule");
