@@ -928,3 +928,43 @@ test("month view defaults off and validates a strict boolean", () => {
   assert.equal(normalizeConfig({show_month_view: true}).show_month_view, true);
   assert.throws(() => normalizeConfig({show_month_view: "yes"}));
 });
+
+
+test("reminder setup lives in the editor and follows administrator and kiosk changes", () => {
+  const card = new SalahTimetableCard();
+  const editor = new SalahTimetableCardEditor();
+  const state = hass();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  card.hass = {...state, user: {is_admin: true}};
+  assert.equal(find(card.shadowRoot, "button").filter(button => button.textContent === "Prayer reminders").length, 0);
+  editor.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  const action = () => find(editor.shadowRoot, "button").find(button => button.className === "reminder-setup");
+  assert.equal(action().hidden, true);
+  editor.hass = {...state, user: {is_admin: true}};
+  assert.equal(action().hidden, false);
+  const form = find(editor.shadowRoot, "div").find(element => element.className === "form");
+  assert.equal(form.children[form.children.indexOf(action()) - 1], editor._extraControls.detail_level.field);
+  editor.hass = {...state, user: {is_admin: false}};
+  assert.equal(action().hidden, true);
+  editor.hass = {...state, user: {is_admin: true}, states: {}};
+  assert.equal(action().hidden, false);
+  editor.setConfig({entity: "sensor.mosque_prayer_timetable", kiosk_mode: true});
+  assert.equal(action().hidden, true);
+});
+
+test("monthly calendar is in the header in every mode, with an accessible label", () => {
+  const card = new SalahTimetableCard();
+  card.hass = hass();
+  for (const detail_level of ["compact", "standard", "detailed"]) {
+    card.setConfig({entity: "sensor.mosque_prayer_timetable", show_month_view: true, detail_level});
+    const header = find(card.shadowRoot, "header")[0];
+    const action = find(header, "button").find(button => button.className === "month-toggle");
+    assert.ok(action);
+    assert.equal(action.attributes["aria-label"], "Monthly timetable");
+    assert.equal(action.title, "Monthly timetable");
+    assert.equal(action.attributes["aria-expanded"], "false");
+    assert.equal(find(action, "ha-icon")[0].attributes["icon"], "mdi:calendar-month");
+  }
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_month_view: false});
+  assert.equal(find(card.shadowRoot, "button").some(button => button.className === "month-toggle"), false);
+});

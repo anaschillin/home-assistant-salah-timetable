@@ -176,7 +176,7 @@ Automated browser checks do not establish full Arabic/RTL acceptance on physical
 ## Monthly timetable and CSV/source information
 
 Enable **Monthly timetable, CSV export and source details** in the card editor
-(`show_month_view: true`). The **Monthly timetable** control opens a
+(`show_month_view: true`). The calendar icon in the card's top-right corner (**Monthly timetable**) opens a
 Gregorian month browser. Previous/next month and Refresh retrieve at most
 31 days of **approved effective** times for the selected mosque; missing
 dates and prayer fields display as missing, never calculated or filled.
@@ -332,7 +332,7 @@ rules, see [Ramadan settings](import_review.md#ramadan-settings).
 
 ## Resource troubleshooting
 
-The integration serves versioned assets and automatically registers the card in
+The integration serves assets under a content-fingerprinted URL and automatically registers the card in
 storage-mode Lovelace resources. With YAML-managed resources it uses HA's supported
 extra-JavaScript registration without editing your YAML. A second manual resource
 is normally unnecessary.
@@ -347,8 +347,13 @@ add this **JavaScript module** resource through **Settings → Dashboards → Re
 ```
 
 Reload the page after saving. Check for obsolete or duplicate manual resources if an
-old card version persists. The integration updates its own registration on upgrades;
-for manual fallback resources, add the installed version as a cache key only if required after an upgrade. The version is shown at the top of this guide.
+old card version persists. The integration updates its own registration when the
+frontend changes, including when testing a PR with the same release version. Its
+registered URL includes a content fingerprint, so relative helper imports also
+load the matching build. Keep the automatically registered resource and remove
+obsolete manual duplicates that may load an older definition first. YAML-managed
+manual resources remain yours to edit; do not keep an old manual card URL alongside
+the integration's automatic module registration.
 
 If the card reports a missing entity, choose the mosque's Prayer timetable sensor
 again. If prayer values are unavailable, check the approved source's date coverage,
@@ -422,3 +427,8 @@ Future event records require independent date evidence, original summaries,
 explicit editorial approval and redistribution review. See the canonical
 [history research and proposed delivery](../research/islamic-history/islamic-history-source-audit.md)
 and [Dorar source review](../research/islamic-history/islamic-history-dorar-coverage-audit.md).
+
+
+Administrator reminder setup is available through **Edit card → Prayer reminders**,
+below the detail-level selection. It is hidden in kiosk mode. See
+[guided prayer reminders](automations.md#guided-prayer-reminders).

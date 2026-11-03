@@ -1,3 +1,4 @@
+import {openReminderWizard} from "./reminder-wizard.js?v=1.0.0";
 import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=1.0.0";
 import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=1.0.0";
 import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=1.0.0";
@@ -179,7 +180,7 @@ export class SalahTimetableCard extends HTMLElement {
       this._activeEntity(), this._mosques().map(item => [item.entity, item.name]), Boolean(state), state?.state,
       ...RENDER_ATTRIBUTES.map(key => data?.[key]),
       data?.time_zone || this._hass?.config?.time_zone || "UTC",
-      ui.language, ui.locale, ui.dir,
+      ui.language, ui.locale, ui.dir, Boolean(this._hass?.user?.is_admin),
       this._hass?.connection?.connected === false,
     ]);
   }
@@ -460,7 +461,15 @@ export class SalahTimetableCard extends HTMLElement {
     }
     summary.append(header);
     if (this._config.show_month_view) {
-      const viewButton = node("button", tr(ui, this._monthView ? "month.daily" : "month.title"), "month-toggle");
+      const label = tr(ui, this._monthView ? "month.daily" : "month.title");
+      const viewButton = node("button", undefined, "month-toggle");
+      viewButton.title = label;
+      viewButton.setAttribute("aria-label", label);
+      viewButton.setAttribute("aria-expanded", String(this._monthView));
+      const icon = node("ha-icon");
+      icon.setAttribute("icon", this._monthView ? "mdi:calendar-today" : "mdi:calendar-month");
+      icon.setAttribute("aria-hidden", "true");
+      viewButton.append(icon);
       viewButton.type = "button";
       viewButton.addEventListener("click", () => {
         if (this._monthView) {
@@ -473,7 +482,8 @@ export class SalahTimetableCard extends HTMLElement {
           this._loadMonth(year, month);
         }
       });
-      summary.append(viewButton);
+      header.classList.add("has-month-action");
+      header.append(viewButton);
     }
     content.append(summary);
     if (this._monthView && this._config.show_month_view && this._monthState) {
@@ -645,6 +655,24 @@ export class SalahTimetableCardEditor extends HTMLElement {
     if (changed || !this._controls) this._render();
   }
   set hass(value) { this._hass = value; this._render(); }
+  _reminderButton(ui) {
+    const button = node("button", tr(ui, "card.prayer_reminders"), "reminder-setup");
+    button.type = "button";
+    button.addEventListener("click", async () => {
+      if (!this._hass?.user?.is_admin || this._config.kiosk_mode) return;
+      button.disabled = true;
+      try {
+        const wizard = openReminderWizard(this._hass);
+        await wizard.ready;
+      } catch {
+        button.insertAdjacentText("afterend", tr(ui, "card.reminders_load_error"));
+      } finally {
+        button.disabled = false;
+      }
+    });
+    return button;
+  }
+
   _changed(patch) {
     this._config = normalizeForUi({...this._config, ...patch}, this._hass);
     this._updateControls();
@@ -686,6 +714,10 @@ export class SalahTimetableCardEditor extends HTMLElement {
         || (key === "show_night_calculations" && this._config.detail_level === "compact");
       control.disabled = disabled;
       field.setAttribute("data-disabled", String(disabled));
+    }
+    if (this._reminderAction) {
+      this._reminderAction.hidden = !this._hass?.user?.is_admin || this._config.kiosk_mode;
+      this._reminderAction.textContent = tr(ui, "card.prayer_reminders");
     }
     this._updateSections(ui);
     const {entity, title, titleLabel, error, help, mosqueGroup, mosqueHeading, mosqueList} = this._controls;
@@ -819,7 +851,11 @@ export class SalahTimetableCardEditor extends HTMLElement {
       this._sections[id] = {toggle, body, title: heading, description};
       groups.push(section);
     }
-    form.append(entity, error, titleField, mosqueGroup, fields.get("detail_level"), ...groups, help);
+    // Keep reminder setup beside the detail selector, outside the dashboard card.
+    this._reminderAction = this._reminderButton(resolveUi(this._config, this._hass));
+    form.append(entity, error, titleField, mosqueGroup, fields.get("detail_level"));
+    if (this._reminderAction) form.append(this._reminderAction);
+    form.append(...groups, help);
     this._updateControls();
     this.shadowRoot.replaceChildren(style, form);
   }
@@ -830,3 +866,4 @@ if (!customElements.get("salah-timetable-card-editor")) customElements.define("s
 window.customCards = window.customCards || [];
 const registrationUi = resolveUi({}, {language: globalThis.navigator?.language});
 if (!window.customCards.some(card => card.type === "salah-timetable-card")) window.customCards.push({type: "salah-timetable-card", name: tr(registrationUi, "card.name"), description: tr(registrationUi, "card.description"), preview: true});
+
