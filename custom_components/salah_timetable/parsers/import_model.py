@@ -92,7 +92,12 @@ def build_coverage(timetable: Timetable, year: int) -> ImportCoverage:
     missing_fields = {
         field.value: count
         for field in PrayerField
-        if (count := sum(field not in row.times for row in timetable.days))
+        if field not in {
+            PrayerField.JUMUAH_BAYAAN,
+            PrayerField.JUMUAH_ADHAAN,
+            PrayerField.JUMUAH_KHUTBAH,
+        }
+        and (count := sum(field not in row.times for row in timetable.days))
     }
     return ImportCoverage(first, last, len(days), missing_dates, missing_fields)
 
