@@ -107,7 +107,7 @@ Yesterday and Tomorrow omit live countdowns and current-prayer highlighting.
 
 ![Gregorian monthly timetable view with previous and next month navigation, year CSV export and source details](screenshots/monthly-view.png)
 
-Enable **Monthly timetable, CSV export and source details** under **Timetable & information** to open the Gregorian month browser. In **Compact**, open **More**; in **Standard**, use the header calendar icon; in **Detailed**, use the footer action. The CSV, source and refresh actions appear in that same location when browsing a month. Scroll to see the rest of the month; only approved dates and fields appear. The export is for the current displayed Gregorian year, not the mosque's source PDF.
+Enable **Monthly timetable, CSV export and source details** under **Timetable & information** to open the Gregorian month browser. In **Compact**, open **More**; in **Standard** and **Detailed**, use the labelled calendar action right-aligned with the mosque name, above the Gregorian date (icon-only on narrow cards). The CSV, source and refresh actions appear in that same location when browsing a month. Scroll to see the rest of the month; only approved dates and fields appear. The export is for the current displayed Gregorian year, not the mosque's source PDF.
 
 These are example interface captures, not a substitute for checking your mosque's approved publication. The background photograph is decorative and does not identify the configured mosque.
 
