@@ -61,7 +61,7 @@ def normalize_field(value: str) -> PrayerField:
         key = "jumuah"
     for prefix in ("jummah_", "jumu_ah_"):
         if key.startswith(prefix):
-            key = "jumuah_" + key[len(prefix):]
+            key = "jumuah_" + key[len(prefix) :]
     if key == "jumuah_adhan":
         key = "jumuah_adhaan"
     return PrayerField(key)

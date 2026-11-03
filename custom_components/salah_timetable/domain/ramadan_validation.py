@@ -153,9 +153,7 @@ def ramadan_review(
         )
 
     omissions = sum(
-        field not in row.times
-        for row in table.days
-        for field in STANDARD_PRAYER_FIELDS
+        field not in row.times for row in table.days for field in STANDARD_PRAYER_FIELDS
     )
     lines.append(
         f"Source omissions: **{omissions} field values** across {len(table.days)} supplied rows. "
@@ -200,7 +198,9 @@ def ramadan_review(
             field for field in annual_fields if field not in override_fields
         )
         values = effective.row.times if effective.row is not None else {}
-        unavailable.update(field for field in STANDARD_PRAYER_FIELDS if field not in values)
+        unavailable.update(
+            field for field in STANDARD_PRAYER_FIELDS if field not in values
+        )
         if (
             effective.ramadan_active
             and PrayerField.IFTAR in values
