@@ -242,6 +242,32 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
         surface?.classList.contains("has-mosque-background") &&
         parseFloat(getComputedStyle(surface).minHeight)>0;
     `), "Real HA dashboard exit did not restore the full-height photo canvas");
+    // The background minimum follows the real card position and the visible
+    // screen at phone/tablet/desktop sizes; long content is never capped.
+    for (const [width, height] of [[360, 780], [900, 760], [1280, 850], [360, 320]]) {
+      await call("Emulation.setDeviceMetricsOverride", {
+        width, height, deviceScaleFactor: 1, mobile: width === 360
+      });
+      await evaluate("window.scrollTo(0,0)");
+      await until(expression(`
+        const card=window.salahAutoCard, surface=card?.shadowRoot?.querySelector("ha-card");
+        if (!surface)return false;
+        const visual=window.visualViewport;
+        const bottom=visual?.height ? visual.height+(visual.offsetTop||0) : innerHeight;
+        const expected=Math.max(0,Math.floor(bottom-Math.max(0,card.getBoundingClientRect().top)-12));
+        return Math.abs(parseFloat(getComputedStyle(surface).minHeight)-expected)<=1 &&
+          surface.getBoundingClientRect().height>=expected-1 &&
+          !card.hasAttribute("dashboard-editing");
+      `), `Photo background did not fit available viewport at ${width}x${height}`);
+      if (height === 320) {
+        assert.equal(await evaluate(expression(`
+          const card=window.salahAutoCard, surface=card.shadowRoot.querySelector("ha-card");
+          return surface.getBoundingClientRect().height>
+            parseFloat(getComputedStyle(surface).minHeight)+10;
+        `)), true, "Long timetable content must extend beyond the small viewport");
+      }
+    }
+    await call("Emulation.setDeviceMetricsOverride", {width: 900, height: 1100, deviceScaleFactor: 1, mobile: false});
     // The full-bleed photograph should reach the dashboard viewport bottom
     // even when Yesterday/Tomorrow omit both live countdowns. The timetable
     // itself stays compact at the top; only the photo canvas fills the view.
