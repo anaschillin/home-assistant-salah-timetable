@@ -128,3 +128,10 @@ test("monthly button shares the mosque name row without altering the default hea
   assert.match(CARD_CSS, /\.card-action-strip button span\s*\{[^}]*font-size:\s*inherit/);
   assert.match(CARD_CSS, /@container\(max-width:33rem\)\s*\{\s*\.card-action-strip button span\s*\{\s*display:\s*none/);
 });
+
+test("Compact More menu is an overlay and does not reflow the summary header", () => {
+  assert.match(CARD_CSS, /\.card-actions-menu\s*\{[^}]*position:\s*absolute/);
+  assert.match(CARD_CSS, /\.card-actions-menu \.card-menu-items\s*\{[^}]*position:\s*absolute/);
+  assert.match(CARD_CSS, /\.summary-shell:has\(\.card-actions-menu\[open\]\)\s*\{[^}]*overflow:\s*visible/);
+  assert.match(CARD_CSS, /\.summary-shell \.header:has\(\.card-actions-menu\[open\]\)\s*\{[^}]*z-index:/);
+});
