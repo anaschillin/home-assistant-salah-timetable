@@ -79,6 +79,15 @@ try {
   check("photo includes a photographer credit", card.shadowRoot.querySelector(".background-credit a")?.href.includes("unsplash.com/photos/"));
   const photoCard = card.shadowRoot.querySelector("ha-card");
   const photoStyle = getComputedStyle(photoCard);
+  const viewingMinHeight = photoStyle.minHeight;
+  check("photo fills the normal dashboard and edit preview shortens the canvas",
+    Number.parseFloat(viewingMinHeight) > 0);
+  card.preview = true;
+  check("HA card editor preview no longer forces an entire viewport of height",
+    card.hasAttribute("dashboard-editing") && getComputedStyle(photoCard).minHeight === "0px");
+  card.preview = false;
+  check("leaving dashboard edit restores the full viewport canvas",
+    !card.hasAttribute("dashboard-editing") && getComputedStyle(photoCard).minHeight === viewingMinHeight);
   check("full-canvas card has no outer drop shadow", photoStyle.boxShadow === "none");
   const imageStyle = getComputedStyle(photoCard, "::before");
   check("unobscured photo stays inside themed borders at mobile/tablet widths",
