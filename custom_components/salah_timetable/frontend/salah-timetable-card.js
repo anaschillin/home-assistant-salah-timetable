@@ -153,6 +153,18 @@ export class SalahTimetableCard extends HTMLElement {
     this._hass = value;
     if (this._hassRenderKey() !== this._renderedHassKey) this._render();
   }
+  // Home Assistant forwards the dashboard edit/preview state to custom cards.
+  // In that mode, do not force a viewport-tall photo canvas that pushes the
+  // editor's card controls below the fold. Normal viewing stays unchanged.
+  set preview(value) {
+    this._preview = Boolean(value);
+    if (this._preview) this.setAttribute("dashboard-editing", "");
+    else this.removeAttribute("dashboard-editing");
+  }
+  get preview() { return this._preview || false; }
+  // HA still assigns editMode for compatibility with older custom cards.
+  set editMode(value) { this.preview = value; }
+  get editMode() { return this.preview; }
   getCardSize() { return (this._config.kiosk_mode ? 7 : this._config.detail_level === "compact" ? 3 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
   getGridOptions() { return {columns: 12, rows: this.getCardSize(), min_columns: 6, min_rows: 4}; }
 
