@@ -134,6 +134,10 @@ export class SalahTimetableCard extends HTMLElement {
     this._selectedMosque = null;
     this._selectedDay = 0;
     this._backgroundFrame = null;
+    this._viewportFrame = null;
+    this._viewportObserver = null;
+    this._viewportHeight = null;
+    this._onViewportResize = () => this._scheduleViewportHeight();
     this._monthView = false;
     this._monthState = null;
     this._sourceState = null;
@@ -160,6 +164,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._preview = Boolean(value);
     if (this._preview) this.setAttribute("dashboard-editing", "");
     else this.removeAttribute("dashboard-editing");
+    this._scheduleViewportHeight();
   }
   get preview() { return this._preview || false; }
   // HA still assigns editMode for compatibility with older custom cards.
@@ -170,11 +175,55 @@ export class SalahTimetableCard extends HTMLElement {
 
   connectedCallback() {
     if (this._timer === null) this._timer = window.setInterval(() => this._tick(), 1000);
+    window.addEventListener?.("resize", this._onViewportResize);
+    window.visualViewport?.addEventListener?.("resize", this._onViewportResize);
+    if (typeof ResizeObserver !== "undefined") {
+      this._viewportObserver = new ResizeObserver(this._onViewportResize);
+      this._viewportObserver.observe(this);
+    }
     this._render();
+    this._scheduleViewportHeight();
   }
   disconnectedCallback() {
     if (this._timer !== null) window.clearInterval(this._timer);
     this._timer = null;
+    window.removeEventListener?.("resize", this._onViewportResize);
+    window.visualViewport?.removeEventListener?.("resize", this._onViewportResize);
+    this._viewportObserver?.disconnect();
+    this._viewportObserver = null;
+    if (this._viewportFrame !== null) window.cancelAnimationFrame?.(this._viewportFrame);
+    this._viewportFrame = null;
+  }
+  _scheduleViewportHeight() {
+    if (this._viewportFrame !== null || typeof window.requestAnimationFrame !== "function" ||
+        this.isConnected === false) return;
+    this._viewportFrame = window.requestAnimationFrame(() => {
+      this._viewportFrame = null;
+      this._measureViewportHeight();
+    });
+  }
+  _measureViewportHeight() {
+    // Measure from the card's real viewport position, not a guessed HA header
+    // height. visualViewport accounts for mobile browser toolbar resizing.
+    if (typeof this.getBoundingClientRect !== "function") return;
+    const rect = this.getBoundingClientRect();
+    const visual = window.visualViewport;
+    const bottom = Number.isFinite(visual?.height) && visual.height > 0
+      ? visual.height + (visual.offsetTop || 0) : window.innerHeight;
+    if (!Number.isFinite(rect.top) || !(rect.width > 0) ||
+        !Number.isFinite(bottom) || bottom <= 0) return;
+    // Do not let a scrolled-out card grow beyond one screen. Reserve a little
+    // bottom breathing room for HA's dashboard margins and mobile safe area.
+    const visibleHeight = Math.max(0, Math.floor(bottom - Math.max(0, rect.top) - 12));
+    const value = `${visibleHeight}px`;
+    if (this._viewportHeight === value) return;
+    this._viewportHeight = value;
+    this.style.setProperty("--salah-viewport-card-height", value);
+    // The cached photograph frame must match the new canvas before the
+    // Yesterday/Tomorrow navigation takes its first size snapshot.
+    if (this._selectedDay === 0 && this._config.show_mosque_background && !this.preview) {
+      this._rememberBackgroundFrame();
+    }
   }
   _mosques() {
     const available = discoverTimetableEntities(this._hass);
@@ -457,6 +506,7 @@ export class SalahTimetableCard extends HTMLElement {
       const key = !this._activeEntity() ? "card.choose_entity" : !state ? "card.entity_missing" : "card.unavailable";
       card.append(node("div", tr(ui, key), "empty"));
       this.shadowRoot.replaceChildren(style, card);
+      this._scheduleViewportHeight();
       return;
     }
     const previousRegion = this.shadowRoot.querySelector?.(".table-scroll");
@@ -691,6 +741,7 @@ export class SalahTimetableCard extends HTMLElement {
       if (regionFocused) tableRegion.focus({preventScroll: true});
     }
     this._live = {data, updates, selection: this._selection(data, now)};
+    this._scheduleViewportHeight();
   }
 }
 
