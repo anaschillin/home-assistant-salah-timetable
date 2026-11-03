@@ -116,3 +116,12 @@ test("glass readability uses the same high-contrast substrate without an extra t
   assert.match(table[1], /background:\s*transparent/);
   assert.match(CARD_CSS, /\.summary-shell \.date,\s*\.summary-shell \.month-description/);
 });
+
+test("monthly button shares the mosque name row, uses text-sized icon and keeps dates below", () => {
+  assert.match(CARD_CSS, /\.header h2\s*\{[^}]*grid-column:\s*1;\s*grid-row:\s*1/);
+  assert.match(CARD_CSS, /\.card-action-strip\s*\{[^}]*grid-column:\s*2;\s*grid-row:\s*1/);
+  assert.match(CARD_CSS, /\.header \.gregorian\s*\{[^}]*grid-column:\s*2;\s*grid-row:\s*2/);
+  assert.match(CARD_CSS, /\.card-action-strip ha-icon\s*\{[^}]*width:\s*1em;[^}]*height:\s*1em/);
+  assert.match(CARD_CSS, /\.card-action-strip button span\s*\{[^}]*font-size:\s*inherit/);
+  assert.match(CARD_CSS, /@container\(max-width:33rem\)\s*\{\s*\.card-action-strip button span\s*\{\s*display:\s*none/);
+});
