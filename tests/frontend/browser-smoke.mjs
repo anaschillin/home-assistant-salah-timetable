@@ -237,9 +237,42 @@ nextFixture();
           `);
           const dailySurface = ".summary-shell";
           const monthlySurface = ".summary-shell";
+          const compactLayout = () => evaluate(`
+            const root = frame.contentWindow.actionFixture.actionCard.shadowRoot;
+            const summary = root.querySelector(".summary-shell");
+            const header = root.querySelector(".header");
+            const below = root.querySelector(".timetable-shell, .monthly-shell");
+            const menu = root.querySelector(".card-actions-menu");
+            const dropdown = root.querySelector(".card-menu-items");
+            const trigger = root.querySelector(".card-more-toggle");
+            const summaryRect = summary.getBoundingClientRect();
+            const triggerRect = trigger.getBoundingClientRect();
+            const dropdownRect = dropdown.getBoundingClientRect();
+            return {
+              summaryHeight: summaryRect.height,
+              headerHeight: header.getBoundingClientRect().height,
+              belowTop: below.getBoundingClientRect().top,
+              open: menu.open,
+              overlay: frame.contentWindow.getComputedStyle(dropdown).position === "absolute" &&
+                frame.contentWindow.getComputedStyle(summary).overflow === "visible" &&
+                dropdownRect.width > 0 && dropdownRect.height > 0 &&
+                dropdownRect.top >= triggerRect.bottom + 4 &&
+                dropdownRect.left >= summaryRect.left - 1 &&
+                dropdownRect.right <= summaryRect.right + 1
+            };
+          `);
+          const assertCompactOverlay = (closed, opened, label) => {
+            assert.equal(opened.open && opened.overlay, true, `${label}: More menu floats below trigger and inside card`);
+            for (const measure of ["summaryHeight", "headerHeight", "belowTop"]) {
+              assert.ok(Math.abs(opened[measure] - closed[measure]) <= 1,
+                `${label}: opening More must not change ${measure} (${closed[measure]} -> ${opened[measure]})`);
+            }
+          };
           try {
             if (mode === "compact") {
+              const closed = await compactLayout();
               await click(".card-more-toggle");
+              assertCompactOverlay(closed, await compactLayout(), "Daily Compact");
               assert.equal(await evaluate(`
                 const button = frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelector(".card-menu-items .month-toggle");
                 const label = button?.querySelector("span");
@@ -258,7 +291,9 @@ nextFixture();
               return frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelector(".monthly-table tbody td")?.textContent;
             `), "05:45", `${mode}: monthly view renders the response`);
             if (mode === "compact") {
+              const closed = await compactLayout();
               await click(".card-more-toggle");
+              assertCompactOverlay(closed, await compactLayout(), "Monthly Compact");
               assert.equal(await evaluate(`
                 const buttons = [...frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelectorAll(".card-menu-items button")];
                 return buttons.length === 4 && buttons.every(button => {
