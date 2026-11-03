@@ -338,7 +338,7 @@ try {
     !editor.shadowRoot.querySelector("ha-selector"));
   const secondEntity = "sensor.second_prayer_timetable";
   const multiEditor = new SalahTimetableCardEditor();
-  multiEditor.setConfig({entity: "sensor.example_prayer_timetable",
+  multiEditor.setConfig({entity: "sensor.example_prayer_timetable", language,
     mosque_entities: ["sensor.example_prayer_timetable", secondEntity]});
   multiEditor.hass = {...hass, states: {...hass.states, [secondEntity]: {
     state: data.date, attributes: {...data, mosque_name: "Second Mosque"},
