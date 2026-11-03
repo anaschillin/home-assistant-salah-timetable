@@ -700,8 +700,10 @@ tbody tr th,tbody tr td {
   row-gap: 5px;
 }
 .header h2 {
-  grid-column: 1 / -1;
+  grid-column: 1;
+  grid-row: 1;
   min-width: 0;
+  flex-basis: auto;
 }
 .header .hijri {
   grid-column: 1;
@@ -731,12 +733,11 @@ tbody tr th,tbody tr td {
 /* When card space is truly narrow, dates stack instead of competing for
    horizontal space. Use container width, not overall device viewport. */
 @container(max-width:23rem) {
-  .header { grid-template-columns: minmax(0,1fr); }
   .header .hijri,.header .gregorian,.header .month-description {
-    grid-column: 1;
+    grid-column: 1 / -1;
     grid-row: auto;
   }
-  .header .gregorian { text-align: start; }
+  .header .gregorian { text-align: end; }
 }
 /* Full-bleed mosque photograph across the entire canvas allocated by
    Home Assistant. Limit only the inner content width, never the background.
@@ -1049,15 +1050,81 @@ ha-card.kiosk:fullscreen {
   cursor: pointer;
   min-height: 40px;
 }
-/* Actions follow the card detail level. In Standard, icon-only actions
-   occupy the title row without stealing space from the Gregorian date. */
+/* Monthly actions share the mosque title row. The Gregorian date stays
+   directly underneath; compact keeps its accessible More disclosure. */
 .summary-shell .header { position: relative; }
-.summary-shell .header.has-month-action { min-height: 36px; }
-.summary-shell .header.has-month-action h2 {
-  padding-inline-end: calc(var(--card-action-count,1) * 40px + 4px);
-  min-height: 36px;
+.summary-shell .header.has-month-action h2 { min-height: 36px; }
+.card-action-strip {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  z-index: 3;
 }
-.card-action-strip,.card-actions-menu .card-more-toggle {
+.card-action-strip .month-toggle,.card-action-strip .month-action {
+  display: inline-flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: .95rem;
+  line-height: 1.2;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.card-action-strip ha-icon {
+  width: 1em;
+  height: 1em;
+  --mdc-icon-size: 1em;
+  --ha-icon-size: 1em;
+  flex: none;
+}
+.card-action-strip button span { font-size: inherit; line-height: inherit; }
+.compact .header.has-month-action { row-gap: 0; }
+.compact .header.has-month-action h2 { padding-inline-end: 86px; }
+.card-actions-menu .card-more-toggle {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  z-index: 3;
+}
+.card-menu-items button {
+  display: flex; align-items: center; gap: 7px; font: inherit;
+  min-width: 0; max-width: 100%; overflow-wrap: anywhere; text-align: start;
+}
+.card-menu-items ha-icon {
+  width: 18px; height: 18px; --mdc-icon-size: 18px; --ha-icon-size: 18px;
+  flex: none;
+}
+/* Keep the action alongside the title on small cards: icon-only has an
+   accessible label, with the full text returning as soon as it fits. */
+@container(max-width:33rem) {
+  .card-action-strip button span { display: none; }
+  .card-action-strip .month-toggle,.card-action-strip .month-action {
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+  }
+}
+@container(max-width:23rem) {
+  .header.has-many-month-actions .card-action-strip {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .header.has-many-month-actions .hijri,
+  .header.has-many-month-actions .gregorian,
+  .header.has-many-month-actions .month-description { grid-row: auto; }
+}
+/* Keep the disclosure in the summary's flow so its clipped glass surface
+   cannot cover actions when the countdowns are short or hidden. */
+.card-actions-menu { grid-column: 1 / -1; min-width: 0; }
+.card-actions-menu .card-more-toggle {
   position: absolute;
   inset-block-start: 0;
   inset-inline-end: 0;
@@ -1108,14 +1175,6 @@ ha-card.kiosk:fullscreen {
 }
 .card-actions-menu:not([open]) .card-menu-items { display: none; }
 .card-menu-items button { width: 100%; }
-@container(max-width:23rem) {
-  .header.has-month-action:has(.card-action-strip) h2 { padding-inline-end: 0; }
-  .header .card-action-strip {
-    position: static; grid-column: 1; grid-row: 2;
-    justify-content: flex-end;
-  }
-  .header .hijri,.header .gregorian,.header .month-description { grid-row: auto; }
-}
 .month-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .month-toolbar h3 { font-size: clamp(1rem,2.4cqi,1.5rem); margin: 0; text-align: center; }
 .month-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
