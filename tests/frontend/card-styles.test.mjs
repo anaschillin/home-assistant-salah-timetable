@@ -39,14 +39,16 @@ test("dashboard edit/preview removes only the full-viewport photo minimum", () =
   assert.ok(editOnly, "Preview-only height override is missing");
   assert.match(editOnly[1], /min-height:\s*0\s*;/);
   const defaultHeight = CARD_CSS.match(/(?<!\])ha-card\.has-mosque-background\s*\{([^}]+)\}/);
-  assert.match(defaultHeight[1], /min-height:\s*calc\(100dvh - var\(--header-height, 0px\)\)/);
+  assert.match(defaultHeight[1], /min-height:\s*var\(--salah-viewport-card-height,/);
 });
 
-test("the mosque photograph covers the viewport below short day views", () => {
+test("mosque photo fills the measured visible viewport but can grow beyond it", () => {
   const rule = CARD_CSS.match(/ha-card\.has-mosque-background\s*\{([^}]+)\}/);
   assert.ok(rule, "Missing full-canvas background rule");
-  assert.match(rule[1], /min-height:\s*calc\(100vh - var\(--header-height, 0px\)\)/);
-  assert.match(rule[1], /min-height:\s*calc\(100dvh - var\(--header-height, 0px\)\)/);
+  assert.match(rule[1], /min-height:\s*var\(--salah-viewport-card-height,\s*calc\(100dvh/);
+  assert.doesNotMatch(rule[1], /max-height:|height:\s*\d+dvh/);
+  assert.match(CARD_CSS, /ha-card\.kiosk\s*\{[^}]*min-height:\s*var\(--salah-viewport-card-height/);
+  assert.match(CARD_CSS, /ha-card\.kiosk:fullscreen\s*\{[^}]*min-height:\s*100dvh/);
   assert.match(CARD_CSS, /ha-card\s*\{[^}]*overflow:\s*hidden/);
   assert.doesNotMatch(CARD_CSS, /\.summary-shell\s*\{[^}]*min-height:\s*100dvh/);
 });
