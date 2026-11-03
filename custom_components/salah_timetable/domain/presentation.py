@@ -75,6 +75,21 @@ def dashboard_attributes(data, zone, mosque_name, *, show_hijri_date=True):
                         else None
                     ),
                     "jamaat": [value.isoformat() for value in jamaats],
+                    # Optional published Friday announcements are not Jamaat
+                    # and must never feed prayer countdowns or reminders.
+                    "jumuah_announcements": (
+                        {
+                            field.value: stamp[0].isoformat()
+                            for field in (
+                                PrayerField.JUMUAH_BAYAAN,
+                                PrayerField.JUMUAH_ADHAAN,
+                                PrayerField.JUMUAH_KHUTBAH,
+                            )
+                            if (stamp := values(field))
+                        }
+                        if key == "dhuhr" and source and source.day.weekday() == 4
+                        else {}
+                    ),
                 }
             )
         return result
