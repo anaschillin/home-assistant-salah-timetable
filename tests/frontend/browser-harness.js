@@ -238,7 +238,7 @@ try {
     getComputedStyle(heading).display === "grid" &&
     descriptionBounds.top >= Math.max(hijriBounds.bottom, gregorianBounds.bottom) - 1 &&
     descriptionBounds.width >= heading.getBoundingClientRect().width - 1);
-  render({show_month_view: true});
+  render({show_month_view: true, detail_level: "standard"});
   const monthAction = card.shadowRoot.querySelector(".month-toggle");
   const monthIcon = monthAction?.querySelector("ha-icon");
   const datedHeader = card.shadowRoot.querySelector(".header");

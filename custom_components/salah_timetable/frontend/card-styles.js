@@ -1049,23 +1049,68 @@ ha-card.kiosk:fullscreen {
   cursor: pointer;
   min-height: 40px;
 }
-/* The header action sits in the title row, above (not beside) the
-   Gregorian date. Reserve space in the title only: the date retains its
-   entire grid column, including on narrow and RTL cards. */
+/* Actions follow the card detail level. In Standard, icon-only actions
+   occupy the title row without stealing space from the Gregorian date. */
 .summary-shell .header { position: relative; }
 .summary-shell .header.has-month-action { min-height: 36px; }
-.summary-shell .header.has-month-action h2 { padding-inline-end: 42px; min-height: 36px; }
-.month-toggle {
+.summary-shell .header.has-month-action h2 {
+  padding-inline-end: calc(var(--card-action-count,1) * 40px + 4px);
+  min-height: 36px;
+}
+.card-action-strip,.card-actions-menu {
   position: absolute;
   inset-block-start: 0;
   inset-inline-end: 0;
-  width: 36px;
-  height: 36px;
-  padding: 8px;
-  display: grid;
-  place-items: center;
+  z-index: 3;
 }
-.month-toggle ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; --ha-icon-size: 18px; }
+.card-action-strip { display: flex; gap: 4px; align-items: center; }
+.card-action-strip .month-toggle,.card-action-strip .month-action {
+  width: 36px; height: 36px; min-height: 36px; padding: 8px;
+  display: grid; place-items: center;
+}
+.card-action-strip ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; --ha-icon-size: 18px; }
+.card-actions-footer {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end;
+  margin: 16px 0 6px; padding-top: 12px;
+  border-top: 1px solid var(--divider-color);
+}
+.card-actions-footer button,.card-menu-items button {
+  display: flex; align-items: center; gap: 7px; font: inherit;
+}
+.card-actions-footer ha-icon,.card-menu-items ha-icon {
+  width: 18px; height: 18px; --mdc-icon-size: 18px; --ha-icon-size: 18px;
+}
+.card-actions-menu .card-more-toggle {
+  display: flex; align-items: center; gap: 3px;
+  cursor: pointer; list-style: none;
+  border: 1px solid var(--divider-color);
+  border-radius: 8px; background: var(--secondary-background-color);
+  padding: 7px; min-height: 36px; box-sizing: border-box;
+  font-size: .8rem;
+}
+.card-actions-menu .card-more-toggle::-webkit-details-marker { display: none; }
+.card-actions-menu .card-more-toggle ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; }
+.card-actions-menu .card-more-toggle:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+.card-actions-menu .card-menu-items {
+  position: absolute; inset-inline-end: 0; inset-block-start: 42px;
+  display: grid; gap: 4px; min-width: 205px;
+  padding: 8px; border-radius: 9px;
+  border: 1px solid var(--divider-color);
+  background: var(--card-background-color);
+  box-shadow: 0 6px 16px rgba(0,0,0,.25);
+  z-index: 4;
+}
+.card-actions-menu:not([open]) .card-menu-items { display: none; }
+.card-menu-items button { width: 100%; text-align: start; }
+@container(max-width:23rem) {
+  .header.has-month-action:has(.card-action-strip) h2 { padding-inline-end: 0; }
+  .header .card-action-strip {
+    position: static; grid-column: 1; grid-row: 2;
+    justify-content: flex-end;
+  }
+  .header .hijri,.header .gregorian,.header .month-description { grid-row: auto; }
+  .header:has(.card-actions-menu) h2 { padding-inline-end: 86px; }
+}
 .month-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .month-toolbar h3 { font-size: clamp(1rem,2.4cqi,1.5rem); margin: 0; text-align: center; }
 .month-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }

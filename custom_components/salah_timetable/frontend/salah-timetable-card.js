@@ -284,6 +284,66 @@ export class SalahTimetableCard extends HTMLElement {
       .catch(() => { if (this._monthView) { this._sourceState = {error: true}; this._render(); } });
   }
 
+  _cardActions(ui, displayDate) {
+    if (!this._config.show_month_view) return null;
+    const mode = this._config.detail_level;
+    const actions = [];
+    const action = (key, className, iconName, onClick) => {
+      const label = tr(ui, key);
+      const button = node("button", undefined, className);
+      button.type = "button";
+      button.title = label;
+      button.setAttribute("aria-label", label);
+      const icon = node("ha-icon");
+      icon.setAttribute("icon", iconName);
+      icon.setAttribute("aria-hidden", "true");
+      button.append(icon);
+      if (mode !== "standard") button.append(node("span", label));
+      button.addEventListener("click", onClick);
+      actions.push(button);
+      return button;
+    };
+    const toggle = action(
+      this._monthView ? "month.daily" : "month.title",
+      "month-toggle",
+      this._monthView ? "mdi:calendar-today" : "mdi:calendar-month",
+      () => {
+        if (this._monthView) {
+          this._monthView = false;
+          this._monthRequest++;
+          this._render();
+        } else {
+          this._loadMonth(Number(displayDate.slice(0, 4)), Number(displayDate.slice(5, 7)));
+        }
+      },
+    );
+    toggle.setAttribute("aria-expanded", String(this._monthView));
+    if (this._monthView) {
+      action("month.csv_export", "month-action", "mdi:file-delimited-outline", () => this._exportYear());
+      action("month.sources", "month-action", "mdi:information-outline", () => this._loadSources());
+      action("month.refresh", "month-action", "mdi:refresh", () => this._loadMonth(this._monthState.year, this._monthState.month));
+    }
+    if (mode === "compact") {
+      const menu = node("details", undefined, "card-actions-menu");
+      const trigger = node("summary", undefined, "card-more-toggle");
+      trigger.title = tr(ui, "card.more_actions");
+      trigger.setAttribute("aria-label", trigger.title);
+      const icon = node("ha-icon");
+      icon.setAttribute("icon", "mdi:dots-vertical");
+      icon.setAttribute("aria-hidden", "true");
+      trigger.append(icon, node("span", tr(ui, "card.more_actions")));
+      const list = node("div", undefined, "card-menu-items");
+      list.append(...actions);
+      menu.append(trigger, list);
+      return menu;
+    }
+    const toolbar = node(mode === "detailed" ? "nav" : "div", undefined,
+      mode === "detailed" ? "card-actions-footer" : "card-action-strip");
+    toolbar.setAttribute("aria-label", tr(ui, "card.timetable_actions"));
+    toolbar.append(...actions);
+    return toolbar;
+  }
+
   _monthlyPanel(ui) {
     const current = this._monthState;
     const panel = node("section", undefined, "monthly-shell");
@@ -298,18 +358,6 @@ export class SalahTimetableCard extends HTMLElement {
     next.addEventListener("click", () => this._loadMonth(current.year, current.month + 1));
     toolbar.append(prev, label, next);
     panel.append(toolbar);
-    const actions = node("div", undefined, "month-actions");
-    const exportButton = node("button", tr(ui, "month.csv_export"), "month-action");
-    exportButton.type = "button";
-    exportButton.addEventListener("click", () => this._exportYear());
-    const sourcesButton = node("button", tr(ui, "month.sources"), "month-action");
-    sourcesButton.type = "button";
-    sourcesButton.addEventListener("click", () => this._loadSources());
-    const refresh = node("button", tr(ui, "month.refresh"), "month-action");
-    refresh.type = "button";
-    refresh.addEventListener("click", () => this._loadMonth(current.year, current.month));
-    actions.append(exportButton, sourcesButton, refresh);
-    panel.append(actions);
     if (current.loading) panel.append(node("p", tr(ui, "month.loading"), "note"));
     else if (current.error) panel.append(node("p", tr(ui, "month.error"), "note"));
     else {
@@ -470,34 +518,16 @@ export class SalahTimetableCard extends HTMLElement {
       summary.append(tools);
     }
     summary.append(header);
-    if (this._config.show_month_view) {
-      const label = tr(ui, this._monthView ? "month.daily" : "month.title");
-      const viewButton = node("button", undefined, "month-toggle");
-      viewButton.title = label;
-      viewButton.setAttribute("aria-label", label);
-      viewButton.setAttribute("aria-expanded", String(this._monthView));
-      const icon = node("ha-icon");
-      icon.setAttribute("icon", this._monthView ? "mdi:calendar-today" : "mdi:calendar-month");
-      icon.setAttribute("aria-hidden", "true");
-      viewButton.append(icon);
-      viewButton.type = "button";
-      viewButton.addEventListener("click", () => {
-        if (this._monthView) {
-          this._monthView = false;
-          this._monthRequest++;
-          this._render();
-        } else {
-          const year = Number(displayDate.slice(0, 4));
-          const month = Number(displayDate.slice(5, 7));
-          this._loadMonth(year, month);
-        }
-      });
+    const cardActions = this._cardActions(ui, displayDate);
+    if (cardActions && this._config.detail_level !== "detailed") {
       header.classList.add("has-month-action");
-      header.append(viewButton);
+      header.style.setProperty("--card-action-count", String(this._monthView ? 4 : 1));
+      header.append(cardActions);
     }
     content.append(summary);
     if (this._monthView && this._config.show_month_view && this._monthState) {
       content.append(this._monthlyPanel(ui));
+      if (cardActions && this._config.detail_level === "detailed") content.append(cardActions);
       card.append(content);
       this.shadowRoot.replaceChildren(style, card);
       return;
@@ -635,6 +665,7 @@ export class SalahTimetableCard extends HTMLElement {
       credit.append(link);
       content.append(credit);
     }
+    if (cardActions && this._config.detail_level === "detailed") content.append(cardActions);
     card.append(content); this.shadowRoot.replaceChildren(style, card);
     if (this._selectedDay === 0 && background) this._rememberBackgroundFrame();
     if (tableRegion) {

@@ -915,7 +915,7 @@ test("monthly view queries only the selected mosque and displays missing days", 
   assert.equal(requests[0].year, 2026);
   assert.match(card.shadowRoot.textContent, /05:45/);
   assert.match(card.shadowRoot.textContent, /2026/);
-  const source = find(card.shadowRoot, "button").find(el => el.textContent === "Source details");
+  const source = find(card.shadowRoot, "button").find(el => el.attributes["aria-label"] === "Source details");
   source.dispatchEvent(new Event("click"));
   await Promise.resolve();
   assert.equal(requests.at(-1).type, "salah_timetable/sources");
@@ -953,18 +953,22 @@ test("reminder setup lives in the editor and follows administrator and kiosk cha
   assert.equal(action().hidden, true);
 });
 
-test("monthly calendar is in the header in every mode, with an accessible label", () => {
-  const card = new SalahTimetableCard();
-  card.hass = hass();
+test("monthly actions move between Detailed footer, Standard header and Compact More menu", () => {
+  const card = new SalahTimetableCard(); card.hass = hass();
   for (const detail_level of ["compact", "standard", "detailed"]) {
     card.setConfig({entity: "sensor.mosque_prayer_timetable", show_month_view: true, detail_level});
     const header = find(card.shadowRoot, "header")[0];
-    const action = find(header, "button").find(button => button.className === "month-toggle");
+    const action = find(card.shadowRoot, "button").find(button => button.className === "month-toggle");
     assert.ok(action);
     assert.equal(action.attributes["aria-label"], "Monthly timetable");
     assert.equal(action.title, "Monthly timetable");
     assert.equal(action.attributes["aria-expanded"], "false");
-    assert.equal(find(action, "ha-icon")[0].attributes["icon"], "mdi:calendar-month");
+    assert.equal(find(action, "ha-icon")[0].attributes.icon, "mdi:calendar-month");
+    const inHeader = find(header, "button").includes(action);
+    assert.equal(inHeader, detail_level !== "detailed");
+    assert.equal(find(card.shadowRoot, "nav").some(item => item.className === "card-actions-footer"), detail_level === "detailed");
+    assert.equal(find(card.shadowRoot, "details").some(item => item.className === "card-actions-menu"), detail_level === "compact");
+    assert.equal(find(card.shadowRoot, "div").some(item => item.className === "card-action-strip"), detail_level === "standard");
   }
   card.setConfig({entity: "sensor.mosque_prayer_timetable", show_month_view: false});
   assert.equal(find(card.shadowRoot, "button").some(button => button.className === "month-toggle"), false);
