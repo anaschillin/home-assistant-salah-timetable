@@ -71,15 +71,20 @@ lists the sensors and calendar created for each mosque.
 ## Add the dashboard card
 
 1. Choose **Edit dashboard → Add card → Salah Timetable**.
-2. Select the mosque's **Prayer timetable** sensor (not an individual Fajr or Dhuhr sensor).
-3. Choose **Compact**, **Standard** or **Detailed** in the graphical editor.
-4. Expand the relevant settings section to configure dates, countdowns, Ramadan, appearance or timetable tools. On/off features use switches; background choices are in **Appearance → Mosque background**.
-5. If more than one mosque is configured, use **Mosques available on this card** to select which mosques appear. Separate cards and dashboards may show different mosques.
+2. Under **Mosques available on this card**, tick the Prayer timetable sensors to display (not individual Fajr or Dhuhr sensors). At least one mosque must remain selected.
+3. Use the six-dot drag handle or up/down arrows to reorder selected mosques. **Shown first** identifies the default mosque. Unchecked mosques cannot be reordered.
+4. Choose **Compact**, **Standard** or **Detailed** in the graphical editor. To set a custom title, use the [YAML configuration](dashboard.md#dates-and-customization).
+5. Expand the relevant settings section to configure dates, countdowns, Ramadan, appearance or timetable tools. On/off features use switches; background choices are in **Appearance → Mosque background**.
+
+Separate cards and dashboards may show different mosques. The duplicate primary-sensor radio selector has been removed.
 
 The Yesterday, Today and Tomorrow controls show approved rows for the selected day.
 The calculated Hijri header is for display; it does not activate Ramadan or change
 published timestamps. See [Dashboard](dashboard.md) for card options and
-[Automations](automations.md) for alerts and speaker playback.
+[Automations](automations.md) for alerts and speaker playback. The proposed
+[Prayer reminders wizard](automations.md#guided-prayer-reminders) guides
+administrators through masjid selection, prayers, advance minutes and delivery;
+it requires an installed version that includes the feature.
 
 ![Add to dashboard dialog with Salah Timetable selected by card](screenshots/add-dashboard-card.png)
 
@@ -89,8 +94,10 @@ published timestamps. See [Dashboard](dashboard.md) for card options and
 
 Mosque names and identifying entity IDs are obscured in these dashboard examples.
 
-The editor groups settings by topic. The mosque checkboxes choose which configured
-mosques appear on this card; planned Islamic-history options are disabled.
+The editor groups settings by topic. One ordered checkbox list chooses the
+mosques and default order; planned Islamic-history options are disabled.
+The screenshot above shows the previous editor revision and will be replaced
+after Home Assistant visual acceptance.
 
 ### Browse yesterday and the monthly timetable
 
@@ -100,7 +107,7 @@ Yesterday and Tomorrow omit live countdowns and current-prayer highlighting.
 
 ![Gregorian monthly timetable view with previous and next month navigation, year CSV export and source details](screenshots/monthly-view.png)
 
-Enable **Monthly timetable, CSV export and source details** under **Timetable & information** to open the Gregorian month browser. Scroll to see the rest of the month; only approved dates and fields appear. The export is for the current displayed Gregorian year, not the mosque's source PDF.
+Enable **Monthly timetable, CSV export and source details** under **Timetable & information** to open the Gregorian month browser. In **Compact**, open **More**; in **Standard** and **Detailed**, use the labelled calendar action right-aligned with the mosque name, above the Gregorian date (icon-only on narrow cards). The CSV, source and refresh actions appear in that same location when browsing a month. Scroll to see the rest of the month; only approved dates and fields appear. The export is for the current displayed Gregorian year, not the mosque's source PDF.
 
 These are example interface captures, not a substitute for checking your mosque's approved publication. The background photograph is decorative and does not identify the configured mosque.
 
@@ -149,7 +156,7 @@ mosque first, then remove Salah Timetable from HACS (or manually remove its
 | URL download fails | Use a publicly accessible HTTPS URL on port 443, without credentials or private-network destinations. HTTPS redirects, types and sizes are strictly checked |
 | No prayer times or countdown | Confirm import approval, correct mosque timezone and date coverage. Missing tomorrow means the next Fajr may be unavailable after Isha |
 | Card missing from dashboard picker | Confirm the integration is loaded; reload the HA frontend, inspect the bundled `/salah_timetable/salah-timetable-card.js` resource, and follow [resource troubleshooting](dashboard.md#resource-troubleshooting) |
-| Card shows another mosque | Set the correct **Prayer timetable** sensor and optionally restrict the per-card mosque list |
+| Card shows another mosque | Reorder **Mosques available on this card** so the intended default is **Shown first**, or uncheck other mosques |
 | Ramadan data not shown | Verify explicit Ramadan start/end, active mode, selected source and source date coverage; Hijri display alone is not activation |
 | Changed URL source not applied | Open **Configure → Review pending import**; remote updates are staged, never automatically approved |
 | Prayer automation doesn't fire | Ensure the selected timestamp entity is available *before* its event/offset, and use rolling **Next Jamaat**/**Next Sehri** for early reminders |

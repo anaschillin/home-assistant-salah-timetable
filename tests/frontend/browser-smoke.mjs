@@ -12,6 +12,22 @@ import {waitForDebuggerPort} from "./browser-startup.mjs";
 import {MOSQUE_BACKGROUNDS} from "../../custom_components/salah_timetable/frontend/mosque-backgrounds.js";
 
 const root = resolve(fileURLToPath(new URL("../../", import.meta.url)));
+const JS_EMBED_ESCAPE_MAP = {
+  "<": "\\u003C",
+  ">": "\\u003E",
+  "/": "\\u002F",
+  "\\": "\\\\",
+  "\b": "\\b",
+  "\f": "\\f",
+  "\n": "\\n",
+  "\r": "\\r",
+  "\t": "\\t",
+  "\0": "\\0",
+  "\u2028": "\\u2028",
+  "\u2029": "\\u2029",
+};
+const JS_EMBED_UNSAFE_PATTERN = /[<>/\\\b\f\n\r\t\0\u2028\u2029]/g;
+const escapeForJsEmbedding = value => value.replace(JS_EMBED_UNSAFE_PATTERN, char => JS_EMBED_ESCAPE_MAP[char]);
 let browser;
 for (const candidate of [process.env.CHROME_BIN, "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/opt/google/chrome/chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser"].filter(Boolean)) {
   try { await access(candidate, constants.X_OK); browser = candidate; break; } catch { /* Try the next installed browser. */ }
@@ -83,7 +99,7 @@ function stopBrowser(child) {
   try { process.kill(process.platform === "win32" ? child.pid : -child.pid, "SIGKILL"); } catch { /* Already exited. */ }
 }
 
-test("real Chromium card and editor smoke", {skip, timeout: 90000}, async t => {
+test("real Chromium card, editor and reminder wizard smoke", {skip, timeout: 90000}, async t => {
   assert.ok(browser, "A Chromium browser is required for this run");
   t.diagnostic(`Browser executable: ${browser}`);
   const directory = await mkdtemp(join(tmpdir(), "salah-card-browser-"));
@@ -112,6 +128,7 @@ nextFixture();
 </script></body></html>`;
   const frame = '<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:8px;box-sizing:border-box;font-family:sans-serif}html{--primary-text-color:rgb(20,20,20);--primary-color:#387f8d;--secondary-text-color:#687478;--secondary-background-color:#f2f5f5;--divider-color:#ddd;--card-background-color:white}</style></head><body><script type="module" src="/tests/frontend/browser-harness.js"></script></body></html>';
   const files = new Map([
+    ["/custom_components/salah_timetable/frontend/reminder-wizard.js", join(root, "custom_components/salah_timetable/frontend/reminder-wizard.js")],
     ["/tests/frontend/browser-harness.js", join(root, "tests/frontend/browser-harness.js")],
     ["/custom_components/salah_timetable/frontend/salah-timetable-card.js", join(root, "custom_components/salah_timetable/frontend/salah-timetable-card.js")],
     ["/custom_components/salah_timetable/frontend/card-utils.js", join(root, "custom_components/salah_timetable/frontend/card-utils.js")],
@@ -160,7 +177,7 @@ nextFixture();
       const report = reports.find(item => item.width === width && item.language === language && item.bilingual === bilingual);
       assert.ok(report, `No report for ${width}px ${language} bilingual=${bilingual}: ${JSON.stringify(reports)}`);
       assert.equal(report.status, "passed", report.error);
-      for (const name of ["card contains 200% text without overflowing", "Gregorian and calculated Hijri dates are visible", "Hijri date appears before the independent Gregorian date", "Gregorian can be hidden while Hijri remains visible", "Hijri can be hidden while Gregorian remains visible", "mosque-configured Hijri visibility remains authoritative", "countdown tick preserves table keyboard focus", "date navigation retains keyboard focus on tab 2", "date navigation retains keyboard focus on tab 0", "date navigation retains keyboard focus on tab 1", "ordinary ticks retain table nodes and text selection", "numeric times use LTR isolation", "prayer labels use the selected languages", "long mixed-direction title fits without overflow", "graphical language and bilingual controls round trip", "all graphical options survive configuration reload", "RTL overflow uses Chromium negative scrollLeft"]) assert.ok(report.checks.includes(name), `Missing browser check: ${name}`);
+      for (const name of ["card contains 200% text without overflowing", "Gregorian and calculated Hijri dates are visible", "Hijri date appears before the independent Gregorian date", "Gregorian can be hidden while Hijri remains visible", "Hijri can be hidden while Gregorian remains visible", "mosque-configured Hijri visibility remains authoritative", "countdown tick preserves table keyboard focus", "reminder opens native modal", "reminder review contains full configuration", "reminder no write before Finish", "reminder saves one normal automation", "reminder duplicate Finish blocked", "reminder review fits mobile", "beginning delivery opens Notifications tab", "Sound tab keyboard selection retains focus", "Jamaat delivery is separate", "saved delivery preserves category routing", "Companion app filter includes both notification routes", "Music Assistant filter separates duplicate speaker names", "filters retain hidden speaker and media settings", "Back retains category-specific filters", "date navigation retains keyboard focus on tab 2", "date navigation retains keyboard focus on tab 0", "date navigation retains keyboard focus on tab 1", "ordinary ticks retain table nodes and text selection", "numeric times use LTR isolation", "prayer labels use the selected languages", "long mixed-direction title fits without overflow", "graphical language and bilingual controls round trip", "all graphical options survive configuration reload", "RTL overflow uses Chromium negative scrollLeft"]) assert.ok(report.checks.includes(name), `Missing browser check: ${name}`);
       for (const option of ["show_hijri_date", "show_gregorian_date", "show_salah_countdown", "show_jamaat_countdown", "show_ramadan_details", "show_sehri_countdown", "show_iftar_countdown", "show_timezone_note"]) for (const value of [false, true]) assert.ok(report.checks.includes(`editor ${option}=${value} changes the expected visible content`), `Missing browser visibility check: ${option}=${value}`);
     });
     if (process.env.BROWSER_SCREENSHOT_DIR) {
@@ -176,10 +193,137 @@ nextFixture();
         await writeFile(join(output, `salah-card-${width}${suffix}.png`), Buffer.from(screenshot.data, "base64"));
       }
     }
+    for (const [index, {width, language, bilingual}] of fixtures.entries()) {
+      if (bilingual) continue;
+      await t.test(`${width}px ${language} timetable action placement and pointer navigation`, async () => {
+        const evaluate = async source => {
+          const result = await debuggerSession.call("Runtime.evaluate", {
+            // Runtime.evaluate receives raw JavaScript over CDP JSON, not HTML. Escape
+            // interpolated string literals above, but preserve executable source syntax.
+            expression: `(() => {const frame = document.querySelectorAll('iframe')[${index}]; ${source}})()`,
+            returnByValue: true,
+          });
+          assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
+          return result.result.value;
+        };
+        const click = async selector => {
+          const point = await evaluate(`
+            const button = frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelector(${escapeForJsEmbedding(JSON.stringify(selector))});
+            button.scrollIntoView({block: "center", inline: "nearest"});
+            const rect = button.getBoundingClientRect();
+            const offset = frame.getBoundingClientRect();
+            return {x: offset.left + rect.left + rect.width / 2, y: offset.top + rect.top + rect.height / 2};
+          `);
+          await debuggerSession.call("Input.dispatchMouseEvent", {type: "mousePressed", button: "left", clickCount: 1, ...point});
+          await debuggerSession.call("Input.dispatchMouseEvent", {type: "mouseReleased", button: "left", clickCount: 1, ...point});
+        };
+        for (const [mode, daily, monthly] of [
+          ["compact", ".summary-shell .card-menu-items", ".summary-shell .card-menu-items"],
+          ["standard", ".header .card-action-strip", ".header .card-action-strip"],
+          ["detailed", ".header .card-action-strip", ".header .card-action-strip"],
+        ]) {
+          await evaluate(`frame.contentWindow.actionFixture = frame.contentWindow.mountActionCard(${escapeForJsEmbedding(JSON.stringify(mode))});`);
+          const placement = (selector, surface) => evaluate(`
+            const root = frame.contentWindow.actionFixture.actionCard.shadowRoot;
+            const container = root.querySelector(${escapeForJsEmbedding(JSON.stringify(selector))});
+            const buttons = [...(container?.querySelectorAll("button") || [])];
+            const bounds = container?.closest(${escapeForJsEmbedding(JSON.stringify(surface))})?.getBoundingClientRect();
+            return buttons.length && buttons.every(button => {
+              const rect = button.getBoundingClientRect();
+              return rect.width > 0 && rect.height > 0 && bounds &&
+                rect.left >= bounds.left - 1 && rect.right <= bounds.right + 1 &&
+                rect.top >= bounds.top - 1 && rect.bottom <= bounds.bottom + 1;
+            }) ? buttons.length : 0;
+          `);
+          // Compact popovers may overlay the monthly panel, so their visible
+          // hit targets must fit the whole card rather than the short summary.
+          const dailySurface = mode === "compact" ? "ha-card" : ".summary-shell";
+          const monthlySurface = mode === "compact" ? "ha-card" : ".summary-shell";
+          const compactLayout = () => evaluate(`
+            const root = frame.contentWindow.actionFixture.actionCard.shadowRoot;
+            const summary = root.querySelector(".summary-shell");
+            const header = root.querySelector(".header");
+            const below = root.querySelector(".timetable-shell, .monthly-shell");
+            const menu = root.querySelector(".card-actions-menu");
+            const dropdown = root.querySelector(".card-menu-items");
+            const trigger = root.querySelector(".card-more-toggle");
+            const summaryRect = summary.getBoundingClientRect();
+            const triggerRect = trigger.getBoundingClientRect();
+            const dropdownRect = dropdown.getBoundingClientRect();
+            return {
+              summaryHeight: summaryRect.height,
+              headerHeight: header.getBoundingClientRect().height,
+              belowOffset: below.getBoundingClientRect().top - summaryRect.top,
+              open: menu.open,
+              overlay: frame.contentWindow.getComputedStyle(dropdown).position === "absolute" &&
+                frame.contentWindow.getComputedStyle(summary).overflow === "visible" &&
+                dropdownRect.width > 0 && dropdownRect.height > 0 &&
+                dropdownRect.top >= triggerRect.bottom + 4 &&
+                dropdownRect.left >= summaryRect.left - 1 &&
+                dropdownRect.right <= summaryRect.right + 1
+            };
+          `);
+          const assertCompactOverlay = (closed, opened, label) => {
+            assert.equal(opened.open && opened.overlay, true, `${label}: More menu floats below trigger and inside card`);
+            for (const measure of ["summaryHeight", "headerHeight", "belowOffset"]) {
+              assert.ok(Math.abs(opened[measure] - closed[measure]) <= 1,
+                `${label}: opening More must not change ${measure} (${closed[measure]} -> ${opened[measure]})`);
+            }
+          };
+          try {
+            if (mode === "compact") {
+              const closed = await compactLayout();
+              await click(".card-more-toggle");
+              assertCompactOverlay(closed, await compactLayout(), "Daily Compact");
+              assert.equal(await evaluate(`
+                const button = frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelector(".card-menu-items .month-toggle");
+                const label = button?.querySelector("span");
+                return Boolean(label?.textContent?.trim()) &&
+                  label.textContent === button.getAttribute("aria-label") &&
+                  frame.contentWindow.getComputedStyle(label).display !== "none" &&
+                  label.getClientRects().length > 0;
+              `), true, "Compact More displays the Monthly timetable label alongside the icon");
+            }
+            assert.equal(await placement(daily, dailySurface), 1, `${mode}: daily action fits its surface`);
+            await click(`${daily} .month-toggle`);
+            assert.deepEqual(await evaluate("return frame.contentWindow.actionFixture.requests;"), [
+              {type: "salah_timetable/month", entity_id: "sensor.example_prayer_timetable", year: 2026, month: 10},
+            ], `${mode}: click requests the active timetable month`);
+            assert.equal(await evaluate(`
+              return frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelector(".monthly-table tbody td")?.textContent;
+            `), "05:45", `${mode}: monthly view renders the response`);
+            if (mode === "compact") {
+              const closed = await compactLayout();
+              await click(".card-more-toggle");
+              assertCompactOverlay(closed, await compactLayout(), "Monthly Compact");
+              assert.equal(await evaluate(`
+                const buttons = [...frame.contentWindow.actionFixture.actionCard.shadowRoot.querySelectorAll(".card-menu-items button")];
+                return buttons.length === 4 && buttons.every(button => {
+                  const label = button.querySelector("span");
+                  return Boolean(label?.textContent?.trim()) &&
+                    label.textContent === button.getAttribute("aria-label") &&
+                    frame.contentWindow.getComputedStyle(label).display !== "none" &&
+                    label.getClientRects().length > 0;
+                });
+              `), true, "Compact More displays all four monthly action labels");
+            }
+            assert.equal(await placement(monthly, monthlySurface), 4, `${mode}: all monthly actions fit their surface`);
+            await click(`${monthly} .month-toggle`);
+            assert.equal(await evaluate(`
+              const root = frame.contentWindow.actionFixture.actionCard.shadowRoot;
+              return !root.querySelector(".monthly-shell") && !!root.querySelector(".timetable-shell .date-tabs");
+            `), true, `${mode}: Return to daily restores the daily timetable`);
+          } finally {
+            await evaluate("frame.contentWindow.actionFixture.actionCard.remove();");
+          }
+        }
+      });
+    }
   } finally {
     clearTimeout(deadline);
+    await debuggerSession?.call("Browser.close").catch(() => {});
     debuggerSession?.close(); stopBrowser(child);
     server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
-    await pause(100); await rm(directory, {recursive: true, force: true});
+    await rm(directory, {recursive: true, force: true, maxRetries: 5, retryDelay: 100});
   }
 });

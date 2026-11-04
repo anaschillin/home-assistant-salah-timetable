@@ -77,8 +77,77 @@ try {
   render({show_mosque_background: true, mosque_background: "masjid-al-haram"});
   check("bundled mosque background resolves to local WebP", card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-background-image").includes("/salah_timetable/backgrounds/masjid-al-haram.webp"));
   check("photo includes a photographer credit", card.shadowRoot.querySelector(".background-credit a")?.href.includes("unsplash.com/photos/"));
+  // Wait for the card's layout measurement, which is scheduled after HA
+  // inserts the custom element. Every browser fixture uses a real viewport.
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   const photoCard = card.shadowRoot.querySelector("ha-card");
   const photoStyle = getComputedStyle(photoCard);
+  const viewingMinHeight = photoStyle.minHeight;
+  const visualBottom = window.visualViewport?.height
+    ? window.visualViewport.height + (window.visualViewport.offsetTop || 0) : innerHeight;
+  const expectedHeight = Math.max(0, Math.floor(visualBottom - Math.max(0, card.getBoundingClientRect().top) - 12));
+  check("photo minimum matches the space remaining below the card, not the whole viewport",
+    Math.abs(Number.parseFloat(viewingMinHeight) - expectedHeight) <= 1 &&
+    card.style.getPropertyValue("--salah-viewport-card-height") === `${expectedHeight}px`);
+  check("short cards reach the screen bottom without forcing overflow; taller content grows naturally",
+    photoCard.getBoundingClientRect().height >= expectedHeight - 1 &&
+    !photoStyle.maxHeight.includes("px"));
+  check("photo fills the normal dashboard and edit preview shortens the canvas",
+    Number.parseFloat(viewingMinHeight) > 0);
+  card.preview = true;
+  check("HA card editor preview no longer forces an entire viewport of height",
+    card.hasAttribute("dashboard-editing") && getComputedStyle(photoCard).minHeight === "0px");
+  card.preview = false;
+  check("leaving dashboard edit restores the full viewport canvas",
+    !card.hasAttribute("dashboard-editing") && getComputedStyle(photoCard).minHeight === viewingMinHeight);
+  // Home Assistant's desktop and tablet dashboard layouts can place a card
+  // in the footer-style hui-card-options wrapper without setting preview=true.
+  // Verify both supported HA edit wrappers using real DOM/CSS, then verify
+  // moving the card back to ordinary viewing restores the photo minimum.
+  for (const wrapperName of ["hui-card-options", "hui-card-edit-mode"]) {
+    const wrapper = document.createElement(wrapperName);
+    const wrappedCard = new SalahTimetableCard();
+    wrappedCard.setConfig({...config, show_mosque_background: true});
+    wrappedCard.hass = hass;
+    document.body.append(wrapper);
+    wrapper.append(wrappedCard);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const editSurface = wrappedCard.shadowRoot.querySelector("ha-card");
+    check(`${wrapperName} shortens the real editor canvas without preview=true`,
+      wrappedCard.preview === false &&
+      wrappedCard.hasAttribute("dashboard-editing") &&
+      getComputedStyle(editSurface).minHeight === "0px");
+    if (width >= 600) {
+      const summary = editSurface.querySelector(".summary-shell");
+      const timetable = editSurface.querySelector(".timetable-shell");
+      const sumRect = summary.getBoundingClientRect();
+      const tableRect = timetable.getBoundingClientRect();
+      const surfaceStyle = getComputedStyle(editSurface);
+      check(`${wrapperName} retains the readable stacked card proportions while editing`,
+        tableRect.top >= sumRect.bottom - 1 &&
+        Number.parseFloat(getComputedStyle(summary).paddingTop) >= 14 &&
+        Number.parseFloat(getComputedStyle(timetable.querySelector("tbody td")).paddingTop) >= 6 &&
+        editSurface.querySelectorAll("tbody tr").length === 5);
+      check(`${wrapperName} avoids an artificial scrollable editing card`,
+        surfaceStyle.overflowY === "hidden" &&
+        surfaceStyle.maxHeight === "none");
+    }
+    document.body.append(wrappedCard);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    // The fixture puts this card after the tall primary example, often below
+    // the screen. In that case the normal viewport minimum is correctly 0px:
+    // verify that the edit override is gone and CSS uses the measured value.
+    const normalMinimum = Number.parseFloat(
+      getComputedStyle(wrappedCard.shadowRoot.querySelector("ha-card")).minHeight);
+    const measuredMinimum = Number.parseFloat(
+      wrappedCard.style.getPropertyValue("--salah-viewport-card-height"));
+    check(`${wrapperName} restores normal measured height outside dashboard editing`,
+      !wrappedCard.hasAttribute("dashboard-editing") &&
+      Number.isFinite(measuredMinimum) &&
+      Math.abs(normalMinimum - measuredMinimum) <= 1);
+    wrappedCard.remove();
+    wrapper.remove();
+  }
   check("full-canvas card has no outer drop shadow", photoStyle.boxShadow === "none");
   const imageStyle = getComputedStyle(photoCard, "::before");
   check("unobscured photo stays inside themed borders at mobile/tablet widths",
@@ -238,6 +307,43 @@ try {
     getComputedStyle(heading).display === "grid" &&
     descriptionBounds.top >= Math.max(hijriBounds.bottom, gregorianBounds.bottom) - 1 &&
     descriptionBounds.width >= heading.getBoundingClientRect().width - 1);
+  for (const mode of ["standard", "detailed"]) {
+    render({show_month_view: true, detail_level: mode});
+    const datedHeader = card.shadowRoot.querySelector(".header");
+    const titleBounds = datedHeader.querySelector("h2").getBoundingClientRect();
+    const dateBounds = datedHeader.querySelector(".gregorian").getBoundingClientRect();
+    const action = datedHeader.querySelector(".month-toggle");
+    const icon = action?.querySelector("ha-icon");
+    const label = action?.querySelector("span");
+    const actionBounds = action?.getBoundingClientRect();
+    const headerBounds = datedHeader.getBoundingClientRect();
+    const iconSize = icon?.getBoundingClientRect().height;
+    const labelSize = label ? Number.parseFloat(getComputedStyle(label).fontSize) : 0;
+    const alignment = {
+      mode, width, dir: ui.dir,
+      title: {top: titleBounds.top, left: titleBounds.left, right: titleBounds.right, height: titleBounds.height},
+      action: actionBounds && {top: actionBounds.top, bottom: actionBounds.bottom, left: actionBounds.left, right: actionBounds.right},
+      date: {top: dateBounds.top, left: dateBounds.left, right: dateBounds.right},
+      header: {top: headerBounds.top, left: headerBounds.left, right: headerBounds.right},
+      gridColumns: getComputedStyle(datedHeader).gridTemplateColumns,
+    };
+    check(`monthly action shares the mosque title row and sits above Gregorian in ${mode}: ${JSON.stringify(alignment)}`,
+      Boolean(actionBounds && titleBounds && dateBounds && headerBounds) &&
+      Math.abs(actionBounds.top - titleBounds.top) <= 3 &&
+      actionBounds.bottom <= dateBounds.top + 1 &&
+      (ui.dir === "rtl"
+        ? Math.abs(actionBounds.left - headerBounds.left) <= 2
+        : Math.abs(actionBounds.right - headerBounds.right) <= 2));
+    check(`calendar icon and label use matching sizes and stay within the header in ${mode}`,
+      Boolean(icon && label && iconSize && labelSize) &&
+      Math.abs(iconSize - labelSize) <= 2 &&
+      actionBounds.left >= headerBounds.left - 1 &&
+      actionBounds.right <= headerBounds.right + 1 &&
+      (width > 528
+        ? getComputedStyle(label).display !== "none"
+        : getComputedStyle(label).display === "none"));
+  }
+  render();
   check("mosque timezone used for absolute times", card.shadowRoot.querySelector('[data-panel="salah"] .absolute').textContent === `${digits(5)}:${digits(45)}`);
   check("local beginning countdown", card.shadowRoot.querySelector('[data-panel="salah"] .count').textContent === `${digits(0)}:${digits(5)}:${digits(0)}`);
   check("Ramadan has textual Taraweeh fallback", card.shadowRoot.textContent.includes("After Isha Jamaat"));
@@ -310,17 +416,49 @@ try {
   document.documentElement.style.setProperty("--primary-text-color", "rgb(20, 20, 20)");
   check("light theme follows HA variables", getComputedStyle(card).color === "rgb(20, 20, 20)");
 
-  const editor = new SalahTimetableCardEditor(); editor.setConfig(config); editor.hass = hass; document.body.append(editor);
+  const yamlTitle = "My Mosque";
+  const editor = new SalahTimetableCardEditor(); editor.setConfig({...config, title: yamlTitle}); editor.hass = hass; document.body.append(editor);
   const editorForm = editor.shadowRoot.querySelector(".form");
-  check("graphical editor stylesheet applies grid and HA theme colors", getComputedStyle(editorForm).display === "grid" && getComputedStyle(editor.shadowRoot.querySelector(".title-field input")).boxSizing === "border-box");
+  check("graphical editor stylesheet applies grid and HA theme colors", getComputedStyle(editorForm).display === "grid" && getComputedStyle(editorForm).color === "rgb(20, 20, 20)");
+  check("graphical editor omits the title field", !editor.shadowRoot.querySelector('input[type="text"], ha-textfield'));
   let lastConfig;
   editor.addEventListener("config-changed", event => { lastConfig = event.detail.config; editor.setConfig(event.detail.config); card.setConfig(event.detail.config); card._render(Date.parse(time(4, 40))); });
-  const input = editor.shadowRoot.querySelector("input#mosque-title");
-  input.focus(); input.value = "My Mosque"; input.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
-  check("graphical title editor emits configuration", lastConfig?.title === "My Mosque");
-  check("configuration echo preserves focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
+  const detail = editor.shadowRoot.querySelector('[data-option="detail_level"]');
+  detail.focus(); detail.value = "standard"; detail.dispatchEvent(new Event("change", {bubbles: true}));
+  check("graphical edits preserve and render the YAML title", lastConfig?.title === yamlTitle && card.shadowRoot.querySelector("h2")?.textContent === yamlTitle);
+  check("configuration echo preserves focused detail selector", editor.shadowRoot.activeElement === detail);
+  check("editor removes duplicate timetable sensor selector",
+    !editor.shadowRoot.querySelector("ha-selector"));
+  const secondEntity = "sensor.second_prayer_timetable";
+  const multiEditor = new SalahTimetableCardEditor();
+  multiEditor.setConfig({entity: "sensor.example_prayer_timetable", language,
+    mosque_entities: ["sensor.example_prayer_timetable", secondEntity]});
+  multiEditor.hass = {...hass, states: {...hass.states, [secondEntity]: {
+    state: data.date, attributes: {...data, mosque_name: "Second Mosque"},
+  }}};
+  document.body.append(multiEditor);
+  multiEditor.addEventListener("config-changed", event => multiEditor.setConfig(event.detail.config));
+  const mosqueRows = () => [...multiEditor.shadowRoot.querySelectorAll(".mosque-choice")];
+  check("ordered mosque editor shows six-dot grips and first-mosque indicator",
+    mosqueRows().length === 2 &&
+    mosqueRows()[0].querySelector(".mosque-grip ha-icon")?.getAttribute("icon") === "mdi:drag-vertical" &&
+    mosqueRows()[0].textContent.includes(tr(ui, "editor.mosque_first")) &&
+    !mosqueRows()[0].hasAttribute("draggable"));
+  mosqueRows()[1].querySelector(".mosque-move-up").click();
+  check("keyboard-friendly reorder updates primary mosque",
+    multiEditor._config.entity === secondEntity &&
+    multiEditor._config.mosque_entities[0] === secondEntity);
+  const firstBox = multiEditor.shadowRoot.querySelector(".mosque-choice input");
+  firstBox.checked = false;
+  firstBox.dispatchEvent(new Event("change", {bubbles: true}));
+  check("unselected mosque cannot be dragged or moved",
+    multiEditor.shadowRoot.querySelectorAll(".mosque-choice").length === 2 &&
+    [...multiEditor.shadowRoot.querySelectorAll(".mosque-choice")].some(row =>
+      row.getAttribute("data-selected") === "false" &&
+      row.querySelector(".mosque-grip")?.disabled &&
+      row.querySelector(".mosque-move-up")?.disabled));
   editor.hass = {...hass, states: {...hass.states}};
-  check("hass state updates preserve focused input", editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
+  check("hass state updates preserve focused detail selector", editor.shadowRoot.activeElement === detail);
   check("obsolete Jamaat mode editor removed", !editor.shadowRoot.textContent.includes("Jamaat panel"));
   const update = (key, value) => {
     const control = editor.shadowRoot.querySelector(`[data-option="${key}"]`);
@@ -332,7 +470,7 @@ try {
     update("language", value);
     const expected = value === "ar" ? "rtl" : "ltr";
     check(`editor language=${value} updates direction`, editor.getAttribute("dir") === expected && card.getAttribute("dir") === expected);
-    check(`editor language=${value} preserves focused title`, editor.shadowRoot.querySelector("input#mosque-title") === input && editor.shadowRoot.activeElement === input);
+    check(`editor language=${value} preserves focused detail selector`, editor.shadowRoot.activeElement === detail);
   }
   for (const value of [false, true, bilingual]) update("bilingual_prayer_labels", value);
   check("graphical language and bilingual controls round trip", lastConfig.language === language && lastConfig.bilingual_prayer_labels === bilingual);
@@ -346,7 +484,7 @@ try {
     check(`editor ${key}=${value} changes the expected visible content`, Object.entries(visibility(card)).every(([option, visible]) => visible === expected[option]));
   }
   const restored = new SalahTimetableCardEditor(); restored.setConfig(JSON.parse(JSON.stringify(lastConfig))); restored.hass = hass;
-  check("restored graphical configuration", restored.shadowRoot.querySelector("input#mosque-title").value === "My Mosque" && restored.shadowRoot.querySelector('[data-option="detail_level"]').value === lastConfig.detail_level);
+  check("restored graphical configuration", restored._config.title === yamlTitle && restored.shadowRoot.querySelector('[data-option="detail_level"]').value === lastConfig.detail_level);
   check("all graphical options survive configuration reload", [...restored.shadowRoot.querySelectorAll("[data-option]")].every(control => {
     const key = control.getAttribute("data-option");
     if (control.localName === "ha-switch") return control.checked === lastConfig[key];
@@ -355,12 +493,162 @@ try {
     }
     return control.value === String(lastConfig[key]);
   }));
+  const reminderFields = [
+    {value: "fajr_begin", label: "Fajr beginning"},
+    {value: "fajr_jamaat", label: "Fajr Jamaat"},
+    {value: "jumuah", label: "Jumu’ah Jamaat"},
+  ];
+  const reminderOptions = {
+    mosques: ["First", "Second"].map(name => ({
+      id: name.toLowerCase(), name: `${name} masjid`,
+      time_zone: "Europe/London", fields: reminderFields, ready: true,
+    })),
+    notification_actions: [
+      {value: "notify.mobile_app_phone", label: "Phone Companion app", integration: "mobile_app", integration_name: "Companion app", device_type: "phone", device_type_name: "Phone"},
+      {value: "notify.browser", label: "Browser", integration: "html5", integration_name: "HTML5", device_type: "computer", device_type_name: "Computer"},
+    ],
+    notification_entities: [{value: "notify.tablet", label: "Tablet", integration: "mobile_app", integration_name: "Companion app", device_type: "tablet", device_type_name: "Tablet"}],
+    media_players: [
+      {value: "media_player.hall", label: "Hall speaker", integration: "music_assistant", integration_name: "Music Assistant", device_type: "speaker", device_type_name: "Speaker"},
+      {value: "media_player.kitchen", label: "Kitchen speaker", integration: "music_assistant", integration_name: "Music Assistant", device_type: "speaker", device_type_name: "Speaker"},
+      {value: "media_player.hall_cast", label: "Hall speaker", integration: "cast", integration_name: "Google Cast", device_type: "speaker", device_type_name: "Speaker"},
+      {value: "media_player.tv", label: "Living room TV", integration: "cast", integration_name: "Google Cast", device_type: "tv", device_type_name: "TV"},
+    ],
+  };
+  const reminderWrites = [], reminderPreviews = [];
+  let finishSave;
+  const reminderHass = {
+    states: {"media_player.hall": {attributes: {friendly_name: "Hall speaker"}}, "media_player.kitchen": {attributes: {friendly_name: "Kitchen speaker"}}},
+    async callWS(payload) {
+      if (payload.type === "salah_timetable/reminder_options") return reminderOptions;
+      reminderPreviews.push(payload);
+      return {config: {alias: payload.name}};
+    },
+    callApi(...args) {
+      reminderWrites.push(args);
+      return new Promise(resolve => { finishSave = resolve; });
+    },
+  };
+  editor.hass = {...reminderHass, user: {is_admin: true}};
+  const launch = editor.shadowRoot.querySelector(".reminder-setup");
+  check("reminder setup is in the editor", launch && !launch.hidden && !card.shadowRoot.querySelector(".reminder-setup"));
+  launch.focus();
+  launch.click();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const wizard = document.querySelector("salah-reminder-wizard");
+  check("editor launches reminder wizard", !!wizard);
+  await wizard.ready;
+  const wr = wizard.shadowRoot;
+  const wi = key => [...wr.querySelectorAll("input")].find(node => node.dataset.key === key);
+  const wb = text => [...wr.querySelectorAll("button")].find(node => node.textContent === text);
+  const wc = text => wb(text).click();
+  const wt = (key, value) => {
+    wi(key).value = value;
+    wi(key).dispatchEvent(new Event("input"));
+  };
+  const wf = (key, value) => {
+    const select = wr.querySelector(`[data-key="filter:${key}"]`);
+    select.value = value; select.dispatchEvent(new Event("change"));
+  };
+  const wizardFits = () => {
+    const dialog = wr.querySelector("dialog"), main = wr.querySelector("main");
+    return dialog.getBoundingClientRect().width <= width &&
+      dialog.scrollWidth <= dialog.clientWidth + 1 &&
+      main.scrollWidth <= main.clientWidth + 1;
+  };
+  check("reminder opens native modal", wr.querySelector("dialog").matches(":modal"));
+  wi("mosque:first").click(); wi("mosque:second").click(); wc("Next");
+  check("reminder step receives keyboard focus", wr.activeElement === wr.querySelector("main"));
+  wi("field:fajr_begin").click(); wi("field:fajr_jamaat").click(); wc("Next");
+  wi("field:fajr_begin").click(); wi("field:jumuah").click(); wc("Next");
+  wt("begin_minutes", "5"); wt("jamaat_minutes", "15"); wc("Next");
+  check("reminder hides unused beginning offset", !wi("begin_minutes"));
+  wt("jamaat_minutes", "20"); wc("Back");
+  check("reminder Back retains input", wi("begin_minutes").value === "5");
+  wc("Next"); wc("Next");
+  check("beginning delivery opens Notifications tab", wizard._activeDeliveryKind() === "beginning" && wb("Notifications").getAttribute("aria-selected") === "true" && !wi("media_player:media_player.hall"));
+  check("notification selection shows exact action and entity IDs", wr.textContent.includes("notify.mobile_app_phone") && wr.textContent.includes("notify.tablet"));
+  wf("integration", "mobile_app");
+  check("Companion app filter includes both notification routes", !!wi("notification_actions:notify.mobile_app_phone") && !!wi("notification_entities:notify.tablet") && !wi("notification_actions:notify.browser"));
+  wf("device_type", "phone");
+  check("notification provider and type filters combine", !!wi("notification_actions:notify.mobile_app_phone") && !wi("notification_entities:notify.tablet"));
+  wi("notification_actions:notify.mobile_app_phone").click();
+  // Exercise actual keyboard navigation and roving focus on the tab controls.
+  wb("Notifications").dispatchEvent(new KeyboardEvent("keydown", {key: "ArrowRight", bubbles: true}));
+  check("Sound tab keyboard selection retains focus", wb("Sound").getAttribute("aria-selected") === "true" && wr.activeElement === wb("Sound"));
+  check("speaker selection shows friendly name and entity ID", wr.textContent.includes("Hall speaker (media_player.hall)"));
+  wf("integration", "music_assistant"); wf("device_type", "speaker");
+  check("Music Assistant filter separates duplicate speaker names", !!wi("media_player:media_player.hall") && !wi("media_player:media_player.hall_cast") && !wi("media_player:media_player.tv"));
+  wi("media_player:media_player.hall").click();
+  wt("name", "LongReminderName".repeat(6));
+  const beginningRecording = "media-source://media_source/local/" + "recording".repeat(40) + ".mp3";
+  wt("media_content_id", beginningRecording);
+  check("reminder delivery fits mobile", wizardFits());
+  wf("integration", "cast"); wf("device_type", "tv");
+  check("filters retain hidden speaker and media settings", !wi("media_player:media_player.hall") && !!wi("media_player:media_player.tv") && wi("media_content_id").value === beginningRecording && wr.textContent.includes("1 selected destination hidden"));
+  wf("integration", "music_assistant");
+  check("combined filters report no matches without clearing selections", wr.textContent.includes("No destinations match these filters") && wi("media_content_id").value === beginningRecording);
+  wf("device_type", "speaker");
+  check("returning to Music Assistant retains selected player", wi("media_player:media_player.hall").checked);
+  wc("Notifications");
+  check("notification selection survives Sound tab", wi("notification_actions:notify.mobile_app_phone").checked);
+  wc("Next");
+  check("Jamaat delivery is separate", wizard._activeDeliveryKind() === "jamaat" && !wi("notification_actions:notify.mobile_app_phone").checked);
+  check("Jamaat starts with independent filters", wr.querySelector('[data-key="filter:integration"]').value === "" && wr.querySelector('[data-key="filter:device_type"]').value === "");
+  wf("integration", "mobile_app"); wf("device_type", "tablet");
+  wi("notification_entities:notify.tablet").click(); wc("Sound");
+  check("Jamaat sound does not inherit beginning speakers", !wi("media_player:media_player.hall").checked);
+  wi("media_player:media_player.kitchen").click();
+  wt("media_content_id", "library://track/456"); wt("media_content_type", "music");
+  wc("Back");
+  check("Back restores beginning delivery", wizard._activeDeliveryKind() === "beginning" && wi("notification_actions:notify.mobile_app_phone").checked);
+  check("Back retains category-specific filters", wr.querySelector('[data-key="filter:integration"]').value === "mobile_app" && wr.querySelector('[data-key="filter:device_type"]').value === "phone");
+  wc("Sound");
+  check("beginning sound survives independent Jamaat setup", wi("media_player:media_player.hall").checked && wi("media_content_id").value === beginningRecording);
+  wc("Next");
+  check("Jamaat settings survive Back", wizard._activeDeliveryKind() === "jamaat" && wi("media_player:media_player.kitchen").checked && wi("media_content_id").value === "library://track/456");
+  wc("Next");
+  check("reminder review fits mobile", wizardFits());
+  check("reminder review contains full configuration",
+    wr.textContent.includes("5 minutes before") &&
+    wr.textContent.includes("20 minutes before") &&
+    wr.textContent.includes("all published congregations") &&
+    wr.textContent.includes("Beginning reminders delivery") &&
+    wr.textContent.includes("Jamaat reminders delivery") &&
+    wr.textContent.includes("Hall speaker (media_player.hall)") &&
+    wr.textContent.includes("Kitchen speaker (media_player.kitchen)"));
+  check("reminder no write before Finish", reminderWrites.length === 0);
+  wc("Finish"); await Promise.resolve(); await Promise.resolve();
+  check("reminder saves one normal automation",
+    reminderWrites.length === 1 && reminderWrites[0][0] === "POST" &&
+    reminderWrites[0][1].startsWith("config/automation/config/salah_reminders_"));
+  check("saved delivery preserves category routing", reminderPreviews[0].delivery.beginning.notification_actions[0] === "notify.mobile_app_phone" && reminderPreviews[0].delivery.beginning.media_players[0] === "media_player.hall" && reminderPreviews[0].delivery.jamaat.notification_entities[0] === "notify.tablet" && reminderPreviews[0].delivery.jamaat.media_content_id === "library://track/456");
+  check("reminder save locks buttons", [...wr.querySelectorAll("button")].every(node => node.disabled));
+  wizard._next();
+  check("reminder duplicate Finish blocked", reminderWrites.length === 1);
+  finishSave({result: "ok"}); await Promise.resolve(); await Promise.resolve();
+  check("reminder saved automation link",
+    wr.querySelector("a")?.getAttribute("href").startsWith("/config/automation/edit/salah_reminders_"));
+  wc("Close");
+  check("reminder Close restores launch focus", editor.shadowRoot.activeElement === launch);
   check("countdowns never write HA service or state", serviceCalls === 0);
   check("real browser resource registration", customElements.get("salah-timetable-card") === SalahTimetableCard && window.customCards.some(item => item.type === "salah-timetable-card"));
   card.remove(); check("disconnected card clears local timer", card._timer === null);
   // Keep a static native-DOM preview for optional CDP screenshots.
   document.body.prepend(card); card.disconnectedCallback(); card._render(Date.parse(time(4, 40))); card.shadowRoot.querySelector(".table-scroll").scrollLeft = 0;
+  window.mountActionCard = detail_level => {
+    const actionCard = new SalahTimetableCard();
+    actionCard.setConfig({...config, detail_level, show_month_view: true, show_mosque_background: true, mosque_background: "masjid-al-haram"});
+    const requests = [];
+    actionCard.hass = {...hass, callWS(message) {
+      requests.push(message);
+      return Promise.resolve({rows: [{date: data.date, published: true, times: {fajr_begin: ["05:45"]}}]});
+    }};
+    document.body.prepend(actionCard);
+    return {actionCard, requests};
+  };
   parent.postMessage({kind: "salah-browser-result", status: "passed", width, language, bilingual, checks}, location.origin);
 } catch (error) {
   parent.postMessage({kind: "salah-browser-result", status: "failed", width, language, bilingual, checks, error: error.stack || String(error)}, location.origin);
 }
+

@@ -1,0 +1,54 @@
+blueprint:
+  name: Salah Timetable - Before Salah reminder
+  description: >-
+    Send notifications, play a sound, or run both before the next published
+    Salah beginning. Select the Next Salah timestamp entity.
+    Use a negative offset, such as -10 for ten minutes before. The next event
+    must be known before its reminder time; missed reminders are not replayed.
+    This does not track whether you have prayed or determine the end of a prayer window.
+  domain: automation
+  source_url: https://github.com/anaschillin/home-assistant-salah-timetable/blob/main/blueprints/automation/salah_timetable/salah_reminder.yaml
+  homeassistant:
+    min_version: 2026.10.0
+  input:
+    next_salah:
+      name: Next Salah sensor
+      selector:
+        entity:
+          filter:
+            integration: salah_timetable
+            domain: sensor
+            device_class: timestamp
+    offset:
+      name: Reminder offset (minutes)
+      description: Use a negative number, such as -10 for ten minutes before Salah begins.
+      default: -10
+      selector:
+        number:
+          min: -180
+          max: -1
+          step: 1
+          mode: box
+          unit_of_measurement: min
+    reminder_actions:
+      name: Reminder actions
+      description: Choose Companion app notifications, media playback, or any other Home Assistant actions. Add multiple actions to notify several devices and play a sound. The prayer and scheduled_time variables are available.
+      selector:
+        action:
+
+triggers:
+  - trigger: time
+    at:
+      entity_id: !input next_salah
+      offset:
+        minutes: !input offset
+
+variables:
+  next_salah: !input next_salah
+  prayer: "{{ state_attr(next_salah, 'prayer') }}"
+  scheduled_time: "{{ states(next_salah) }}"
+
+actions: !input reminder_actions
+
+mode: queued
+max: 10

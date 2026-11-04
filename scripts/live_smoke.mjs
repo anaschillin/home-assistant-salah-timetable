@@ -238,8 +238,11 @@ try {
   report.checks.push("native_calendar_approved_instant_events");
   let ws = await websocket();
   const version = JSON.parse(await readFile(join(root, "custom_components/salah_timetable/manifest.json"), "utf8")).version;
-  const cardUrl = `/salah_timetable/salah-timetable-card.js?v=${version}`;
-  assert.equal((await ws("lovelace/resources")).filter(item => item.url === cardUrl).length, 1);
+  const cardResources = (await ws("lovelace/resources")).filter(item =>
+    /^\/salah_timetable\/[a-f0-9]{16}\/salah-timetable-card\.js$/.test(new URL(item.url, "http://homeassistant.local").pathname) &&
+    new URL(item.url, "http://homeassistant.local").searchParams.get("v") === version);
+  assert.equal(cardResources.length, 1);
+  const cardUrl = cardResources[0].url;
   await ws("lovelace/dashboards/create", {url_path: "salah-smoke", title: "Salah Smoke", show_in_sidebar: true, require_admin: false, mode: "storage"});
   await ws("lovelace/config/save", {url_path: "salah-smoke", config: {views: [{title: "Salah Smoke", path: "smoke", cards: [{type: "custom:salah-timetable-card", entity: "sensor.smoke_mosque_prayer_timetable"}]}]}});
   report.checks.push("automatic_resource_registration", "dashboard_configuration");

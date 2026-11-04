@@ -1,8 +1,10 @@
 """Serve the bundled card and load it in storage- or YAML-resource dashboards."""
 
 import logging
+import re
 from asyncio import Lock
 from dataclasses import dataclass, field
+from hashlib import sha256
 from pathlib import Path
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfoNotFoundError
@@ -18,8 +20,25 @@ from .const import DOMAIN
 CARD_VERSION = "1.0.0"
 STATIC_PATH = "/salah_timetable"
 CARD_PATH = f"{STATIC_PATH}/salah-timetable-card.js"
-CARD_URL = f"{CARD_PATH}?v={CARD_VERSION}"
 _FRONTEND_DIR = str(Path(__file__).with_name("frontend"))
+
+
+def _bundle_fingerprint(directory: Path) -> str:
+    """Invalidate every imported module even when a PR keeps the release version."""
+    digest = sha256()
+    for path in sorted(directory.glob("*.js")):
+        digest.update(path.name.encode())
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()[:16]
+
+
+# Integration modules load in HA's import executor. This is computed once per
+# process, so all configured mosques share one immutable asset namespace.
+BUNDLE_FINGERPRINT = _bundle_fingerprint(Path(_FRONTEND_DIR))
+BUNDLE_PATH = f"{STATIC_PATH}/{BUNDLE_FINGERPRINT}"
+CARD_URL = f"{BUNDLE_PATH}/salah-timetable-card.js?v={CARD_VERSION}"
 _DATA_KEY = f"{DOMAIN}_frontend"
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,7 +58,17 @@ def _is_card_resource(url: str) -> bool:
         parsed = urlsplit(url)
     except ValueError:
         return False
-    return not parsed.scheme and not parsed.netloc and parsed.path == CARD_PATH
+    return (
+        not parsed.scheme
+        and not parsed.netloc
+        and (
+            parsed.path == CARD_PATH
+            or re.fullmatch(
+                rf"{STATIC_PATH}/[a-f0-9]{{16}}/salah-timetable-card\.js", parsed.path
+            )
+            is not None
+        )
+    )
 
 
 def _remove_extra_versions(hass: HomeAssistant, *, keep_current: bool) -> None:
@@ -93,7 +122,12 @@ async def async_setup_frontend(hass: HomeAssistant) -> None:
     async with state.lock:
         if not state.static_registered:
             await hass.http.async_register_static_paths(
-                [StaticPathConfig(STATIC_PATH, _FRONTEND_DIR, cache_headers=True)]
+                [
+                    # Register the narrower path first: the legacy static route
+                    # otherwise consumes requests for the fingerprinted modules.
+                    StaticPathConfig(BUNDLE_PATH, _FRONTEND_DIR, cache_headers=True),
+                    StaticPathConfig(STATIC_PATH, _FRONTEND_DIR, cache_headers=True),
+                ]
             )
             state.static_registered = True
         if not state.listening:
