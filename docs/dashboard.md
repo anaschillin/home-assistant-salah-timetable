@@ -149,8 +149,9 @@ as unavailable rather than inferred. Ramadan details are shown in all three disp
 
 ## Device screenshots
 
-The screenshots below document the card/editor layout after the latest
-redesign, on desktop, mobile and tablet. They are examples from one configured
+The screenshots below document the repository's card/editor layout after the
+redesign, on desktop, mobile and tablet; installed release behaviour may differ
+until those changes are published. They are examples from one configured
 mosque, not authoritative prayer schedules. Click a screenshot for its full
 resolution. The bundled mosque photograph is decorative.
 

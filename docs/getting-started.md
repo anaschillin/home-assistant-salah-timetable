@@ -95,6 +95,7 @@ The graphical editor has one ordered mosque checkbox list, a **Card detail**
 selector and seven expandable settings groups. The **Shown first** label marks
 the default mosque; changes are reflected in the live preview. The new screen
 captures show a real configured mosque name rather than anonymised sample data.
+They reflect the repository's updated card UI; installed releases can differ.
 
 <img src="screenshots/showcase/tablet/card-editor.webp" width="720" alt="Home Assistant tablet card editor with mosque ordering and a live timetable preview">
 
