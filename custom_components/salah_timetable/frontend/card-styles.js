@@ -1286,6 +1286,40 @@ ha-card.kiosk:fullscreen {
     padding-block: 3px;
   }
 }
+/* On a sufficiently wide card, height reduction needs a different flow:
+   placing summary and timetable alongside each other keeps all published data
+   legible while HA's native editor toolbar fits below the card. This applies
+   only in edit mode and only when the card itself can support two columns. */
+@container (min-width: 43rem) {
+  :host([dashboard-editing]) .content:has(> .summary-shell):has(> .timetable-shell) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    column-gap: 12px;
+    row-gap: 6px;
+    align-items: start;
+  }
+  :host([dashboard-editing]) .content > .summary-shell {
+    grid-column: 1;
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+  :host([dashboard-editing]) .content > .timetable-shell {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    align-self: start;
+  }
+  :host([dashboard-editing]) .summary-shell .panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :host([dashboard-editing]) .summary-shell .prayer-panel + .prayer-panel {
+    border-inline-start: 0;
+    border-block-start: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
+  }
+  :host([dashboard-editing]) .content > :not(.summary-shell):not(.timetable-shell) {
+    grid-column: 1 / -1;
+  }
+}
 .source-summary { border-top: 1px solid var(--divider-color); padding-top: 12px; }
 .source-summary p { overflow-wrap: anywhere; font-size: .84rem; }
 @container(max-width:28rem) {
