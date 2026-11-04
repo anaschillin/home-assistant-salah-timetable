@@ -165,6 +165,7 @@ export class SalahTimetableCard extends HTMLElement {
   _syncDashboardEditing() {
     const editing = this.preview ||
       Boolean(this.closest?.("hui-card-options, hui-card-edit-mode"));
+    if (editing === Boolean(this.hasAttribute?.("dashboard-editing"))) return;
     if (editing) this.setAttribute("dashboard-editing", "");
     else this.removeAttribute("dashboard-editing");
   }
