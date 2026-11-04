@@ -336,9 +336,13 @@ also accounted for; no fixed Home Assistant header height is assumed.
 In dashboard edit mode, the card also recognises Home Assistant's desktop
 and tablet editing wrappers (`hui-card-options` and `hui-card-edit-mode`).
 Those layouts do not always forward the card's preview flag. In an editor
-wrapper or standalone card preview, the viewport minimum height is removed so
-Home Assistant's native **Edit** button remains immediately after the actual
-card content. Normal viewing restores the available-viewport background height.
+wrapper or standalone card preview, the viewport minimum height is removed.
+On tablet and desktop, editor-only responsive spacing also compacts the summary
+and daily timetable rows, bringing Home Assistant's native **Edit** controls
+higher without hiding any prayer information or scaling the card visually.
+Short landscape screens use tighter spacing. Content can still extend beyond
+the screen when necessary (for example, a longer monthly timetable), and
+normal viewing restores the original layout and available-viewport background.
 Home Assistant still controls the parent column width; use a
 full-width section or panel view for a wider display. Switching days retains
 the photograph framing; viewport resizing can reframe it. Full-screen kiosk
