@@ -34,37 +34,13 @@ test("later responsive and modern panel overrides remain ordered", () => {
   assert.ok(CARD_CSS.includes(".panel .count"));
 });
 
-test("desktop/tablet editing keeps the stacked card and reduces real dimensions", () => {
-  const start = CARD_CSS.indexOf("/* Keep the normal vertically stacked design");
+test("panel editor keeps native card proportions without custom nested scrolling", () => {
+  const start = CARD_CSS.indexOf("/* Home Assistant's Panel editor owns");
   const end = CARD_CSS.indexOf(".source-summary {", start);
-  assert.ok(start > 0 && end > start, "Editing-only responsive rules missing");
+  assert.ok(start >= 0 && end > start);
   const edit = CARD_CSS.slice(start, end);
-  assert.match(edit, /@media \(min-width: 600px\)/);
-  assert.match(edit, /:host\(\[dashboard-editing\]\) ha-card\s*\{[^}]*max-height:\s*none;[^}]*overflow:\s*hidden/);
-  assert.match(edit, /:host\(\[dashboard-editing\]\) \.content\s*\{[^}]*display:\s*block/);
-  assert.match(edit, /:host\(\[dashboard-editing\]\) \.summary-shell\s*\{[^}]*padding:/);
-  assert.match(edit, /:host\(\[dashboard-editing\]\) \.summary-shell \.panels\s*\{[^}]*margin-top:\s*6px/);
-  assert.doesNotMatch(edit, /:host\(\[dashboard-editing\]\) \.summary-shell \.panels\s*\{[^}]*grid-template-columns:/);
-  assert.match(edit, /:host\(\[dashboard-editing\]\) \.timetable-shell th,[\s\S]*?:host\(\[dashboard-editing\]\) \.timetable-shell td\s*\{\s*padding-block:\s*4px/);
-  assert.match(edit, /@media \(min-width: 600px\) and \(max-height: 800px\)/);
-  const short = edit.slice(edit.indexOf("@media (min-width: 600px) and (max-height: 800px)"));
-  assert.match(short, /:host\(\[dashboard-editing\]\) \.content\s*\{[^}]*padding-block:\s*4px/);
-  assert.match(short, /:host\(\[dashboard-editing\]\) \.summary-shell \.panels\s*\{[^}]*margin-top:\s*2px;[^}]*padding-top:\s*2px/);
-  assert.doesNotMatch(edit, /overflow-y:\s*auto|scrollbar-gutter:|transform:\s*scale\(|display:\s*none|visibility:\s*hidden|(?:^|[;{])\s*zoom\s*:/m);
-  assert.doesNotMatch(edit, /:host\(\[dashboard-editing\]\) \.content:has\(>/);
-});
-
-test("normal viewing is unchanged by compact editor-only styles", () => {
-  const start = CARD_CSS.indexOf("/* Keep the normal vertically stacked design");
-  const end = CARD_CSS.indexOf(".source-summary {", start);
-  const edit = CARD_CSS.slice(start, end);
-  assert.ok(edit.includes(":host([dashboard-editing])"));
-  assert.doesNotMatch(edit, /@container \(min-width: 43rem\)/);
-  assert.doesNotMatch(edit, /:host\(\[dashboard-editing\]\) \.summary-shell \.prayer-panel \+ \.prayer-panel/);
-  // Short-screen @media (max-height: 800px) is a breakpoint, not a
-  // clipping rule on the card. Only reject nested scrolling.
-  assert.match(edit, /:host\(\[dashboard-editing\]\) ha-card\s*\{[^}]*max-height:\s*none/);
-  assert.doesNotMatch(edit, /overflow-y:\s*auto/);
+  assert.doesNotMatch(edit, /max-height:|overflow-y:|scrollbar-gutter:|transform:\\s*scale\\(|zoom:|grid-template-columns:|font-size:|padding:/);
+  assert.match(CARD_CSS, /:host\\(\\[dashboard-editing\\]\\) ha-card\\.has-mosque-background\\s*\\{[^}]*min-height:\\s*0/);
 });
 
 test("dashboard edit/preview removes only the full-viewport photo minimum", () => {
