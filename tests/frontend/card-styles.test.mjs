@@ -34,6 +34,19 @@ test("later responsive and modern panel overrides remain ordered", () => {
   assert.ok(CARD_CSS.includes(".panel .count"));
 });
 
+test("desktop and tablet edit mode reclaims actual layout height without hiding timetable data", () => {
+  const start = CARD_CSS.indexOf("/* Home Assistant's footer-style Edit button");
+  const end = CARD_CSS.indexOf(".source-summary {", start);
+  assert.ok(start > 0 && end > start, "Editing density styles missing");
+  const edit = CARD_CSS.slice(start, end);
+  assert.match(edit, /@media \(min-width: 600px\)/);
+  assert.match(edit, /:host\(\[dashboard-editing\]\) \.summary-shell\s*\{[^}]*padding:/);
+  assert.match(edit, /:host\(\[dashboard-editing\]\) \.summary-shell \.panels\s*\{[^}]*margin-top:\s*8px;[^}]*padding-top:\s*8px/);
+  assert.match(edit, /:host\(\[dashboard-editing\]\) \.timetable-shell th,[\s\S]*?:host\(\[dashboard-editing\]\) \.timetable-shell td\s*\{\s*padding-block:\s*5px/);
+  assert.match(edit, /@media \(min-width: 600px\) and \(max-height: 800px\)/);
+  assert.doesNotMatch(edit, /transform:\s*scale\(|zoom:|display:\s*none|visibility:\s*hidden|max-height:|overflow:\s*hidden/);
+});
+
 test("dashboard edit/preview removes only the full-viewport photo minimum", () => {
   const editOnly = CARD_CSS.match(/:host\(\[dashboard-editing\]\) ha-card\.has-mosque-background\s*\{([^}]+)\}/);
   assert.ok(editOnly, "Preview-only height override is missing");
