@@ -257,12 +257,18 @@ export class SalahTimetableCard extends HTMLElement {
   }
 
   _rememberBackgroundFrame() {
-    // Snapshot the full Today photo canvas before its countdowns disappear.
-    // This preserves photographic framing without introducing empty timetable space.
+    // Capture the painted photograph, not just its outer card. The photo may
+    // retain a slightly taller frame from an earlier render while viewport
+    // measurement is settling. Saving only the shorter card rectangle causes
+    // a visible image jump when Yesterday/Tomorrow remove the live panels.
     const card = this.shadowRoot?.querySelector?.("ha-card");
     const rect = card?.getBoundingClientRect?.();
     if (!rect || rect.height <= 0 || rect.width <= 0 || !this._config.show_mosque_background) return;
-    this._backgroundFrame = {entity: this._activeEntity(), width: rect.width, height: rect.height};
+    const photoHeight = typeof getComputedStyle === "function"
+      ? Number.parseFloat(getComputedStyle(card, "::before").height) : NaN;
+    const height = Number.isFinite(photoHeight)
+      ? Math.max(rect.height, photoHeight + 4) : rect.height;
+    this._backgroundFrame = {entity: this._activeEntity(), width: rect.width, height};
   }
 
   _selection(data, now) {
