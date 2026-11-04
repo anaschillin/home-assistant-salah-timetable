@@ -119,25 +119,22 @@ try {
       getComputedStyle(editSurface).minHeight === "0px");
     if (width >= 600) {
       const content = editSurface.querySelector(".content");
+      const summary = editSurface.querySelector(".summary-shell");
+      const timetable = editSurface.querySelector(".timetable-shell");
       const firstRow = editSurface.querySelector(".timetable-shell tbody td");
-      check(`${wrapperName} compresses actual tablet/desktop layout while editing`,
-        Number.parseFloat(getComputedStyle(content).paddingTop) <= 12 &&
-        Number.parseFloat(getComputedStyle(firstRow).paddingTop) <= 5 &&
+      const rootStyle = getComputedStyle(editSurface);
+      const sumRect = summary.getBoundingClientRect();
+      const tableRect = timetable.getBoundingClientRect();
+      check(`${wrapperName} compacts the original vertically stacked editor layout`,
+        getComputedStyle(content).display === "block" &&
+        Number.parseFloat(getComputedStyle(content).paddingTop) <= 10 &&
+        Number.parseFloat(getComputedStyle(firstRow).paddingTop) <= 4 &&
+        tableRect.top >= sumRect.bottom - 1 &&
         editSurface.querySelectorAll("tbody tr").length === 5);
-      const editStyle = getComputedStyle(editSurface);
-      check(`${wrapperName} bounds scrollable editor without clipping any timetable rows`,
-        editStyle.overflowY === "auto" &&
-        Number.isFinite(Number.parseFloat(editStyle.maxHeight)) &&
-        editSurface.getBoundingClientRect().height <= Number.parseFloat(editStyle.maxHeight) + 1 &&
+      check(`${wrapperName} does not create another scrollable card or hidden rows`,
+        rootStyle.overflowY === "hidden" &&
+        rootStyle.maxHeight === "none" &&
         editSurface.querySelectorAll("tbody tr").length === 5);
-      if (wrappedCard.getBoundingClientRect().width >= 43 * 16) {
-        const summary = editSurface.querySelector(".summary-shell").getBoundingClientRect();
-        const timetable = editSurface.querySelector(".timetable-shell").getBoundingClientRect();
-        check(`${wrapperName} arranges both full-height panels side by side in the wide editor`,
-          getComputedStyle(content).display === "grid" &&
-          Math.abs(summary.top - timetable.top) <= 2 &&
-          (summary.right <= timetable.left + 2 || timetable.right <= summary.left + 2));
-      }
     }
     document.body.append(wrappedCard);
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
