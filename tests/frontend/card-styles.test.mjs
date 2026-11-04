@@ -114,7 +114,9 @@ test("full-canvas mosque background and centered glass content retain accessible
 
 
 test("outer Home Assistant card has no drop shadow while both glass cards retain depth", () => {
-  const cardRules = [...CARD_CSS.matchAll(/ha-card\s*\{([^}]+)\}/g)];
+  // Only match unscoped card declarations. Edit-only :host(...) ha-card
+  // overrides may follow them without adding an unwanted drop shadow.
+  const cardRules = [...CARD_CSS.matchAll(/(?:^|\n)ha-card\s*\{([^}]+)\}/g)];
   assert.ok(cardRules.length >= 2);
   assert.ok(cardRules.slice(-2).every(match => /box-shadow:\s*none\s*;/.test(match[1])));
   assert.doesNotMatch(CARD_CSS, /ha-card\s*\{[^}]*box-shadow:\s*0\s+\d+px/);
