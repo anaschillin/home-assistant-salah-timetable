@@ -117,6 +117,14 @@ try {
       wrappedCard.preview === false &&
       wrappedCard.hasAttribute("dashboard-editing") &&
       getComputedStyle(editSurface).minHeight === "0px");
+    if (width >= 600) {
+      const content = editSurface.querySelector(".content");
+      const firstRow = editSurface.querySelector(".timetable-shell tbody td");
+      check(`${wrapperName} compresses actual tablet/desktop layout while editing`,
+        Number.parseFloat(getComputedStyle(content).paddingTop) <= 12 &&
+        Number.parseFloat(getComputedStyle(firstRow).paddingTop) <= 5 &&
+        editSurface.querySelectorAll("tbody tr").length === 5);
+    }
     document.body.append(wrappedCard);
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     // The fixture puts this card after the tall primary example, often below
