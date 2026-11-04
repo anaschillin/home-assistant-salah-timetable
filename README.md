@@ -23,11 +23,11 @@ A Home Assistant custom integration for importing **published mosque Salah and J
 
 ## Dashboard preview
 
-![Salah Timetable detailed card with next Salah and Jamaat countdowns, five-prayer timetable and optional mosque photograph](docs/screenshots/main-card.png)
+![Detailed Salah Timetable card with Next Salah, contextual Jamaat, published prayer timetable and mosque photograph](docs/screenshots/showcase/desktop/detailed-card.webp)
 
 *Example of the detailed dashboard card. The pictured mosque photograph is decorative; displayed prayer times belong to the configured mosque and are not a universal prayer timetable.*
 
-For the card editor, previous-day and monthly views, see [Dashboard getting started](docs/getting-started.md#add-the-dashboard-card). Full settings are in the [Dashboard guide](docs/dashboard.md).
+Explore [desktop, mobile and tablet screenshots](docs/dashboard.md#device-screenshots), including Compact's **More** menu, the monthly timetable and the redesigned card editor. For configuration, see [Dashboard getting started](docs/getting-started.md#add-the-dashboard-card) and the [Dashboard guide](docs/dashboard.md).
 
 ## Install
 

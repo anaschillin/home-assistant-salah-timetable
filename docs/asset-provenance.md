@@ -35,6 +35,19 @@ of Malaysia photograph by The Simple Travel and the Sultan Omar Ali Saifuddien
 Mosque photograph by Jimmy Whitson; their separate source and licence entries
 remain authoritative. See the inventory for each capture's hash and rights basis.
 
+A further 16 desktop, mobile and tablet screenshots were supplied by the
+maintainer on 4 November 2026 after the card-editor and monthly-action redesign.
+They are stored as optimised WebP files in
+[the device gallery](screenshots/showcase/) and linked from the dashboard guide.
+Unlike the previously anonymised captures, these show the configured public
+mosque name and published times; no personal identifiers, authentication details
+or original timetable PDFs are supplied with them. The background in these
+captures reproduces the bundled Masjid an-Nabawi photograph by Haidan. Its
+original Unsplash source, licence basis and checksum remain recorded in
+[the asset inventory](asset-provenance.json). Converting screenshots to WebP
+does not change rights in the underlying background photograph. All new images
+have their own SHA-256 inventory entries.
+
 The 20 bundled backgrounds come from reviewed free Unsplash photograph listings.
 Their named photographers and source pages are recorded individually in the
 inventory and card catalogue. The [Unsplash License](https://unsplash.com/license)

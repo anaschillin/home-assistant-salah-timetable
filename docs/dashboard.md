@@ -85,20 +85,20 @@ Under **Appearance → Mosque background**, choose **Off — no background**,
 **Rotate daily**, or a fixed photograph. Turning the background off preserves
 the saved photograph choice. See [background options](#optional-mosque-photograph-backgrounds).
 
-### Mobile card setup
+### Card editor and mobile preview
 
-<img src="screenshots/card-editor-mobile.png" width="360" alt="Mobile card editor with mosque names redacted and date settings expanded">
+<img src="screenshots/showcase/desktop/card-editor.webp" width="720" alt="Updated desktop card editor showing mosque ordering, Standard detail, grouped switches and a live preview">
 
 Select and order the mosques available on the card, choose its detail level,
-then expand the relevant settings group. The six-dot drag grip is for pointer
-reordering; the up/down buttons work with touch and keyboard. The mobile editor
-scrolls; lower groups may be below the visible area. The screenshot above is
-from the previous editor revision and will be replaced after HA acceptance.
+then expand the relevant settings group. The six-dot drag grip supports pointer
+reordering; up/down buttons also work with touch and keyboard. The editor
+scrolls on smaller displays, so lower settings can be below the initial view.
 
-<img src="screenshots/dashboard-mobile.png" width="360" alt="Mobile dashboard with mosque name redacted, bilingual prayers and day navigation">
+<img src="screenshots/showcase/mobile/standard-card.webp" width="290" alt="Standard mobile dashboard with two countdown panels, the approved daily timetable and day navigation">
 
-Example approved timetable values are shown for illustration. Mosque identities
-are obscured; the background photograph is decorative.
+The screenshots show a real configured mosque name and illustrative published
+timetable values. They are not universal prayer times, and the background
+photograph is decorative.
 
 ## Day navigation
 
@@ -129,7 +129,7 @@ Home Assistant sensor state.
 | Standard (default) | Both matching prayer cards, full timetable, Hijri date (if enabled), and active Ramadan details |
 | Detailed | Standard plus published Fajr sunrise/end and second Friday khutbah (if present) |
 
-![Compact card preview showing countdown panels without the full Today table](screenshots/card-editor-compact.png)
+![Compact desktop card showing next Salah, contextual Jamaat and day navigation without the full Today table](screenshots/showcase/desktop/compact-card.webp)
 
 **Next Salah** always means the next *beginning* time, even if the current
 prayer's Jamaat is still upcoming. The countdown and published times from that
@@ -145,6 +145,47 @@ Fajr end is the *published sunrise*, never a calculated estimate. Published
 Jumu’ah congregations remain in Dhuhr's Jamaat row, and the separately published
 second khutbah (if any) is not treated as a Jamaat. Missing times are displayed
 as unavailable rather than inferred. Ramadan details are shown in all three display levels when Ramadan is active and the card's Ramadan details option is enabled.
+
+
+## Device screenshots
+
+The screenshots below document the card/editor layout after the latest
+redesign, on desktop, mobile and tablet. They are examples from one configured
+mosque, not authoritative prayer schedules. Click a screenshot for its full
+resolution. The bundled mosque photograph is decorative.
+
+### Daily display modes
+
+| Mode | Desktop | Mobile |
+| --- | --- | --- |
+| **Compact** | <a href="screenshots/showcase/desktop/compact-card.webp"><img src="screenshots/showcase/desktop/compact-card.webp" width="350" alt="Compact desktop card with both live countdowns and day tabs"></a> | <a href="screenshots/showcase/mobile/compact-card.webp"><img src="screenshots/showcase/mobile/compact-card.webp" width="175" alt="Compact mobile countdowns and day tabs"></a> |
+| **Standard** | <a href="screenshots/showcase/desktop/standard-card.webp"><img src="screenshots/showcase/desktop/standard-card.webp" width="350" alt="Standard desktop card with the full daily prayer table"></a> | <a href="screenshots/showcase/mobile/standard-card.webp"><img src="screenshots/showcase/mobile/standard-card.webp" width="175" alt="Standard mobile card with daily prayer times"></a> |
+| **Detailed** | <a href="screenshots/showcase/desktop/detailed-card.webp"><img src="screenshots/showcase/desktop/detailed-card.webp" width="350" alt="Detailed desktop card with the full table and Hijri information"></a> | <a href="screenshots/showcase/mobile/detailed-card.webp"><img src="screenshots/showcase/mobile/detailed-card.webp" width="175" alt="Detailed mobile card with prayer time details"></a> |
+
+In Compact Today, the short summary deliberately leaves more of the photograph
+visible; it does not stretch the countdown panels to fill the screen. Standard
+and Detailed include the published daily prayer table. Yesterday and Tomorrow
+show the selected date's approved table instead of live countdown panels.
+
+### Monthly timetable and Compact actions
+
+| Interaction | Desktop | Mobile |
+| --- | --- | --- |
+| **Compact More menu** | <a href="screenshots/showcase/desktop/compact-monthly-menu.webp"><img src="screenshots/showcase/desktop/compact-monthly-menu.webp" width="350" alt="Compact desktop More menu with Monthly timetable action"></a> | <a href="screenshots/showcase/mobile/compact-monthly-menu.webp"><img src="screenshots/showcase/mobile/compact-monthly-menu.webp" width="175" alt="Compact mobile More menu"></a> |
+| **Compact monthly timetable** | <a href="screenshots/showcase/desktop/compact-monthly-view.webp"><img src="screenshots/showcase/desktop/compact-monthly-view.webp" width="350" alt="Compact desktop month browser with More menu"></a> | <a href="screenshots/showcase/mobile/compact-monthly-view.webp"><img src="screenshots/showcase/mobile/compact-monthly-view.webp" width="175" alt="Compact mobile month browser with More menu"></a> |
+| **Standard monthly timetable** | <a href="screenshots/showcase/desktop/standard-monthly-view.webp"><img src="screenshots/showcase/desktop/standard-monthly-view.webp" width="350" alt="Standard desktop Gregorian month browser"></a> | See the Detailed mobile month browser below |
+| **Detailed monthly timetable** | <a href="screenshots/showcase/desktop/detailed-monthly-view.webp"><img src="screenshots/showcase/desktop/detailed-monthly-view.webp" width="350" alt="Detailed desktop Gregorian month browser"></a> | <a href="screenshots/showcase/mobile/detailed-monthly-view.webp"><img src="screenshots/showcase/mobile/detailed-monthly-view.webp" width="175" alt="Detailed mobile Gregorian month browser"></a> |
+
+### Card editor and tablet
+
+| Desktop editor | Tablet editor | Tablet Standard card |
+| --- | --- | --- |
+| <a href="screenshots/showcase/desktop/card-editor.webp"><img src="screenshots/showcase/desktop/card-editor.webp" width="290" alt="Desktop editor showing mosque ordering, card detail and grouped options"></a> | <a href="screenshots/showcase/tablet/card-editor.webp"><img src="screenshots/showcase/tablet/card-editor.webp" width="290" alt="Tablet editor showing selected mosques and live preview"></a> | <a href="screenshots/showcase/tablet/standard-card.webp"><img src="screenshots/showcase/tablet/standard-card.webp" width="290" alt="Tablet dashboard showing the Standard card"></a> |
+
+The graphical editor removes the duplicate sensor selector and Title field;
+the mosque checkbox order determines the initial mosque. Compact exposes the
+monthly timetable through **More**, while Standard/Detailed use an inline
+header action. No third-party card-mod theme is required for these controls.
 
 ## Timing and boundaries
 
@@ -343,12 +384,14 @@ rearrange its prayer panels or add a nested scrollbar. All prayer rows and
 controls remain in normal document flow.
 
 In a Home Assistant **Panel** dashboard, the parent dashboard reserves a
-full-height editor slot and positions its native **Edit** footer underneath.
-This can leave an empty region between the shorter card and the footer and
-may require scrolling on smaller viewports. That space is controlled by Home
-Assistant's Panel layout, not the Salah Timetable card. To have the native
-Edit action follow the card content naturally, use a **Sections** or
-**Masonry** dashboard view instead of Panel when creating the dashboard.
+full-height editing slot and positions its native **Edit** footer underneath.
+The button has been observed visible and clickable in Compact, Standard and
+Detailed during manual desktop testing without card-mod. Depending on viewport
+height, however, the shorter Compact card can leave empty editor space, and
+the native action may still require scrolling on smaller screens. That space
+belongs to Home Assistant's Panel layout, not the Salah Timetable card.
+For content-following edit controls, a **Sections** or **Masonry** dashboard
+view can be preferable.
 The normal available-viewport background is restored on exiting editing.
 Home Assistant still controls the parent column width; use a
 full-width section for a wider display. Switching days retains
