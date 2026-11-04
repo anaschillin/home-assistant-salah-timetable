@@ -256,25 +256,34 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     for (const width of [900, 1280, 1536]) {
       await call("Emulation.setDeviceMetricsOverride", {width, height: 1100, deviceScaleFactor: 1, mobile: false});
       await pause(100);
-      assert.equal(await evaluate(`(()=>{
+      const headerLayout = await evaluate(`(()=>{
         const card=window.salahAutoCard, root=card.shadowRoot;
         const header=root.querySelector(".header"), hijri=root.querySelector(".hijri");
         const gregorian=root.querySelector(".gregorian"), month=root.querySelector(".month-description");
-        if(!header||!hijri||!gregorian||!month) return false;
+        if(!header||!hijri||!gregorian||!month) return {ok:false,missing:true};
         const h=header.getBoundingClientRect(), d=month.getBoundingClientRect();
         const canvas=root.querySelector("ha-card"), content=root.querySelector(".content");
-        const hostWidth=card.getBoundingClientRect().width;
-        return getComputedStyle(header).display==="grid" &&
-          d.top>=Math.max(hijri.getBoundingClientRect().bottom,gregorian.getBoundingClientRect().bottom)-1 &&
-          d.width>=h.width-1 &&
-          getComputedStyle(canvas).maxWidth==="none" &&
-          Math.abs(canvas.getBoundingClientRect().width-hostWidth)<=2 &&
-          getComputedStyle(content).maxWidth==="1160px" &&
-          content.getBoundingClientRect().width<=1161 &&
-          Math.abs(content.getBoundingClientRect().left+content.getBoundingClientRect().right-
-            canvas.getBoundingClientRect().left-canvas.getBoundingClientRect().right)<=2 &&
-          header.scrollWidth<=header.clientWidth+1;
-      })()`), true, `Real HA header description shares date row or overflows at ${width}px`);
+        const shell=canvas.getBoundingClientRect(), inner=content.getBoundingClientRect();
+        const delta=inner.left+inner.right-shell.left-shell.right;
+        const checks={
+          grid:getComputedStyle(header).display==="grid",
+          monthRow:d.top>=Math.max(hijri.getBoundingClientRect().bottom,gregorian.getBoundingClientRect().bottom)-1,
+          monthWidth:d.width>=h.width-1,
+          noOuterMax:getComputedStyle(canvas).maxWidth==="none",
+          fullCanvas:Math.abs(shell.width-card.getBoundingClientRect().width)<=2,
+          contentMax:getComputedStyle(content).maxWidth==="1160px",
+          contentWidth:inner.width<=1161,
+          centered:Math.abs(delta)<=2,
+          noOverflow:header.scrollWidth<=header.clientWidth+1
+        };
+        return {ok:Object.values(checks).every(Boolean),checks,centerDelta:delta,
+          editing:card.hasAttribute("dashboard-editing"),
+          scrollbarGutter:getComputedStyle(canvas).scrollbarGutter,
+          scrollRange:canvas.scrollHeight-canvas.clientHeight,
+          shellWidth:shell.width,innerWidth:inner.width};
+      })()`);
+      assert.equal(headerLayout.ok, true,
+        `Real HA header description shares date row or overflows at ${width}px: ${JSON.stringify(headerLayout)}`);
     }
     // Home Assistant keeps the dashboard in edit mode after saving a card.
     // First confirm that preview intentionally removes the full-height canvas,
