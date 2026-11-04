@@ -1201,6 +1201,17 @@ ha-card.kiosk:fullscreen {
    dashboard edit mode only, retaining every prayer, date and control.
    No transform/zoom: those change paint size without reclaiming layout space. */
 @media (min-width: 600px) {
+  /* A Lovelace column may be too narrow for the wide two-panel preview.
+     Limit only the editing canvas to the actually visible height (with room
+     for HA's native Edit footer). Keep the complete content scrollable
+     inside this preview; normal dashboard viewing has no height cap. */
+  :host([dashboard-editing]) ha-card {
+    min-height: 0;
+    max-height: max(280px, calc(var(--salah-viewport-card-height, 100dvh) - 72px));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
   :host([dashboard-editing]) .content {
     padding: clamp(8px, 1.1cqi, 12px);
   }
