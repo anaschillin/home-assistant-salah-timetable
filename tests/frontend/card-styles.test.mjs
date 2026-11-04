@@ -48,6 +48,7 @@ test("desktop and tablet edit mode reclaims actual layout height without hiding 
   assert.ok(preview, "Missing tablet/desktop preview height cap");
   assert.match(preview[1], /max-height:\s*max\(280px, calc\(var\(--salah-viewport-card-height, 100dvh\) - 72px\)\)/);
   assert.match(preview[1], /overflow-y:\s*auto/);
+  assert.match(preview[1], /scrollbar-gutter:\s*stable both-edges/);
   assert.match(preview[1], /overscroll-behavior-y:\s*contain/);
   assert.doesNotMatch(edit, /transform:\s*scale\(|display:\s*none|visibility:\s*hidden|(?:^|[;{])\s*zoom\s*:/m);
 });
