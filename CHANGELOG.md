@@ -7,6 +7,7 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 ## Unreleased
 
+- Avoid blocking Home Assistant during time zone validation, setup and removal.
 - Move administrator Prayer reminders setup into the card editor below the detail-level selection.
 - Use an accessible top-right calendar icon for monthly timetable browsing in every display mode.
 

@@ -3,11 +3,10 @@
 from asyncio import Lock
 from dataclasses import dataclass, replace
 from dataclasses import field as dataclass_field
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, tzinfo
 from types import MappingProxyType
 from typing import Any, Mapping
 from uuid import uuid4
-from zoneinfo import ZoneInfo
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
@@ -130,7 +129,7 @@ class _TimetableStore(Store[dict]):
 class TimetableStorage:
     """Promote changes only after validating and confirming their disk write."""
 
-    def __init__(self, hass: HomeAssistant, entry_id: str, zone: ZoneInfo) -> None:
+    def __init__(self, hass: HomeAssistant, entry_id: str, zone: tzinfo) -> None:
         self._hass = hass
         self._entry_id = entry_id
         # Config-entry reloads can leave an older options flow awaiting parsing

@@ -1,13 +1,12 @@
 """Salah Timetable integration."""
 
-from zoneinfo import ZoneInfo
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.util import dt as dt_util
 
 from .const import CONF_TIME_ZONE, DOMAIN
 from .coordinator import SalahCoordinator
@@ -22,7 +21,13 @@ PLATFORMS = [Platform.SENSOR, Platform.CALENDAR]
 
 async def async_setup_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> bool:
     await async_setup_frontend(hass)
-    zone = ZoneInfo(entry.options.get(CONF_TIME_ZONE, entry.data[CONF_TIME_ZONE]))
+    zone_name = entry.options.get(CONF_TIME_ZONE, entry.data[CONF_TIME_ZONE])
+    try:
+        zone = await dt_util.async_get_time_zone(zone_name)
+    except (TypeError, ValueError) as err:
+        raise ConfigEntryError(f"Invalid time zone: {zone_name}") from err
+    if zone is None:
+        raise ConfigEntryError(f"Invalid time zone: {zone_name}")
     storage = TimetableStorage(hass, entry.entry_id, zone)
     try:
         await storage.async_load()
@@ -80,5 +85,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> bo
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: SalahConfigEntry) -> None:
-    await TimetableStorage(hass, entry.entry_id, ZoneInfo("UTC")).async_remove()
+    await TimetableStorage(hass, entry.entry_id, dt_util.UTC).async_remove()
     ir.async_delete_issue(hass, DOMAIN, f"invalid_storage_{entry.entry_id}")

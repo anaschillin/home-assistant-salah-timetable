@@ -1,7 +1,11 @@
+from unittest.mock import patch
+
+import pytest
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
 
 from custom_components.salah_timetable.config_flow import _readiness_field_names
 from custom_components.salah_timetable.const import DOMAIN
@@ -32,12 +36,17 @@ async def test_create_and_duplicate(hass):
     await hass.async_block_till_done()
 
 
-async def test_invalid_input(hass):
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={"source": config_entries.SOURCE_USER},
-        data={"name": " ", "mosque_id": "bad/id", "time_zone": "Mars/Olympus"},
-    )
+@pytest.mark.parametrize("time_zone", ["Mars/Olympus", "../UTC", None])
+async def test_invalid_input(hass, time_zone):
+    with patch.object(
+        dt_util, "async_get_time_zone", wraps=dt_util.async_get_time_zone
+    ) as get_time_zone:
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_USER},
+            data={"name": " ", "mosque_id": "bad/id", "time_zone": time_zone},
+        )
+    get_time_zone.assert_awaited_once_with(time_zone)
     assert result["errors"] == {
         "name": "invalid_name",
         "mosque_id": "invalid_mosque_id",
@@ -62,9 +71,13 @@ async def test_options(hass, entry):
         result["flow_id"], {"next_step_id": "settings"}
     )
     assert result["type"] == FlowResultType.FORM
-    bad = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"time_zone": "bad"}
-    )
+    with patch.object(
+        dt_util, "async_get_time_zone", wraps=dt_util.async_get_time_zone
+    ) as get_time_zone:
+        bad = await hass.config_entries.options.async_configure(
+            result["flow_id"], {"time_zone": "bad"}
+        )
+    get_time_zone.assert_awaited_once_with("bad")
     assert bad["errors"] == {"time_zone": "invalid_time_zone"}
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"time_zone": "Asia/Riyadh"}
@@ -281,9 +294,13 @@ async def test_reconfigure_validates_fields_without_changing_identity(hass, entr
     )
     assert start["type"] == FlowResultType.FORM
     assert start["step_id"] == "reconfigure"
-    invalid = await hass.config_entries.flow.async_configure(
-        start["flow_id"], {"name": " ", "time_zone": "Not/AZone"}
-    )
+    with patch.object(
+        dt_util, "async_get_time_zone", wraps=dt_util.async_get_time_zone
+    ) as get_time_zone:
+        invalid = await hass.config_entries.flow.async_configure(
+            start["flow_id"], {"name": " ", "time_zone": "Not/AZone"}
+        )
+    get_time_zone.assert_awaited_once_with("Not/AZone")
     assert invalid["type"] == FlowResultType.FORM
     assert invalid["errors"] == {
         "name": "invalid_name",
