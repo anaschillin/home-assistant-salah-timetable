@@ -110,9 +110,11 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
         return shortened;
       `)), true, `Real HA ${width}px card editor did not reduce canvas inside its edit wrapper`);
     }
-    // Test the user's reported scenario: a wide Detailed card at the top
-    // of a desktop/tablet dashboard, with HA's Edit control below it.
-    // Keep this test independent of the card's viewport-filling photo minimum.
+    // A Panel dashboard reserves the full-height editor slot and pins the
+    // native Edit footer after it, independently of the slotted card height.
+    // We can prevent the background from forcing height, but cannot move HA's
+    // footer by shrinking the custom card. Verify the card keeps its normal
+    // readable proportions and all prayer rows in edit mode.
     await evaluate(expression(`
       const card=${findCard};
       window.salahEditLayoutOriginalConfig={...card._config};
@@ -127,33 +129,46 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
       await evaluate("window.scrollTo(0,0)");
       await pause(250);
       const measurements=await evaluate(expression(`
-        const card=${findCard}, surface=card.shadowRoot.querySelector("ha-card");
-        const wrapper=card.closest("hui-card-options, hui-card-edit-mode");
-        if(!wrapper || !card.hasAttribute("dashboard-editing"))return {error:"No dashboard editing wrapper or state"};
-        // Measure content height twice with the same zero minimum to distinguish
-        // true row/padding compression from simply dropping min-height:100dvh.
-        const previousMin=surface.style.minHeight;
+        const card=${findCard}, surface=card?.shadowRoot?.querySelector("ha-card");
+        const wrapper=card?.closest("hui-card-options, hui-card-edit-mode");
+        if(!wrapper||!surface||!card.hasAttribute("dashboard-editing"))return {error:"Missing HA edit wrapper or card"};
+        const summary=surface.querySelector(".summary-shell");
+        const timetable=surface.querySelector(".timetable-shell");
+        const rows=timetable?.querySelectorAll("tbody tr").length;
+        const oldMin=surface.style.minHeight;
         surface.style.minHeight="0px";
+        const before={
+          summaryPadding:getComputedStyle(summary).paddingTop,
+          rowPadding:getComputedStyle(timetable.querySelector("tbody td")).paddingTop,
+          countSize:getComputedStyle(summary.querySelector(".count")).fontSize
+        };
         card.removeAttribute("dashboard-editing");
-        const normal=surface.getBoundingClientRect().height;
+        const after={
+          summaryPadding:getComputedStyle(summary).paddingTop,
+          rowPadding:getComputedStyle(timetable.querySelector("tbody td")).paddingTop,
+          countSize:getComputedStyle(summary.querySelector(".count")).fontSize
+        };
         card.setAttribute("dashboard-editing","");
-        const editing=surface.getBoundingClientRect().height;
-        if (previousMin) surface.style.minHeight=previousMin;
+        if(oldMin)surface.style.minHeight=oldMin;
         else surface.style.removeProperty("min-height");
-        const rows=surface.querySelectorAll(".timetable-shell tbody tr").length;
-        const editButton=wrapper.localName==="hui-card-options"
+        const footer=wrapper.localName==="hui-card-options"
           ? wrapper.shadowRoot?.querySelector("ha-button") : null;
-        const footer=editButton?.getBoundingClientRect();
-        return {normal,editing,rows,wrapper:wrapper.localName,
-          editorFooterBottom:footer?.bottom ?? null,
-          inView:!footer || (footer.width>0 && footer.bottom<=innerHeight-4)};
+        return {rows,wrapper:wrapper.localName,isPanel:wrapper.classList.contains("panel"),
+          stacked:timetable.getBoundingClientRect().top>=summary.getBoundingClientRect().bottom-1,
+          overflow:getComputedStyle(surface).overflowY,
+          maxHeight:getComputedStyle(surface).maxHeight,
+          before,after,footerExists:wrapper.localName!=="hui-card-options"||Boolean(footer)};
       `));
-      assert.ok(!measurements.error && measurements.rows===5,
-        `Real HA ${width}px edit layout did not render all five timetable rows: ${JSON.stringify(measurements)}`);
-      assert.ok(measurements.normal-measurements.editing >= 45,
-        `Real HA ${width}px editing did not actually compress card content: ${JSON.stringify(measurements)}`);
-      assert.ok(measurements.inView,
-        `Real HA ${width}px native Edit control is below the viewport: ${JSON.stringify(measurements)}`);
+      assert.ok(!measurements.error && measurements.rows===5 && measurements.stacked,
+        `Real HA ${width}px editor did not preserve the stacked five-prayer card: ${JSON.stringify(measurements)}`);
+      assert.equal(measurements.overflow,"hidden",
+        `Real HA ${width}px editor unexpectedly added a nested scrollbar: ${JSON.stringify(measurements)}`);
+      assert.equal(measurements.maxHeight,"none",
+        `Real HA ${width}px editor unexpectedly caps the custom card height: ${JSON.stringify(measurements)}`);
+      assert.deepEqual(measurements.before,measurements.after,
+        `Real HA ${width}px editor changed normal card proportions: ${JSON.stringify(measurements)}`);
+      assert.ok(measurements.footerExists,
+        `Real HA ${width}px native Edit button is missing from its wrapper: ${JSON.stringify(measurements)}`);
     }
     await evaluate(expression(`const card=${findCard};card.setConfig(window.salahEditLayoutOriginalConfig);delete window.salahEditLayoutOriginalConfig;return true`));
     await call("Emulation.setDeviceMetricsOverride", {width: 900, height: 1100, deviceScaleFactor: 1, mobile: false});
