@@ -19,7 +19,6 @@ their presence here does not mean those features still need to be built.
 - **Import usability:** evaluate further improvements from concrete user feedback. Readiness shortcuts, missing-field names, saved manual-CSV mapping suggestions, removed-date warnings and comparison filters already exist; build on these with clearer summaries of exactly which dates and prayer fields changed, and preserve explicit approval.
 - **Release acceptance:** record candidate-specific manual HACS/Home Assistant results using the [acceptance checklist](releasing.md#manual-hacs-and-home-assistant-acceptance). [Stable publication after passing CI](releasing.md#automatic-stable-releases) is automated; full HAOS/Supervisor restoration remains an optional separate resilience exercise.
 - **Release reconciliation:** handle later `main` commits retaining an already published version as an explicit no-publication outcome while preserving immutable tag identity and collision checks. The current script fails safely on that older tag; see [current behaviour](releasing.md#automatic-stable-releases).
-- **HACS catalogue:** follow the [existing submission and upstream review](releasing.md#publishing-to-the-hacs--home-assistant-marketplace-catalogue); update installation guidance only after approval and listing availability. Release automation and discovery metadata do not establish catalogue inclusion; custom-repository installation remains the documented route.
 
 ## Dashboard and configurable card layouts
 
