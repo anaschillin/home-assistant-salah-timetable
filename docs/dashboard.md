@@ -333,10 +333,13 @@ A full timetable or other content taller than the available height expands
 naturally and the dashboard can scroll. Other cards above the timetable are
 also accounted for; no fixed Home Assistant header height is assumed.
 
-While editing the dashboard or previewing the card, Home Assistant supplies its
-preview state and the viewport minimum height is removed, so the native Edit
-controls remain near the content. The normal background sizing returns after
-editing. Home Assistant still controls the parent column width; use a
+In dashboard edit mode, the card also recognises Home Assistant's desktop
+and tablet editing wrappers (`hui-card-options` and `hui-card-edit-mode`).
+Those layouts do not always forward the card's preview flag. In an editor
+wrapper or standalone card preview, the viewport minimum height is removed so
+Home Assistant's native **Edit** button remains immediately after the actual
+card content. Normal viewing restores the available-viewport background height.
+Home Assistant still controls the parent column width; use a
 full-width section or panel view for a wider display. Switching days retains
 the photograph framing; viewport resizing can reframe it. Full-screen kiosk
 mode continues to fill its screen.
