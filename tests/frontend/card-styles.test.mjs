@@ -47,6 +47,15 @@ test("desktop and tablet edit mode reclaims actual layout height without hiding 
   assert.doesNotMatch(edit, /transform:\s*scale\(|display:\s*none|visibility:\s*hidden|(?:^|[;{])\s*(?:zoom|max-height|overflow)\s*:/m);
 });
 
+test("wide edit-only preview flows countdowns beside the timetable without hiding information", () => {
+  assert.match(CARD_CSS, /@container \(min-width: 43rem\)\s*\{/);
+  assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content:has\(> \.summary-shell\):has\(> \.timetable-shell\)\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:/);
+  assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content > \.summary-shell\s*\{[^}]*grid-column:\s*1;/);
+  assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content > \.timetable-shell\s*\{[^}]*grid-column:\s*2;/);
+  assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.summary-shell \.panels\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content > :not\(\.summary-shell\):not\(\.timetable-shell\)\s*\{[^}]*grid-column:\s*1 \/ -1/);
+});
+
 test("dashboard edit/preview removes only the full-viewport photo minimum", () => {
   const editOnly = CARD_CSS.match(/:host\(\[dashboard-editing\]\) ha-card\.has-mosque-background\s*\{([^}]+)\}/);
   assert.ok(editOnly, "Preview-only height override is missing");
