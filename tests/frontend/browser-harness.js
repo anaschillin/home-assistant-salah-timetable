@@ -118,23 +118,19 @@ try {
       wrappedCard.hasAttribute("dashboard-editing") &&
       getComputedStyle(editSurface).minHeight === "0px");
     if (width >= 600) {
-      const content = editSurface.querySelector(".content");
       const summary = editSurface.querySelector(".summary-shell");
       const timetable = editSurface.querySelector(".timetable-shell");
-      const firstRow = editSurface.querySelector(".timetable-shell tbody td");
-      const rootStyle = getComputedStyle(editSurface);
       const sumRect = summary.getBoundingClientRect();
       const tableRect = timetable.getBoundingClientRect();
-      check(`${wrapperName} compacts the original vertically stacked editor layout`,
-        getComputedStyle(content).display === "block" &&
-        Number.parseFloat(getComputedStyle(content).paddingTop) <= 10 &&
-        Number.parseFloat(getComputedStyle(firstRow).paddingTop) <= 4 &&
+      const surfaceStyle = getComputedStyle(editSurface);
+      check(`${wrapperName} retains the readable stacked card proportions while editing`,
         tableRect.top >= sumRect.bottom - 1 &&
+        Number.parseFloat(getComputedStyle(summary).paddingTop) >= 14 &&
+        Number.parseFloat(getComputedStyle(timetable.querySelector("tbody td")).paddingTop) >= 6 &&
         editSurface.querySelectorAll("tbody tr").length === 5);
-      check(`${wrapperName} does not create another scrollable card or hidden rows`,
-        rootStyle.overflowY === "hidden" &&
-        rootStyle.maxHeight === "none" &&
-        editSurface.querySelectorAll("tbody tr").length === 5);
+      check(`${wrapperName} avoids an artificial scrollable editing card`,
+        surfaceStyle.overflowY === "hidden" &&
+        surfaceStyle.maxHeight === "none");
     }
     document.body.append(wrappedCard);
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
