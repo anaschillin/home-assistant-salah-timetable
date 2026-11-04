@@ -45,6 +45,8 @@ test("adjacent days keep the painted photograph frame when viewport sizing settl
   card.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: true});
   card.hass = hass();
   const surface = find(card.shadowRoot, "ha-card")[0];
+  // The minimal unit DOM implements tree traversal, not querySelector.
+  card.shadowRoot.querySelector = selector => selector === "ha-card" ? surface : null;
   surface.getBoundingClientRect = () => ({width: 344, height: 1480});
   const previousStyle = globalThis.getComputedStyle;
   try {
