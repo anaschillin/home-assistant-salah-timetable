@@ -124,6 +124,14 @@ try {
         Number.parseFloat(getComputedStyle(content).paddingTop) <= 12 &&
         Number.parseFloat(getComputedStyle(firstRow).paddingTop) <= 5 &&
         editSurface.querySelectorAll("tbody tr").length === 5);
+      if (wrappedCard.getBoundingClientRect().width >= 43 * 16) {
+        const summary = editSurface.querySelector(".summary-shell").getBoundingClientRect();
+        const timetable = editSurface.querySelector(".timetable-shell").getBoundingClientRect();
+        check(`${wrapperName} arranges both full-height panels side by side in the wide editor`,
+          getComputedStyle(content).display === "grid" &&
+          Math.abs(summary.top - timetable.top) <= 2 &&
+          (summary.right <= timetable.left + 2 || timetable.right <= summary.left + 2));
+      }
     }
     document.body.append(wrappedCard);
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
