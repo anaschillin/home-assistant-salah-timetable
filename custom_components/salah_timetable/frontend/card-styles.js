@@ -1318,13 +1318,16 @@ ha-card.kiosk:fullscreen {
 /* Short landscape tablets/laptops need tighter line and row dimensions.
    Do not cap heights: long detailed/monthly timetables may scroll the page. */
 @media (min-width: 600px) and (max-height: 800px) {
+  :host([dashboard-editing]) .content {
+    padding-block: 4px;
+  }
   :host([dashboard-editing]) .summary-shell {
-    padding-block: 7px;
-    margin-bottom: 5px;
+    padding-block: 6px;
+    margin-bottom: 4px;
   }
   :host([dashboard-editing]) .summary-shell .panels {
-    margin-top: 4px;
-    padding-top: 4px;
+    margin-top: 2px;
+    padding-top: 2px;
   }
   :host([dashboard-editing]) .summary-shell .panel.prayer-panel {
     padding-block: 3px;
