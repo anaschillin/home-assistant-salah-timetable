@@ -2,7 +2,7 @@
 
 **Status:** First guide simplification pass merged; this is the maintained audit and follow-up list.
 
-**Audit baseline:** `main` at `87a0d09` (1 November 2026), plus the proposed screenshot and documentation updates in the current documentation PR.
+**Audit baseline:** Initial guide audit against `main` on 1 November 2026; card/editor screenshot refresh verified against merged `main` on 4 November 2026.
 
 **Scope:** All 37 tracked Markdown documents: root guidance, user/contributor guides, shared excerpts, research notes, examples and test/fixture READMEs.
 
@@ -12,7 +12,7 @@ The readiness and import features, documentation plan and first guide cleanup ar
 already merged. The stable 1.0.0 release is published. Do not restart those tasks
 or wait for their old PRs to merge. The [roadmap](roadmap.md) contains future
 product work; this file records documentation ownership and concrete remaining
-work. Screenshot additions and this audit remain proposed until their PR merges.
+work. The original guide screenshot pass is merged; this latest card/editor gallery refresh remains proposed until its PR merges.
 
 ## Starting conditions
 
@@ -75,9 +75,12 @@ unstarted product proposals:
 - [x] Separate field-completeness and date-coverage diagnostics/alerts, with one entity reference.
 - [x] Shorter contributor/release references linking to canonical test and acceptance procedures.
 
-The current documentation PR adds setup/import/settings screenshots and desktop/mobile
-card examples with identifying mosque labels redacted. Treat these assets as
-illustrative, not as independently verified timetable publications.
+The earlier merged documentation pass added setup/import/settings screenshots
+and anonymised desktop/mobile card examples. The new device gallery includes
+16 fresh desktop, mobile and tablet screenshots from a configured real mosque;
+those newer captures are not anonymised. Treat all interface screenshots as
+illustrative, not independently verified timetable publications. See the
+[asset provenance guide](asset-provenance.md) for screenshot and photo rights.
 
 ## Remaining documentation work
 

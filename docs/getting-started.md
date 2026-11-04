@@ -81,23 +81,26 @@ Separate cards and dashboards may show different mosques. The duplicate primary-
 The Yesterday, Today and Tomorrow controls show approved rows for the selected day.
 The calculated Hijri header is for display; it does not activate Ramadan or change
 published timestamps. See [Dashboard](dashboard.md) for card options and
-[Automations](automations.md) for alerts and speaker playback. The proposed
-[Prayer reminders wizard](automations.md#guided-prayer-reminders) guides
-administrators through masjid selection, prayers, advance minutes and delivery;
-it requires an installed version that includes the feature.
+[Automations](automations.md) for alerts and speaker playback. The [Prayer reminders wizard](automations.md#guided-prayer-reminders) guides
+administrators through mosque selection, prayers, advance minutes and delivery;
+confirm your installed release includes the wizard before following its steps.
 
 ![Add to dashboard dialog with Salah Timetable selected by card](screenshots/add-dashboard-card.png)
 
 ### Card configuration
 
-![Desktop card editor with mosque identities redacted, Standard detail and a live preview](screenshots/card-editor-standard.png)
+![Updated desktop card editor showing the ordered mosque selection, Standard detail, grouped switches and live preview](screenshots/showcase/desktop/card-editor.webp)
 
-Mosque names and identifying entity IDs are obscured in these dashboard examples.
+The graphical editor has one ordered mosque checkbox list, a **Card detail**
+selector and seven expandable settings groups. The **Shown first** label marks
+the default mosque; changes are reflected in the live preview. The new screen
+captures show a real configured mosque name rather than anonymised sample data.
+They reflect the repository's updated card UI; installed releases can differ.
 
-The editor groups settings by topic. One ordered checkbox list chooses the
-mosques and default order; planned Islamic-history options are disabled.
-The screenshot above shows the previous editor revision and will be replaced
-after Home Assistant visual acceptance.
+<img src="screenshots/showcase/tablet/card-editor.webp" width="720" alt="Home Assistant tablet card editor with mosque ordering and a live timetable preview">
+
+The same card editor also works on a tablet. On narrow screens, scroll within
+the editor to reach lower settings. Planned Islamic-history switches remain disabled.
 
 ### Browse yesterday and the monthly timetable
 
@@ -105,9 +108,18 @@ after Home Assistant visual acceptance.
 
 Yesterday and Tomorrow omit live countdowns and current-prayer highlighting.
 
-![Gregorian monthly timetable view with previous and next month navigation, year CSV export and source details](screenshots/monthly-view.png)
+![Updated Detailed mode monthly timetable with previous/next month navigation, year CSV export, source details and refresh actions](screenshots/showcase/desktop/detailed-monthly-view.webp)
 
-Enable **Monthly timetable, CSV export and source details** under **Timetable & information** to open the Gregorian month browser. In **Compact**, open **More**; in **Standard** and **Detailed**, use the labelled calendar action right-aligned with the mosque name, above the Gregorian date (icon-only on narrow cards). The CSV, source and refresh actions appear in that same location when browsing a month. Scroll to see the rest of the month; only approved dates and fields appear. The export is for the current displayed Gregorian year, not the mosque's source PDF.
+Enable **Monthly timetable, CSV export and source details** under **Timetable & information** to open the Gregorian month browser. In **Compact**, open **More**; in **Standard** and **Detailed**, use the labelled calendar action right-aligned with the mosque name, above the Gregorian date (icon-only on narrow cards). The CSV, source and refresh actions appear in that same location when browsing a month.
+
+<img src="screenshots/showcase/mobile/compact-monthly-menu.webp" width="270" alt="Compact mobile card with the More menu showing the Monthly timetable action">
+
+In Compact mode, **More** opens the monthly action. While viewing a month,
+the same menu offers **Return to daily timetable**, **Export year CSV**,
+**Source details** and **Refresh**. Scroll to see the rest of the month; only
+approved dates and fields appear. The export is for the current displayed
+Gregorian year, not the mosque's source PDF. See [all device and mode
+screenshots](dashboard.md#device-screenshots).
 
 These are example interface captures, not a substitute for checking your mosque's approved publication. The background photograph is decorative and does not identify the configured mosque.
 

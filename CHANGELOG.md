@@ -9,7 +9,9 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 - Avoid blocking Home Assistant during time zone validation, setup and removal.
 - Move administrator Prayer reminders setup into the card editor below the detail-level selection.
-- Use an accessible top-right calendar icon for monthly timetable browsing in every display mode.
+- Streamline the card editor with an ordered mosque checkbox list, accessible reorder controls, grouped settings and live preview; remove the duplicate primary sensor and graphical Title inputs while retaining optional YAML titles.
+- Align the labelled Monthly timetable button with the title in Standard and Detailed; expose the same action from Compact's accessible **More** menu. Show return, CSV export, source details and refresh in the monthly view.
+- Preserve readable card proportions in dashboard editing; Home Assistant controls the native Edit footer and Panel view's reserved height.
 
 ## 1.0.0 — 1 November 2026
 
