@@ -8,6 +8,7 @@ class Element {
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this._text = ""; this.children = children; }
   setAttribute(name, value) { this.attributes[name] = value; }
+  hasAttribute(name) { return Object.hasOwn(this.attributes, name); }
   removeAttribute(name) { delete this.attributes[name]; }
   attachShadow() { this.shadowRoot = new Element("shadow-root"); return this.shadowRoot; }
   addEventListener(name, callback) { if (!this.listeners.has(name)) this.listeners.set(name, []); this.listeners.get(name).push(callback); }
@@ -108,6 +109,35 @@ test("viewport sizing follows the rendered card top and available mobile screen"
     window.visualViewport = oldViewport;
     window.innerHeight = oldHeight;
   }
+});
+
+test("desktop/tablet HA editing wrappers shrink photo without preview=true", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: true});
+  card.hass = hass();
+  let wrapper = null;
+  card.closest = selector =>
+    selector === "hui-card-options, hui-card-edit-mode" ? wrapper : null;
+  assert.equal(card.preview, false);
+  assert.equal(card.hasAttribute("dashboard-editing"), false);
+  for (const kind of ["hui-card-options", "hui-card-edit-mode"]) {
+    wrapper = {tagName: kind};
+    // HA renders cards in these edit wrappers even with preview=false.
+    card._syncDashboardEditing();
+    assert.equal(card.hasAttribute("dashboard-editing"), true, kind);
+    card.preview = false;
+    assert.equal(card.hasAttribute("dashboard-editing"), true,
+      `${kind} must override preview=false`);
+  }
+  wrapper = null;
+  card._syncDashboardEditing();
+  assert.equal(card.hasAttribute("dashboard-editing"), false,
+    "Returning to normal dashboard view restores the full canvas");
+  card.preview = true;
+  assert.equal(card.hasAttribute("dashboard-editing"), true,
+    "A standalone card-editor preview still shortens the canvas");
+  card.preview = false;
+  assert.equal(card.hasAttribute("dashboard-editing"), false);
 });
 
 test("HA dashboard preview shrinks only editing canvas, and restores viewing mode", () => {
