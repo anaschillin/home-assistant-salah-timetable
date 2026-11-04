@@ -1240,7 +1240,7 @@ ha-card.kiosk:fullscreen {
     font-size: .78rem;
   }
   :host([dashboard-editing]) .summary-shell .panels {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* Keep the existing narrow-card breakpoint that stacks countdown halves. */
     margin-top: 6px;
     padding-top: 6px;
   }
