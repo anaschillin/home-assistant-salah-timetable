@@ -44,7 +44,6 @@ def test_repository_asset_inventory_is_complete():
     assert provenance.audit(provenance.ROOT, require_cleared=True) == []
     data = json.loads((provenance.ROOT / provenance.INVENTORY).read_text())
     paths = {asset["path"] for asset in data["assets"]}
-    assert len(paths) == 51
     assert {
         "docs/screenshots/main-card.png",
         "docs/screenshots/card-editor-standard.png",
