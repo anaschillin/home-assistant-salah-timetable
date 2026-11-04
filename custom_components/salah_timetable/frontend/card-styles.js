@@ -1195,6 +1195,97 @@ ha-card.kiosk:fullscreen {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
+/* Home Assistant's footer-style Edit button is placed AFTER the card.
+   Removing the photo's viewport minimum is not enough when the detailed
+   timetable itself fills the screen. On tablet/desktop, compress spacing in
+   dashboard edit mode only, retaining every prayer, date and control.
+   No transform/zoom: those change paint size without reclaiming layout space. */
+@media (min-width: 600px) {
+  :host([dashboard-editing]) .content {
+    padding: clamp(8px, 1.1cqi, 12px);
+  }
+  :host([dashboard-editing]) .summary-shell {
+    padding: clamp(9px, 1.35cqi, 14px);
+    margin-bottom: 8px;
+  }
+  :host([dashboard-editing]) .summary-shell .header {
+    row-gap: 2px;
+  }
+  :host([dashboard-editing]) .summary-shell .header h2 {
+    line-height: 1.18;
+  }
+  :host([dashboard-editing]) .summary-shell .month-description {
+    margin-top: 0;
+    font-size: .77rem;
+    line-height: 1.25;
+  }
+  :host([dashboard-editing]) .summary-shell .panels {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+  :host([dashboard-editing]) .summary-shell .panel.prayer-panel {
+    padding: 5px 10px 6px;
+    gap: 2px;
+  }
+  :host([dashboard-editing]) .summary-shell .prayer-panel .count {
+    font-size: clamp(1.15rem, 2.6cqi, 1.55rem);
+    line-height: 1.12;
+    margin: 0 0 2px;
+  }
+  :host([dashboard-editing]) .summary-shell .prayer-panel .prayer-times {
+    margin-top: 2px;
+    padding-top: 5px;
+  }
+  :host([dashboard-editing]) .summary-shell .prayer-panel .event {
+    font-size: .93rem;
+    line-height: 1.2;
+  }
+  :host([dashboard-editing]) .timetable-shell th,
+  :host([dashboard-editing]) .timetable-shell td {
+    padding-block: 5px;
+  }
+  :host([dashboard-editing]) .timetable-shell .date-tabs {
+    padding: 2px 4px;
+  }
+  :host([dashboard-editing]) .timetable-shell .date-tab {
+    min-height: 28px;
+    padding: 4px;
+  }
+  :host([dashboard-editing]) .timetable-shell .selected-date {
+    padding-top: 5px;
+    margin-bottom: 3px;
+  }
+  :host([dashboard-editing]) .note,
+  :host([dashboard-editing]) .background-credit {
+    margin-top: 4px;
+  }
+  :host([dashboard-editing]) .night-calculations,
+  :host([dashboard-editing]) .ramadan {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+  :host([dashboard-editing]) .ramadan-grid > div {
+    padding: 8px;
+  }
+}
+/* Extra vertical economy on short landscape tablets and laptop displays.
+   Long content can still grow naturally instead of being clipped. */
+@media (min-width: 600px) and (max-height: 800px) {
+  :host([dashboard-editing]) .summary-shell {
+    padding-block: 8px;
+  }
+  :host([dashboard-editing]) .timetable-shell th,
+  :host([dashboard-editing]) .timetable-shell td {
+    padding-block: 3px;
+  }
+  :host([dashboard-editing]) .summary-shell .panels {
+    margin-top: 5px;
+    padding-top: 5px;
+  }
+  :host([dashboard-editing]) .summary-shell .panel.prayer-panel {
+    padding-block: 3px;
+  }
+}
 .source-summary { border-top: 1px solid var(--divider-color); padding-top: 12px; }
 .source-summary p { overflow-wrap: anywhere; font-size: .84rem; }
 @container(max-width:28rem) {
