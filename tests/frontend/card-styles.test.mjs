@@ -47,6 +47,9 @@ test("desktop/tablet editing keeps the stacked card and reduces real dimensions"
   assert.doesNotMatch(edit, /:host\(\[dashboard-editing\]\) \.summary-shell \.panels\s*\{[^}]*grid-template-columns:/);
   assert.match(edit, /:host\(\[dashboard-editing\]\) \.timetable-shell th,[\s\S]*?:host\(\[dashboard-editing\]\) \.timetable-shell td\s*\{\s*padding-block:\s*4px/);
   assert.match(edit, /@media \(min-width: 600px\) and \(max-height: 800px\)/);
+  const short = edit.slice(edit.indexOf("@media (min-width: 600px) and (max-height: 800px)"));
+  assert.match(short, /:host\(\[dashboard-editing\]\) \.content\s*\{[^}]*padding-block:\s*4px/);
+  assert.match(short, /:host\(\[dashboard-editing\]\) \.summary-shell \.panels\s*\{[^}]*margin-top:\s*2px;[^}]*padding-top:\s*2px/);
   assert.doesNotMatch(edit, /overflow-y:\s*auto|scrollbar-gutter:|transform:\s*scale\(|display:\s*none|visibility:\s*hidden|(?:^|[;{])\s*zoom\s*:/m);
   assert.doesNotMatch(edit, /:host\(\[dashboard-editing\]\) \.content:has\(>/);
 });
