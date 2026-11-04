@@ -1210,6 +1210,9 @@ ha-card.kiosk:fullscreen {
     max-height: max(280px, calc(var(--salah-viewport-card-height, 100dvh) - 72px));
     overflow-x: hidden;
     overflow-y: auto;
+    /* Balance the vertical scrollbar so the centered glass/header contents
+       stay centered with the outer card while the preview is scrollable. */
+    scrollbar-gutter: stable both-edges;
     overscroll-behavior-y: contain;
   }
   :host([dashboard-editing]) .content {
