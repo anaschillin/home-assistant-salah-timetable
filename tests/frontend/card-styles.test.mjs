@@ -44,7 +44,7 @@ test("desktop and tablet edit mode reclaims actual layout height without hiding 
   assert.match(edit, /:host\(\[dashboard-editing\]\) \.summary-shell \.panels\s*\{[^}]*margin-top:\s*8px;[^}]*padding-top:\s*8px/);
   assert.match(edit, /:host\(\[dashboard-editing\]\) \.timetable-shell th,[\s\S]*?:host\(\[dashboard-editing\]\) \.timetable-shell td\s*\{\s*padding-block:\s*5px/);
   assert.match(edit, /@media \(min-width: 600px\) and \(max-height: 800px\)/);
-  assert.doesNotMatch(edit, /transform:\s*scale\(|zoom:|display:\s*none|visibility:\s*hidden|max-height:|overflow:\s*hidden/);
+  assert.doesNotMatch(edit, /transform:\s*scale\(|display:\s*none|visibility:\s*hidden|(?:^|[;{])\s*(?:zoom|max-height|overflow)\s*:/m);
 });
 
 test("dashboard edit/preview removes only the full-viewport photo minimum", () => {
