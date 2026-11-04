@@ -119,9 +119,17 @@ try {
       getComputedStyle(editSurface).minHeight === "0px");
     document.body.append(wrappedCard);
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    check(`${wrapperName} restores full photo height outside dashboard editing`,
+    // The fixture puts this card after the tall primary example, often below
+    // the screen. In that case the normal viewport minimum is correctly 0px:
+    // verify that the edit override is gone and CSS uses the measured value.
+    const normalMinimum = Number.parseFloat(
+      getComputedStyle(wrappedCard.shadowRoot.querySelector("ha-card")).minHeight);
+    const measuredMinimum = Number.parseFloat(
+      wrappedCard.style.getPropertyValue("--salah-viewport-card-height"));
+    check(`${wrapperName} restores normal measured height outside dashboard editing`,
       !wrappedCard.hasAttribute("dashboard-editing") &&
-      Number.parseFloat(getComputedStyle(wrappedCard.shadowRoot.querySelector("ha-card")).minHeight) > 0);
+      Number.isFinite(measuredMinimum) &&
+      Math.abs(normalMinimum - measuredMinimum) <= 1);
     wrappedCard.remove();
     wrapper.remove();
   }
