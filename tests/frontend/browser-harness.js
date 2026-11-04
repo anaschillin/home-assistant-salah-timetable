@@ -124,6 +124,12 @@ try {
         Number.parseFloat(getComputedStyle(content).paddingTop) <= 12 &&
         Number.parseFloat(getComputedStyle(firstRow).paddingTop) <= 5 &&
         editSurface.querySelectorAll("tbody tr").length === 5);
+      const editStyle = getComputedStyle(editSurface);
+      check(`${wrapperName} bounds scrollable editor without clipping any timetable rows`,
+        editStyle.overflowY === "auto" &&
+        Number.isFinite(Number.parseFloat(editStyle.maxHeight)) &&
+        editSurface.getBoundingClientRect().height <= Number.parseFloat(editStyle.maxHeight) + 1 &&
+        editSurface.querySelectorAll("tbody tr").length === 5);
       if (wrappedCard.getBoundingClientRect().width >= 43 * 16) {
         const summary = editSurface.querySelector(".summary-shell").getBoundingClientRect();
         const timetable = editSurface.querySelector(".timetable-shell").getBoundingClientRect();
