@@ -338,8 +338,10 @@ and tablet editing wrappers (`hui-card-options` and `hui-card-edit-mode`).
 Those layouts do not always forward the card's preview flag. In an editor
 wrapper or standalone card preview, the viewport minimum height is removed.
 On tablet and desktop, editor-only responsive spacing also compacts the summary
-and daily timetable rows, bringing Home Assistant's native **Edit** controls
-higher without hiding any prayer information or scaling the card visually.
+and daily timetable rows. When the card itself is wide enough, the editor preview
+places the countdown summary **beside** the daily timetable, rather than stacking
+both large panels vertically. This brings Home Assistant's native **Edit**
+controls higher without hiding prayer information or applying visual scaling.
 Short landscape screens use tighter spacing. Content can still extend beyond
 the screen when necessary (for example, a longer monthly timetable), and
 normal viewing restores the original layout and available-viewport background.
