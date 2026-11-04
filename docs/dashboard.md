@@ -337,16 +337,19 @@ In dashboard edit mode, the card also recognises Home Assistant's desktop
 and tablet editing wrappers (`hui-card-options` and `hui-card-edit-mode`).
 Those layouts do not always forward the card's preview flag. In an editor
 wrapper or standalone card preview, the viewport minimum height is removed.
-On tablet and desktop, editor-only responsive spacing also compacts the summary
-and daily timetable rows. When the card itself is wide enough, the editor preview
-places the countdown summary **beside** the daily timetable, rather than stacking
-both large panels vertically. This brings Home Assistant's native **Edit**
-controls higher without hiding prayer information or applying visual scaling.
-Short landscape screens use tighter spacing. If the complete timetable still
-exceeds the space remaining on screen, the desktop/tablet edit preview scrolls
-internally, reserving space below for Home Assistant's native **Edit** button.
-All prayer rows remain available; only the editor preview is height-limited.
-Normal viewing restores the original uncapped layout and background height.
+On tablet and desktop, editing uses the **same vertically stacked card
+layout as normal viewing**, with smaller card padding, prayer panels,
+countdowns, daily timetable rows, and date-tab spacing. It does not place
+summary and timetable side by side, visually scale the whole card, or add
+a nested scrollbar. All prayers, dates, and controls stay visible. Short
+landscape screens reduce spacing further; longer content can still extend
+beyond the screen and scroll naturally.
+
+In a Home Assistant **Panel** dashboard, the dashboard itself reserves
+the panel height and puts its native Edit footer underneath it. An empty
+region within that fixed editor allocation is controlled by Home Assistant,
+not by the Salah Timetable card. Normal viewing restores the original
+density and the available-viewport background height.
 Home Assistant still controls the parent column width; use a
 full-width section or panel view for a wider display. Switching days retains
 the photograph framing; viewport resizing can reframe it. Full-screen kiosk
