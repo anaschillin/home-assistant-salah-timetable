@@ -157,13 +157,20 @@ export class SalahTimetableCard extends HTMLElement {
     this._hass = value;
     if (this._hassRenderKey() !== this._renderedHassKey) this._render();
   }
-  // Home Assistant forwards the dashboard edit/preview state to custom cards.
-  // In that mode, do not force a viewport-tall photo canvas that pushes the
-  // editor's card controls below the fold. Normal viewing stays unchanged.
+  // Lovelace passes preview=true for some editor paths, but existing
+  // dashboards also wrap ordinary cards in hui-card-options (Edit button below
+  // the card) or hui-card-edit-mode (overlay). Those wrappers do not reliably
+  // forward preview to the custom element. Detect the editor's DOM context
+  // rather than relying on preview alone.
+  _syncDashboardEditing() {
+    const editing = this.preview ||
+      Boolean(this.closest?.("hui-card-options, hui-card-edit-mode"));
+    if (editing) this.setAttribute("dashboard-editing", "");
+    else this.removeAttribute("dashboard-editing");
+  }
   set preview(value) {
     this._preview = Boolean(value);
-    if (this._preview) this.setAttribute("dashboard-editing", "");
-    else this.removeAttribute("dashboard-editing");
+    this._syncDashboardEditing();
     this._scheduleViewportHeight();
   }
   get preview() { return this._preview || false; }
@@ -181,6 +188,7 @@ export class SalahTimetableCard extends HTMLElement {
       this._viewportObserver = new ResizeObserver(this._onViewportResize);
       this._viewportObserver.observe(this);
     }
+    this._syncDashboardEditing();
     this._render();
     this._scheduleViewportHeight();
   }
@@ -195,6 +203,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._viewportFrame = null;
   }
   _scheduleViewportHeight() {
+    this._syncDashboardEditing();
     if (this._viewportFrame !== null || typeof window.requestAnimationFrame !== "function" ||
         this.isConnected === false) return;
     this._viewportFrame = window.requestAnimationFrame(() => {
@@ -481,6 +490,7 @@ export class SalahTimetableCard extends HTMLElement {
 
   _render(now = Date.now()) {
     if (!this.shadowRoot) return;
+    this._syncDashboardEditing();
     const ui = resolveUi(this._config, this._hass);
     direction(this, ui);
     this._renderedHassKey = this._hassRenderKey();
