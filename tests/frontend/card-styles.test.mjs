@@ -44,7 +44,12 @@ test("desktop and tablet edit mode reclaims actual layout height without hiding 
   assert.match(edit, /:host\(\[dashboard-editing\]\) \.summary-shell \.panels\s*\{[^}]*margin-top:\s*8px;[^}]*padding-top:\s*8px/);
   assert.match(edit, /:host\(\[dashboard-editing\]\) \.timetable-shell th,[\s\S]*?:host\(\[dashboard-editing\]\) \.timetable-shell td\s*\{\s*padding-block:\s*5px/);
   assert.match(edit, /@media \(min-width: 600px\) and \(max-height: 800px\)/);
-  assert.doesNotMatch(edit, /transform:\s*scale\(|display:\s*none|visibility:\s*hidden|(?:^|[;{])\s*(?:zoom|max-height|overflow)\s*:/m);
+  const preview = edit.match(/:host\(\[dashboard-editing\]\) ha-card\s*\{([^}]+)\}/);
+  assert.ok(preview, "Missing tablet/desktop preview height cap");
+  assert.match(preview[1], /max-height:\s*max\(280px, calc\(var\(--salah-viewport-card-height, 100dvh\) - 72px\)\)/);
+  assert.match(preview[1], /overflow-y:\s*auto/);
+  assert.match(preview[1], /overscroll-behavior-y:\s*contain/);
+  assert.doesNotMatch(edit, /transform:\s*scale\(|display:\s*none|visibility:\s*hidden|(?:^|[;{])\s*zoom\s*:/m);
 });
 
 test("wide edit-only preview flows countdowns beside the timetable without hiding information", () => {
