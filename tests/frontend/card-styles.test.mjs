@@ -57,7 +57,10 @@ test("normal viewing is unchanged by compact editor-only styles", () => {
   assert.ok(edit.includes(":host([dashboard-editing])"));
   assert.doesNotMatch(edit, /@container \(min-width: 43rem\)/);
   assert.doesNotMatch(edit, /:host\(\[dashboard-editing\]\) \.summary-shell \.prayer-panel \+ \.prayer-panel/);
-  assert.doesNotMatch(edit, /max-height:\s*\d+px|overflow-y:\s*auto/);
+  // Short-screen @media (max-height: 800px) is a breakpoint, not a
+  // clipping rule on the card. Only reject nested scrolling.
+  assert.match(edit, /:host\(\[dashboard-editing\]\) ha-card\s*\{[^}]*max-height:\s*none/);
+  assert.doesNotMatch(edit, /overflow-y:\s*auto/);
 });
 
 test("dashboard edit/preview removes only the full-viewport photo minimum", () => {
