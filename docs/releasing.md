@@ -48,7 +48,7 @@ Confirm the hosted workflow checks on the actual release commit: locked Python t
 
 Use disposable configurations and synthetic timetables; note the installed HA/integration versions, client/device and outcome.
 
-1. Install/update through the custom HACS repository and restart; confirm the integration and graphical card load.
+1. Install/update **Salah Timetable** directly through the HACS catalogue and restart; confirm the integration and graphical card load. The [installation guide](getting-started.md#install-the-integration) also retains the custom-repository and manual-installation fallbacks.
 2. Configure two different mosques; confirm their sensors, dashboards, selectors and source data remain isolated.
 3. Reconfigure one mosque's name and timezone; verify its mosque ID, existing entities, approved timetable and the other mosque remain intact. Check timezone interpretation and that Configure → Mosque settings retains the updated timezone.
 4. Test supported annual/monthly/Ramadan PDF/CSV and HTTPS imports, layout detection, date mapping, comparison, explicit approval/rejection and safe handling of unsupported input.
@@ -146,11 +146,9 @@ do not delete or move the stable tag, or invent a version bump merely to clear
 that follow-up run. Same-version reconciliation is tracked in the
 [documentation audit follow-ups](documentation-simplification-plan.md#remaining-documentation-work).
 
-**HACS catalogue inclusion is a separate one-time submission.** This release
-pipeline publishes GitHub releases, which HACS can install as a custom repository
-now and track as catalogue updates after the
-[`hacs/default` application](https://hacs.dev/docs/publish/include/) is approved.
-It cannot automatically bypass that upstream review.
+**Salah Timetable is officially listed in the default HACS catalogue.** This
+release pipeline publishes GitHub releases for HACS to offer as catalogue updates.
+Catalogue listing does not replace the candidate-specific release acceptance above.
 
 ## Optional manual draft release
 
@@ -172,46 +170,23 @@ Review the release notes and draft artifact before publishing.
 
 ## Publishing to the HACS / Home Assistant Marketplace catalogue
 
-Salah Timetable is installable as a **custom HACS repository**. The
-[existing catalogue submission](https://github.com/hacs/default/pull/12993) is
-open at this audit baseline; it is not catalogue approval. Continue using the
-custom-repository instructions until upstream merges the submission and the
-listing is available. Do not open a duplicate submission. The procedure below
-describes the requirements for maintaining or replacing that submission when
-needed, rather than an unstarted installation feature.
+Salah Timetable is officially listed in the [default HACS integration
+catalogue](https://github.com/hacs/default/blob/master/integration). Users should
+install it directly from the catalogue; the [installation guide](getting-started.md#install-the-integration)
+retains the custom-repository HACS fallback and manual release-copy installation.
 
-1. Complete the [release acceptance](releasing.md#manual-hacs-and-home-assistant-acceptance)
-   for the **exact** candidate on `main`. Confirm both HACS and hassfest pass
-   without ignored checks, plus the repository's required Validate/CodeQL checks.
-2. Ensure the public repository has a descriptive GitHub **About** description,
-   topics, enabled issues, a README and the bundled `brand/icon.png`.
-3. Publish a **stable GitHub release** before requesting catalogue inclusion.
-   Follow [Automatic stable releases](#automatic-stable-releases): a new version
-   in `versions.toml` is tagged and published after Validate and CodeQL pass on
-   the same latest `main` commit. Check the published release and its assets;
-   do not create a competing manual tag or draft for that version. If automatic
-   publication is unavailable, use the [manual draft fallback](#optional-manual-draft-release)
-   with an existing validated tag, review its artifacts and explicitly publish
-   the draft as a non-prerelease release. Ephemeral PR feature
-   prereleases, tags alone and drafts do **not** satisfy the catalogue requirement.
-4. Fork [`hacs/default`](https://github.com/hacs/default) under the owner's
-   personal GitHub account, create a branch from its `master`, and insert
-   `anaschillin/home-assistant-salah-timetable` **alphabetically** in the
-   JSON `integration` list. Do not submit from an organisation or edit the fork's
-   `master` directly.
-5. Open an editable pull request to `hacs/default:master` using the full
-   upstream template. Include links to the published stable release and the
-   passing HACS and hassfest jobs for the release's exact commit. Do not request
-   reviewer attention, and do not mark any checklist item as complete before it is.
-6. Once the catalogue PR is merged and the next catalogue scan has populated
-   the listing, update [the installation instructions](../README.md#install)
-   and their synchronized source excerpt to distinguish marketplace search
-   from the optional manual custom-repository route.
+For future releases:
 
-Useful references: [HACS catalogue instructions](https://hacs.dev/docs/publish/include/),
-[Marketplace publishing guide](https://contributors.home-assistant.io/marketplace/guides/catalog/),
-and [HACS submission PRs](https://github.com/hacs/default/pulls). The upstream
-review queue can take months; a passing submission does not mean instant listing.
+1. Complete the [release acceptance](#manual-hacs-and-home-assistant-acceptance)
+   for the **exact** candidate on `main`, including the required Validate/CodeQL,
+   HACS and hassfest checks.
+2. Follow [Automatic stable releases](#automatic-stable-releases) and verify the
+   published stable release and its assets. Catalogue inclusion is complete;
+   routine releases do not require a new catalogue submission.
+3. Keep repository metadata and packaging compliant with the
+   [HACS integration requirements](https://www.hacs.xyz/docs/publish/integration/),
+   and keep the catalogue-first [installation instructions](../README.md#install)
+   and their shared excerpt consistent.
 
 ## Validation and acceptance scope
 

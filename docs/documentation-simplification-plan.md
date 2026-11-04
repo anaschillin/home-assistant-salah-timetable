@@ -40,7 +40,7 @@ HTML image references and documented file inventories are checked separately.
 
 | Documents | Audit result / action |
 | --- | --- |
-| `README.md` | Keep the concise install/navigation entry point; name both coverage and completeness alerts. Installation remains through a HACS custom repository. |
+| `README.md` | Keep the concise install/navigation entry point; name both coverage and completeness alerts. Recommend direct HACS catalogue installation; retain custom-repository and manual release-copy fallbacks. |
 | `AGENTS.md` | Replace obsolete unmerged-feature prerequisites with current-branch/release verification; align heading rules with Contributing. |
 | `CHANGELOG.md` | Correct the current release's stale unreleased label against GitHub Releases; retain historical entries and explain old development-snapshot labels. |
 | `CONTRIBUTING.md` | Version/excerpt ownership, Linux/WSL setup and browser commands agree with tooling; qualify full CI versus Markdown-only PR validation. |
@@ -51,7 +51,7 @@ HTML image references and documented file inventories are checked separately.
 | `docs/automations.md` | All 27 sensors, calendar and six blueprints checked; include selected media players among required Adhan inputs. Keep timestamp and activation limits. |
 | `docs/architecture.md` | Module inventory agrees with production files; clarify that only PDF extraction is subprocess-isolated and remove obsolete publication-URL status. |
 | `docs/testing.md` | Python/Node counts, coverage gates, compatibility pairs and commands match the repository. Include all release workflows in the CI ownership table and correct stale link labels. |
-| `docs/releasing.md` | Automatic publication is implemented. Correct same-version reconciliation claims; remove workflow-installation prerequisites and dated acceptance diary text, identify the existing catalogue submission and keep candidate evidence in PR/release reviews. |
+| `docs/releasing.md` | Automatic publication is implemented. Correct same-version reconciliation claims; remove workflow-installation prerequisites and dated acceptance diary text, document the completed catalogue listing and ongoing maintenance and keep candidate evidence in PR/release reviews. |
 | `docs/roadmap.md` | Remove old unmerged-PR prerequisites and distinguish implemented import/readiness features from further usability work. |
 | `docs/documentation-simplification-plan.md` | Replace the unstarted proposal with this audit, completed scope, ownership and specific remaining work. |
 | `docs/asset-provenance.md` | Keep inventory ownership, separate photograph rights and screenshot redaction/resampling disclosure; distinguish current-tree removal from Git-history removal. |
@@ -74,6 +74,7 @@ unstarted product proposals:
 - [x] Seven card-editor groups, detail-level comparison, date navigation, monthly/export/source tools, kiosk and calculated-night controls.
 - [x] Separate field-completeness and date-coverage diagnostics/alerts, with one entity reference.
 - [x] Shorter contributor/release references linking to canonical test and acceptance procedures.
+- [x] Verified default HACS catalogue listing, with catalogue-first installation instructions and both custom-repository and manual release-copy fallbacks.
 
 The earlier merged documentation pass added setup/import/settings screenshots
 and anonymised desktop/mobile card examples. The new device gallery includes
@@ -87,7 +88,6 @@ illustrative, not independently verified timetable publications. See the
 - [ ] Add captures for readiness with named missing fields, CSV mapping suggestions, removed-date warnings and comparison filtering when suitable redacted examples are available; the supplied review summary is not a comparison-screen capture.
 - [ ] Consider generating the long test-module inventory from its existing ownership checks; keep the inventory guard and coverage requirements intact. Changes to tooling need their own reviewed implementation.
 - [ ] Evaluate further consolidation of architecture, testing and release references only where a specific duplicate remains. Preserve the complete module inventory, exact commands and internal rule audit.
-- [ ] Recheck catalogue availability before replacing custom-repository installation with catalogue-search instructions; an open submission is not listing approval.
 - [ ] Review the stable-release script's same-version reconciliation separately: it rejects a later `main` commit when the published tag points to its earlier release commit, before reaching its already-published skip. The release guide now documents that behaviour; this documentation audit does not change publication code or existing tags.
 - [ ] On later releases, recheck screenshots, form labels, defaults, source bounds, compatibility pins and research/runtime separation against the actual release tag.
 
