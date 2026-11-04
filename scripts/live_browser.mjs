@@ -122,8 +122,8 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
         show_salah_countdown:true, show_jamaat_countdown:true, show_timezone_note:true});
       return true;
     `));
-    for (const width of [900, 1280]) {
-      await call("Emulation.setDeviceMetricsOverride", {width, height: 900, deviceScaleFactor: 1, mobile: false});
+    for (const [width, height] of [[768, 900], [900, 900], [1280, 720], [1280, 900]]) {
+      await call("Emulation.setDeviceMetricsOverride", {width, height, deviceScaleFactor: 1, mobile: false});
       await evaluate("window.scrollTo(0,0)");
       await pause(250);
       const measurements=await evaluate(expression(`
