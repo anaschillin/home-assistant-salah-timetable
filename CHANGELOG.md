@@ -7,6 +7,10 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 ## Unreleased
 
+## 2.0.0 — 4 November 2026
+
+- Prepare for HACS release, with versioned integration metadata and documentation ready for catalogue review.
+- Major dashboard card and editor refresh across Compact, Standard and Detailed views, with updated desktop, tablet and mobile screenshots.
 - Avoid blocking Home Assistant during time zone validation, setup and removal.
 - Move administrator Prayer reminders setup into the card editor below the detail-level selection.
 - Streamline the card editor with an ordered mosque checkbox list, accessible reorder controls, grouped settings and live preview; remove the duplicate primary sensor and graphical Title inputs while retaining optional YAML titles.

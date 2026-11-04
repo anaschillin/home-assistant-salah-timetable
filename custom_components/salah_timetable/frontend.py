@@ -17,7 +17,7 @@ from homeassistant.core import Event, HomeAssistant, HomeAssistantError
 
 from .const import DOMAIN
 
-CARD_VERSION = "1.0.0"
+CARD_VERSION = "2.0.0"
 STATIC_PATH = "/salah_timetable"
 CARD_PATH = f"{STATIC_PATH}/salah-timetable-card.js"
 _FRONTEND_DIR = str(Path(__file__).with_name("frontend"))
