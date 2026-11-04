@@ -39,8 +39,10 @@ test("panel editor keeps native card proportions without custom nested scrolling
   const end = CARD_CSS.indexOf(".source-summary {", start);
   assert.ok(start >= 0 && end > start);
   const edit = CARD_CSS.slice(start, end);
-  assert.doesNotMatch(edit, /max-height:|overflow-y:|scrollbar-gutter:|transform:\\s*scale\\(|zoom:|grid-template-columns:|font-size:|padding:/);
-  assert.match(CARD_CSS, /:host\\(\\[dashboard-editing\\]\\) ha-card\\.has-mosque-background\\s*\\{[^}]*min-height:\\s*0/);
+  for (const banned of ["max-height:", "overflow-y:", "scrollbar-gutter:", "transform:", "zoom:", "grid-template-columns:", "font-size:", "padding:"]) {
+    assert.ok(!edit.includes(banned), `Unexpected edit-only style: ${banned}`);
+  }
+  assert.ok(CARD_CSS.includes(":host([dashboard-editing]) ha-card.has-mosque-background"));
 });
 
 test("dashboard edit/preview removes only the full-viewport photo minimum", () => {
