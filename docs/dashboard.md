@@ -342,9 +342,11 @@ and daily timetable rows. When the card itself is wide enough, the editor previe
 places the countdown summary **beside** the daily timetable, rather than stacking
 both large panels vertically. This brings Home Assistant's native **Edit**
 controls higher without hiding prayer information or applying visual scaling.
-Short landscape screens use tighter spacing. Content can still extend beyond
-the screen when necessary (for example, a longer monthly timetable), and
-normal viewing restores the original layout and available-viewport background.
+Short landscape screens use tighter spacing. If the complete timetable still
+exceeds the space remaining on screen, the desktop/tablet edit preview scrolls
+internally, reserving space below for Home Assistant's native **Edit** button.
+All prayer rows remain available; only the editor preview is height-limited.
+Normal viewing restores the original uncapped layout and background height.
 Home Assistant still controls the parent column width; use a
 full-width section or panel view for a wider display. Switching days retains
 the photograph framing; viewport resizing can reframe it. Full-screen kiosk
