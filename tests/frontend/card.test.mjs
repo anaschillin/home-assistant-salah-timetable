@@ -40,6 +40,32 @@ test("bundled card and graphical editor register once", () => {
   assert.equal(SalahTimetableCard.getStubConfig(hass()).entity, "sensor.mosque_prayer_timetable");
 });
 
+test("adjacent days keep the painted photograph frame when viewport sizing settles", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: true});
+  card.hass = hass();
+  const surface = find(card.shadowRoot, "ha-card")[0];
+  surface.getBoundingClientRect = () => ({width: 344, height: 1480});
+  const previousStyle = globalThis.getComputedStyle;
+  try {
+    globalThis.getComputedStyle = () => ({height: "1496px"});
+    card._rememberBackgroundFrame();
+    assert.deepEqual(card._backgroundFrame, {
+      entity: "sensor.mosque_prayer_timetable", width: 344, height: 1500
+    }, "Preserve the actual painted image even when the card rectangle is shorter");
+    globalThis.getComputedStyle = () => ({height: "1400px"});
+    card._rememberBackgroundFrame();
+    assert.equal(card._backgroundFrame.height, 1480,
+      "Never crop a larger card simply because its image layer is shorter");
+    globalThis.getComputedStyle = () => ({height: "auto"});
+    card._rememberBackgroundFrame();
+    assert.equal(card._backgroundFrame.height, 1480,
+      "Fall back to the measured card height if the pseudo-element is unavailable");
+  } finally {
+    globalThis.getComputedStyle = previousStyle;
+  }
+});
+
 test("viewport sizing follows the rendered card top and available mobile screen", () => {
   const oldViewport = window.visualViewport;
   const oldHeight = window.innerHeight;
