@@ -100,6 +100,31 @@ try {
   card.preview = false;
   check("leaving dashboard edit restores the full viewport canvas",
     !card.hasAttribute("dashboard-editing") && getComputedStyle(photoCard).minHeight === viewingMinHeight);
+  // Home Assistant's desktop and tablet dashboard layouts can place a card
+  // in the footer-style hui-card-options wrapper without setting preview=true.
+  // Verify both supported HA edit wrappers using real DOM/CSS, then verify
+  // moving the card back to ordinary viewing restores the photo minimum.
+  for (const wrapperName of ["hui-card-options", "hui-card-edit-mode"]) {
+    const wrapper = document.createElement(wrapperName);
+    const wrappedCard = new SalahTimetableCard();
+    wrappedCard.setConfig({...config, show_mosque_background: true});
+    wrappedCard.hass = hass;
+    document.body.append(wrapper);
+    wrapper.append(wrappedCard);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const editSurface = wrappedCard.shadowRoot.querySelector("ha-card");
+    check(`${wrapperName} shortens the real editor canvas without preview=true`,
+      wrappedCard.preview === false &&
+      wrappedCard.hasAttribute("dashboard-editing") &&
+      getComputedStyle(editSurface).minHeight === "0px");
+    document.body.append(wrappedCard);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    check(`${wrapperName} restores full photo height outside dashboard editing`,
+      !wrappedCard.hasAttribute("dashboard-editing") &&
+      Number.parseFloat(getComputedStyle(wrappedCard.shadowRoot.querySelector("ha-card")).minHeight) > 0);
+    wrappedCard.remove();
+    wrapper.remove();
+  }
   check("full-canvas card has no outer drop shadow", photoStyle.boxShadow === "none");
   const imageStyle = getComputedStyle(photoCard, "::before");
   check("unobscured photo stays inside themed borders at mobile/tablet widths",
