@@ -1195,68 +1195,98 @@ ha-card.kiosk:fullscreen {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
-/* Home Assistant's footer-style Edit button is placed AFTER the card.
-   Removing the photo's viewport minimum is not enough when the detailed
-   timetable itself fills the screen. On tablet/desktop, compress spacing in
-   dashboard edit mode only, retaining every prayer, date and control.
-   No transform/zoom: those change paint size without reclaiming layout space. */
+/* Keep the normal vertically stacked design in dashboard edit mode.
+   HA's panel editor reserves its own viewport and native footer; scaling,
+   forcing two columns, or adding an inner scrollbar only makes editing less
+   usable. Reduce real layout dimensions instead, without hiding any prayers.
+   In normal viewing none of these rules apply. */
 @media (min-width: 600px) {
-  /* A Lovelace column may be too narrow for the wide two-panel preview.
-     Limit only the editing canvas to the actually visible height (with room
-     for HA's native Edit footer). Keep the complete content scrollable
-     inside this preview; normal dashboard viewing has no height cap. */
   :host([dashboard-editing]) ha-card {
     min-height: 0;
-    max-height: max(280px, calc(var(--salah-viewport-card-height, 100dvh) - 72px));
-    overflow-x: hidden;
-    overflow-y: auto;
-    /* Balance the vertical scrollbar so the centered glass/header contents
-       stay centered with the outer card while the preview is scrollable. */
-    scrollbar-gutter: stable both-edges;
-    overscroll-behavior-y: contain;
+    max-height: none;
+    overflow: hidden;
   }
   :host([dashboard-editing]) .content {
-    padding: clamp(8px, 1.1cqi, 12px);
+    display: block;
+    padding: clamp(6px, .95cqi, 10px);
   }
   :host([dashboard-editing]) .summary-shell {
-    padding: clamp(9px, 1.35cqi, 14px);
-    margin-bottom: 8px;
+    padding: clamp(8px, 1.2cqi, 12px);
+    margin-bottom: 7px;
+    border-radius: 12px;
   }
   :host([dashboard-editing]) .summary-shell .header {
-    row-gap: 2px;
+    row-gap: 1px;
+    column-gap: 8px;
   }
   :host([dashboard-editing]) .summary-shell .header h2 {
-    line-height: 1.18;
+    min-height: 0;
+    font-size: clamp(1.02rem, 2cqi, 1.2rem);
+    line-height: 1.15;
+  }
+  :host([dashboard-editing]) .summary-shell .date {
+    font-size: .72rem;
+    line-height: 1.15;
   }
   :host([dashboard-editing]) .summary-shell .month-description {
     margin-top: 0;
-    font-size: .77rem;
-    line-height: 1.25;
+    font-size: .72rem;
+    line-height: 1.18;
+  }
+  :host([dashboard-editing]) .card-action-strip button {
+    min-width: 30px;
+    min-height: 30px;
+    padding: 5px 7px;
+    font-size: .78rem;
   }
   :host([dashboard-editing]) .summary-shell .panels {
-    margin-top: 8px;
-    padding-top: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 6px;
+    padding-top: 6px;
   }
   :host([dashboard-editing]) .summary-shell .panel.prayer-panel {
-    padding: 5px 10px 6px;
-    gap: 2px;
+    padding: 4px 8px 5px;
+    gap: 1px;
+  }
+  :host([dashboard-editing]) .summary-shell .prayer-panel .label {
+    font-size: .58rem;
+  }
+  :host([dashboard-editing]) .summary-shell .prayer-panel .event {
+    font-size: .84rem;
+    line-height: 1.12;
   }
   :host([dashboard-editing]) .summary-shell .prayer-panel .count {
-    font-size: clamp(1.15rem, 2.6cqi, 1.55rem);
+    font-size: clamp(1.08rem, 2.45cqi, 1.38rem);
     line-height: 1.12;
-    margin: 0 0 2px;
+    margin: 1px 0 2px;
   }
   :host([dashboard-editing]) .summary-shell .prayer-panel .prayer-times {
     margin-top: 2px;
-    padding-top: 5px;
+    padding-top: 4px;
+    gap: 3px;
   }
-  :host([dashboard-editing]) .summary-shell .prayer-panel .event {
-    font-size: .93rem;
-    line-height: 1.2;
+  :host([dashboard-editing]) .summary-shell .prayer-time .label {
+    margin-bottom: 1px;
+    font-size: .55rem;
+  }
+  :host([dashboard-editing]) .summary-shell .prayer-time .absolute {
+    font-size: .7rem;
+  }
+  :host([dashboard-editing]) .timetable-shell {
+    border-radius: 12px;
+  }
+  :host([dashboard-editing]) .timetable-shell table {
+    font-size: .79rem;
+    line-height: 1.12;
   }
   :host([dashboard-editing]) .timetable-shell th,
   :host([dashboard-editing]) .timetable-shell td {
-    padding-block: 5px;
+    padding-block: 4px;
+    padding-inline: 6px;
+  }
+  :host([dashboard-editing]) .timetable-shell .fajr-end {
+    font-size: .72rem;
+    line-height: 1.12;
   }
   :host([dashboard-editing]) .timetable-shell .date-tabs {
     padding: 2px 4px;
@@ -1264,6 +1294,7 @@ ha-card.kiosk:fullscreen {
   :host([dashboard-editing]) .timetable-shell .date-tab {
     min-height: 28px;
     padding: 4px;
+    font-size: .73rem;
   }
   :host([dashboard-editing]) .timetable-shell .selected-date {
     padding-top: 5px;
@@ -1272,66 +1303,38 @@ ha-card.kiosk:fullscreen {
   :host([dashboard-editing]) .note,
   :host([dashboard-editing]) .background-credit {
     margin-top: 4px;
+    font-size: .68rem;
+    line-height: 1.18;
   }
   :host([dashboard-editing]) .night-calculations,
   :host([dashboard-editing]) .ramadan {
-    margin-top: 8px;
-    padding-top: 8px;
+    margin-top: 7px;
+    padding-top: 7px;
   }
   :host([dashboard-editing]) .ramadan-grid > div {
-    padding: 8px;
+    padding: 7px;
   }
 }
-/* Extra vertical economy on short landscape tablets and laptop displays.
-   Long content can still grow naturally instead of being clipped. */
+/* Short landscape tablets/laptops need tighter line and row dimensions.
+   Do not cap heights: long detailed/monthly timetables may scroll the page. */
 @media (min-width: 600px) and (max-height: 800px) {
   :host([dashboard-editing]) .summary-shell {
-    padding-block: 8px;
-  }
-  :host([dashboard-editing]) .timetable-shell th,
-  :host([dashboard-editing]) .timetable-shell td {
-    padding-block: 3px;
+    padding-block: 7px;
+    margin-bottom: 5px;
   }
   :host([dashboard-editing]) .summary-shell .panels {
-    margin-top: 5px;
-    padding-top: 5px;
+    margin-top: 4px;
+    padding-top: 4px;
   }
   :host([dashboard-editing]) .summary-shell .panel.prayer-panel {
     padding-block: 3px;
   }
-}
-/* On a sufficiently wide card, height reduction needs a different flow:
-   placing summary and timetable alongside each other keeps all published data
-   legible while HA's native editor toolbar fits below the card. This applies
-   only in edit mode and only when the card itself can support two columns. */
-@container (min-width: 43rem) {
-  :host([dashboard-editing]) .content:has(> .summary-shell):has(> .timetable-shell) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
-    column-gap: 12px;
-    row-gap: 6px;
-    align-items: start;
+  :host([dashboard-editing]) .timetable-shell th,
+  :host([dashboard-editing]) .timetable-shell td {
+    padding-block: 2px;
   }
-  :host([dashboard-editing]) .content > .summary-shell {
-    grid-column: 1;
-    grid-row: 1;
-    margin-bottom: 0;
-  }
-  :host([dashboard-editing]) .content > .timetable-shell {
-    grid-column: 2;
-    grid-row: 1;
-    margin: 0;
-    align-self: start;
-  }
-  :host([dashboard-editing]) .summary-shell .panels {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  :host([dashboard-editing]) .summary-shell .prayer-panel + .prayer-panel {
-    border-inline-start: 0;
-    border-block-start: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
-  }
-  :host([dashboard-editing]) .content > :not(.summary-shell):not(.timetable-shell) {
-    grid-column: 1 / -1;
+  :host([dashboard-editing]) .timetable-shell .date-tab {
+    min-height: 26px;
   }
 }
 .source-summary { border-top: 1px solid var(--divider-color); padding-top: 12px; }
