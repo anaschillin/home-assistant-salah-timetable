@@ -88,6 +88,29 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     await evaluate("document.documentElement.style.fontSize=''");
     await call("Emulation.setDeviceMetricsOverride", {width: 900, height: 1100, deviceScaleFactor: 1, mobile: false});
     await call("Page.navigate", {url: `${base}/salah-smoke/smoke?edit=1`});
+    // HA's footer-style desktop/tablet card editor can leave preview=false.
+    // The custom card must recognise its edit wrapper and drop the photo
+    // minimum regardless, otherwise HA's native Edit button sits below view.
+    await until(expression(`const card=${findCard};return card?.shadowRoot?.querySelector("ha-card")`),
+      "Real HA edit dashboard did not render its existing card");
+    for (const width of [900, 1280]) {
+      await call("Emulation.setDeviceMetricsOverride", {width, height: 900, deviceScaleFactor: 1, mobile: false});
+      assert.equal(await evaluate(expression(`
+        const card=${findCard};
+        const wrapper=card?.closest?.("hui-card-options, hui-card-edit-mode");
+        const surface=card?.shadowRoot?.querySelector("ha-card");
+        if(!card||!surface)return false;
+        const wasPreview=card.preview;
+        // Exercise the actual wrapper even where this HA version passes preview.
+        card.preview=false;
+        const shortened=wrapper ?
+          card.hasAttribute("dashboard-editing") &&
+          getComputedStyle(surface).minHeight==="0px" : true;
+        card.preview=wasPreview;
+        return shortened;
+      `)), true, `Real HA ${width}px card editor did not reduce canvas inside its edit wrapper`);
+    }
+    await call("Emulation.setDeviceMetricsOverride", {width: 900, height: 1100, deviceScaleFactor: 1, mobile: false});
     await until(expression("const button=deep().find(element=>element.localName==='ha-button'&&element.textContent.trim().toLowerCase()==='add card');if(!button)return false;button.click();return true"), "Real dashboard Add card button missing");
     await until(expression("const dialog=deep().find(element=>element.localName==='hui-dialog-create-card');const tab=dialog&&deep(dialog.shadowRoot).find(element=>element.localName==='ha-tab-group-tab'&&element.getAttribute('panel')==='card');if(!tab)return false;tab.click();return true"), "Real card picker tab missing");
     await until(expression("const picker=deep().find(element=>element.localName==='hui-card-picker');const option=picker&&deep(picker.shadowRoot).find(element=>element.classList.contains('overlay')&&element.config?.type==='custom:salah-timetable-card');if(!option)return false;option.click();return true"), "Salah Timetable missing from actual custom-card picker");
