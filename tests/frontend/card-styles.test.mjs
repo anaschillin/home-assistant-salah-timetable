@@ -23,7 +23,7 @@ test("day navigation retains active and keyboard-focus treatments without obsole
 });
 
 test("graphical editor retains focus, layout, theme and narrow-screen styles", () => {
-  for (const token of [":host", ".form", ".title-field input", ".title-field input:focus", "--primary-color", "--secondary-text-color", "@media(max-width: 420px)"]) {
+  for (const token of [":host", ".form", ".setting select:focus-visible", "--primary-color", "--secondary-text-color", "@media(max-width: 420px)"]) {
     assert.ok(EDITOR_CSS.includes(token), `Missing editor style: ${token}`);
   }
 });
@@ -34,11 +34,32 @@ test("later responsive and modern panel overrides remain ordered", () => {
   assert.ok(CARD_CSS.includes(".panel .count"));
 });
 
-test("the mosque photograph covers the viewport below short day views", () => {
+test("panel editor keeps native card proportions without custom nested scrolling", () => {
+  const start = CARD_CSS.indexOf("/* Home Assistant's Panel editor owns");
+  const end = CARD_CSS.indexOf(".source-summary {", start);
+  assert.ok(start >= 0 && end > start);
+  const edit = CARD_CSS.slice(start, end);
+  for (const banned of ["max-height:", "overflow-y:", "scrollbar-gutter:", "transform:", "zoom:", "grid-template-columns:", "font-size:", "padding:"]) {
+    assert.ok(!edit.includes(banned), `Unexpected edit-only style: ${banned}`);
+  }
+  assert.ok(CARD_CSS.includes(":host([dashboard-editing]) ha-card.has-mosque-background"));
+});
+
+test("dashboard edit/preview removes only the full-viewport photo minimum", () => {
+  const editOnly = CARD_CSS.match(/:host\(\[dashboard-editing\]\) ha-card\.has-mosque-background\s*\{([^}]+)\}/);
+  assert.ok(editOnly, "Preview-only height override is missing");
+  assert.match(editOnly[1], /min-height:\s*0\s*;/);
+  const defaultHeight = CARD_CSS.match(/(?<!\])ha-card\.has-mosque-background\s*\{([^}]+)\}/);
+  assert.match(defaultHeight[1], /min-height:\s*var\(--salah-viewport-card-height,/);
+});
+
+test("mosque photo fills the measured visible viewport but can grow beyond it", () => {
   const rule = CARD_CSS.match(/ha-card\.has-mosque-background\s*\{([^}]+)\}/);
   assert.ok(rule, "Missing full-canvas background rule");
-  assert.match(rule[1], /min-height:\s*calc\(100vh - var\(--header-height, 0px\)\)/);
-  assert.match(rule[1], /min-height:\s*calc\(100dvh - var\(--header-height, 0px\)\)/);
+  assert.match(rule[1], /min-height:\s*var\(--salah-viewport-card-height,\s*calc\(100dvh/);
+  assert.doesNotMatch(rule[1], /max-height:|height:\s*\d+dvh/);
+  assert.match(CARD_CSS, /ha-card\.kiosk\s*\{[^}]*min-height:\s*var\(--salah-viewport-card-height/);
+  assert.match(CARD_CSS, /ha-card\.kiosk:fullscreen\s*\{[^}]*min-height:\s*100dvh/);
   assert.match(CARD_CSS, /ha-card\s*\{[^}]*overflow:\s*hidden/);
   assert.doesNotMatch(CARD_CSS, /\.summary-shell\s*\{[^}]*min-height:\s*100dvh/);
 });
@@ -77,7 +98,9 @@ test("full-canvas mosque background and centered glass content retain accessible
 
 
 test("outer Home Assistant card has no drop shadow while both glass cards retain depth", () => {
-  const cardRules = [...CARD_CSS.matchAll(/ha-card\s*\{([^}]+)\}/g)];
+  // Only match unscoped card declarations. Edit-only :host(...) ha-card
+  // overrides may follow them without adding an unwanted drop shadow.
+  const cardRules = [...CARD_CSS.matchAll(/(?:^|\n)ha-card\s*\{([^}]+)\}/g)];
   assert.ok(cardRules.length >= 2);
   assert.ok(cardRules.slice(-2).every(match => /box-shadow:\s*none\s*;/.test(match[1])));
   assert.doesNotMatch(CARD_CSS, /ha-card\s*\{[^}]*box-shadow:\s*0\s+\d+px/);
@@ -115,4 +138,23 @@ test("glass readability uses the same high-contrast substrate without an extra t
   assert.ok(table, "Timetable header and navigation must not add their own glass layer");
   assert.match(table[1], /background:\s*transparent/);
   assert.match(CARD_CSS, /\.summary-shell \.date,\s*\.summary-shell \.month-description/);
+});
+
+test("monthly button shares the mosque name row without altering the default header", () => {
+  assert.match(CARD_CSS, /\.header h2\s*\{[^}]*grid-column:\s*1 \/ -1/);
+  assert.match(CARD_CSS, /\.summary-shell \.header:has\(\.card-action-strip\) h2\s*\{[^}]*grid-column:\s*1;\s*grid-row:\s*1/);
+  assert.match(CARD_CSS, /@container\(max-width:23rem\)\s*\{\s*\.header\s*\{\s*grid-template-columns:\s*minmax\(0,1fr\)/);
+  assert.match(CARD_CSS, /\.header \.gregorian\s*\{\s*text-align:\s*start/);
+  assert.match(CARD_CSS, /\.card-action-strip\s*\{[^}]*grid-column:\s*2;\s*grid-row:\s*1/);
+  assert.match(CARD_CSS, /\.header \.gregorian\s*\{[^}]*grid-column:\s*2;\s*grid-row:\s*2/);
+  assert.match(CARD_CSS, /\.card-action-strip ha-icon\s*\{[^}]*width:\s*1em;[^}]*height:\s*1em/);
+  assert.match(CARD_CSS, /\.card-action-strip button span\s*\{[^}]*font-size:\s*inherit/);
+  assert.match(CARD_CSS, /@container\(max-width:33rem\)\s*\{\s*\.card-action-strip button span\s*\{\s*display:\s*none/);
+});
+
+test("Compact More menu is an overlay and does not reflow the summary header", () => {
+  assert.match(CARD_CSS, /\.card-actions-menu\s*\{[^}]*position:\s*absolute/);
+  assert.match(CARD_CSS, /\.card-actions-menu \.card-menu-items\s*\{[^}]*position:\s*absolute/);
+  assert.match(CARD_CSS, /\.summary-shell:has\(\.card-actions-menu\[open\]\)\s*\{[^}]*overflow:\s*visible/);
+  assert.match(CARD_CSS, /\.summary-shell \.header:has\(\.card-actions-menu\[open\]\)\s*\{[^}]*z-index:/);
 });

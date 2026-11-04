@@ -19,3 +19,10 @@ This skips the **whole-integration** coverage threshold for a focused run. Full-
 Run `npm test` for Node unit tests and `REQUIRE_BROWSER_TESTS=1 npm run test:browser` for Chromium smoke checks. Keep shared browser helpers in `browser-harness.js`; put new interactive regression assertions in a test module or the smoke runner.
 
 Shared Home Assistant fixtures belong in [`tests/conftest.py`](../conftest.py). The authoritative per-file inventory, Node/browser commands, and CI scope are in [the test suite guide](../../docs/testing.md).
+
+The editor smoke tests cover the single ordered mosque checkbox list, six-dot
+drag handle and up/down fallback, and preservation of YAML titles during graphical
+edits. Browser smoke uses pointer clicks to open and leave the monthly timetable
+in each mode (Compact More menu, Standard/Detailed labelled header actions). Browser
+acceptance must also check mobile/tablet sizing, RTL and Home Assistant's
+native drag-and-drop behaviour before the PR is merged.

@@ -4,15 +4,18 @@ export const CARD_CSS = `
 .background-credit a { color: var(--secondary-text-color); text-decoration: underline; text-underline-offset: 2px; }
 .background-credit a:focus-visible { outline: 2px solid var(--primary-color); }
 
-/* Fill the available dashboard viewport with the mosque photograph.
-   On Yesterday/Tomorrow the content can be shorter, but the background
-   canvas must not end halfway down the dashboard and expose a black area.
-   Any contents taller than the viewport still expand the card naturally.
-   The theme header variable is respected when Home Assistant provides it. */
+/* Fill the visible dashboard space from the card's real top edge, not
+   a whole viewport minus a guessed HA header height. JavaScript measures
+   --salah-viewport-card-height after layout and on viewport changes.
+   Content taller than the screen is never constrained or clipped. */
 ha-card.has-mosque-background {
   background: var(--ha-card-background,var(--card-background-color));
-  min-height: calc(100vh - var(--header-height, 0px));
-  min-height: calc(100dvh - var(--header-height, 0px));
+  min-height: var(--salah-viewport-card-height, calc(100dvh - var(--header-height, 0px)));
+}
+/* Keep the full photograph on the dashboard, but let Home Assistant's
+   edit-card controls remain near the content while editing or previewing. */
+:host([dashboard-editing]) ha-card.has-mosque-background {
+  min-height: 0;
 }
 ha-card.has-mosque-background::before {
   content: "";
@@ -973,10 +976,11 @@ ha-card.has-mosque-background::after {
 
 /* Kiosk is strictly opt-in. Responsive sizing avoids clipping in phone WebViews. */
 ha-card.kiosk {
-  min-height: 100dvh;
+  min-height: var(--salah-viewport-card-height, 100dvh);
   overflow: hidden;
 }
 ha-card.kiosk:fullscreen {
+  min-height: 100dvh;
   height: 100dvh;
   overflow: auto;
   background: var(--ha-card-background,var(--card-background-color));
@@ -1049,23 +1053,131 @@ ha-card.kiosk:fullscreen {
   cursor: pointer;
   min-height: 40px;
 }
-/* The header action sits in the title row, above (not beside) the
-   Gregorian date. Reserve space in the title only: the date retains its
-   entire grid column, including on narrow and RTL cards. */
+/* Monthly actions share the mosque title row. The Gregorian date stays
+   directly underneath; compact keeps its accessible More disclosure. */
 .summary-shell .header { position: relative; }
-.summary-shell .header.has-month-action { min-height: 36px; }
-.summary-shell .header.has-month-action h2 { padding-inline-end: 42px; min-height: 36px; }
-.month-toggle {
+/* Only override the original full-width title when an inline toolbar exists.
+   Cards with the monthly feature disabled keep their original RTL/date layout. */
+.summary-shell .header.has-month-action h2 { min-height: 36px; }
+.summary-shell .header:has(.card-action-strip) h2 {
+  grid-column: 1;
+  grid-row: 1;
+}
+.card-action-strip {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  z-index: 3;
+}
+.card-action-strip .month-toggle,.card-action-strip .month-action {
+  display: inline-flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: .95rem;
+  line-height: 1.2;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.card-action-strip ha-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  --mdc-icon-size: 1em;
+  --ha-icon-size: 1em;
+  flex: none;
+}
+.card-action-strip button span { font-size: inherit; line-height: inherit; }
+.compact .header.has-month-action { row-gap: 0; }
+.compact .header.has-month-action h2 { padding-inline-end: 86px; }
+.card-menu-items button {
+  display: flex; align-items: center; gap: 7px; font: inherit;
+  min-width: 0; max-width: 100%; overflow-wrap: anywhere; text-align: start;
+}
+.card-menu-items ha-icon {
+  width: 18px; height: 18px; --mdc-icon-size: 18px; --ha-icon-size: 18px;
+  flex: none;
+}
+/* Keep the action alongside the title on small cards: icon-only has an
+   accessible label, with the full text returning as soon as it fits. */
+@container(max-width:33rem) {
+  .card-action-strip button span { display: none; }
+  .card-action-strip .month-toggle,.card-action-strip .month-action {
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+  }
+}
+@container(max-width:23rem) {
+  /* Keep a two-column title/action row despite the one-column default
+     header at mobile widths. Date text then spans the full header width. */
+  .header:has(.card-action-strip) {
+    grid-template-columns: minmax(0,1fr) max-content;
+  }
+  .header:has(.card-action-strip) .hijri,
+  .header:has(.card-action-strip) .gregorian,
+  .header:has(.card-action-strip) .month-description {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+  .header:has(.card-action-strip) .gregorian { text-align: end; }
+  .header.has-many-month-actions .card-action-strip {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+/* Compact: the More disclosure is a popover anchored to the title row.
+   Opening it must not add a grid row or move the countdown panels. */
+.card-actions-menu {
   position: absolute;
   inset-block-start: 0;
   inset-inline-end: 0;
-  width: 36px;
-  height: 36px;
-  padding: 8px;
-  display: grid;
-  place-items: center;
+  z-index: 6;
+  width: max-content;
+  max-width: 100%;
 }
-.month-toggle ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; --ha-icon-size: 18px; }
+.card-actions-menu .card-more-toggle {
+  display: flex; align-items: center; gap: 3px;
+  cursor: pointer; list-style: none;
+  border: 1px solid var(--divider-color);
+  border-radius: 8px; background: var(--secondary-background-color);
+  padding: 7px; min-height: 36px; box-sizing: border-box;
+  font-size: .8rem;
+}
+.card-actions-menu .card-more-toggle::-webkit-details-marker { display: none; }
+.card-actions-menu .card-more-toggle ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; }
+.card-actions-menu .card-more-toggle:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+.card-actions-menu .card-menu-items {
+  position: absolute;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-end: 0;
+  display: grid; gap: 4px;
+  width: min(15rem, calc(100cqi - 4rem));
+  box-sizing: border-box;
+  padding: 8px; border-radius: 9px;
+  border: 1px solid var(--divider-color);
+  background: var(--card-background-color);
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+.card-actions-menu:not([open]) .card-menu-items { display: none; }
+/* Both glass surfaces normally clip their children. Only the expanded menu
+   can escape that clip, and it must paint above the timetable and prayer panels. */
+.summary-shell:has(.card-actions-menu[open]) {
+  overflow: visible;
+  z-index: 6;
+}
+.summary-shell .header:has(.card-actions-menu[open]) { z-index: 7; }
+.card-menu-items button { width: 100%; }
 .month-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .month-toolbar h3 { font-size: clamp(1rem,2.4cqi,1.5rem); margin: 0; text-align: center; }
 .month-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
@@ -1083,6 +1195,11 @@ ha-card.kiosk:fullscreen {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
+/* Home Assistant's Panel editor owns the full-height slot and its Edit
+   footer. Compacting this custom card cannot reclaim that parent slot,
+   and instead creates a tiny card above empty panel space. Preserve the
+   normal card proportions during editing; the separate background minimum
+   override still prevents the photograph from forcing extra card height. */
 .source-summary { border-top: 1px solid var(--divider-color); padding-top: 12px; }
 .source-summary p { overflow-wrap: anywhere; font-size: .84rem; }
 @container(max-width:28rem) {
@@ -1098,34 +1215,35 @@ export const EDITOR_CSS = `
 .reminder-setup[hidden] { display: none; }
 .reminder-setup:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
 
-:host { display: block; }
+:host { display: block; container-type: inline-size; }
 .form { display: grid; gap: 14px; padding: 12px 0; color: var(--primary-text-color); }
 .help { color: var(--secondary-text-color); font-size: .85rem; line-height: 1.45; }
 .error { color: var(--error-color); }
-.title-field { display: grid; gap: 7px; }
-.title-field label { font: inherit; }
-.title-field input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--divider-color);
-  border-radius: 6px;
-  background: var(--card-background-color);
-  color: var(--primary-text-color);
-  font: inherit;
-}
-.title-field input:focus-visible,
 .setting select:focus-visible,
 .editor-section-toggle:focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
-.mosque-options { display: grid; gap: 8px; }
+.mosque-options { display: grid; gap: 7px; }
 .mosque-options[hidden] { display: none; }
 .mosque-options-heading { font-weight: 600; }
-.mosque-options-list { display: grid; gap: 8px; }
-.mosque-choice { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.mosque-choice input { accent-color: var(--primary-color); }
+.mosque-options-hint { font-size: .8rem; line-height: 1.35; color: var(--secondary-text-color); }
+.mosque-options-list { display: grid; }
+.mosque-choice { display: grid; grid-template-columns: 32px minmax(0,1fr) 34px 34px; gap: 6px; align-items: center; min-width: 0; padding: 8px 0; border-top: 1px solid var(--divider-color); }
+.mosque-choice[data-selected="false"] { opacity: .75; }
+.mosque-choice-label { display: flex; align-items: center; gap: 8px; min-width: 0; overflow-wrap: anywhere; font-size: .88rem; }
+.mosque-choice input { flex-shrink: 0; accent-color: var(--primary-color); }
+.mosque-first { font-size: .7rem; color: var(--primary-color); }
+.mosque-grip { width: 32px; height: 34px; padding: 4px; border: 0; background: transparent; border-radius: 7px; color: var(--secondary-text-color); cursor: grab; touch-action: none; user-select: none; }
+.mosque-grip:active:not(:disabled) { cursor: grabbing; }
+.mosque-grip:disabled { opacity: .3; cursor: default; }
+.mosque-grip ha-icon { width: 20px; height: 20px; --mdc-icon-size: 20px; }
+.mosque-grip:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 1px; }
+.mosque-choice button { width: 34px; height: 34px; padding: 3px; border: 0; background: transparent; border-radius: 7px; color: var(--primary-text-color); display: grid; place-items: center; cursor: pointer; }
+.mosque-choice button:disabled { opacity: .3; cursor: default; }
+.mosque-choice button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 1px; }
+.mosque-choice button ha-icon { width: 18px; height: 18px; --mdc-icon-size: 18px; }
+@container(max-width: 22rem) { .mosque-choice { grid-template-columns: 30px minmax(0,1fr) 32px 32px; } }
 .setting {
   display: grid;
   grid-template-columns: minmax(0,1fr) auto;
