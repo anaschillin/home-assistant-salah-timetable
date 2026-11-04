@@ -91,7 +91,7 @@ export async function runBrowserSmoke({base, tokens, output, signal}) {
     // HA's footer-style desktop/tablet card editor can leave preview=false.
     // The custom card must recognise its edit wrapper and drop the photo
     // minimum regardless, otherwise HA's native Edit button sits below view.
-    await until(expression(`const card=${findCard};return card?.shadowRoot?.querySelector("ha-card")`),
+    await until(expression(`const card=${findCard};return Boolean(card?.shadowRoot?.querySelector("ha-card"))`),
       "Real HA edit dashboard did not render its existing card");
     for (const width of [900, 1280]) {
       await call("Emulation.setDeviceMetricsOverride", {width, height: 900, deviceScaleFactor: 1, mobile: false});
