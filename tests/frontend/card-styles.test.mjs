@@ -160,12 +160,14 @@ test("Compact More menu is an overlay and does not reflow the summary header", (
 });
 
 test("kiosk scales content and centres the mosque clock and configured dates", () => {
-  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*max-width:\s*1540px/);
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*max-width:\s*1340px/);
   assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*justify-content:\s*center/);
   assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*min-height:\s*var\(--salah-viewport-card-height/);
   assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content\.kiosk\s*\{[^}]*justify-content:\s*flex-start/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell\s*\{[^}]*max-width:\s*1440px/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell\s*\{[^}]*max-width:\s*1220px/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\s*\{[^}]*column-gap:/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.kiosk-summary-tabs\s*\{[^}]*width:\s*min\(100%, 460px\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-summary-tabs \.date-tab\s*\{[^}]*padding:\s*9px 8px/);
   assert.match(CARD_CSS, /\.content\.kiosk \.header\s*\{[^}]*flex-direction:\s*column/);
   assert.match(CARD_CSS, /\.content\.kiosk \.header \.kiosk-dates\s*\{[^}]*flex-wrap:\s*wrap/);
   assert.match(CARD_CSS, /\.content\.kiosk \.header \.kiosk-toolbar\s*\{[^}]*position:\s*absolute/);
