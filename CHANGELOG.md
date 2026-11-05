@@ -7,6 +7,14 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 ## Unreleased
 
+## 2.1.0 — 5 November 2026
+
+### Kiosk Mode improvements
+
+- Centre kiosk content in the available viewport, with natural scrolling on shorter displays.
+- Align the fullscreen control and optional monthly actions with the mosque name.
+- Add a live mosque-local clock respecting 12/24-hour preferences without another timer.
+
 ## 2.0.0 — 4 November 2026
 
 - Prepare for HACS release, with versioned integration metadata and documentation ready for catalogue review.
