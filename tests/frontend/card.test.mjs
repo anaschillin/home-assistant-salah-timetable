@@ -1061,7 +1061,8 @@ test("kiosk honours configured date visibility even in Compact and updates mosqu
   const dates = find(header, "div").find(element => element.className === "kiosk-dates");
   const clock = find(header, "time")[0];
   assert.ok(toolbar.children.some(child => child.className === "kiosk-fullscreen"));
-  assert.ok(toolbar.children.some(child => child.className === "card-action-strip"));
+  assert.ok(toolbar.children.some(child => child.className === "card-actions-menu"),
+    "Compact kiosk retains its More disclosure for monthly actions");
   assert.ok(dates);
   assert.ok(find(dates, "div").some(element => element.className === "date hijri"));
   assert.ok(find(dates, "div").some(element => element.className === "date gregorian"));
