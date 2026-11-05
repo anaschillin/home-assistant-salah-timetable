@@ -669,9 +669,15 @@ try {
     kioskHeader.querySelector(".kiosk-dates .hijri") &&
     kioskHeader.querySelector(".kiosk-dates .gregorian") &&
     getComputedStyle(kioskHeader).display === "grid");
-  check("kiosk 3.0 countdown panels use unequal responsive columns",
+  check("kiosk 3.0 renders two responsive countdown panels",
     kioskRoot.querySelectorAll(".summary-shell .prayer-panel").length === 2 &&
     getComputedStyle(kioskRoot.querySelector(".summary-shell .panels")).display === "grid");
+  if (width >= 900) {
+    const prayerPanels = [...kioskRoot.querySelectorAll(".summary-shell .prayer-panel")];
+    check("kiosk two main countdown panels share equal 50/50 width",
+      Math.abs(prayerPanels[0].getBoundingClientRect().width -
+        prayerPanels[1].getBoundingClientRect().width) <= 2);
+  }
   check("kiosk 3.0 highlights published next and most recently begun Salah",
     kioskStrip.querySelector('[data-prayer="maghrib"]')?.classList.contains("is-next") &&
     kioskStrip.querySelector('[data-prayer="asr"]')?.classList.contains("is-current"));
