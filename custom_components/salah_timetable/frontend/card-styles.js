@@ -1652,7 +1652,10 @@ ha-card.kiosk:fullscreen .content.kiosk {
     padding: clamp(14px, 2cqi, 20px) 0 0;
   }
   .content.kiosk .summary-shell .panel.prayer-panel { padding-inline: 0; }
-  .content.kiosk .summary-shell .prayer-panel .count { font-size: clamp(2.2rem, 9cqi, 4.5rem); }
+  .content.kiosk .summary-shell .prayer-panel .count,
+  .content.kiosk .summary-shell .prayer-panel[data-panel="jamaat"] .count {
+    font-size: clamp(2.2rem, 9cqi, 4.5rem);
+  }
   .content.kiosk .kiosk-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .content.kiosk .kiosk-footer { grid-template-columns: 1fr; }
   .content.kiosk .kiosk-footer-info { grid-column: 1; align-items: center; text-align: center; }
