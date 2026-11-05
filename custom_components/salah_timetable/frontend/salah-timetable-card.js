@@ -633,7 +633,16 @@ export class SalahTimetableCard extends HTMLElement {
       title.textContent = this._config.title || data.mosque_name;
       title.setAttribute("dir", "auto");
     }
-    header.append(title);
+    if (this._config.kiosk_mode) {
+      const identity = node("div", undefined, "kiosk-identity");
+      identity.append(title);
+      if (this._config.show_timezone_note) {
+        identity.append(node("small", tr(ui, "card.kiosk_timezone", {zone}), "kiosk-timezone"));
+      }
+      header.append(identity);
+    } else {
+      header.append(title);
+    }
     // Kiosk dates remain visible even in Compact and follow the same per-card
     // and per-mosque visibility settings as the regular header.
     const dateTarget = this._config.kiosk_mode ? node("div", undefined, "kiosk-dates") : header;
@@ -698,12 +707,18 @@ export class SalahTimetableCard extends HTMLElement {
       header.append(kioskClock);
       if (dateTarget.children.length) header.append(dateTarget);
       kioskToolbar.append(kioskToggle);
-      header.append(kioskToolbar);
+      // Kiosk actions belong in the bottom control strip, not above the clock.
     }
     content.append(summary);
     if (this._monthView && this._config.show_month_view && this._monthState) {
       const monthlyPanel = this._monthlyPanel(ui);
       content.append(monthlyPanel);
+      if (kioskToolbar) {
+        const footer = node("footer", undefined, "kiosk-footer kiosk-month-footer");
+        footer.append(node("span", undefined, "kiosk-footer-placeholder"),
+          node("span", undefined, "kiosk-footer-placeholder"), kioskToolbar);
+        content.append(footer);
+      }
       card.append(content);
       this.shadowRoot.replaceChildren(style, card);
       this._live = {data, updates, selection: this._selection(data, now)};
@@ -729,7 +744,7 @@ export class SalahTimetableCard extends HTMLElement {
     }
     const selectedPrayers = this._selectedDay === 0 ? data.prayers : data.day_prayers?.[selectedDate];
     const tableShell = node("div", undefined, "timetable-shell");
-    if (this._selectedDay !== 0 && (this._config.detail_level === "compact" || !this._config.show_gregorian_date)) {
+    if (!this._config.kiosk_mode && this._selectedDay !== 0 && (this._config.detail_level === "compact" || !this._config.show_gregorian_date)) {
       tableShell.append(node("div", formatDate(displayDate, ui), "selected-date"));
     }
     if (this._hass?.connection?.connected === false) summary.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
@@ -752,7 +767,7 @@ export class SalahTimetableCard extends HTMLElement {
     if (panels.children.length) summary.append(panels);
     const highlighted = highlightedPrayer(data, now);
     let tableRegion;
-    if (Array.isArray(selectedPrayers) && (this._selectedDay !== 0 || this._config.detail_level !== "compact")) {
+    if (!this._config.kiosk_mode && Array.isArray(selectedPrayers) && (this._selectedDay !== 0 || this._config.detail_level !== "compact")) {
     const table = node("table");
     table.append(node("caption", tr(ui, "table.caption"), "sr-only"));
     const head = node("thead"); const headRow = node("tr");
@@ -788,17 +803,14 @@ export class SalahTimetableCard extends HTMLElement {
     const scrollHelp = node("p", tr(ui, "table.scroll_help"), "note scroll-help");
     tableRegion.append(table); tableShell.append(tableRegion, scrollHelp);
     }
-    if (!selectedPrayers) tableShell.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
-    // Compact kiosk has no timetable on Today: put navigation inside the
-    // shared glass summary instead of painting an empty floating table shell.
-    // Keep the same position on adjacent days so the card does not jump.
-    if (this._config.kiosk_mode && this._config.detail_level === "compact") {
-      dateTabs.classList.add("kiosk-summary-tabs");
-      summary.append(dateTabs);
+    if (this._config.kiosk_mode) {
+      content.append(kioskPrayerStrip(selectedPrayers, next, data, zone, ui, this._config, this._selectedDay, now));
+      dateTabs.classList.add("kiosk-day-tabs");
     } else {
+      if (!selectedPrayers) tableShell.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
       tableShell.append(dateTabs);
+      if (tableShell.children.length) content.append(tableShell);
     }
-    if (tableShell.children.length) content.append(tableShell);
     if (this._selectedDay === 0 && this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
       content.append(translatedRun("p", ui, "card.second_khutbah", "time", formatTime(data.second_khutbah, zone, ui, timeFormat), "note khutbah"));
     }
@@ -838,7 +850,15 @@ export class SalahTimetableCard extends HTMLElement {
       night.append(grid, node("p", tr(ui, "night.note"), "note"));
       content.append(night);
     }
-    if (this._selectedDay === 0 && this._config.show_timezone_note) {
+    if (this._config.kiosk_mode) {
+      const footer = node("footer", undefined, "kiosk-footer");
+      const note = this._config.show_timezone_note
+        ? node("p", tr(ui, "card.kiosk_missing_times"), "kiosk-footer-note")
+        : node("span", undefined, "kiosk-footer-placeholder");
+      if (this._config.show_timezone_note) note.setAttribute("data-role", "timezone-note");
+      footer.append(note, dateTabs, kioskToolbar);
+      content.append(footer);
+    } else if (this._selectedDay === 0 && this._config.show_timezone_note) {
       const note = translatedRun("p", ui, "card.timezone_note", "zone", zone, "note");
       note.setAttribute("data-role", "timezone-note"); content.append(note);
     }
