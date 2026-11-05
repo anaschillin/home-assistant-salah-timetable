@@ -1396,28 +1396,52 @@ ha-card.kiosk:fullscreen .content.kiosk {
   font-size: clamp(.72rem, 1.16cqi, 1rem);
   line-height: 1.3;
 }
+.content.kiosk .summary-shell .prayer-panel[data-panel="salah"] > .label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+.content.kiosk .kiosk-next-day {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 68%, transparent);
+  border-radius: 999px;
+  color: var(--primary-text-color);
+  background: color-mix(in srgb, var(--primary-color) 18%, transparent);
+  font-size: .9em;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+}
 .content.kiosk .summary-shell .prayer-panel .event {
   min-height: 0;
   font-size: clamp(1.5rem, calc(var(--kiosk-u) * 4.7), 3.5rem);
   line-height: 1.15;
 }
 .content.kiosk .summary-shell .prayer-panel[data-panel="jamaat"] .event {
-  font-size: clamp(1.3rem, calc(var(--kiosk-u) * 3.7), 2.85rem);
+  /* Matching title heights keep both countdown baselines aligned. */
+  font-size: clamp(1.5rem, calc(var(--kiosk-u) * 4.7), 3.5rem);
 }
 .content.kiosk .summary-shell .prayer-panel .count {
   margin: 0;
-  font-size: clamp(3rem, calc(var(--kiosk-u) * 13.5), 9.25rem);
+  font-size: clamp(2rem, min(5.6cqi, 9.2dvh), 6.2rem);
   line-height: 1.05;
   overflow-wrap: normal;
   font-variant-numeric: tabular-nums;
   letter-spacing: -.035em;
 }
 .content.kiosk .summary-shell .prayer-panel[data-panel="jamaat"] .count {
-  font-size: clamp(2.1rem, calc(var(--kiosk-u) * 7), 5.4rem);
+  /* Same clock size and line-height as Next Salah, different emphasis. */
+  font-size: clamp(2rem, min(5.6cqi, 9.2dvh), 6.2rem);
   color: var(--primary-text-color);
 }
 .content.kiosk .summary-shell .prayer-panel[data-panel="jamaat"] .count span {
   color: inherit;
+  font-size: .2em;
+  line-height: 1.2;
+  letter-spacing: normal;
 }
 .content.kiosk .summary-shell .prayer-times {
   margin-top: auto;
@@ -1451,11 +1475,11 @@ ha-card.kiosk:fullscreen .content.kiosk {
   color: var(--primary-text-color);
   border: 1px solid var(--divider-color);
   border-radius: clamp(12px, 1.1cqi, 18px);
-  background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 94%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 97%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
-.content.kiosk .kiosk-tile.is-past { opacity: .72; }
+.content.kiosk .kiosk-tile.is-past { opacity: .88; }
 .content.kiosk .kiosk-tile.is-current {
   border-color: color-mix(in srgb, var(--primary-text-color) 55%, transparent);
   background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 96%, transparent);
@@ -1464,6 +1488,11 @@ ha-card.kiosk:fullscreen .content.kiosk {
   color: #fff;
   background: color-mix(in srgb, var(--primary-color) 74%, #10202b);
   border-color: color-mix(in srgb, var(--primary-color) 55%, #fff);
+}
+/* A second, quieter indication for the next published Jamaat in today's strip. */
+.content.kiosk .kiosk-tile.is-next-jamaat {
+  border-color: color-mix(in srgb, var(--primary-text-color) 66%, var(--primary-color));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary-text-color) 44%, transparent);
 }
 .content.kiosk .kiosk-tile-name {
   margin: 0;
@@ -1488,7 +1517,8 @@ ha-card.kiosk:fullscreen .content.kiosk {
 .content.kiosk .kiosk-tile-label {
   display: block;
   margin-bottom: .4em;
-  opacity: .82;
+  color: inherit;
+  opacity: .96;
   font-size: clamp(1rem, 1.13cqi, 1.125rem);
 }
 .content.kiosk .kiosk-tile-time strong {
