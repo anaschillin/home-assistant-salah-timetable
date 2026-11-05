@@ -1208,6 +1208,19 @@ ha-card.kiosk:fullscreen {
 }
 
 
+/* The kiosk photo covers the actual canvas, not a cached day-tab frame. */
+ha-card.kiosk.has-mosque-background::before,
+ha-card.kiosk.has-mosque-background::after {
+  inset: 0;
+  top: 0;
+  left: 0;
+  transform: none;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: var(--mosque-background-position, center);
+}
+
 /* Kiosk 3.0: three-zone, distance-readable wall display. The source is
    the existing live Home Assistant sensors; no timetable values are inferred. */
 .content.kiosk {
@@ -1220,7 +1233,7 @@ ha-card.kiosk:fullscreen {
   margin-inline: auto;
   padding: clamp(12px, 1.7cqi, 28px);
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-rows: auto auto auto;
   align-content: center;
   gap: clamp(10px, 1.3cqi, 20px);
 }
@@ -1237,7 +1250,7 @@ ha-card.kiosk:fullscreen {
   width: 100%;
   max-width: none;
   min-width: 0;
-  min-height: 0;
+  min-height: clamp(310px, 43dvh, 430px);
   margin: 0;
   padding: clamp(18px, 2.2cqi, 34px);
   border-radius: clamp(14px, 1.4cqi, 24px);
@@ -1263,7 +1276,7 @@ ha-card.kiosk:fullscreen {
   min-width: 0;
   margin: 0;
   text-align: start;
-  font-size: clamp(1.25rem, 2.25cqi, 2.5rem);
+  font-size: clamp(1.4rem, 2.65cqi, 3rem);
   font-weight: 750;
   line-height: 1.15;
 }
@@ -1313,7 +1326,7 @@ ha-card.kiosk:fullscreen {
   grid-column: auto;
   grid-row: auto;
   min-width: 0;
-  font-size: clamp(.78rem, 1.24cqi, 1.1rem);
+  font-size: clamp(.92rem, 1.45cqi, 1.25rem);
   line-height: 1.35;
   text-align: end;
   overflow-wrap: anywhere;
@@ -1325,7 +1338,7 @@ ha-card.kiosk:fullscreen {
   grid-row: auto;
   max-width: 29rem;
   margin: 3px 0 0;
-  font-size: clamp(.68rem, .95cqi, .85rem);
+  font-size: clamp(.8rem, 1.05cqi, 1rem);
   line-height: 1.3;
   text-align: end;
   overflow-wrap: anywhere;
@@ -1379,6 +1392,7 @@ ha-card.kiosk:fullscreen {
 }
 .content.kiosk .summary-shell .prayer-panel[data-panel="jamaat"] .count {
   font-size: clamp(2.1rem, calc(var(--kiosk-u) * 7), 5.4rem);
+  color: var(--primary-text-color);
 }
 .content.kiosk .summary-shell .prayer-times {
   margin-top: auto;
@@ -1409,9 +1423,9 @@ ha-card.kiosk:fullscreen {
   color: var(--primary-text-color);
   border: 1px solid var(--divider-color);
   border-radius: clamp(12px, 1.1cqi, 18px);
-  background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 84%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 94%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 .content.kiosk .kiosk-tile.is-past { opacity: .72; }
 .content.kiosk .kiosk-tile.is-current {
@@ -1419,9 +1433,9 @@ ha-card.kiosk:fullscreen {
   background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 96%, transparent);
 }
 .content.kiosk .kiosk-tile.is-next {
-  color: var(--text-primary-color, #fff);
-  background: var(--primary-color);
-  border-color: color-mix(in srgb, var(--primary-color) 70%, #fff);
+  color: #fff;
+  background: color-mix(in srgb, var(--primary-color) 74%, #10202b);
+  border-color: color-mix(in srgb, var(--primary-color) 55%, #fff);
 }
 .content.kiosk .kiosk-tile-name {
   margin: 0;
@@ -1447,10 +1461,10 @@ ha-card.kiosk:fullscreen {
   display: block;
   margin-bottom: .4em;
   opacity: .82;
-  font-size: clamp(.65rem, .9cqi, .85rem);
+  font-size: clamp(.85rem, 1.12cqi, 1.05rem);
 }
 .content.kiosk .kiosk-tile-time strong {
-  font-size: clamp(1rem, 1.6cqi, 1.55rem);
+  font-size: clamp(1.1rem, 1.7cqi, 1.65rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -1473,6 +1487,14 @@ ha-card.kiosk:fullscreen {
   width: 100%;
   min-width: 0;
 }
+.content.kiosk .kiosk-footer-info {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  gap: 5px;
+}
 .content.kiosk .kiosk-footer-note {
   color: var(--primary-text-color);
   opacity: .9;
@@ -1491,6 +1513,10 @@ ha-card.kiosk:fullscreen {
   border: 1px solid var(--divider-color);
   border-radius: 14px;
   background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 85%, transparent);
+}
+.content.kiosk .kiosk-day-tabs .date-tab:not([aria-pressed="true"]) {
+  color: var(--primary-text-color);
+  opacity: .95;
 }
 .content.kiosk .kiosk-day-tabs .date-tab {
   min-height: clamp(40px, 6dvh, 62px);
@@ -1524,7 +1550,15 @@ ha-card.kiosk:fullscreen {
   grid-row: auto;
 }
 .content.kiosk .kiosk-toolbar .card-actions-menu { position: relative; inset: auto; }
-.content.kiosk .background-credit { margin: 0; justify-self: end; font-size: .65rem; }
+.content.kiosk .kiosk-footer-info .background-credit {
+  display: block;
+  margin: 0;
+  font-size: clamp(.73rem, .9cqi, .87rem);
+  line-height: 1.3;
+  opacity: .84;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
 
 /* Portrait, tablet and narrow Cast views must scroll rather than clip. */
 @container(max-width:60rem) {
@@ -1539,7 +1573,7 @@ ha-card.kiosk:fullscreen {
   .content.kiosk .kiosk-dates .month-description { text-align: center; }
   .content.kiosk .kiosk-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .content.kiosk .kiosk-footer { grid-template-columns: 1fr auto; }
-  .content.kiosk .kiosk-footer-note { grid-column: 1 / -1; }
+  .content.kiosk .kiosk-footer-info { grid-column: 1 / -1; }
   .content.kiosk .kiosk-day-tabs { grid-column: 1; }
   .content.kiosk .kiosk-footer .kiosk-toolbar { grid-column: 2; }
 }
@@ -1559,7 +1593,7 @@ ha-card.kiosk:fullscreen {
   .content.kiosk .summary-shell .prayer-panel .count { font-size: clamp(2.2rem, 9cqi, 4.5rem); }
   .content.kiosk .kiosk-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .content.kiosk .kiosk-footer { grid-template-columns: 1fr; }
-  .content.kiosk .kiosk-footer-note { grid-column: 1; text-align: center; }
+  .content.kiosk .kiosk-footer-info { grid-column: 1; align-items: center; text-align: center; }
   .content.kiosk .kiosk-day-tabs { grid-column: 1; justify-self: center; }
   .content.kiosk .kiosk-footer .kiosk-toolbar {
     grid-column: 1; justify-self: center; justify-content: center;
@@ -1567,7 +1601,7 @@ ha-card.kiosk:fullscreen {
 }
 @container(max-width:24rem) {
   .content.kiosk { padding: 10px; }
-  .content.kiosk .summary-shell { padding: 14px; }
+  .content.kiosk .summary-shell { padding: 14px; min-height: 0; }
   .content.kiosk .kiosk-tile-times { flex-wrap: wrap; }
   .content.kiosk .kiosk-tile-name { font-size: .95rem; }
   .content.kiosk .kiosk-day-tabs .date-tab { min-width: 0; }
