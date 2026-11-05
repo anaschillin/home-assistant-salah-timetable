@@ -17,7 +17,8 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 - Introduce five responsive prayer tiles from **published** daily timetable rows. Highlight the next beginning and most recently begun prayer, respect bilingual labels and 12/24-hour formatting, and never invent missing times.
 - Move Yesterday / Today / Tomorrow navigation to a bottom control row with the fullscreen button and optional monthly-timetable actions, keeping these controls available in Compact, Standard and Detailed kiosk views.
 - Preserve multiple mosques, Ramadan details, Friday congregations, night calculations, source attribution and accessible responsive layouts; non-kiosk Compact/Standard/Detailed dashboards remain unchanged.
-- Improve kiosk legibility and proportions: constrain empty hero space, differentiate the elapsed Jamaat countdown, enlarge date and prayer labels, darken highlighted tiles, strengthen tile glass, keep the photograph full-bleed and relocate attribution to the footer.
+- Improve kiosk legibility and proportions: shorten the hero panel, enlarge the Next Salah countdown, make Previous Jamaat and elapsed labels neutral, increase clock/prayer time labels to at least 16px, darken highlighted tiles, strengthen tile glass, keep the photograph full-bleed and relocate attribution to a non-overlapping footer.
+- Avoid a redundant outer viewport-height minimum that can cause unnecessary desktop scrolling; preserve natural scrolling for genuinely taller mobile layouts.
 - Keep keyboard focus visible while preventing a persistent pointer-triggered fullscreen focus ring.
 - Centre the entire kiosk display group horizontally and vertically within the available viewport, including fullscreen changes, while keeping tall/mobile layouts scrollable and the dashboard editor top-aligned.
 - Update frontend/browser regression coverage and kiosk documentation for desktop, tablet, phone and cast displays.
