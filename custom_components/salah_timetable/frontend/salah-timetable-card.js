@@ -248,6 +248,7 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._timer === null) this._timer = window.setInterval(() => this._tick(), 1000);
     window.addEventListener?.("resize", this._onViewportResize);
     window.visualViewport?.addEventListener?.("resize", this._onViewportResize);
+    document.addEventListener?.("fullscreenchange", this._onViewportResize);
     if (typeof ResizeObserver !== "undefined") {
       this._viewportObserver = new ResizeObserver(this._onViewportResize);
       this._viewportObserver.observe(this);
@@ -261,6 +262,7 @@ export class SalahTimetableCard extends HTMLElement {
     this._timer = null;
     window.removeEventListener?.("resize", this._onViewportResize);
     window.visualViewport?.removeEventListener?.("resize", this._onViewportResize);
+    document.removeEventListener?.("fullscreenchange", this._onViewportResize);
     this._viewportObserver?.disconnect();
     this._viewportObserver = null;
     if (this._viewportFrame !== null) window.cancelAnimationFrame?.(this._viewportFrame);
