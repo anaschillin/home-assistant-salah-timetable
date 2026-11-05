@@ -13,7 +13,7 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 - Replace the kiosk's stacked dashboard card layout with a dedicated, full-viewport **three-zone wall display**, based on the approved prayer-screen design.
 - Place the mosque name and optional timezone on the left, the large live mosque-local clock in the centre, and enabled Gregorian/Hijri dates on the right. Preserve Hijri month information and all date visibility preferences.
-- Give Next Salah the wider countdown column, with Previous/Next Jamaat alongside it. Match both countdowns' font sizes, title scale and space above the published-time rows, retaining their distinct cyan/neutral emphasis and the existing live event calculations.
+- Give Next Salah and Previous/Next Jamaat equal-width 50/50 panels, with matching countdown font sizes, title scale and space above the published-time rows, retaining their distinct cyan/neutral emphasis and live event calculations.
 - Label the next Salah **Tomorrow** when it crosses the mosque-local civil date; distinguish today's published next-Jamaat tile with a subtle outline rather than another cyan background.
 - Introduce five responsive prayer tiles from **published** daily timetable rows. Highlight the next beginning and most recently begun prayer, respect bilingual labels and 12/24-hour formatting, and never invent missing times.
 - Move Yesterday / Today / Tomorrow navigation to a bottom control row with the fullscreen button and optional monthly-timetable actions, keeping these controls available in Compact, Standard and Detailed kiosk views.
