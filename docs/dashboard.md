@@ -284,9 +284,8 @@ date also respects the mosque-level visibility preference and the optional
 published-Maghrib day boundary. When month information is enabled, it appears
 with the date details.
 
-The main panel gives Next Salah a wider column than contextual Previous/Next
-Jamaat, but **both countdowns use matching font sizes, title scale and
-vertical spacing**. Their colours distinguish urgency: cyan for the next
+The main panel gives Next Salah and contextual Previous/Next Jamaat **equal
+50/50 panel widths, matching font sizes, title scale and vertical spacing**. Their colours distinguish urgency: cyan for the next
 Salah, neutral for Jamaat and elapsed time. The shorter hero avoids a large
 empty band above the published Beginning/Jamaat row; all event times and
 second-level updates still come from the approved timetable.
@@ -324,7 +323,7 @@ legible. Pointer clicks clear fullscreen focus without hiding keyboard focus.
 Kiosk mode intentionally replaces the ordinary scrolling timetable with the
 five-tile display regardless of Compact, Standard or Detailed selection. When
 kiosk mode is disabled, those ordinary layouts are unchanged. Wider screens
-use the three-column header and 60/40 countdown layout. Narrow screens stack
+use the three-column header and 50/50 countdown layout. Narrow screens stack
 the header and countdowns and wrap the tiles and bottom controls to prevent
 clipping. The whole hero, five-tile strip and footer group is centred both
 horizontally and vertically within the visible kiosk canvas, including browser
