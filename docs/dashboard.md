@@ -275,9 +275,13 @@ times, create sensors/calendar events or change Ramadan activation.
 ## Wall and tablet display
 
 Enable **Kiosk / wall display mode** in the card editor (`kiosk_mode: true`)
-for larger responsive presentation. The card keeps its existing mosque/day
-controls and timetable data. Place it in a full-width dashboard view when
-using a dedicated display.
+for larger responsive presentation. The card vertically centres its mosque
+summary, day navigation and available timetable content in the visible viewport,
+while allowing taller content to scroll naturally. Its header keeps the mosque
+name, a live mosque-local clock (in the configured 12/24-hour format), optional
+monthly controls and the fullscreen button together on wide screens. On narrow
+screens the controls wrap below the name to avoid clipping. Place the card in
+a full-width dashboard view when using a dedicated display.
 
 The fullscreen button requires a tap or click and browser support. If the
 browser or WebView rejects fullscreen, the larger card presentation remains
