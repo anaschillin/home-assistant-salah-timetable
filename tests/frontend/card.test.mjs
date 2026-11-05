@@ -1140,6 +1140,56 @@ test("kiosk 3.0 renders the three-zone display from published prayers and respec
   assert.equal(find(card.shadowRoot, "table").length, 1, "Normal timetable remains unchanged");
 });
 
+test("kiosk distinguishes tomorrow's Salah and the next published Jamaat", () => {
+  const entity = "sensor.mosque_prayer_timetable";
+  const card = new SalahTimetableCard();
+  const start = Date.parse("2026-10-21T18:28:00Z");
+  const rows = [
+    ["fajr", "04:45", "05:15"], ["dhuhr", "11:45", "13:00"],
+    ["asr", "14:10", "14:45"], ["maghrib", "16:29", "16:32"],
+    ["isha", "18:26", "20:00"],
+  ].map(([key, begin, jamaat]) => ({
+    key, name: key,
+    begin: `2026-10-21T${begin}:00Z`,
+    jamaat: [`2026-10-21T${jamaat}:00Z`],
+  }));
+  const data = {
+    ...attributes, date: "2026-10-21", time_zone: "Europe/London",
+    prayers: rows,
+    beginning_events: rows.map(row => ({timestamp: row.begin, prayer: row.key})),
+    jamaat_events: rows.map(row => ({timestamp: row.jamaat[0], prayer: row.key})),
+    next_salah: {timestamp: "2026-10-22T04:45:00Z", prayer: "fajr"},
+  };
+  card.setConfig({entity, kiosk_mode: true});
+  card.hass = hass(data);
+  card._render(start);
+  const day = find(card.shadowRoot, "span").find(element => element.className === "kiosk-next-day");
+  assert.equal(day?.textContent, "Tomorrow", "Next Salah's day is relative to the mosque timezone");
+  assert.equal(day?.attributes["data-role"], "next-salah-day");
+  const isha = find(card.shadowRoot, "div").find(element => element.attributes["data-prayer"] === "isha");
+  assert.ok(isha?.className.includes("is-next-jamaat"), "Upcoming Isha Jamaat gets a subtle tile outline");
+  assert.equal(isha?.attributes["data-next-jamaat"], "true");
+  assert.ok(!isha.className.includes("is-next "), "Tomorrow's Fajr should not highlight today's Isha as next beginning");
+  assert.equal(find(card.shadowRoot, "div").filter(element => element.attributes["data-next-jamaat"] === "true").length, 1);
+
+  // A UTC date can still be tomorrow in Europe/London (BST).
+  card.hass = hass({...data, next_salah: {timestamp: "2026-10-21T23:10:00Z", prayer: "fajr"}});
+  card._render(start);
+  assert.equal(find(card.shadowRoot, "span").find(element => element.className === "kiosk-next-day")?.textContent, "Tomorrow");
+  card.hass = hass({...data, time_zone: "UTC", next_salah: {timestamp: "2026-10-21T23:10:00Z", prayer: "fajr"}});
+  card._render(start);
+  assert.equal(find(card.shadowRoot, "span").filter(element => element.className === "kiosk-next-day").length, 0,
+    "Same UTC day must not be mislabelled Tomorrow");
+
+  // Previous Jamaat is not an upcoming congregation and should not highlight a tile.
+  card.hass = hass({...data, next_salah: {timestamp: "2026-10-22T04:45:00Z", prayer: "fajr"}});
+  card._render(Date.parse("2026-10-21T20:10:00Z"));
+  assert.equal(find(card.shadowRoot, "div").filter(element => element.attributes["data-next-jamaat"] === "true").length, 0);
+  card.setConfig({entity});
+  assert.equal(find(card.shadowRoot, "span").filter(element => element.className === "kiosk-next-day").length, 0,
+    "Normal dashboard modes are unchanged");
+});
+
 test("reminder setup lives in the editor and follows administrator and kiosk changes", () => {
   const card = new SalahTimetableCard();
   const editor = new SalahTimetableCardEditor();
