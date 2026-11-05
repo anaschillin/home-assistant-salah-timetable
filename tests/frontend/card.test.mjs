@@ -1091,7 +1091,7 @@ test("kiosk 3.0 renders the three-zone display from published prayers and respec
   assert.deepEqual(strip.children.map(tile => tile.attributes["data-prayer"]),
     ["fajr", "dhuhr", "asr", "maghrib", "isha"]);
   assert.match(strip.textContent, /05:45/);
-  assert.match(strip.textContent, /20:00/);
+  assert.match(strip.textContent, /21:00/, "Published 20:00 UTC is 21:00 in Europe/London during BST");
   assert.ok(strip.children[0].className.includes("is-next"));
   assert.equal(find(card.shadowRoot, "table").length, 0, "Kiosk has no duplicate scrolling timetable");
 
