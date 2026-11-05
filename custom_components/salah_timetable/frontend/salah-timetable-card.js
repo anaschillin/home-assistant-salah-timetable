@@ -571,13 +571,17 @@ export class SalahTimetableCard extends HTMLElement {
       title.setAttribute("dir", "auto");
     }
     header.append(title);
+    // Kiosk dates remain visible even in Compact and follow the same per-card
+    // and per-mosque visibility settings as the regular header.
+    const dateTarget = this._config.kiosk_mode ? node("div", undefined, "kiosk-dates") : header;
+    const showHeaderDates = this._config.kiosk_mode || this._config.detail_level !== "compact";
     const hijriDate = hijriDisplayDate(displayDate, data, this._selectedDay, this._config.hijri_day_boundary, now);
-    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(hijriDate, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
-    if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(displayDate, ui), "date gregorian"));
-    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false && this._config.show_hijri_month_info) {
+    if (showHeaderDates && this._config.show_hijri_date && data.show_hijri_date !== false) dateTarget.append(node("div", `${formatHijriDate(hijriDate, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
+    if (showHeaderDates && this._config.show_gregorian_date) dateTarget.append(node("div", formatDate(displayDate, ui), "date gregorian"));
+    if (showHeaderDates && this._config.show_hijri_date && data.show_hijri_date !== false && this._config.show_hijri_month_info) {
       // The month description tracks the selected day's Hijri date, too.
       const month = hijriMonthInfo(hijriDate, this._config.hijri_adjustment);
-      if (month) header.append(node("div", month.summary_en, "month-description"));
+      if (month) dateTarget.append(node("div", month.summary_en, "month-description"));
     }
     // One cohesive glass surface for mosque identity and both live summaries.
     // Individual countdown components remain independent for timing and options.
@@ -628,7 +632,9 @@ export class SalahTimetableCard extends HTMLElement {
       else header.append(cardActions);
     }
     if (kioskToolbar) {
-      kioskToolbar.append(kioskClock, kioskToggle);
+      header.append(kioskClock);
+      if (dateTarget.children.length) header.append(dateTarget);
+      kioskToolbar.append(kioskToggle);
       header.append(kioskToolbar);
     }
     content.append(summary);
@@ -637,6 +643,8 @@ export class SalahTimetableCard extends HTMLElement {
       content.append(monthlyPanel);
       card.append(content);
       this.shadowRoot.replaceChildren(style, card);
+      this._live = {data, updates, selection: this._selection(data, now)};
+      this._scheduleViewportHeight();
       return;
     }
     const dateTabs = node("nav", undefined, "date-tabs");
