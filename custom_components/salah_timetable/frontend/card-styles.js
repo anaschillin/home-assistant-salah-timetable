@@ -1268,7 +1268,7 @@ ha-card.kiosk:fullscreen .content.kiosk {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   width: 100%;
-  max-width: none;
+  max-width: 1600px;
   min-width: 0;
   min-height: clamp(310px, 43dvh, 430px);
   margin: 0;
