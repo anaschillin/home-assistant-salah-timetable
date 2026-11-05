@@ -126,6 +126,7 @@ function prayerPanel(kind, event, data, zone, ui, config, clock, mode = "previou
   const result = node("section", undefined, "panel prayer-panel");
   result.setAttribute("data-panel", kind);
   const label = node("div", tr(ui, kind === "salah" ? "panel.next_salah" : mode === "upcoming" ? "panel.next_jamaat" : "panel.previous_jamaat"), "label");
+  result.label = label;
   const name = node("div", undefined, "event");
   if (event) name.append(prayerNode(eventPrayerKey(event), ui, config.bilingual_prayer_labels, event.name));
   else name.textContent = tr(ui, "status.unavailable");
@@ -799,7 +800,7 @@ export class SalahTimetableCard extends HTMLElement {
         if (dayLabel) {
           const indicator = node("span", dayLabel, "kiosk-next-day");
           indicator.setAttribute("data-role", "next-salah-day");
-          box.querySelector(".label")?.append(indicator);
+          box.label.append(indicator);
         }
       }
       updates.push(instant => { box.clock.run.textContent = countdown(next?.timestamp, instant, ui); });
