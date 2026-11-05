@@ -705,6 +705,28 @@ try {
   fullscreen.dispatchEvent(new PointerEvent("pointerup", {bubbles: true, pointerType: "mouse"}));
   check("kiosk pointer activation does not leave a stale focus ring",
     kioskRoot.activeElement !== fullscreen);
+  // Verify the whole three-zone group, rather than merely a centered title,
+  // is positioned symmetrically on a spacious wall display. The same CSS
+  // uses safe center, falling back to start when a mobile view needs scrolling.
+  const hero = kioskRoot.querySelector(".summary-shell");
+  const kioskLayout = [hero, kioskStrip, kioskFooter];
+  const horizontalCentre = element => {
+    const rect = element.getBoundingClientRect();
+    return (rect.left + rect.right) / 2;
+  };
+  check("kiosk hero, prayer tiles and footer share the viewport horizontal centre",
+    kioskLayout.every(element =>
+      Math.abs(horizontalCentre(element) - horizontalCentre(kioskContent)) <= 2));
+  const naturalHeight = kioskContent.scrollHeight;
+  kioskContent.style.minHeight = `${Math.ceil(naturalHeight + 180)}px`;
+  const canvas = kioskContent.getBoundingClientRect();
+  const padding = getComputedStyle(kioskContent);
+  const upperGap = hero.getBoundingClientRect().top -
+    canvas.top - Number.parseFloat(padding.paddingTop);
+  const lowerGap = canvas.bottom - Number.parseFloat(padding.paddingBottom) -
+    kioskFooter.getBoundingClientRect().bottom;
+  check("kiosk three-zone group is vertically centred with equal free space",
+    upperGap > 0 && lowerGap > 0 && Math.abs(upperGap - lowerGap) <= 4);
   kioskCard.remove();
   card.remove(); check("disconnected card clears local timer", card._timer === null);
   // Keep a static native-DOM preview for optional CDP screenshots.
