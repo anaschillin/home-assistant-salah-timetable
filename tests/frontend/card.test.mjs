@@ -101,9 +101,20 @@ test("viewport sizing follows the rendered card top and available mobile screen"
     card._measureViewportHeight();
     assert.equal(card.style.values["--salah-viewport-card-height"], "746px",
       "Fall back to innerHeight where visualViewport is unavailable");
+    // Kiosk reserves the Home Assistant shell's footer margin so a single
+    // full-screen card does not induce a tiny document scrollbar.
+    card.setConfig({entity: "sensor.mosque_prayer_timetable", kiosk_mode: true});
+    window.visualViewport = {height: 700, offsetTop: 0};
+    card._measureViewportHeight();
+    assert.equal(card.style.values["--salah-viewport-card-height"], "576px",
+      "Kiosk leaves 32px of breathing room instead of the default 12px");
+    card.preview = true;
+    card._measureViewportHeight();
+    assert.equal(card.style.values["--salah-viewport-card-height"], "596px",
+      "Editing preview retains ordinary height measurement");
     card.getBoundingClientRect = () => ({top: 92, width: 0});
     card._measureViewportHeight();
-    assert.equal(card.style.values["--salah-viewport-card-height"], "746px",
+    assert.equal(card.style.values["--salah-viewport-card-height"], "596px",
       "Ignore hidden or unmeasurable cards");
   } finally {
     window.visualViewport = oldViewport;
