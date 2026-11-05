@@ -125,6 +125,69 @@ function prayerPanel(kind, event, data, zone, ui, config, clock, mode = "previou
   return result;
 }
 
+
+/** Five published daily prayers in display order; no estimates or synthetic times. */
+function kioskPrayerStrip(rows, next, data, zone, ui, config, selectedDay, now) {
+  const strip = node("section", undefined, "kiosk-strip");
+  strip.setAttribute("aria-label", tr(ui, "table.caption"));
+  const ordered = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
+    .map(key => Array.isArray(rows) ? rows.find(row => row?.key === key) : null)
+    .filter(Boolean);
+  if (!ordered.length) {
+    strip.append(node("p", tr(ui, "card.day_unavailable"), "kiosk-strip-empty"));
+    return strip;
+  }
+  const nextTime = timestamp(next?.timestamp);
+  const nextKey = selectedDay === 0 && nextTime !== null
+    ? ordered.find(row => timestamp(row.begin) === nextTime)?.key : null;
+  const currentKey = selectedDay === 0
+    ? ordered.filter(row => {
+      const begin = timestamp(row.begin);
+      return begin !== null && begin <= now;
+    }).at(-1)?.key : null;
+
+  for (const prayer of ordered) {
+    const status = prayer.key === nextKey ? "is-next"
+      : prayer.key === currentKey ? "is-current"
+      : selectedDay === 0 && prayerIsPast(prayer, now) ? "is-past" : "";
+    const tile = node("div", undefined, "kiosk-tile" + (status ? " " + status : ""));
+    tile.setAttribute("data-prayer", prayer.key);
+    if (status === "is-next") tile.setAttribute("aria-current", "true");
+    const heading = node("h3", undefined, "kiosk-tile-name");
+    heading.append(prayerNode(prayer.key, ui, config.bilingual_prayer_labels, prayer.name));
+    const times = node("div", undefined, "kiosk-tile-times");
+    const beginning = node("div", undefined, "kiosk-tile-time");
+    beginning.append(
+      node("span", tr(ui, "table.beginning"), "kiosk-tile-label"),
+      formattedNode("strong", formatTime(prayer.begin, zone, ui, config.time_format)),
+    );
+    times.append(beginning);
+    const jamaat = node("div", undefined, "kiosk-tile-time");
+    jamaat.append(node("span", tr(ui, "table.jamaat"), "kiosk-tile-label"));
+    const congregations = Array.isArray(prayer.jamaat) && prayer.jamaat.length
+      ? prayer.jamaat : [null];
+    const jamaatValues = node("div", undefined, "kiosk-tile-jamaat-values");
+    for (const [index, value] of congregations.entries()) {
+      if (index) jamaatValues.append(node("span", " · ", "kiosk-tile-separator"));
+      const isJumuah = prayer.key === "dhuhr" && Array.isArray(data.jamaat_events)
+        && data.jamaat_events.some(event => event.prayer === "jumuah"
+          && timestamp(event.timestamp) !== null
+          && timestamp(event.timestamp) === timestamp(value));
+      if (isJumuah) {
+        const marker = node("span", undefined, "kiosk-tile-jumuah");
+        marker.append(prayerNode("jumuah", ui, config.bilingual_prayer_labels));
+        jamaatValues.append(marker);
+      }
+      jamaatValues.append(formattedNode("strong", formatTime(value, zone, ui, config.time_format)));
+    }
+    jamaat.append(jamaatValues);
+    times.append(jamaat);
+    tile.append(heading, times);
+    strip.append(tile);
+  }
+  return strip;
+}
+
 export class SalahTimetableCard extends HTMLElement {
   constructor() {
     super();
