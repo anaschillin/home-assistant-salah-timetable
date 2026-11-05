@@ -698,7 +698,23 @@ try {
   check("kiosk previous Jamaat uses secondary text colour",
     getComputedStyle(nextCountdown).color !== getComputedStyle(previousCountdown).color);
   check("kiosk five-tile labels remain legible from a distance",
-    Number.parseFloat(getComputedStyle(kioskStrip.querySelector(".kiosk-tile-label")).fontSize) >= 13);
+    Number.parseFloat(getComputedStyle(kioskStrip.querySelector(".kiosk-tile-label")).fontSize) >= 16);
+  check("kiosk current-time and main prayer labels are readable from a wall display",
+    Number.parseFloat(getComputedStyle(kioskHeader.querySelector(".kiosk-clock-label")).fontSize) >= 16 &&
+    [...kioskRoot.querySelectorAll(".summary-shell .prayer-time .label")].every(label =>
+      Number.parseFloat(getComputedStyle(label).fontSize) >= 16));
+  check("kiosk photographer attribution never overlaps fullscreen controls",
+    (() => {
+      const link = kioskFooter.querySelector(".kiosk-footer-info .background-credit a");
+      const button = kioskFooter.querySelector(".kiosk-fullscreen");
+      if (!link || !button) return false;
+      const a = link.getBoundingClientRect(), b = button.getBoundingClientRect();
+      return a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
+    })());
+  check("kiosk avoids a second card viewport minimum and does not suppress body scrolling",
+    getComputedStyle(photoSurface).minHeight === "0px" &&
+    getComputedStyle(photoSurface).maxHeight === "none" &&
+    getComputedStyle(document.body).overflowY !== "hidden");
   const fullscreen = kioskFooter.querySelector(".kiosk-fullscreen");
   fullscreen.focus({preventScroll: true});
   check("kiosk fullscreen is keyboard focusable", kioskRoot.activeElement === fullscreen);
