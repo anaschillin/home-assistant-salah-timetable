@@ -313,9 +313,11 @@ available below the main display. The mosque photograph fills the entire kiosk
 canvas with `cover` even when normal dashboard day-tab sizing is cached. Its
 photographer credit appears in the left footer, away from fullscreen controls,
 with wrapping and responsive stacking so it cannot overlap. The kiosk avoids
-a duplicate outer viewport-height requirement, which prevents unnecessary
-desktop scrolling without hiding the page scrollbar when mobile content is
-naturally taller than the screen. The five prayer tiles use stronger glass contrast and larger published-time labels;
+a duplicate outer viewport-height requirement and reserves a small amount
+of space for Home Assistant's surrounding dashboard margins. This reduces
+unnecessary desktop scrolling without hiding overflow when mobile content is
+naturally taller than the screen. The five prayer tiles use stronger glass
+contrast and larger published-time labels;
 the upcoming prayer tile uses a deeper highlight and inactive date tabs remain
 legible. Pointer clicks clear fullscreen focus without hiding keyboard focus.
 
