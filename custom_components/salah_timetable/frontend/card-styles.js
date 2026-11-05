@@ -1207,51 +1207,143 @@ ha-card.kiosk:fullscreen {
   .monthly-shell { padding: 8px; }
 }
 
-/* Kiosk centres the entire content group within the visible canvas. */
+/* Kiosk scales the glass panels up while leaving the mosque photograph full-bleed.
+   Min-height (not a fixed height) keeps short screens and mobile WebViews scrollable. */
 .content.kiosk {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1540px;
+  min-height: var(--salah-viewport-card-height, 100dvh);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: var(--salah-viewport-card-height, 100dvh);
+  padding: clamp(16px, 2.6cqi, 44px);
 }
 :host([dashboard-editing]) ha-card.kiosk,
 :host([dashboard-editing]) .content.kiosk { min-height: 0; }
 :host([dashboard-editing]) .content.kiosk { justify-content: flex-start; }
+.content.kiosk .summary-shell {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto clamp(22px, 2.5cqi, 40px);
+  padding: clamp(24px, 3.2cqi, 48px);
+}
+.content.kiosk .summary-shell .panels {
+  column-gap: clamp(20px, 3cqi, 48px);
+  margin-top: clamp(20px, 2.6cqi, 34px);
+  padding-top: clamp(20px, 2.6cqi, 34px);
+}
+.content.kiosk .summary-shell .panel.prayer-panel {
+  padding: 8px clamp(8px, 1.4cqi, 18px) 14px;
+}
+.content.kiosk .summary-shell .prayer-panel + .prayer-panel {
+  padding-inline-start: clamp(20px, 2.5cqi, 36px);
+}
+.content.kiosk .date-tabs { margin-bottom: clamp(16px, 2cqi, 28px); }
 .content.kiosk .header {
-  grid-template-columns: minmax(0,1fr) max-content;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: clamp(7px, 1cqi, 14px);
+  position: relative;
 }
-.content.kiosk .header h2 { grid-column: 1; grid-row: 1; }
-.content.kiosk .header .kiosk-toolbar {
-  grid-column: 2; grid-row: 1;
-  display: flex; gap: 12px; align-items: center;
-  justify-content: flex-end; min-width: 0; margin: 0;
+.content.kiosk .header h2 {
+  grid-column: auto;
+  grid-row: auto;
+  flex-basis: auto;
+  width: calc(100% - 350px);
+  max-width: 100%;
+  min-width: 0;
+  font-size: clamp(2rem, 3.6cqi, 3.3rem);
+  line-height: 1.2;
+  text-align: center;
 }
-.content.kiosk .kiosk-toolbar .card-action-strip { grid-column: auto; grid-row: auto; }
-.content.kiosk .kiosk-toolbar .card-actions-menu { position: relative; inset: auto; }
-.content.kiosk .kiosk-clock {
-  display: grid; gap: 1px; justify-items: end; white-space: nowrap;
+.content.kiosk .header .mosque-select {
+  margin-inline: auto;
+  text-align: center;
+}
+.content.kiosk .header .kiosk-clock {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  white-space: nowrap;
 }
 .content.kiosk .kiosk-clock-label {
   color: var(--secondary-text-color);
-  font-size: .68rem; font-weight: 600;
-  letter-spacing: .06em; text-transform: uppercase;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
 }
 .content.kiosk .kiosk-clock-value {
-  font-size: clamp(1.15rem,2.2cqi,1.8rem);
-  font-weight: 750; font-variant-numeric: tabular-nums;
+  font-size: clamp(1.65rem, 2.6cqi, 2.5rem);
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
 }
+.content.kiosk .header .kiosk-dates {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: clamp(12px, 2cqi, 30px);
+  row-gap: 8px;
+  max-width: 100%;
+  text-align: center;
+}
+.content.kiosk .kiosk-dates .date {
+  grid-column: auto;
+  grid-row: auto;
+  text-align: center;
+  font-size: clamp(.9rem, 1.35cqi, 1.15rem);
+}
+.content.kiosk .kiosk-dates .month-description {
+  grid-column: auto;
+  grid-row: auto;
+  flex-basis: 100%;
+  text-align: center;
+  margin: 4px 0 0;
+  font-size: .9rem;
+}
+.content.kiosk .header .kiosk-toolbar {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  max-width: 48%;
+  z-index: 3;
+}
+.content.kiosk .kiosk-toolbar .card-action-strip { grid-column: auto; grid-row: auto; }
+.content.kiosk .kiosk-toolbar .card-actions-menu { position: relative; inset: auto; }
 .content.kiosk .kiosk-fullscreen { white-space: nowrap; }
-@container(max-width:46rem) {
-  .content.kiosk .header { grid-template-columns: minmax(0,1fr); }
+@container(max-width:50rem) {
+  .content.kiosk .header h2 { width: 100%; }
   .content.kiosk .header .kiosk-toolbar {
-    grid-column: 1; grid-row: 2;
-    justify-content: space-between; flex-wrap: wrap;
+    position: static;
+    order: -1;
+    align-self: stretch;
+    max-width: 100%;
+    flex-wrap: wrap;
   }
-  .content.kiosk .header .hijri,
-  .content.kiosk .header .gregorian,
-  .content.kiosk .header .month-description {
-    grid-column: 1; grid-row: auto; text-align: start;
+}
+@container(max-width:28rem) {
+  .content.kiosk { padding: 10px; }
+  .content.kiosk .summary-shell { padding: 16px; }
+  .content.kiosk .summary-shell .panels { column-gap: 10px; }
+  .content.kiosk .summary-shell .panel.prayer-panel { padding: 8px 6px 10px; }
+  .content.kiosk .summary-shell .prayer-panel + .prayer-panel { padding-inline-start: 10px; }
+}
+@container(max-width:21rem) {
+  .content.kiosk .summary-shell .prayer-panel + .prayer-panel {
+    border-inline-start: 0;
+    padding-inline-start: 6px;
   }
 }
 
