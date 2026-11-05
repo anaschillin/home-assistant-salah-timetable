@@ -647,7 +647,8 @@ try {
   // No changes to the standard dashboard fixture or its screenshot baseline.
   const kioskCard = new SalahTimetableCard();
   kioskCard.setConfig({...config, kiosk_mode: true, show_timezone_note: true,
-    show_month_view: true, detail_level: "standard"});
+    show_month_view: true, show_mosque_background: true,
+    mosque_background: "masjid-al-haram", detail_level: "standard"});
   kioskCard.hass = hass;
   document.body.append(kioskCard);
   pauseFixtureTicker(kioskCard);
@@ -682,6 +683,28 @@ try {
   check("kiosk 3.0 tile row does not cause horizontal page overflow",
     kioskStrip.scrollWidth <= kioskStrip.clientWidth + 2 &&
     document.documentElement.scrollWidth <= width + 1);
+  const photoSurface = kioskRoot.querySelector("ha-card");
+  const photo = getComputedStyle(photoSurface, "::before");
+  const surfaceRect = photoSurface.getBoundingClientRect();
+  check("kiosk mosque photo uses cover across the rendered canvas, ignoring cached frames",
+    photo.backgroundSize === "cover" &&
+    Math.abs(Number.parseFloat(photo.width) - surfaceRect.width) <= 3 &&
+    Math.abs(Number.parseFloat(photo.height) - surfaceRect.height) <= 3);
+  check("kiosk photographer credit sits in footer away from fullscreen control",
+    Boolean(kioskFooter.querySelector(".kiosk-footer-info .background-credit a")) &&
+    !kioskContent.querySelector(":scope > .background-credit"));
+  const nextCountdown = kioskRoot.querySelector('[data-panel="salah"] .count');
+  const previousCountdown = kioskRoot.querySelector('[data-panel="jamaat"] .count');
+  check("kiosk previous Jamaat uses secondary text colour",
+    getComputedStyle(nextCountdown).color !== getComputedStyle(previousCountdown).color);
+  check("kiosk five-tile labels remain legible from a distance",
+    Number.parseFloat(getComputedStyle(kioskStrip.querySelector(".kiosk-tile-label")).fontSize) >= 13);
+  const fullscreen = kioskFooter.querySelector(".kiosk-fullscreen");
+  fullscreen.focus({preventScroll: true});
+  check("kiosk fullscreen is keyboard focusable", kioskRoot.activeElement === fullscreen);
+  fullscreen.dispatchEvent(new PointerEvent("pointerup", {bubbles: true, pointerType: "mouse"}));
+  check("kiosk pointer activation does not leave a stale focus ring",
+    kioskRoot.activeElement !== fullscreen);
   kioskCard.remove();
   card.remove(); check("disconnected card clears local timer", card._timer === null);
   // Keep a static native-DOM preview for optional CDP screenshots.
