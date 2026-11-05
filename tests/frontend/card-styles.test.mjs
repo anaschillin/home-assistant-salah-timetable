@@ -176,15 +176,21 @@ test("kiosk 3.0 layout preserves full-bleed photo and distance-readable contrast
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\s*\{[^}]*grid-template-columns:\s*minmax\(0, 3fr\) minmax\(0, 2fr\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.count\s*\{[^}]*color:\s*var\(--primary-text-color\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-strip\s*\{[^}]*grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\)/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\s*\{[^}]*94%, transparent\)[^}]*backdrop-filter:\s*blur\(16px\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\s*\{[^}]*97%, transparent\)[^}]*backdrop-filter:\s*blur\(18px\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\.is-next\s*\{[^}]*background:\s*color-mix\(in srgb, var\(--primary-color\) 74%, #10202b\)/);
+
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\.is-next-jamaat\s*\{[^}]*box-shadow:\s*inset 0 0 0 2px/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-next-day\s*\{[^}]*border:\s*1px solid/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.count\s*\{[^}]*font-size:\s*clamp\(2rem, min\(5\.6cqi, 9\.2dvh\), 6\.2rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.event\s*\{[^}]*font-size:\s*clamp\(1\.5rem, calc\(var\(--kiosk-u\) \* 4\.7\), 3\.5rem\)/);
+
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\.is-past\s*\{[^}]*opacity:/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile-label\s*\{[^}]*font-size:\s*clamp\(1rem, 1\.13cqi, 1\.125rem\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer-info\s*\{[^}]*grid-column:\s*1/);
 
   assert.match(CARD_CSS, /ha-card\.kiosk\s*\{[^}]*min-height:\s*0/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel \.count\s*\{[^}]*font-size:\s*clamp\(3rem, calc\(var\(--kiosk-u\) \* 13\.5\), 9\.25rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel \.count\s*\{[^}]*font-size:\s*clamp\(2rem, min\(5\.6cqi, 9\.2dvh\), 6\.2rem\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.count span\s*\{[^}]*color:\s*inherit/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-time \.label\s*\{[^}]*font-size:\s*clamp\(1rem, 1\.13cqi, 1\.125rem\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-clock-label\s*\{[^}]*font-size:\s*clamp\(1rem, 1\.15cqi, 1\.125rem\)/);
