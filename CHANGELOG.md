@@ -19,6 +19,7 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 - Preserve multiple mosques, Ramadan details, Friday congregations, night calculations, source attribution and accessible responsive layouts; non-kiosk Compact/Standard/Detailed dashboards remain unchanged.
 - Improve kiosk legibility and proportions: constrain empty hero space, differentiate the elapsed Jamaat countdown, enlarge date and prayer labels, darken highlighted tiles, strengthen tile glass, keep the photograph full-bleed and relocate attribution to the footer.
 - Keep keyboard focus visible while preventing a persistent pointer-triggered fullscreen focus ring.
+- Centre the entire kiosk display group horizontally and vertically within the available viewport, including fullscreen changes, while keeping tall/mobile layouts scrollable and the dashboard editor top-aligned.
 - Update frontend/browser regression coverage and kiosk documentation for desktop, tablet, phone and cast displays.
 
 ## 2.0.0 — 4 November 2026
