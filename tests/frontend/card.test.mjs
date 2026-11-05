@@ -1047,22 +1047,51 @@ test("month view defaults off and validates a strict boolean", () => {
 });
 
 
-test("kiosk clock updates in the mosque timezone", () => {
+test("kiosk honours configured date visibility even in Compact and updates mosque-local time", () => {
   const card = new SalahTimetableCard();
-  card.setConfig({entity: "sensor.mosque_prayer_timetable", kiosk_mode: true, show_month_view: true});
-  card.hass = hass();
+  const entity = "sensor.mosque_prayer_timetable";
   const start = Date.parse("2026-10-21T04:40:00Z");
+  card.setConfig({entity, kiosk_mode: true, detail_level: "compact",
+    show_month_view: true, show_hijri_date: true, show_gregorian_date: true,
+    show_hijri_month_info: true});
+  card.hass = hass();
   card._render(start);
   const header = find(card.shadowRoot, "header")[0];
   const toolbar = find(header, "div").find(element => element.className === "kiosk-toolbar");
+  const dates = find(header, "div").find(element => element.className === "kiosk-dates");
   const clock = find(header, "time")[0];
   assert.ok(toolbar.children.some(child => child.className === "kiosk-fullscreen"));
   assert.ok(toolbar.children.some(child => child.className === "card-action-strip"));
+  assert.ok(dates);
+  assert.ok(find(dates, "div").some(element => element.className === "date hijri"));
+  assert.ok(find(dates, "div").some(element => element.className === "date gregorian"));
+  assert.ok(find(dates, "div").some(element => element.className === "month-description"));
+  assert.ok(header.children.indexOf(clock) === -1, "Clock is contained in its labelled group");
+  assert.ok(header.children.findIndex(child => child.className === "kiosk-clock") <
+    header.children.indexOf(dates), "Current time should precede configured dates");
   assert.equal(clock.textContent, "05:40");
   card._tick(start + 60000);
+  assert.equal(find(card.shadowRoot, "time")[0], clock);
   assert.equal(clock.textContent, "05:41");
-  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+
+  card.setConfig({entity, kiosk_mode: true, detail_level: "compact",
+    time_format: "12h", show_hijri_date: false, show_gregorian_date: false});
+  card._render(start);
+  assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "kiosk-dates").length, 0);
+  assert.match(find(card.shadowRoot, "time")[0].textContent, /05:40\\s*am/i);
+
+  card.setConfig({entity, kiosk_mode: true, detail_level: "compact",
+    show_hijri_date: true, show_gregorian_date: true});
+  card.hass = hass({...attributes, show_hijri_date: false});
+  card._render(start);
+  const mosqueDates = find(card.shadowRoot, "div").find(element => element.className === "kiosk-dates");
+  assert.ok(find(mosqueDates, "div").some(element => element.className === "date gregorian"));
+  assert.ok(!find(mosqueDates, "div").some(element => element.className === "date hijri"),
+    "Mosque-level Hijri preference should override kiosk card settings");
+
+  card.setConfig({entity});
   assert.equal(find(card.shadowRoot, "time").length, 0);
+  assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "kiosk-dates").length, 0);
 });
 
 test("reminder setup lives in the editor and follows administrator and kiosk changes", () => {
