@@ -159,16 +159,25 @@ test("Compact More menu is an overlay and does not reflow the summary header", (
   assert.match(CARD_CSS, /\.summary-shell \.header:has\(\.card-actions-menu\[open\]\)\s*\{[^}]*z-index:/);
 });
 
-test("kiosk 3.0 uses a responsive three-zone wall-display layout", () => {
-  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*grid-template-rows:\s*minmax\(0, 1fr\) auto auto/);
+test("kiosk 3.0 layout preserves full-bleed photo and distance-readable contrast", () => {
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*grid-template-rows:\s*auto auto auto/);
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*align-content:\s*center/);
   assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*min-height:\s*var\(--salah-viewport-card-height/);
   assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content\.kiosk\s*\{[^}]*grid-template-rows:\s*auto/);
+  assert.match(CARD_CSS, /ha-card\.kiosk\.has-mosque-background::before,[\s\S]*?ha-card\.kiosk\.has-mosque-background::after\s*\{[^}]*width:\s*100%;[^}]*height:\s*100%;[^}]*background-size:\s*cover/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell\s*\{[^}]*min-height:\s*clamp\(310px, 43dvh, 430px\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.header\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\s*\{[^}]*grid-template-columns:\s*minmax\(0, 3fr\) minmax\(0, 2fr\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.count\s*\{[^}]*color:\s*var\(--primary-text-color\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-strip\s*\{[^}]*grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\)/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\.is-next\s*\{[^}]*background:\s*var\(--primary-color\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\s*\{[^}]*94%, transparent\)[^}]*backdrop-filter:\s*blur\(16px\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\.is-next\s*\{[^}]*background:\s*color-mix\(in srgb, var\(--primary-color\) 74%, #10202b\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\.is-past\s*\{[^}]*opacity:/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile-label\s*\{[^}]*font-size:\s*clamp\(\.85rem, 1\.12cqi, 1\.05rem\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer-info\s*\{[^}]*grid-column:\s*1/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer-info \.background-credit\s*\{[^}]*font-size:\s*clamp\(\.73rem, \.9cqi, \.87rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-day-tabs \.date-tab:not\(\[aria-pressed="true"\]\)\s*\{[^}]*opacity:\s*\.95/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer \.kiosk-toolbar\s*\{[^}]*grid-column:\s*3/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-clock-value\s*\{[^}]*font-variant-numeric:\s*tabular-nums/);
   assert.match(CARD_CSS, /@container\(max-width:60rem\)/);
