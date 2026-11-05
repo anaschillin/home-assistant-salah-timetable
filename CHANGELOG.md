@@ -11,9 +11,10 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 ### Kiosk Mode improvements
 
-- Centre kiosk content in the available viewport, with natural scrolling on shorter displays.
-- Align the fullscreen control and optional monthly actions with the mosque name.
-- Add a live mosque-local clock respecting 12/24-hour preferences without another timer.
+- Centre and enlarge the kiosk summary with more space between prayer panels, while keeping shorter displays scrollable.
+- Centre the mosque name above the live mosque-local clock, using the configured 12/24-hour format without another timer.
+- Display enabled Gregorian/Hijri dates and Hijri month details beneath the clock even in Compact kiosk mode, respecting mosque-level Hijri visibility and selected day navigation.
+- Keep fullscreen and monthly actions accessible at the top right, with responsive stacking on narrower screens.
 
 ## 2.0.0 — 4 November 2026
 
