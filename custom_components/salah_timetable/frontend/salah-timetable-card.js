@@ -100,6 +100,27 @@ function panelSilhouette(kind) {
   return holder;
 }
 
+/** Compare upcoming Salah against the mosque's civil date, not the browser UTC date. */
+function kioskSalahDayLabel(event, now, zone, ui) {
+  const target = timestamp(event?.timestamp);
+  if (target === null) return null;
+  const localDay = instant => {
+    const parts = new Intl.DateTimeFormat("en", {
+      timeZone: zone, calendar: "gregory",
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).formatToParts(instant);
+    const part = kind => parts.find(value => value.type === kind)?.value;
+    const year = part("year"), month = part("month"), day = part("day");
+    return year && month && day ? `${year}-${month}-${day}` : null;
+  };
+  try {
+    const today = localDay(now), upcoming = localDay(target);
+    if (!today || !upcoming || upcoming <= today) return null;
+    const interval = (Date.parse(`${upcoming}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86400000;
+    return interval === 1 ? tr(ui, "card.tomorrow") : formatDate(upcoming, ui);
+  } catch { return null; }
+}
+
 // Shared structure and styles for the upcoming Salah and contextual Jamaat.
 function prayerPanel(kind, event, data, zone, ui, config, clock, mode = "previous") {
   const result = node("section", undefined, "panel prayer-panel");
@@ -127,7 +148,7 @@ function prayerPanel(kind, event, data, zone, ui, config, clock, mode = "previou
 
 
 /** Five published daily prayers in display order; no estimates or synthetic times. */
-function kioskPrayerStrip(rows, next, data, zone, ui, config, selectedDay, now) {
+function kioskPrayerStrip(rows, next, congregation, data, zone, ui, config, selectedDay, now) {
   const strip = node("section", undefined, "kiosk-strip");
   strip.setAttribute("aria-label", tr(ui, "table.caption"));
   const ordered = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
@@ -145,13 +166,24 @@ function kioskPrayerStrip(rows, next, data, zone, ui, config, selectedDay, now) 
       const begin = timestamp(row.begin);
       return begin !== null && begin <= now;
     }).at(-1)?.key : null;
+  const nextJamaatTime = selectedDay === 0 && congregation?.mode === "upcoming"
+    ? timestamp(congregation.event?.timestamp) : null;
+  const nextJamaatKey = nextJamaatTime === null ? null
+    : ordered.find(row => Array.isArray(row.jamaat) &&
+      row.jamaat.some(value => timestamp(value) === nextJamaatTime))?.key;
 
   for (const prayer of ordered) {
     const status = prayer.key === nextKey ? "is-next"
       : prayer.key === currentKey ? "is-current"
       : selectedDay === 0 && prayerIsPast(prayer, now) ? "is-past" : "";
-    const tile = node("div", undefined, "kiosk-tile" + (status ? " " + status : ""));
+    const isNextJamaat = prayer.key === nextJamaatKey;
+    const tile = node("div", undefined, "kiosk-tile" + (status ? " " + status : "") +
+      (isNextJamaat ? " is-next-jamaat" : ""));
     tile.setAttribute("data-prayer", prayer.key);
+    if (isNextJamaat) {
+      tile.setAttribute("data-next-jamaat", "true");
+      tile.setAttribute("title", tr(ui, "panel.next_jamaat"));
+    }
     if (status === "is-next") tile.setAttribute("aria-current", "true");
     const heading = node("h3", undefined, "kiosk-tile-name");
     heading.append(prayerNode(prayer.key, ui, config.bilingual_prayer_labels, prayer.name));
@@ -289,7 +321,11 @@ export class SalahTimetableCard extends HTMLElement {
         !Number.isFinite(bottom) || bottom <= 0) return;
     // Do not let a scrolled-out card grow beyond one screen. Reserve a little
     // bottom breathing room for HA's dashboard margins and mobile safe area.
-    const visibleHeight = Math.max(0, Math.floor(bottom - Math.max(0, rect.top) - 12));
+    // HA may add a bottom margin beneath a full-screen dashboard card. In
+    // kiosk mode leave room for that shell margin instead of inducing a tiny
+    // document scrollbar; genuinely taller mobile content still scrolls.
+    const reserve = this._config.kiosk_mode && !this.hasAttribute("dashboard-editing") ? 32 : 12;
+    const visibleHeight = Math.max(0, Math.floor(bottom - Math.max(0, rect.top) - reserve));
     const value = `${visibleHeight}px`;
     if (this._viewportHeight === value) return;
     this._viewportHeight = value;
@@ -758,6 +794,14 @@ export class SalahTimetableCard extends HTMLElement {
     const panels = node("div", undefined, "panels");
     if (this._selectedDay === 0 && this._config.show_salah_countdown) {
       const box = prayerPanel("salah", next, data, zone, ui, this._config, countdown(next?.timestamp, now, ui));
+      if (this._config.kiosk_mode) {
+        const dayLabel = kioskSalahDayLabel(next, now, zone, ui);
+        if (dayLabel) {
+          const indicator = node("span", dayLabel, "kiosk-next-day");
+          indicator.setAttribute("data-role", "next-salah-day");
+          box.querySelector(".label")?.append(indicator);
+        }
+      }
       updates.push(instant => { box.clock.run.textContent = countdown(next?.timestamp, instant, ui); });
       panels.append(box);
     }
@@ -809,7 +853,7 @@ export class SalahTimetableCard extends HTMLElement {
     tableRegion.append(table); tableShell.append(tableRegion, scrollHelp);
     }
     if (this._config.kiosk_mode) {
-      content.append(kioskPrayerStrip(selectedPrayers, next, data, zone, ui, this._config, this._selectedDay, now));
+      content.append(kioskPrayerStrip(selectedPrayers, next, congregation, data, zone, ui, this._config, this._selectedDay, now));
       dateTabs.classList.add("kiosk-day-tabs");
     } else {
       if (!selectedPrayers) tableShell.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
