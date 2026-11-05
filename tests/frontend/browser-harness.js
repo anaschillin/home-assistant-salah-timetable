@@ -643,6 +643,46 @@ try {
   check("reminder Close restores launch focus", editor.shadowRoot.activeElement === launch);
   check("countdowns never write HA service or state", serviceCalls === 0);
   check("real browser resource registration", customElements.get("salah-timetable-card") === SalahTimetableCard && window.customCards.some(item => item.type === "salah-timetable-card"));
+  // Exercise the actual 3.0 wall display at the fixture's real browser width.
+  // No changes to the standard dashboard fixture or its screenshot baseline.
+  const kioskCard = new SalahTimetableCard();
+  kioskCard.setConfig({...config, kiosk_mode: true, show_timezone_note: true,
+    show_month_view: true, detail_level: "standard"});
+  kioskCard.hass = hass;
+  document.body.append(kioskCard);
+  pauseFixtureTicker(kioskCard);
+  kioskCard._render(Date.parse(time(14, 15)));
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const kioskRoot = kioskCard.shadowRoot;
+  const kioskContent = kioskRoot.querySelector(".content.kiosk");
+  const kioskHeader = kioskRoot.querySelector("header");
+  const kioskStrip = kioskRoot.querySelector(".kiosk-strip");
+  const kioskFooter = kioskRoot.querySelector(".kiosk-footer");
+  check("kiosk 3.0 uses one hero, five live tiles and a bottom control row",
+    kioskContent && kioskContent.children[0].className === "summary-shell" &&
+    kioskStrip?.children.length === 5 && kioskFooter?.tagName === "FOOTER");
+  check("kiosk 3.0 header has mosque identity, live clock and optional dates",
+    kioskHeader.querySelector(".kiosk-identity")?.textContent.includes("Example Mosque") &&
+    kioskHeader.querySelector(".kiosk-timezone")?.textContent.includes("Europe/London") &&
+    kioskHeader.querySelector(".kiosk-clock-value")?.textContent === "15:15" &&
+    kioskHeader.querySelector(".kiosk-dates .hijri") &&
+    kioskHeader.querySelector(".kiosk-dates .gregorian") &&
+    getComputedStyle(kioskHeader).display === "grid");
+  check("kiosk 3.0 countdown panels use unequal responsive columns",
+    kioskRoot.querySelectorAll(".summary-shell .prayer-panel").length === 2 &&
+    getComputedStyle(kioskRoot.querySelector(".summary-shell .panels")).display === "grid");
+  check("kiosk 3.0 highlights published next and most recently begun Salah",
+    kioskStrip.querySelector('[data-prayer="maghrib"]')?.classList.contains("is-next") &&
+    kioskStrip.querySelector('[data-prayer="asr"]')?.classList.contains("is-current"));
+  check("kiosk 3.0 footer keeps day tabs, fullscreen and month actions visible",
+    kioskFooter.querySelectorAll(".date-tab").length === 3 &&
+    kioskFooter.querySelector(".kiosk-fullscreen") &&
+    kioskFooter.querySelector(".card-action-strip") &&
+    kioskFooter.querySelector(".kiosk-footer-note"));
+  check("kiosk 3.0 tile row does not cause horizontal page overflow",
+    kioskStrip.scrollWidth <= kioskStrip.clientWidth + 2 &&
+    document.documentElement.scrollWidth <= width + 1);
+  kioskCard.remove();
   card.remove(); check("disconnected card clears local timer", card._timer === null);
   // Keep a static native-DOM preview for optional CDP screenshots.
   document.body.prepend(card); card.disconnectedCallback(); card._render(Date.parse(time(4, 40))); card.shadowRoot.querySelector(".table-scroll").scrollLeft = 0;
