@@ -1074,6 +1074,18 @@ test("kiosk honours configured date visibility even in Compact and updates mosqu
   card._tick(start + 60000);
   assert.equal(find(card.shadowRoot, "time")[0], clock);
   assert.equal(clock.textContent, "05:41");
+  // Today's Compact kiosk has no table. Navigation belongs to the summary,
+  // not to a separate glass timetable container with nothing in it.
+  const summary = find(card.shadowRoot, "div").find(element => element.className === "summary-shell");
+  const tabs = find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
+  assert.ok(summary.children.includes(tabs));
+  assert.ok(tabs.classList.contains("kiosk-summary-tabs"));
+  assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "timetable-shell").length, 0);
+  tabs.children[2].dispatchEvent(new Event("click"));
+  const tomorrowSummary = find(card.shadowRoot, "div").find(element => element.className === "summary-shell");
+  const tomorrowTabs = find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
+  assert.ok(tomorrowSummary.children.includes(tomorrowTabs), "Day navigation stays in place on adjacent days");
+  tomorrowTabs.children[1].dispatchEvent(new Event("click"));
 
   card.setConfig({entity, kiosk_mode: true, detail_level: "compact",
     time_format: "12h", show_hijri_date: false, show_gregorian_date: false});
