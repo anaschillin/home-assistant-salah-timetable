@@ -275,9 +275,12 @@ times, create sensors/calendar events or change Ramadan activation.
 ## Wall and tablet display
 
 Enable **Kiosk / wall display mode** in the card editor (`kiosk_mode: true`)
-for a larger, more spacious presentation. The card centres the larger glass
-summary and day navigation in the available viewport while letting taller content
-scroll naturally. The mosque name is centred above a live mosque-local clock,
+for a balanced, slightly enlarged presentation. The centred glass summary uses
+a constrained maximum width, so the header and prayer sections stay visually
+connected while the background remains visible. On Compact kiosk views, the
+Yesterday/Today/Tomorrow selector lives inside that same glass summary rather
+than inside an otherwise empty timetable panel. Standard and Detailed views
+retain navigation under their timetable. Taller content scrolls naturally. The mosque name is centred above a live mosque-local clock,
 using the existing 12/24-hour setting. Beneath the clock, the Gregorian date,
 calculated Hijri date and Hijri month summary follow their existing visibility
 settings (including the mosque's Hijri preference), even in Compact kiosk mode.
