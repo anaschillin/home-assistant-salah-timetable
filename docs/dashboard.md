@@ -312,8 +312,12 @@ five-tile display regardless of Compact, Standard or Detailed selection. When
 kiosk mode is disabled, those ordinary layouts are unchanged. Wider screens
 use the three-column header and 60/40 countdown layout. Narrow screens stack
 the header and countdowns and wrap the tiles and bottom controls to prevent
-clipping; taller content scrolls naturally. Use a full-width Home Assistant
-dashboard view on a dedicated wall display.
+clipping. The whole hero, five-tile strip and footer group is centred both
+horizontally and vertically within the visible kiosk canvas, including browser
+fullscreen and viewport resizing. On short or narrow displays where content
+cannot fit, alignment safely starts at the top and content scrolls rather than
+being clipped. The editor retains normal top-aligned behaviour. Use a full-width
+Home Assistant dashboard view on a dedicated wall display.
 
 The fullscreen button requires a tap or click and browser support. If the
 browser or WebView rejects fullscreen, the larger card presentation remains
