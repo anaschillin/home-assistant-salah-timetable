@@ -1207,162 +1207,377 @@ ha-card.kiosk:fullscreen {
   .monthly-shell { padding: 8px; }
 }
 
-/* Kiosk scales the glass panels up while leaving the mosque photograph full-bleed.
-   Min-height (not a fixed height) keeps short screens and mobile WebViews scrollable. */
+
+/* Kiosk 3.0: three-zone, distance-readable wall display. The source is
+   the existing live Home Assistant sensors; no timetable values are inferred. */
 .content.kiosk {
+  --kiosk-u: clamp(5px, min(.75cqi, 1.15dvh), 12px);
   box-sizing: border-box;
+  position: relative;
   width: 100%;
-  max-width: 1340px;
+  max-width: none;
   min-height: var(--salah-viewport-card-height, 100dvh);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: clamp(14px, 2cqi, 30px);
+  margin-inline: auto;
+  padding: clamp(12px, 1.7cqi, 28px);
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  align-content: center;
+  gap: clamp(10px, 1.3cqi, 20px);
 }
 :host([dashboard-editing]) ha-card.kiosk,
 :host([dashboard-editing]) .content.kiosk { min-height: 0; }
-:host([dashboard-editing]) .content.kiosk { justify-content: flex-start; }
+:host([dashboard-editing]) .content.kiosk {
+  grid-template-rows: auto;
+  align-content: start;
+}
 .content.kiosk .summary-shell {
   box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   width: 100%;
-  max-width: 1220px;
-  margin: 0 auto;
-  padding: clamp(20px, 2.4cqi, 34px);
-}
-.content.kiosk .summary-shell .panels {
-  column-gap: clamp(14px, 2cqi, 28px);
-  margin-top: clamp(14px, 1.5cqi, 22px);
-  padding-top: clamp(14px, 1.5cqi, 22px);
-}
-.content.kiosk .summary-shell .prayer-panel .count {
-  font-size: clamp(2rem, 4.8cqi, 3.7rem);
-}
-.content.kiosk .summary-shell .panel.prayer-panel {
-  padding: 8px clamp(8px, 1.1cqi, 14px) 12px;
-}
-.content.kiosk .summary-shell .prayer-panel + .prayer-panel {
-  padding-inline-start: clamp(14px, 1.7cqi, 24px);
-}
-.content.kiosk .timetable-shell {
-  max-width: 1220px;
-  margin-top: clamp(16px, 2cqi, 24px);
-}
-.content.kiosk .summary-shell .kiosk-summary-tabs {
-  box-sizing: border-box;
-  width: min(100%, 460px);
-  margin: clamp(16px, 1.8cqi, 24px) auto 0;
-  padding: 4px;
-  gap: 4px;
-  background: color-mix(in srgb, var(--secondary-background-color) 65%, transparent);
-  border: 1px solid color-mix(in srgb, var(--divider-color) 70%, transparent);
-}
-.content.kiosk .kiosk-summary-tabs .date-tab {
-  font-size: .9rem;
-  padding: 9px 8px;
+  max-width: none;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: clamp(18px, 2.2cqi, 34px);
+  border-radius: clamp(14px, 1.4cqi, 24px);
 }
 .content.kiosk .header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: clamp(4px, .6cqi, 9px);
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(10px, 1.6cqi, 28px);
+  padding: 0 0 clamp(14px, 1.6cqi, 24px);
+  border-bottom: 1px solid var(--divider-color);
+  text-align: start;
+}
+.content.kiosk .header .kiosk-identity {
+  min-width: 0;
+  text-align: start;
 }
 .content.kiosk .header h2 {
   grid-column: auto;
   grid-row: auto;
-  flex-basis: auto;
-  width: calc(100% - 270px);
-  max-width: 100%;
+  width: auto;
   min-width: 0;
-  font-size: clamp(1.8rem, 3cqi, 2.65rem);
-  line-height: 1.2;
-  text-align: center;
+  margin: 0;
+  text-align: start;
+  font-size: clamp(1.25rem, 2.25cqi, 2.5rem);
+  font-weight: 750;
+  line-height: 1.15;
 }
-.content.kiosk .header .mosque-select {
-  margin-inline: auto;
-  text-align: center;
+.content.kiosk .kiosk-identity .mosque-select {
+  max-width: 100%;
+  margin: 0;
+  text-align: start;
+}
+.content.kiosk .kiosk-timezone {
+  display: block;
+  margin-top: .4em;
+  color: var(--secondary-text-color);
+  font-size: clamp(.7rem, 1.1cqi, .95rem);
+  line-height: 1.4;
 }
 .content.kiosk .header .kiosk-clock {
   display: grid;
   justify-items: center;
-  gap: 2px;
+  text-align: center;
+  gap: 0;
+  min-width: 0;
   white-space: nowrap;
 }
 .content.kiosk .kiosk-clock-label {
+  font-size: .7rem;
   color: var(--secondary-text-color);
-  font-size: .75rem;
-  font-weight: 600;
-  letter-spacing: .06em;
+  letter-spacing: .04em;
   text-transform: uppercase;
 }
 .content.kiosk .kiosk-clock-value {
-  font-size: clamp(1.5rem, 2.3cqi, 2.1rem);
+  font-size: clamp(2.25rem, calc(var(--kiosk-u) * 7), 5.3rem);
   font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -.025em;
   font-variant-numeric: tabular-nums;
 }
 .content.kiosk .header .kiosk-dates {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  column-gap: clamp(12px, 2cqi, 30px);
-  row-gap: 5px;
+  display: grid;
+  gap: 3px;
+  justify-items: end;
+  align-content: center;
+  min-width: 0;
   max-width: 100%;
-  text-align: center;
+  text-align: end;
 }
 .content.kiosk .kiosk-dates .date {
   grid-column: auto;
   grid-row: auto;
-  text-align: center;
-  font-size: clamp(.85rem, 1.1cqi, 1rem);
+  min-width: 0;
+  font-size: clamp(.78rem, 1.24cqi, 1.1rem);
+  line-height: 1.35;
+  text-align: end;
+  overflow-wrap: anywhere;
 }
+.content.kiosk .kiosk-dates .hijri { font-weight: 700; }
+.content.kiosk .kiosk-dates .gregorian { font-weight: 400; }
 .content.kiosk .kiosk-dates .month-description {
   grid-column: auto;
   grid-row: auto;
-  flex-basis: 100%;
-  text-align: center;
-  margin: 2px 0 0;
-  font-size: .83rem;
+  max-width: 29rem;
+  margin: 3px 0 0;
+  font-size: clamp(.68rem, .95cqi, .85rem);
+  line-height: 1.3;
+  text-align: end;
+  overflow-wrap: anywhere;
 }
-.content.kiosk .header .kiosk-toolbar {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-end: 0;
+.content.kiosk .summary-shell .panels {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: stretch;
+  gap: 0;
+  min-height: 0;
+  margin: clamp(14px, 1.6cqi, 26px) 0 0;
+  padding: 0;
+  border-top: none;
+}
+.content.kiosk .summary-shell .panel.prayer-panel,
+.content.kiosk .summary-shell .panel.prayer-panel[data-panel="salah"] {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  margin: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: clamp(10px, 1.4cqi, 20px);
+  padding: 0 clamp(12px, 2.2cqi, 34px);
   min-width: 0;
-  max-width: 48%;
-  z-index: 3;
+  min-height: 0;
 }
-.content.kiosk .kiosk-toolbar .card-action-strip { grid-column: auto; grid-row: auto; }
+.content.kiosk .summary-shell .prayer-panel:first-child { padding-inline-start: 0; }
+.content.kiosk .summary-shell .prayer-panel:last-child { padding-inline-end: 0; }
+.content.kiosk .summary-shell .prayer-panel + .prayer-panel {
+  border-inline-start: 1px solid var(--divider-color);
+  padding-inline-start: clamp(18px, 2.2cqi, 34px);
+}
+.content.kiosk .summary-shell .prayer-panel .label {
+  font-size: clamp(.72rem, 1.16cqi, 1rem);
+  line-height: 1.3;
+}
+.content.kiosk .summary-shell .prayer-panel .event {
+  min-height: 0;
+  font-size: clamp(1.5rem, calc(var(--kiosk-u) * 4.7), 3.5rem);
+  line-height: 1.15;
+}
+.content.kiosk .summary-shell .prayer-panel[data-panel="jamaat"] .event {
+  font-size: clamp(1.3rem, calc(var(--kiosk-u) * 3.7), 2.85rem);
+}
+.content.kiosk .summary-shell .prayer-panel .count {
+  margin: 0;
+  font-size: clamp(2.6rem, calc(var(--kiosk-u) * 12), 8.5rem);
+  line-height: 1.05;
+  overflow-wrap: normal;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.035em;
+}
+.content.kiosk .summary-shell .prayer-panel[data-panel="jamaat"] .count {
+  font-size: clamp(2.1rem, calc(var(--kiosk-u) * 7), 5.4rem);
+}
+.content.kiosk .summary-shell .prayer-times {
+  margin-top: auto;
+  padding-top: clamp(12px, 1.3cqi, 20px);
+  gap: clamp(12px, 2cqi, 32px);
+}
+.content.kiosk .summary-shell .prayer-time .absolute {
+  font-size: clamp(1.15rem, 2.1cqi, 1.85rem);
+}
+.content.kiosk .summary-shell .panel-silhouette { opacity: .07; }
+
+/* Five daily tiles replace the scrolling timetable only in kiosk mode. */
+.content.kiosk .kiosk-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(6px, .75cqi, 14px);
+  width: 100%;
+  min-width: 0;
+}
+.content.kiosk .kiosk-tile {
+  box-sizing: border-box;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(8px, 1.1cqi, 14px);
+  padding: clamp(12px, 1.2cqi, 20px);
+  color: var(--primary-text-color);
+  border: 1px solid var(--divider-color);
+  border-radius: clamp(12px, 1.1cqi, 18px);
+  background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 84%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.content.kiosk .kiosk-tile.is-past { opacity: .72; }
+.content.kiosk .kiosk-tile.is-current {
+  border-color: color-mix(in srgb, var(--primary-text-color) 55%, transparent);
+  background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 96%, transparent);
+}
+.content.kiosk .kiosk-tile.is-next {
+  color: var(--text-primary-color, #fff);
+  background: var(--primary-color);
+  border-color: color-mix(in srgb, var(--primary-color) 70%, #fff);
+}
+.content.kiosk .kiosk-tile-name {
+  margin: 0;
+  font-size: clamp(.95rem, 1.6cqi, 1.45rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+.content.kiosk .kiosk-tile-name .prayer-labels {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+}
+.content.kiosk .kiosk-tile-name .label-separator { display: none; }
+.content.kiosk .kiosk-tile-times {
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(8px, 1.5cqi, 22px);
+}
+.content.kiosk .kiosk-tile-time { min-width: 0; }
+.content.kiosk .kiosk-tile-label {
+  display: block;
+  margin-bottom: .4em;
+  opacity: .82;
+  font-size: clamp(.65rem, .9cqi, .85rem);
+}
+.content.kiosk .kiosk-tile-time strong {
+  font-size: clamp(1rem, 1.6cqi, 1.55rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.content.kiosk .kiosk-tile-jamaat-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: baseline;
+}
+.content.kiosk .kiosk-tile-jumuah { font-size: .75rem; }
+.content.kiosk .kiosk-tile-empty,
+.content.kiosk .kiosk-strip-empty { padding: 14px; }
+
+/* Same footer alignment as the provided mockup; controls stay reachable. */
+.content.kiosk .kiosk-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(10px, 1cqi, 18px);
+  width: 100%;
+  min-width: 0;
+}
+.content.kiosk .kiosk-footer-note {
+  color: var(--primary-text-color);
+  opacity: .9;
+  margin: 0;
+  font-size: clamp(.7rem, .9cqi, .9rem);
+}
+.content.kiosk .kiosk-day-tabs {
+  grid-column: 2;
+  justify-self: center;
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+  gap: 4px;
+  padding: 4px;
+  margin: 0;
+  border: 1px solid var(--divider-color);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ha-card-background, var(--card-background-color)) 85%, transparent);
+}
+.content.kiosk .kiosk-day-tabs .date-tab {
+  min-height: clamp(40px, 6dvh, 62px);
+  min-width: clamp(76px, 7cqi, 115px);
+  padding: 8px clamp(10px, 1cqi, 18px);
+  font-size: clamp(.8rem, 1.1cqi, 1rem);
+  border-radius: 10px;
+}
+.content.kiosk .kiosk-footer .kiosk-toolbar {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  position: static;
+  inset: auto;
+}
+.content.kiosk .kiosk-fullscreen {
+  min-height: clamp(42px, 6dvh, 62px);
+  padding: 8px clamp(12px, 1.2cqi, 22px);
+  white-space: nowrap;
+  font-size: clamp(.75rem, 1cqi, .95rem);
+}
+.content.kiosk .kiosk-toolbar .card-action-strip {
+  grid-column: auto;
+  grid-row: auto;
+}
 .content.kiosk .kiosk-toolbar .card-actions-menu { position: relative; inset: auto; }
-.content.kiosk .kiosk-fullscreen { white-space: nowrap; }
-@container(max-width:50rem) {
-  .content.kiosk .header h2 { width: 100%; }
-  .content.kiosk .header .kiosk-toolbar {
-    position: static;
-    order: -1;
-    align-self: stretch;
-    max-width: 100%;
-    flex-wrap: wrap;
+.content.kiosk .background-credit { margin: 0; justify-self: end; font-size: .65rem; }
+
+/* Portrait, tablet and narrow Cast views must scroll rather than clip. */
+@container(max-width:60rem) {
+  .content.kiosk .header { grid-template-columns: minmax(0, 1fr) auto; }
+  .content.kiosk .header .kiosk-dates {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-items: center;
+    text-align: center;
   }
+  .content.kiosk .kiosk-dates .date,
+  .content.kiosk .kiosk-dates .month-description { text-align: center; }
+  .content.kiosk .kiosk-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .content.kiosk .kiosk-footer { grid-template-columns: 1fr auto; }
+  .content.kiosk .kiosk-footer-note { grid-column: 1 / -1; }
+  .content.kiosk .kiosk-day-tabs { grid-column: 1; }
+  .content.kiosk .kiosk-footer .kiosk-toolbar { grid-column: 2; }
 }
-@container(max-width:28rem) {
-  .content.kiosk { padding: 10px; }
-  .content.kiosk .summary-shell { padding: 16px; }
-  .content.kiosk .summary-shell .panels { column-gap: 10px; }
-  .content.kiosk .summary-shell .panel.prayer-panel { padding: 8px 6px 10px; }
-  .content.kiosk .summary-shell .prayer-panel + .prayer-panel { padding-inline-start: 10px; }
-}
-@container(max-width:21rem) {
+@container(max-width:40rem) {
+  .content.kiosk .header { grid-template-columns: 1fr; text-align: center; }
+  .content.kiosk .header .kiosk-identity { text-align: center; }
+  .content.kiosk .header h2 { text-align: center; }
+  .content.kiosk .header .kiosk-clock { grid-column: 1; }
+  .content.kiosk .header .kiosk-dates { grid-column: 1; grid-row: auto; }
+  .content.kiosk .summary-shell .panels { grid-template-columns: 1fr; }
   .content.kiosk .summary-shell .prayer-panel + .prayer-panel {
     border-inline-start: 0;
-    padding-inline-start: 6px;
+    border-block-start: 1px solid var(--divider-color);
+    padding: clamp(14px, 2cqi, 20px) 0 0;
+  }
+  .content.kiosk .summary-shell .panel.prayer-panel { padding-inline: 0; }
+  .content.kiosk .summary-shell .prayer-panel .count { font-size: clamp(2.2rem, 9cqi, 4.5rem); }
+  .content.kiosk .kiosk-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .content.kiosk .kiosk-footer { grid-template-columns: 1fr; }
+  .content.kiosk .kiosk-footer-note { grid-column: 1; text-align: center; }
+  .content.kiosk .kiosk-day-tabs { grid-column: 1; justify-self: center; }
+  .content.kiosk .kiosk-footer .kiosk-toolbar {
+    grid-column: 1; justify-self: center; justify-content: center;
+  }
+}
+@container(max-width:24rem) {
+  .content.kiosk { padding: 10px; }
+  .content.kiosk .summary-shell { padding: 14px; }
+  .content.kiosk .kiosk-tile-times { flex-wrap: wrap; }
+  .content.kiosk .kiosk-tile-name { font-size: .95rem; }
+  .content.kiosk .kiosk-day-tabs .date-tab { min-width: 0; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .content.kiosk .kiosk-tile,
+  .content.kiosk .kiosk-day-tabs {
+    background: var(--secondary-background-color);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 
