@@ -284,17 +284,23 @@ date also respects the mosque-level visibility preference and the optional
 published-Maghrib day boundary. When month information is enabled, it appears
 with the date details.
 
-The main panel gives Next Salah more space than the contextual Previous/Next
-Jamaat panel. Both still use the integration's approved timetable events and
-local countdown calculations. The hero has a shorter, content-driven minimum
-height and a larger Next Salah countdown so it does not create an empty band
-between the countdown and published beginning/Jamaat times. Previous Jamaat
-and its elapsed label use neutral text, leaving the upcoming prayer in cyan.
-The live-clock label and Beginning/Jamaat labels use at least 16px typography
-in kiosk mode. Below them are five tiles (Fajr, Dhuhr, Asr,
-Maghrib, Isha), populated only from the **selected day's published rows**.
-The next published beginning is highlighted, while the most recently begun
-prayer is distinguished. No missing times are estimated. Dhuhr retains
+The main panel gives Next Salah a wider column than contextual Previous/Next
+Jamaat, but **both countdowns use matching font sizes, title scale and
+vertical spacing**. Their colours distinguish urgency: cyan for the next
+Salah, neutral for Jamaat and elapsed time. The shorter hero avoids a large
+empty band above the published Beginning/Jamaat row; all event times and
+second-level updates still come from the approved timetable.
+
+If the next Salah begins on the following *mosque-local* civil day, a
+**Tomorrow** indicator appears beside Next Salah Begins. The daily tiles
+continue to describe the selected day's published timetable, so the two
+different Fajr times are not mistaken for a disagreement.
+
+Below the hero are five prayer tiles (Fajr, Dhuhr, Asr, Maghrib, Isha),
+populated only from the **selected day's published rows**. The next published
+beginning is highlighted, the most recently begun prayer is distinguished,
+and a subtle outline marks the upcoming published Jamaat when it matches
+one of today's congregations. No missing times are estimated. Dhuhr retains
 published Friday congregations where available, and prayer labels follow
 the configured language and bilingual setting.
 
