@@ -170,7 +170,7 @@ test("kiosk 3.0 layout preserves full-bleed photo and distance-readable contrast
   assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content\.kiosk\s*\{[^}]*grid-template-rows:\s*auto/);
   assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content\.kiosk\s*\{[^}]*align-content:\s*start/);
   assert.match(CARD_CSS, /ha-card\.kiosk\.has-mosque-background::before,[\s\S]*?ha-card\.kiosk\.has-mosque-background::after\s*\{[^}]*width:\s*100%;[^}]*height:\s*100%;[^}]*background-size:\s*cover/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell\s*\{[^}]*min-height:\s*clamp\(310px, 43dvh, 430px\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell\s*\{[^}]*min-height:\s*clamp\(270px, 33dvh, 350px\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.header\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\s*\{[^}]*grid-template-columns:\s*minmax\(0, 3fr\) minmax\(0, 2fr\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.count\s*\{[^}]*color:\s*var\(--primary-text-color\)/);
@@ -178,9 +178,17 @@ test("kiosk 3.0 layout preserves full-bleed photo and distance-readable contrast
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\s*\{[^}]*94%, transparent\)[^}]*backdrop-filter:\s*blur\(16px\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\.is-next\s*\{[^}]*background:\s*color-mix\(in srgb, var\(--primary-color\) 74%, #10202b\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\.is-past\s*\{[^}]*opacity:/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile-label\s*\{[^}]*font-size:\s*clamp\(\.85rem, 1\.12cqi, 1\.05rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile-label\s*\{[^}]*font-size:\s*clamp\(1rem, 1\.13cqi, 1\.125rem\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer-info\s*\{[^}]*grid-column:\s*1/);
+
+  assert.match(CARD_CSS, /ha-card\.kiosk\s*\{[^}]*min-height:\s*0/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel \.count\s*\{[^}]*font-size:\s*clamp\(3rem, calc\(var\(--kiosk-u\) \* 13\.5\), 9\.25rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.count span\s*\{[^}]*color:\s*inherit/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-time \.label\s*\{[^}]*font-size:\s*clamp\(1rem, 1\.13cqi, 1\.125rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-clock-label\s*\{[^}]*font-size:\s*clamp\(1rem, 1\.15cqi, 1\.125rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer-info \.background-credit\s*\{[^}]*max-width:\s*100%/);
+
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer-info \.background-credit\s*\{[^}]*font-size:\s*clamp\(\.73rem, \.9cqi, \.87rem\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-day-tabs \.date-tab:not\(\[aria-pressed="true"\]\)\s*\{[^}]*opacity:\s*\.95/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer \.kiosk-toolbar\s*\{[^}]*grid-column:\s*3/);
