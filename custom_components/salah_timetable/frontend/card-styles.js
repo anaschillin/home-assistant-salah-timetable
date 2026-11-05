@@ -1233,15 +1233,35 @@ ha-card.kiosk.has-mosque-background::after {
   margin-inline: auto;
   padding: clamp(12px, 1.7cqi, 28px);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto auto;
-  align-content: center;
+  /* Centre the entire prayer display, not the individual panels. If its
+     content exceeds the available height, safe alignment starts at the top
+     so yesterday/tomorrow, footers and editor controls remain reachable. */
+  align-content: safe center;
+  justify-items: center;
   gap: clamp(10px, 1.3cqi, 20px);
+}
+.content.kiosk > .summary-shell,
+.content.kiosk > .kiosk-strip,
+.content.kiosk > .kiosk-footer,
+.content.kiosk > .monthly-shell {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+}
+/* Entering browser fullscreen changes the viewport origin. Do not reuse the
+   previous dashboard's measured available height when centring its contents. */
+ha-card.kiosk:fullscreen .content.kiosk {
+  min-height: 100dvh;
 }
 :host([dashboard-editing]) ha-card.kiosk,
 :host([dashboard-editing]) .content.kiosk { min-height: 0; }
 :host([dashboard-editing]) .content.kiosk {
   grid-template-rows: auto;
   align-content: start;
+  justify-items: stretch;
 }
 .content.kiosk .summary-shell {
   box-sizing: border-box;
