@@ -675,6 +675,25 @@ try {
   check("kiosk 3.0 highlights published next and most recently begun Salah",
     kioskStrip.querySelector('[data-prayer="maghrib"]')?.classList.contains("is-next") &&
     kioskStrip.querySelector('[data-prayer="asr"]')?.classList.contains("is-current"));
+  check("kiosk marks the next published Jamaat with a subtle tile outline",
+    kioskStrip.querySelector('[data-prayer="asr"]')?.classList.contains("is-next-jamaat") &&
+    getComputedStyle(kioskStrip.querySelector('[data-prayer="asr"]')).boxShadow.includes("inset"));
+  const upcomingClock = kioskRoot.querySelector('[data-panel="salah"] .count');
+  const jamaatClock = kioskRoot.querySelector('[data-panel="jamaat"] .count');
+  const nextTitle = kioskRoot.querySelector('[data-panel="salah"] .event');
+  const jamaatTitle = kioskRoot.querySelector('[data-panel="jamaat"] .event');
+  check("kiosk Salah and Jamaat countdowns have identical size and line-height",
+    Math.abs(parseFloat(getComputedStyle(upcomingClock).fontSize) -
+      parseFloat(getComputedStyle(jamaatClock).fontSize)) <= 1 &&
+    getComputedStyle(upcomingClock).lineHeight === getComputedStyle(jamaatClock).lineHeight &&
+    getComputedStyle(nextTitle).fontSize === getComputedStyle(jamaatTitle).fontSize);
+  if (width >= 900 && !bilingual) {
+    const salahTimeRow = kioskRoot.querySelector('[data-panel="salah"] .prayer-times');
+    const jamaatTimeRow = kioskRoot.querySelector('[data-panel="jamaat"] .prayer-times');
+    check("kiosk countdowns and published-time rows align across both panels",
+      Math.abs(upcomingClock.getBoundingClientRect().top - jamaatClock.getBoundingClientRect().top) <= 6 &&
+      Math.abs(salahTimeRow.getBoundingClientRect().top - jamaatTimeRow.getBoundingClientRect().top) <= 6);
+  }
   check("kiosk 3.0 footer keeps day tabs, fullscreen and month actions visible",
     kioskFooter.querySelectorAll(".date-tab").length === 3 &&
     kioskFooter.querySelector(".kiosk-fullscreen") &&
