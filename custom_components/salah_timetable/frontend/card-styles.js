@@ -1367,7 +1367,7 @@ ha-card.kiosk:fullscreen .content.kiosk {
 }
 .content.kiosk .summary-shell .panels {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
   gap: 0;
   min-height: 0;
