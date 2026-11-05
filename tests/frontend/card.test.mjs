@@ -1047,64 +1047,97 @@ test("month view defaults off and validates a strict boolean", () => {
 });
 
 
-test("kiosk honours configured date visibility even in Compact and updates mosque-local time", () => {
+test("kiosk 3.0 renders the three-zone display from published prayers and respects options", () => {
   const card = new SalahTimetableCard();
   const entity = "sensor.mosque_prayer_timetable";
-  const start = Date.parse("2026-10-21T04:40:00Z");
+  const date = "2026-10-21";
+  const instant = (hour, minute) => date + "T" + String(hour).padStart(2, "0") +
+    ":" + String(minute).padStart(2, "0") + ":00Z";
+  const rows = [
+    ["fajr", 4, 45, 5, 15], ["dhuhr", 11, 45, 13, 0],
+    ["asr", 14, 10, 14, 45], ["maghrib", 16, 29, 16, 32],
+    ["isha", 18, 26, 20, 0],
+  ].map(([key, h, m, jh, jm]) => ({key, name: key,
+    begin: instant(h, m), jamaat: [instant(jh, jm)]}));
+  const data = {...attributes, date, prayers: rows, show_hijri_date: true,
+    day_prayers: {"2026-10-20": rows, "2026-10-22": rows},
+    beginning_events: rows.map(row => ({prayer: row.key, timestamp: row.begin})),
+    jamaat_events: rows.map(row => ({prayer: row.key, timestamp: row.jamaat[0]}))};
+  const start = Date.parse(instant(4, 40));
   card.setConfig({entity, kiosk_mode: true, detail_level: "compact",
-    show_month_view: true, show_hijri_date: true, show_gregorian_date: true,
-    show_hijri_month_info: true});
-  card.hass = hass();
+    show_month_view: true, show_timezone_note: true,
+    show_hijri_date: true, show_gregorian_date: true, show_hijri_month_info: true});
+  card.hass = hass(data);
   card._render(start);
   const header = find(card.shadowRoot, "header")[0];
-  const toolbar = find(header, "div").find(element => element.className === "kiosk-toolbar");
+  const identity = find(header, "div").find(element => element.className === "kiosk-identity");
+  const toolbar = find(card.shadowRoot, "div").find(element => element.className === "kiosk-toolbar");
   const dates = find(header, "div").find(element => element.className === "kiosk-dates");
   const clock = find(header, "time")[0];
-  assert.ok(toolbar.children.some(child => child.className === "kiosk-fullscreen"));
-  assert.ok(toolbar.children.some(child => child.className === "card-actions-menu"),
-    "Compact kiosk retains its More disclosure for monthly actions");
+  const strip = find(card.shadowRoot, "section").find(element => element.className === "kiosk-strip");
+  const footer = find(card.shadowRoot, "footer")[0];
+  assert.ok(identity);
+  assert.match(identity.textContent, /Example Mosque/);
+  assert.match(identity.textContent, /Europe\/London/);
   assert.ok(dates);
+  assert.equal(clock.textContent, "05:40");
   assert.ok(find(dates, "div").some(element => element.className === "date hijri"));
   assert.ok(find(dates, "div").some(element => element.className === "date gregorian"));
   assert.ok(find(dates, "div").some(element => element.className === "month-description"));
-  assert.ok(header.children.indexOf(clock) === -1, "Clock is contained in its labelled group");
   assert.ok(header.children.findIndex(child => child.className === "kiosk-clock") <
-    header.children.indexOf(dates), "Current time should precede configured dates");
-  assert.equal(clock.textContent, "05:40");
+    header.children.indexOf(dates));
+  assert.ok(strip);
+  assert.equal(strip.children.length, 5, "Five prayer tiles use only published source rows");
+  assert.deepEqual(strip.children.map(tile => tile.attributes["data-prayer"]),
+    ["fajr", "dhuhr", "asr", "maghrib", "isha"]);
+  assert.match(strip.textContent, /05:45/);
+  assert.match(strip.textContent, /20:00/);
+  assert.ok(strip.children[0].className.includes("is-next"));
+  assert.equal(find(card.shadowRoot, "table").length, 0, "Kiosk has no duplicate scrolling timetable");
+
+  const tabs = find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
+  assert.equal(footer.children[1], tabs);
+  assert.equal(footer.children[2], toolbar);
+  assert.ok(toolbar.children.some(child => child.className === "kiosk-fullscreen"));
+  assert.ok(toolbar.children.some(child => child.className === "card-actions-menu"),
+    "Compact monthly actions stay in More disclosure");
   card._tick(start + 60000);
   assert.equal(find(card.shadowRoot, "time")[0], clock);
   assert.equal(clock.textContent, "05:41");
-  // Today's Compact kiosk has no table. Navigation belongs to the summary,
-  // not to a separate glass timetable container with nothing in it.
-  const summary = find(card.shadowRoot, "div").find(element => element.className === "summary-shell");
-  const tabs = find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
-  assert.ok(summary.children.includes(tabs));
-  assert.ok(tabs.classList.contains("kiosk-summary-tabs"));
-  assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "timetable-shell").length, 0);
-  tabs.children[2].dispatchEvent(new Event("click"));
-  const tomorrowSummary = find(card.shadowRoot, "div").find(element => element.className === "summary-shell");
-  const tomorrowTabs = find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
-  assert.ok(tomorrowSummary.children.includes(tomorrowTabs), "Day navigation stays in place on adjacent days");
-  tomorrowTabs.children[1].dispatchEvent(new Event("click"));
 
-  card.setConfig({entity, kiosk_mode: true, detail_level: "compact",
-    time_format: "12h", show_hijri_date: false, show_gregorian_date: false});
+  card._render(Date.parse(instant(16, 15)));
+  const nextStrip = find(card.shadowRoot, "section").find(element => element.className === "kiosk-strip");
+  assert.ok(nextStrip.children[3].className.includes("is-next"), "Next published beginning is Maghrib");
+  assert.ok(nextStrip.children[2].className.includes("is-current"), "Latest begun Salah is Asr");
+  const changedTabs = find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
+  changedTabs.children[2].dispatchEvent(new Event("click"));
+  const tomorrowFooter = find(card.shadowRoot, "footer")[0];
+  assert.ok(tomorrowFooter.children.some(child => child.className === "date-tabs"),
+    "Adjacent dates retain bottom controls");
+  assert.equal(find(card.shadowRoot, "section").find(element => element.className === "kiosk-strip").children.length, 5);
+  find(card.shadowRoot, "nav").find(element => element.className === "date-tabs")
+    .children[1].dispatchEvent(new Event("click"));
+
+  card.setConfig({entity, kiosk_mode: true, detail_level: "compact", time_format: "12h",
+    show_hijri_date: false, show_gregorian_date: false, show_timezone_note: false});
   card._render(start);
   assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "kiosk-dates").length, 0);
+  assert.equal(find(card.shadowRoot, "small").filter(element => element.className === "kiosk-timezone").length, 0);
   assert.match(find(card.shadowRoot, "time")[0].textContent, /05:40\s*am/i);
+  assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "kiosk-footer-note").length, 0);
 
   card.setConfig({entity, kiosk_mode: true, detail_level: "compact",
     show_hijri_date: true, show_gregorian_date: true});
-  card.hass = hass({...attributes, show_hijri_date: false});
+  card.hass = hass({...data, show_hijri_date: false});
   card._render(start);
   const mosqueDates = find(card.shadowRoot, "div").find(element => element.className === "kiosk-dates");
   assert.ok(find(mosqueDates, "div").some(element => element.className === "date gregorian"));
-  assert.ok(!find(mosqueDates, "div").some(element => element.className === "date hijri"),
-    "Mosque-level Hijri preference should override kiosk card settings");
+  assert.ok(!find(mosqueDates, "div").some(element => element.className === "date hijri"));
 
-  card.setConfig({entity});
-  assert.equal(find(card.shadowRoot, "time").length, 0);
-  assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "kiosk-dates").length, 0);
+  card.setConfig({entity, detail_level: "standard"});
+  assert.equal(find(card.shadowRoot, "time").length, 0, "Non-kiosk has no live wall clock");
+  assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "kiosk-strip").length, 0);
+  assert.equal(find(card.shadowRoot, "table").length, 1, "Normal timetable remains unchanged");
 });
 
 test("reminder setup lives in the editor and follows administrator and kiosk changes", () => {
