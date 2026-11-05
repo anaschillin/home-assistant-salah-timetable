@@ -161,9 +161,14 @@ test("Compact More menu is an overlay and does not reflow the summary header", (
 
 test("kiosk 3.0 layout preserves full-bleed photo and distance-readable contrast", () => {
   assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*grid-template-rows:\s*auto auto auto/);
-  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*align-content:\s*center/);
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*align-content:\s*safe center/);
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*justify-items:\s*center/);
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk > \.summary-shell,[\s\S]*?\.content\.kiosk > \.kiosk-footer,[\s\S]*?\.content\.kiosk > \.monthly-shell\s*\{[^}]*max-width:\s*1600px/);
+  assert.match(CARD_CSS, /ha-card\.kiosk:fullscreen \.content\.kiosk\s*\{[^}]*min-height:\s*100dvh/);
   assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*min-height:\s*var\(--salah-viewport-card-height/);
   assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content\.kiosk\s*\{[^}]*grid-template-rows:\s*auto/);
+  assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content\.kiosk\s*\{[^}]*align-content:\s*start/);
   assert.match(CARD_CSS, /ha-card\.kiosk\.has-mosque-background::before,[\s\S]*?ha-card\.kiosk\.has-mosque-background::after\s*\{[^}]*width:\s*100%;[^}]*height:\s*100%;[^}]*background-size:\s*cover/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell\s*\{[^}]*min-height:\s*clamp\(310px, 43dvh, 430px\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.header\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
