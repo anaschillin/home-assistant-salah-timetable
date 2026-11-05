@@ -286,7 +286,9 @@ with the date details.
 
 The main panel gives Next Salah more space than the contextual Previous/Next
 Jamaat panel. Both still use the integration's approved timetable events and
-local countdown calculations. Below them are five tiles (Fajr, Dhuhr, Asr,
+local countdown calculations. The hero has a limited height to avoid empty gaps,
+and the previous Jamaat countdown uses neutral text to keep the upcoming prayer
+most prominent. Below them are five tiles (Fajr, Dhuhr, Asr,
 Maghrib, Isha), populated only from the **selected day's published rows**.
 The next published beginning is highlighted, while the most recently begun
 prayer is distinguished. No missing times are estimated. Dhuhr retains
