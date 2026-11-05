@@ -7,15 +7,17 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 ## Unreleased
 
-## 2.1.0 — 5 November 2026
+## 3.0.0 — 5 November 2026
 
-### Kiosk Mode improvements
+### Kiosk Mode redesign
 
-- Centre and proportion the kiosk summary with a balanced width and prayer-panel spacing, keeping shorter displays scrollable.
-- Keep Compact kiosk day navigation inside the prayer summary instead of an empty floating timetable panel.
-- Centre the mosque name above the live mosque-local clock, using the configured 12/24-hour format without another timer.
-- Display enabled Gregorian/Hijri dates and Hijri month details beneath the clock even in Compact kiosk mode, respecting mosque-level Hijri visibility and selected day navigation.
-- Keep fullscreen and monthly actions accessible at the top right, with responsive stacking on narrower screens.
+- Replace the kiosk's stacked dashboard card layout with a dedicated, full-viewport **three-zone wall display**, based on the approved prayer-screen design.
+- Place the mosque name and optional timezone on the left, the large live mosque-local clock in the centre, and enabled Gregorian/Hijri dates on the right. Preserve Hijri month information and all date visibility preferences.
+- Give Next Salah the larger countdown column, with Previous Jamaat alongside it; retain the integration's context-aware countdowns, congregation data and live tick updates.
+- Introduce five responsive prayer tiles from **published** daily timetable rows. Highlight the next beginning and most recently begun prayer, respect bilingual labels and 12/24-hour formatting, and never invent missing times.
+- Move Yesterday / Today / Tomorrow navigation to a bottom control row with the fullscreen button and optional monthly-timetable actions, keeping these controls available in Compact, Standard and Detailed kiosk views.
+- Preserve multiple mosques, Ramadan details, Friday congregations, night calculations, source attribution and accessible responsive layouts; non-kiosk Compact/Standard/Detailed dashboards remain unchanged.
+- Update frontend/browser regression coverage and kiosk documentation for desktop, tablet, phone and cast displays.
 
 ## 2.0.0 — 4 November 2026
 

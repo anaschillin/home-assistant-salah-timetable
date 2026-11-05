@@ -275,20 +275,39 @@ times, create sensors/calendar events or change Ramadan activation.
 ## Wall and tablet display
 
 Enable **Kiosk / wall display mode** in the card editor (`kiosk_mode: true`)
-for a balanced, slightly enlarged presentation. The centred glass summary uses
-a constrained maximum width, so the header and prayer sections stay visually
-connected while the background remains visible. On Compact kiosk views, the
-Yesterday/Today/Tomorrow selector lives inside that same glass summary rather
-than inside an otherwise empty timetable panel. Standard and Detailed views
-retain navigation under their timetable. Taller content scrolls naturally. The mosque name is centred above a live mosque-local clock,
-using the existing 12/24-hour setting. Beneath the clock, the Gregorian date,
-calculated Hijri date and Hijri month summary follow their existing visibility
-settings (including the mosque's Hijri preference), even in Compact kiosk mode.
-The dates follow the selected Yesterday/Today/Tomorrow tab; the clock continues
-to show the current time. On wide screens the fullscreen toggle and optional
-monthly actions sit at the header's top-right without shifting the centred name.
-On narrow displays, actions move above the name rather than overlapping it.
-Place the card in a full-width dashboard view on dedicated displays.
+for the dedicated v3 wall-screen layout. The card uses a responsive three-zone
+display modelled on the published prayer-screen reference. Its main glass panel
+has the mosque name and optional timezone on the left, a live clock in the
+middle, and configured Gregorian/Hijri dates on the right. The clock uses the
+mosque's actual timezone and the existing 12/24-hour preference. The Hijri
+date also respects the mosque-level visibility preference and the optional
+published-Maghrib day boundary. When month information is enabled, it appears
+with the date details.
+
+The main panel gives Next Salah more space than the contextual Previous/Next
+Jamaat panel. Both still use the integration's approved timetable events and
+local countdown calculations. Below them are five tiles (Fajr, Dhuhr, Asr,
+Maghrib, Isha), populated only from the **selected day's published rows**.
+The next published beginning is highlighted, while the most recently begun
+prayer is distinguished. No missing times are estimated. Dhuhr retains
+published Friday congregations where available, and prayer labels follow
+the configured language and bilingual setting.
+
+A bottom row contains the missing-time note (when timezone/help text is
+enabled), Yesterday / Today / Tomorrow controls, a fullscreen button and
+optional monthly timetable actions. The selected day controls both the tiles
+and dates; the clock always displays the current time. The monthly view remains
+available via the existing controls, and optional Ramadan/night details remain
+available below the main display. The photo credit is retained when using a
+bundled mosque background.
+
+Kiosk mode intentionally replaces the ordinary scrolling timetable with the
+five-tile display regardless of Compact, Standard or Detailed selection. When
+kiosk mode is disabled, those ordinary layouts are unchanged. Wider screens
+use the three-column header and 60/40 countdown layout. Narrow screens stack
+the header and countdowns and wrap the tiles and bottom controls to prevent
+clipping; taller content scrolls naturally. Use a full-width Home Assistant
+dashboard view on a dedicated wall display.
 
 The fullscreen button requires a tap or click and browser support. If the
 browser or WebView rejects fullscreen, the larger card presentation remains
