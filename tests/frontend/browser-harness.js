@@ -1,7 +1,7 @@
 /** Real-browser fixture: native shadow DOM/CSS with small HA control stand-ins. */
 import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.19";
 import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.19";
-import {formatDate, formatHijriDate, hijriMonthInfo} from "/custom_components/salah_timetable/frontend/card-utils.js?v=0.9.19";
+import {formatDate, formatHijriDate, hijriMonthInfo, formatTime} from "/custom_components/salah_timetable/frontend/card-utils.js?v=0.9.19";
 
 class Selector extends HTMLElement {
   constructor() {
@@ -664,7 +664,7 @@ try {
   check("kiosk 3.0 header has mosque identity, live clock and optional dates",
     kioskHeader.querySelector(".kiosk-identity")?.textContent.includes("Example Mosque") &&
     kioskHeader.querySelector(".kiosk-timezone")?.textContent.includes("Europe/London") &&
-    kioskHeader.querySelector(".kiosk-clock-value")?.textContent === "15:15" &&
+    kioskHeader.querySelector(".kiosk-clock-value")?.textContent === formatTime(time(14, 15), data.time_zone, ui, "24h") &&
     kioskHeader.querySelector(".kiosk-dates .hijri") &&
     kioskHeader.querySelector(".kiosk-dates .gregorian") &&
     getComputedStyle(kioskHeader).display === "grid");
