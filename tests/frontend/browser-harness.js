@@ -26,6 +26,12 @@ const bilingual = query.get("bilingual") === "true";
 const width = window.innerWidth;
 const checks = [];
 function check(name, assertion) { if (!assertion) throw new Error(name); checks.push(name); }
+// Static browser fixtures use explicit _tick calls at known instants. Prevent
+// the production 1-second interval from replacing their DOM with today's data
+// while an asynchronous layout/interaction assertion is still inspecting it.
+function pauseFixtureTicker(card) {
+  if (card._timer !== null) window.clearInterval(card._timer);
+}
 function visibility(card) {
   const root = card.shadowRoot;
   const nodes = {
@@ -72,7 +78,7 @@ const zero = `${digits(0)}:${digits(0)}:${digits(0)}`;
 try {
   const card = new SalahTimetableCard();
   const render = (patch = {}, now = time(4, 40)) => { card.setConfig({...config, ...patch}); card._render(Date.parse(now)); };
-  card.setConfig(config); card.hass = hass; document.body.append(card); card._render(Date.parse(time(4, 40)));
+  card.setConfig(config); card.hass = hass; document.body.append(card); pauseFixtureTicker(card); card._render(Date.parse(time(4, 40)));
   check("shadow DOM renders five prayer rows", card.shadowRoot.querySelectorAll("tbody tr").length === 5);
   render({show_mosque_background: true, mosque_background: "masjid-al-haram"});
   check("bundled mosque background resolves to local WebP", card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-background-image").includes("/salah_timetable/backgrounds/masjid-al-haram.webp"));
@@ -111,6 +117,7 @@ try {
     wrappedCard.hass = hass;
     document.body.append(wrapper);
     wrapper.append(wrappedCard);
+    pauseFixtureTicker(wrappedCard);
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const editSurface = wrappedCard.shadowRoot.querySelector("ha-card");
     check(`${wrapperName} shortens the real editor canvas without preview=true`,
@@ -133,6 +140,7 @@ try {
         surfaceStyle.maxHeight === "none");
     }
     document.body.append(wrappedCard);
+    pauseFixtureTicker(wrappedCard);
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     // The fixture puts this card after the tall primary example, often below
     // the screen. In that case the normal viewport minimum is correctly 0px:
@@ -148,6 +156,8 @@ try {
     wrappedCard.remove();
     wrapper.remove();
   }
+  check("background card remains mounted across asynchronous layout checks",
+    photoCard.isConnected && card.shadowRoot.querySelector("ha-card") === photoCard);
   check("full-canvas card has no outer drop shadow", photoStyle.boxShadow === "none");
   const imageStyle = getComputedStyle(photoCard, "::before");
   check("unobscured photo stays inside themed borders at mobile/tablet widths",
@@ -645,6 +655,7 @@ try {
       return Promise.resolve({rows: [{date: data.date, published: true, times: {fajr_begin: ["05:45"]}}]});
     }};
     document.body.prepend(actionCard);
+    pauseFixtureTicker(actionCard);
     return {actionCard, requests};
   };
   parent.postMessage({kind: "salah-browser-result", status: "passed", width, language, bilingual, checks}, location.origin);
