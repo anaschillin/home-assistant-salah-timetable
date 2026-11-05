@@ -300,8 +300,12 @@ enabled), Yesterday / Today / Tomorrow controls, a fullscreen button and
 optional monthly timetable actions. The selected day controls both the tiles
 and dates; the clock always displays the current time. The monthly view remains
 available via the existing controls, and optional Ramadan/night details remain
-available below the main display. The photo credit is retained when using a
-bundled mosque background.
+available below the main display. The mosque photograph fills the entire kiosk
+canvas with `cover` even when normal dashboard day-tab sizing is cached. Its
+photographer credit appears in the left footer, away from fullscreen controls.
+The five prayer tiles use stronger glass contrast and larger published-time labels;
+the upcoming prayer tile uses a deeper highlight and inactive date tabs remain
+legible. Pointer clicks clear fullscreen focus without hiding keyboard focus.
 
 Kiosk mode intentionally replaces the ordinary scrolling timetable with the
 five-tile display regardless of Compact, Standard or Detailed selection. When
