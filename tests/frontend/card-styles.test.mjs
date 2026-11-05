@@ -58,7 +58,8 @@ test("mosque photo fills the measured visible viewport but can grow beyond it", 
   assert.ok(rule, "Missing full-canvas background rule");
   assert.match(rule[1], /min-height:\s*var\(--salah-viewport-card-height,\s*calc\(100dvh/);
   assert.doesNotMatch(rule[1], /max-height:|height:\s*\d+dvh/);
-  assert.match(CARD_CSS, /ha-card\.kiosk\s*\{[^}]*min-height:\s*var\(--salah-viewport-card-height/);
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*min-height:\s*var\(--salah-viewport-card-height/);
+  assert.match(CARD_CSS, /ha-card\.kiosk\s*\{[^}]*min-height:\s*0/);
   assert.match(CARD_CSS, /ha-card\.kiosk:fullscreen\s*\{[^}]*min-height:\s*100dvh/);
   assert.match(CARD_CSS, /ha-card\s*\{[^}]*overflow:\s*hidden/);
   assert.doesNotMatch(CARD_CSS, /\.summary-shell\s*\{[^}]*min-height:\s*100dvh/);
