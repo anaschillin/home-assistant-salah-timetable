@@ -1047,6 +1047,24 @@ test("month view defaults off and validates a strict boolean", () => {
 });
 
 
+test("kiosk clock updates in the mosque timezone", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", kiosk_mode: true, show_month_view: true});
+  card.hass = hass();
+  const start = Date.parse("2026-10-21T04:40:00Z");
+  card._render(start);
+  const header = find(card.shadowRoot, "header")[0];
+  const toolbar = find(header, "div").find(element => element.className === "kiosk-toolbar");
+  const clock = find(header, "time")[0];
+  assert.ok(toolbar.children.some(child => child.className === "kiosk-fullscreen"));
+  assert.ok(toolbar.children.some(child => child.className === "card-action-strip"));
+  assert.equal(clock.textContent, "05:40");
+  card._tick(start + 60000);
+  assert.equal(clock.textContent, "05:41");
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  assert.equal(find(card.shadowRoot, "time").length, 0);
+});
+
 test("reminder setup lives in the editor and follows administrator and kiosk changes", () => {
   const card = new SalahTimetableCard();
   const editor = new SalahTimetableCardEditor();
