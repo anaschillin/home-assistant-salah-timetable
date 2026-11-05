@@ -582,13 +582,31 @@ export class SalahTimetableCard extends HTMLElement {
     // One cohesive glass surface for mosque identity and both live summaries.
     // Individual countdown components remain independent for timing and options.
     const summary = node("div", undefined, "summary-shell");
+    let kioskToolbar = null;
+    let kioskClock = null;
+    let kioskToggle = null;
     if (this._config.kiosk_mode) {
+      // Reuse the existing countdown tick so wall displays need no extra timer.
+      kioskToolbar = node("div", undefined, "kiosk-toolbar");
+      kioskClock = node("div", undefined, "kiosk-clock");
+      kioskClock.setAttribute("title", zone);
+      const clockLabel = node("span", tr(ui, "card.current_time"), "kiosk-clock-label");
+      const clockValue = node("time", undefined, "kiosk-clock-value");
+      clockValue.setAttribute("dir", "ltr");
+      const updateClock = instant => {
+        const iso = new Date(instant).toISOString();
+        const value = formatTime(iso, zone, ui, timeFormat);
+        if (clockValue.textContent !== value) clockValue.textContent = value;
+        clockValue.setAttribute("datetime", iso);
+      };
+      updateClock(now);
+      updates.push(updateClock);
+      kioskClock.append(clockLabel, clockValue);
       // Fullscreen requires a user gesture; unsupported WebViews keep kiosk styling.
-      const tools = node("div", undefined, "kiosk-toolbar");
-      const toggle = node("button", tr(ui, "card.kiosk_fullscreen"), "kiosk-fullscreen");
-      toggle.type = "button";
-      toggle.setAttribute("aria-label", tr(ui, "card.kiosk_fullscreen"));
-      toggle.addEventListener("click", () => {
+      kioskToggle = node("button", tr(ui, "card.kiosk_fullscreen"), "kiosk-fullscreen");
+      kioskToggle.type = "button";
+      kioskToggle.setAttribute("aria-label", tr(ui, "card.kiosk_fullscreen"));
+      kioskToggle.addEventListener("click", () => {
         const surface = this.shadowRoot?.querySelector("ha-card");
         if (document.fullscreenElement === surface) {
           const exit = document.exitFullscreen?.();
@@ -598,8 +616,6 @@ export class SalahTimetableCard extends HTMLElement {
           enter?.catch?.(() => {});
         }
       });
-      tools.append(toggle);
-      summary.append(tools);
     }
     summary.append(header);
     const cardActions = this._cardActions(ui, displayDate);
@@ -608,7 +624,12 @@ export class SalahTimetableCard extends HTMLElement {
       if (this._monthView && this._config.detail_level !== "compact") {
         header.classList.add("has-many-month-actions");
       }
-      header.append(cardActions);
+      if (kioskToolbar) kioskToolbar.append(cardActions);
+      else header.append(cardActions);
+    }
+    if (kioskToolbar) {
+      kioskToolbar.append(kioskClock, kioskToggle);
+      header.append(kioskToolbar);
     }
     content.append(summary);
     if (this._monthView && this._config.show_month_view && this._monthState) {
