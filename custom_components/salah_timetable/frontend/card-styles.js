@@ -1212,12 +1212,12 @@ ha-card.kiosk:fullscreen {
 .content.kiosk {
   box-sizing: border-box;
   width: 100%;
-  max-width: 1540px;
+  max-width: 1340px;
   min-height: var(--salah-viewport-card-height, 100dvh);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(16px, 2.6cqi, 44px);
+  padding: clamp(14px, 2cqi, 30px);
 }
 :host([dashboard-editing]) ha-card.kiosk,
 :host([dashboard-editing]) .content.kiosk { min-height: 0; }
@@ -1225,39 +1225,58 @@ ha-card.kiosk:fullscreen {
 .content.kiosk .summary-shell {
   box-sizing: border-box;
   width: 100%;
-  max-width: 1440px;
-  margin: 0 auto clamp(22px, 2.5cqi, 40px);
-  padding: clamp(24px, 3.2cqi, 48px);
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: clamp(20px, 2.4cqi, 34px);
 }
 .content.kiosk .summary-shell .panels {
-  column-gap: clamp(20px, 3cqi, 48px);
-  margin-top: clamp(20px, 2.6cqi, 34px);
-  padding-top: clamp(20px, 2.6cqi, 34px);
+  column-gap: clamp(14px, 2cqi, 28px);
+  margin-top: clamp(14px, 1.5cqi, 22px);
+  padding-top: clamp(14px, 1.5cqi, 22px);
+}
+.content.kiosk .summary-shell .prayer-panel .count {
+  font-size: clamp(2rem, 4.8cqi, 3.7rem);
 }
 .content.kiosk .summary-shell .panel.prayer-panel {
-  padding: 8px clamp(8px, 1.4cqi, 18px) 14px;
+  padding: 8px clamp(8px, 1.1cqi, 14px) 12px;
 }
 .content.kiosk .summary-shell .prayer-panel + .prayer-panel {
-  padding-inline-start: clamp(20px, 2.5cqi, 36px);
+  padding-inline-start: clamp(14px, 1.7cqi, 24px);
 }
-.content.kiosk .date-tabs { margin-bottom: clamp(16px, 2cqi, 28px); }
+.content.kiosk .timetable-shell {
+  max-width: 1220px;
+  margin-top: clamp(16px, 2cqi, 24px);
+}
+.content.kiosk .summary-shell .kiosk-summary-tabs {
+  box-sizing: border-box;
+  width: min(100%, 460px);
+  margin: clamp(16px, 1.8cqi, 24px) auto 0;
+  padding: 4px;
+  gap: 4px;
+  background: color-mix(in srgb, var(--secondary-background-color) 65%, transparent);
+  border: 1px solid color-mix(in srgb, var(--divider-color) 70%, transparent);
+}
+.content.kiosk .kiosk-summary-tabs .date-tab {
+  font-size: .9rem;
+  padding: 9px 8px;
+}
 .content.kiosk .header {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: clamp(7px, 1cqi, 14px);
+  gap: clamp(4px, .6cqi, 9px);
   position: relative;
 }
 .content.kiosk .header h2 {
   grid-column: auto;
   grid-row: auto;
   flex-basis: auto;
-  width: calc(100% - 350px);
+  width: calc(100% - 270px);
   max-width: 100%;
   min-width: 0;
-  font-size: clamp(2rem, 3.6cqi, 3.3rem);
+  font-size: clamp(1.8rem, 3cqi, 2.65rem);
   line-height: 1.2;
   text-align: center;
 }
@@ -1279,7 +1298,7 @@ ha-card.kiosk:fullscreen {
   text-transform: uppercase;
 }
 .content.kiosk .kiosk-clock-value {
-  font-size: clamp(1.65rem, 2.6cqi, 2.5rem);
+  font-size: clamp(1.5rem, 2.3cqi, 2.1rem);
   font-weight: 750;
   font-variant-numeric: tabular-nums;
 }
@@ -1289,7 +1308,7 @@ ha-card.kiosk:fullscreen {
   align-items: center;
   flex-wrap: wrap;
   column-gap: clamp(12px, 2cqi, 30px);
-  row-gap: 8px;
+  row-gap: 5px;
   max-width: 100%;
   text-align: center;
 }
@@ -1297,15 +1316,15 @@ ha-card.kiosk:fullscreen {
   grid-column: auto;
   grid-row: auto;
   text-align: center;
-  font-size: clamp(.9rem, 1.35cqi, 1.15rem);
+  font-size: clamp(.85rem, 1.1cqi, 1rem);
 }
 .content.kiosk .kiosk-dates .month-description {
   grid-column: auto;
   grid-row: auto;
   flex-basis: 100%;
   text-align: center;
-  margin: 4px 0 0;
-  font-size: .9rem;
+  margin: 2px 0 0;
+  font-size: .83rem;
 }
 .content.kiosk .header .kiosk-toolbar {
   position: absolute;
