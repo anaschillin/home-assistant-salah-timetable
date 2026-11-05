@@ -1078,7 +1078,7 @@ test("kiosk honours configured date visibility even in Compact and updates mosqu
     time_format: "12h", show_hijri_date: false, show_gregorian_date: false});
   card._render(start);
   assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "kiosk-dates").length, 0);
-  assert.match(find(card.shadowRoot, "time")[0].textContent, /05:40\\s*am/i);
+  assert.match(find(card.shadowRoot, "time")[0].textContent, /05:40\s*am/i);
 
   card.setConfig({entity, kiosk_mode: true, detail_level: "compact",
     show_hijri_date: true, show_gregorian_date: true});
