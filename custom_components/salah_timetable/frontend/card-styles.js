@@ -976,7 +976,9 @@ ha-card.has-mosque-background::after {
 
 /* Kiosk is strictly opt-in. Responsive sizing avoids clipping in phone WebViews. */
 ha-card.kiosk {
-  min-height: var(--salah-viewport-card-height, 100dvh);
+  /* The content owns the measured viewport minimum. A second outer
+     min-height can add a scrollable sliver below the Lovelace view. */
+  min-height: 0;
   overflow: hidden;
 }
 ha-card.kiosk:fullscreen {
@@ -1270,7 +1272,7 @@ ha-card.kiosk:fullscreen .content.kiosk {
   width: 100%;
   max-width: 1600px;
   min-width: 0;
-  min-height: clamp(310px, 43dvh, 430px);
+  min-height: clamp(270px, 33dvh, 350px);
   margin: 0;
   padding: clamp(18px, 2.2cqi, 34px);
   border-radius: clamp(14px, 1.4cqi, 24px);
@@ -1321,7 +1323,7 @@ ha-card.kiosk:fullscreen .content.kiosk {
   white-space: nowrap;
 }
 .content.kiosk .kiosk-clock-label {
-  font-size: .7rem;
+  font-size: clamp(1rem, 1.15cqi, 1.125rem);
   color: var(--secondary-text-color);
   letter-spacing: .04em;
   text-transform: uppercase;
@@ -1404,7 +1406,7 @@ ha-card.kiosk:fullscreen .content.kiosk {
 }
 .content.kiosk .summary-shell .prayer-panel .count {
   margin: 0;
-  font-size: clamp(2.6rem, calc(var(--kiosk-u) * 12), 8.5rem);
+  font-size: clamp(3rem, calc(var(--kiosk-u) * 13.5), 9.25rem);
   line-height: 1.05;
   overflow-wrap: normal;
   font-variant-numeric: tabular-nums;
@@ -1414,6 +1416,9 @@ ha-card.kiosk:fullscreen .content.kiosk {
   font-size: clamp(2.1rem, calc(var(--kiosk-u) * 7), 5.4rem);
   color: var(--primary-text-color);
 }
+.content.kiosk .summary-shell .prayer-panel[data-panel="jamaat"] .count span {
+  color: inherit;
+}
 .content.kiosk .summary-shell .prayer-times {
   margin-top: auto;
   padding-top: clamp(12px, 1.3cqi, 20px);
@@ -1421,6 +1426,9 @@ ha-card.kiosk:fullscreen .content.kiosk {
 }
 .content.kiosk .summary-shell .prayer-time .absolute {
   font-size: clamp(1.15rem, 2.1cqi, 1.85rem);
+}
+.content.kiosk .summary-shell .prayer-time .label {
+  font-size: clamp(1rem, 1.13cqi, 1.125rem);
 }
 .content.kiosk .summary-shell .panel-silhouette { opacity: .07; }
 
@@ -1481,7 +1489,7 @@ ha-card.kiosk:fullscreen .content.kiosk {
   display: block;
   margin-bottom: .4em;
   opacity: .82;
-  font-size: clamp(.85rem, 1.12cqi, 1.05rem);
+  font-size: clamp(1rem, 1.13cqi, 1.125rem);
 }
 .content.kiosk .kiosk-tile-time strong {
   font-size: clamp(1.1rem, 1.7cqi, 1.65rem);
@@ -1572,11 +1580,15 @@ ha-card.kiosk:fullscreen .content.kiosk {
 .content.kiosk .kiosk-toolbar .card-actions-menu { position: relative; inset: auto; }
 .content.kiosk .kiosk-footer-info .background-credit {
   display: block;
+  max-width: 100%;
   margin: 0;
   font-size: clamp(.73rem, .9cqi, .87rem);
   line-height: 1.3;
   opacity: .84;
   text-align: start;
+  overflow-wrap: anywhere;
+}
+.content.kiosk .kiosk-footer-info .background-credit a {
   overflow-wrap: anywhere;
 }
 
