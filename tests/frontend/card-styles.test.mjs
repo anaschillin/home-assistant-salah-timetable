@@ -158,3 +158,12 @@ test("Compact More menu is an overlay and does not reflow the summary header", (
   assert.match(CARD_CSS, /\.summary-shell:has\(\.card-actions-menu\[open\]\)\s*\{[^}]*overflow:\s*visible/);
   assert.match(CARD_CSS, /\.summary-shell \.header:has\(\.card-actions-menu\[open\]\)\s*\{[^}]*z-index:/);
 });
+
+test("kiosk content centres vertically and keeps the fullscreen button beside the clock", () => {
+  assert.match(CARD_CSS, /\\.content\\.kiosk\\s*\\{[^}]*justify-content:\\s*center/);
+  assert.match(CARD_CSS, /\\.content\\.kiosk\\s*\\{[^}]*min-height:\\s*var\\(--salah-viewport-card-height/);
+  assert.match(CARD_CSS, /:host\\(\\[dashboard-editing\\]\\) \\.content\\.kiosk\\s*\\{[^}]*justify-content:\\s*flex-start/);
+  assert.match(CARD_CSS, /\\.content\\.kiosk \\.header \\.kiosk-toolbar\\s*\\{[^}]*grid-row:\\s*1/);
+  assert.match(CARD_CSS, /\\.content\\.kiosk \\.kiosk-clock-value\\s*\\{[^}]*font-variant-numeric:\\s*tabular-nums/);
+  assert.match(CARD_CSS, /@container\\(max-width:46rem\\)/);
+});
