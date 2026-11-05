@@ -1207,6 +1207,54 @@ ha-card.kiosk:fullscreen {
   .monthly-shell { padding: 8px; }
 }
 
+/* Kiosk centres the entire content group within the visible canvas. */
+.content.kiosk {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: var(--salah-viewport-card-height, 100dvh);
+}
+:host([dashboard-editing]) ha-card.kiosk,
+:host([dashboard-editing]) .content.kiosk { min-height: 0; }
+:host([dashboard-editing]) .content.kiosk { justify-content: flex-start; }
+.content.kiosk .header {
+  grid-template-columns: minmax(0,1fr) max-content;
+  align-items: center;
+}
+.content.kiosk .header h2 { grid-column: 1; grid-row: 1; }
+.content.kiosk .header .kiosk-toolbar {
+  grid-column: 2; grid-row: 1;
+  display: flex; gap: 12px; align-items: center;
+  justify-content: flex-end; min-width: 0; margin: 0;
+}
+.content.kiosk .kiosk-toolbar .card-action-strip { grid-column: auto; grid-row: auto; }
+.content.kiosk .kiosk-toolbar .card-actions-menu { position: relative; inset: auto; }
+.content.kiosk .kiosk-clock {
+  display: grid; gap: 1px; justify-items: end; white-space: nowrap;
+}
+.content.kiosk .kiosk-clock-label {
+  color: var(--secondary-text-color);
+  font-size: .68rem; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase;
+}
+.content.kiosk .kiosk-clock-value {
+  font-size: clamp(1.15rem,2.2cqi,1.8rem);
+  font-weight: 750; font-variant-numeric: tabular-nums;
+}
+.content.kiosk .kiosk-fullscreen { white-space: nowrap; }
+@container(max-width:46rem) {
+  .content.kiosk .header { grid-template-columns: minmax(0,1fr); }
+  .content.kiosk .header .kiosk-toolbar {
+    grid-column: 1; grid-row: 2;
+    justify-content: space-between; flex-wrap: wrap;
+  }
+  .content.kiosk .header .hijri,
+  .content.kiosk .header .gregorian,
+  .content.kiosk .header .month-description {
+    grid-column: 1; grid-row: auto; text-align: start;
+  }
+}
+
 `;
 
 /** Card configuration editor styles, scoped to its separate shadow root. */
