@@ -305,8 +305,11 @@ and dates; the clock always displays the current time. The monthly view remains
 available via the existing controls, and optional Ramadan/night details remain
 available below the main display. The mosque photograph fills the entire kiosk
 canvas with `cover` even when normal dashboard day-tab sizing is cached. Its
-photographer credit appears in the left footer, away from fullscreen controls.
-The five prayer tiles use stronger glass contrast and larger published-time labels;
+photographer credit appears in the left footer, away from fullscreen controls,
+with wrapping and responsive stacking so it cannot overlap. The kiosk avoids
+a duplicate outer viewport-height requirement, which prevents unnecessary
+desktop scrolling without hiding the page scrollbar when mobile content is
+naturally taller than the screen. The five prayer tiles use stronger glass contrast and larger published-time labels;
 the upcoming prayer tile uses a deeper highlight and inactive date tabs remain
 legible. Pointer clicks clear fullscreen focus without hiding keyboard focus.
 
