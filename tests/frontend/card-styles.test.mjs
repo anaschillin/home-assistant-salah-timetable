@@ -173,7 +173,7 @@ test("kiosk 3.0 layout preserves full-bleed photo and distance-readable contrast
   assert.match(CARD_CSS, /ha-card\.kiosk\.has-mosque-background::before,[\s\S]*?ha-card\.kiosk\.has-mosque-background::after\s*\{[^}]*width:\s*100%;[^}]*height:\s*100%;[^}]*background-size:\s*cover/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell\s*\{[^}]*min-height:\s*clamp\(270px, 33dvh, 350px\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.header\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\s*\{[^}]*grid-template-columns:\s*minmax\(0, 3fr\) minmax\(0, 2fr\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.count\s*\{[^}]*color:\s*var\(--primary-text-color\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-strip\s*\{[^}]*grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\)/);
   assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\s*\{[^}]*97%, transparent\)[^}]*backdrop-filter:\s*blur\(18px\)/);
