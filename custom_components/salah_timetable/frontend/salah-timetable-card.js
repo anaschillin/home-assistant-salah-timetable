@@ -682,6 +682,9 @@ export class SalahTimetableCard extends HTMLElement {
       kioskToggle = node("button", tr(ui, "card.kiosk_fullscreen"), "kiosk-fullscreen");
       kioskToggle.type = "button";
       kioskToggle.setAttribute("aria-label", tr(ui, "card.kiosk_fullscreen"));
+      // Pointer activation must not leave a persistent ring on a wall display.
+      // Keyboard activation retains :focus-visible for accessibility.
+      kioskToggle.addEventListener("pointerup", () => kioskToggle.blur());
       kioskToggle.addEventListener("click", () => {
         const surface = this.shadowRoot?.querySelector("ha-card");
         if (document.fullscreenElement === surface) {
@@ -850,13 +853,16 @@ export class SalahTimetableCard extends HTMLElement {
       night.append(grid, node("p", tr(ui, "night.note"), "note"));
       content.append(night);
     }
+    let kioskFooterInfo = null;
     if (this._config.kiosk_mode) {
       const footer = node("footer", undefined, "kiosk-footer");
+      kioskFooterInfo = node("div", undefined, "kiosk-footer-info");
       const note = this._config.show_timezone_note
         ? node("p", tr(ui, "card.kiosk_missing_times"), "kiosk-footer-note")
         : node("span", undefined, "kiosk-footer-placeholder");
       if (this._config.show_timezone_note) note.setAttribute("data-role", "timezone-note");
-      footer.append(note, dateTabs, kioskToolbar);
+      kioskFooterInfo.append(note);
+      footer.append(kioskFooterInfo, dateTabs, kioskToolbar);
       content.append(footer);
     } else if (this._selectedDay === 0 && this._config.show_timezone_note) {
       const note = translatedRun("p", ui, "card.timezone_note", "zone", zone, "note");
@@ -869,7 +875,8 @@ export class SalahTimetableCard extends HTMLElement {
       link.target = "_blank";
       link.rel = "noopener noreferrer";
       credit.append(link);
-      content.append(credit);
+      if (kioskFooterInfo) kioskFooterInfo.append(credit);
+      else content.append(credit);
     }
     card.append(content); this.shadowRoot.replaceChildren(style, card);
     if (this._selectedDay === 0 && background) this._rememberBackgroundFrame();
