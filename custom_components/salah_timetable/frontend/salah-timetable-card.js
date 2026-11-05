@@ -726,8 +726,16 @@ export class SalahTimetableCard extends HTMLElement {
     tableRegion.append(table); tableShell.append(tableRegion, scrollHelp);
     }
     if (!selectedPrayers) tableShell.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
-    tableShell.append(dateTabs);
-    content.append(tableShell);
+    // Compact kiosk has no timetable on Today: put navigation inside the
+    // shared glass summary instead of painting an empty floating table shell.
+    // Keep the same position on adjacent days so the card does not jump.
+    if (this._config.kiosk_mode && this._config.detail_level === "compact") {
+      dateTabs.classList.add("kiosk-summary-tabs");
+      summary.append(dateTabs);
+    } else {
+      tableShell.append(dateTabs);
+    }
+    if (tableShell.children.length) content.append(tableShell);
     if (this._selectedDay === 0 && this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
       content.append(translatedRun("p", ui, "card.second_khutbah", "time", formatTime(data.second_khutbah, zone, ui, timeFormat), "note khutbah"));
     }
