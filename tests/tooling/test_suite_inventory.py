@@ -426,10 +426,7 @@ def test_documentation_links_ignore_headings_inside_code_fences(tmp_path):
     from scripts.sync_documentation import check_local_links
 
     (tmp_path / "guide.md").write_text(
-        "# Guide\n\n" + chr(96) * 3 + "md\n## Not a heading\n"
-        + chr(96) * 3 + "\n"
+        "# Guide\n\n" + chr(96) * 3 + "md\n## Not a heading\n" + chr(96) * 3 + "\n"
     )
     with pytest.raises(ValueError, match="Missing heading anchor"):
-        check_local_links(
-            tmp_path, Path("README.md"), "[bad](guide.md#not-a-heading)"
-        )
+        check_local_links(tmp_path, Path("README.md"), "[bad](guide.md#not-a-heading)")
