@@ -1481,6 +1481,11 @@ ha-card.kiosk:fullscreen .content.kiosk {
   min-width: 0;
   min-height: 0;
 }
+/* The pair's Salah-specific flex selector above has higher specificity than
+   the general single-panel rule. Restore grid for either remaining panel. */
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel[data-panel] {
+  display: grid;
+}
 .content.kiosk .summary-shell .prayer-panel:first-child { padding-inline-start: 0; }
 .content.kiosk .summary-shell .prayer-panel:last-child { padding-inline-end: 0; }
 .content.kiosk .summary-shell .prayer-panel + .prayer-panel {
