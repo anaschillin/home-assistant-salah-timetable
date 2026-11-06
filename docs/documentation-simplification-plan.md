@@ -1,6 +1,6 @@
 # Documentation Simplification — Action Plan
 
-**Status:** Core documentation simplification completed; the remaining items are optional redacted examples, candidate-specific CI and recurring release checks.
+**Status:** Core documentation simplification completed; documentation CI has been strengthened. Remaining work is optional redacted examples and recurring release checks.
 
 **Audit baseline:** All 37 Markdown files originally reviewed on 1 November 2026; rechecked against `main` and the published `v3.0.1` tag on 6 November 2026 (identical at commit `7b045c91`).
 
@@ -121,7 +121,7 @@ redaction and decorative photograph licences.
 - [x] All tracked documentation has been reviewed against its canonical implementation or historical evidence; current claims do not rely on obsolete PR status.
 - [x] Local file links, heading anchors, HTML image references, shared excerpts and generated version fields resolve.
 - [x] `python scripts/sync_documentation.py --check`, `python scripts/sync_versions.py --check` and `python scripts/check_asset_provenance.py --require-cleared` pass.
-- [x] Run-specific CI, test-inventory and provenance evidence belongs in the corresponding PR and exact commit; this permanent audit plan does not certify later commits or treat each future CI run as unfinished documentation.
+- [x] Documentation-only CI now validates generated versions, shared excerpts, local Markdown/HTML links and heading anchors, and asset provenance. Run-specific outcomes still belong in the corresponding PR and exact commit; this plan does not certify later commits.
 - [x] The roadmap contains only upcoming product features. The changelog preserves historical entries; research notes remain research-only; unresolved documentation work is separate.
 
 **Out of scope:** runtime changes, new product features, publication discovery,
