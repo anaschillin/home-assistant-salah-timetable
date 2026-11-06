@@ -303,15 +303,20 @@ one of today's congregations. No missing times are estimated. Dhuhr retains
 published Friday congregations where available, and prayer labels follow
 the configured language and bilingual setting.
 
-A bottom row contains the missing-time note (when timezone/help text is
-enabled), Yesterday / Today / Tomorrow controls, a fullscreen button and
-optional monthly timetable actions. The selected day controls both the tiles
+The bottom row contains the missing-time note (when timezone/help text is
+enabled), Yesterday / Today / Tomorrow controls and optional monthly
+timetable actions. Instead of the old footer button, a **30px icon-only
+fullscreen toggle** sits 12px from the top-right corner *inside* the glass
+summary, absolutely positioned so it does not shift the header or prayer
+panels. Tap it to enter fullscreen; tap it again to return to the prior
+dashboard view. Its icon and accessible label update automatically when
+fullscreen ends, including when pressing Escape. The selected day controls both the tiles
 and dates; the clock always displays the current time. The monthly view remains
 available via the existing controls, and optional Ramadan/night details remain
 available below the main display. The mosque photograph fills the entire kiosk
 canvas with `cover` even when normal dashboard day-tab sizing is cached. Its
-photographer credit appears in the left footer, away from fullscreen controls,
-with wrapping and responsive stacking so it cannot overlap. The kiosk avoids
+photographer credit appears in the left footer, away from the fullscreen
+icon, with wrapping and responsive stacking so it cannot overlap. The kiosk avoids
 a duplicate outer viewport-height requirement and reserves a small amount
 of space for Home Assistant's surrounding dashboard margins. This reduces
 unnecessary desktop scrolling without hiding overflow when mobile content is
