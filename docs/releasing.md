@@ -124,12 +124,12 @@ The pipeline:
    then publishes a **stable** GitHub release with the changelog notes,
    deterministic installation ZIP and checksum. HACS installs the tagged
    integration directory; the attached ZIP is also available for manual installs.
-4. Skips an already published stable release when its tag matches the checked
-   commit. The current script checks tag identity first: a later `main` commit
-   retaining the same version instead fails safely because the tag points to the
-   older commit. It never moves the tag or overwrites the release. Existing
-   draft/prerelease releases with that tag and attempts to publish a lower stable
-   version also require a maintainer decision.
+4. Skips an already published stable release **even after later `main` commits
+   retaining the same version**. The published tag remains at the original
+   release commit; no tag moves or release overwrites occur. A published release
+   with a missing Git tag, conflicting draft/prerelease, or a tag collision
+   without a published release still fails safely. Attempts to publish a lower
+   stable version also require a maintainer decision.
 5. Rechecks the latest `main` and both CI results immediately before creating
    the release. All writes use the built-in `GITHUB_TOKEN`, with serialisation to
    prevent overlapping stable-release runs.
@@ -140,11 +140,11 @@ relevant lockfiles, and merge the usual reviewed PR. The stable pipeline only
 publishes a new version; it deliberately never invents a version number or
 publishes modified source code under an existing version.
 
-For documentation-only commits after publication, a same-version tag conflict
-does not mean the published artifact has changed. Review the workflow result;
-do not delete or move the stable tag, or invent a version bump merely to clear
-that follow-up run. Same-version reconciliation is tracked in the
-[documentation audit follow-ups](documentation-simplification-plan.md#remaining-documentation-work).
+For any commits after publication that retain the published version, the
+stable-release workflow exits successfully with a no-publication result. This
+does **not** put new code into the existing release: prepare a new version and
+pass release acceptance before publishing changes for HACS. Never delete or
+move the immutable existing tag merely to update a release.
 
 **Salah Timetable is officially listed in the default HACS catalogue.** This
 release pipeline publishes GitHub releases for HACS to offer as catalogue updates.

@@ -36,14 +36,25 @@ export function assessRelease({ candidateSha, mainSha, version, validateRuns, co
     throw new Error('Expected verified commit SHA values');
   }
   if (candidateSha !== mainSha) return { publish: false, tag, reason: 'main moved' };
-  if (tagSha !== null && tagSha !== candidateSha) {
-    throw new Error(tag + ' already targets a different commit; never move release tags');
-  }
+  // A published stable release belongs to the original tagged commit, not to
+  // later main commits that happen to retain the same version. Skip those
+  // commits without moving the tag or recreating the release.
   if (release) {
     if (release.draft || release.prerelease) {
       throw new Error(tag + ' already has a draft/prerelease; review it manually before publishing');
     }
+    if (release.tag_name && release.tag_name !== tag) {
+      throw new Error('Published stable release tag does not match ' + tag);
+    }
+    if (tagSha === null) {
+      throw new Error(tag + ' has a published release but its Git tag is missing');
+    }
     return { publish: false, tag, reason: 'stable release already exists' };
+  }
+  // No stable release exists. A different pre-existing tag is a real collision,
+  // so publication must still fail rather than silently retag.
+  if (tagSha !== null && tagSha !== candidateSha) {
+    throw new Error(tag + ' already targets a different commit; never move release tags');
   }
   for (const previous of releases) {
     if (previous.draft || previous.prerelease || !/^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(previous.tag_name)) continue;
