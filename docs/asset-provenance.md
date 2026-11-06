@@ -48,6 +48,16 @@ original Unsplash source, licence basis and checksum remain recorded in
 does not change rights in the underlying background photograph. All new images
 have their own SHA-256 inventory entries.
 
+The maintainer approved a further kiosk-mode screenshot on 6 November 2026.
+It depicts the v3.0 Home Assistant wall-display layout, including the compact
+fullscreen icon. The original 1920 × 1080 PNG was converted to an optimised
+WebP at the same resolution for
+[the desktop kiosk showcase](screenshots/showcase/desktop/kiosk-v3.webp).
+The screenshot uses the maintainer's configured public mosque and published
+time data; the visible mosque photograph remains subject to its underlying
+photographer/source licence and does not become MIT-licensed through the capture.
+Its asset hash is included in the inventory.
+
 The 20 bundled backgrounds come from reviewed free Unsplash photograph listings.
 Their named photographers and source pages are recorded individually in the
 inventory and card catalogue. The [Unsplash License](https://unsplash.com/license)

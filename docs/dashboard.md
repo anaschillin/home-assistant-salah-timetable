@@ -155,6 +155,19 @@ until those changes are published. They are examples from one configured
 mosque, not authoritative prayer schedules. Click a screenshot for its full
 resolution. The bundled mosque photograph is decorative.
 
+### Kiosk / wall display (v3.0)
+
+<a href="screenshots/showcase/desktop/kiosk-v3.webp"><img src="screenshots/showcase/desktop/kiosk-v3.webp" width="960" alt="Approved 1920 × 1080 Salah Timetable kiosk view with the tiny embedded fullscreen icon, live clock, equal Salah and Jamaat countdowns, and five published daily prayer tiles"></a>
+
+*Actual Home Assistant kiosk capture supplied by the maintainer on 6 November 2026.
+The times belong to the configured mosque; the background photograph is decorative
+and its original licence remains separate. The screenshot shows the current
+unmerged v3.0 design, not every possible device size or card setting.*
+
+See [Wall and tablet display](#wall-and-tablet-display) for setup, day navigation
+and fullscreen behaviour. Compact, Standard and Detailed screenshots below
+illustrate the **non-kiosk** layouts, which remain available.
+
 ### Daily display modes
 
 | Mode | Desktop | Mobile |
@@ -275,7 +288,8 @@ times, create sensors/calendar events or change Ramadan activation.
 ## Wall and tablet display
 
 Enable **Kiosk / wall display mode** in the card editor (`kiosk_mode: true`)
-for the dedicated v3 wall-screen layout. The card uses a responsive three-zone
+for the dedicated v3 wall-screen layout shown in the
+[approved kiosk screenshot](screenshots/showcase/desktop/kiosk-v3.webp). The card uses a responsive three-zone
 display modelled on the published prayer-screen reference. Its main glass panel
 has the mosque name and optional timezone on the left, a live clock in the
 middle, and configured Gregorian/Hijri dates on the right. The clock uses the

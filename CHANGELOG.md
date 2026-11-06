@@ -11,6 +11,7 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 ### Kiosk Mode redesign
 
+- Add the maintainer-approved 1920 × 1080 kiosk screenshot to the README and dashboard device gallery, with checksum and redistribution provenance.
 - Replace the kiosk's stacked dashboard card layout with a dedicated, full-viewport **three-zone wall display**, based on the approved prayer-screen design.
 - Place the mosque name and optional timezone on the left, the large live mosque-local clock in the centre, and enabled Gregorian/Hijri dates on the right. Preserve Hijri month information and all date visibility preferences.
 - Give Next Salah and Previous/Next Jamaat equal-width 50/50 panels, with matching countdown font sizes, title scale and space above the published-time rows, retaining their distinct cyan/neutral emphasis and live event calculations.
