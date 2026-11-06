@@ -955,6 +955,11 @@ ha-card.has-mosque-background::after {
   .summary-shell .panels:not(.single-panel) > .prayer-panel > .label {
     min-height: 2.5em;
   }
+  /* The smaller elapsed suffix can wrap onto a second countdown line. Match
+     the height on both sides so the Beginning/Jamaat divider stays level. */
+  .summary-shell .panels:not(.single-panel) > .prayer-panel > .count {
+    min-height: 2.36em;
+  }
 }
 .summary-shell .prayer-panel + .prayer-panel {
   border-inline-start: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
