@@ -136,6 +136,8 @@ test("paired countdowns align rows instead of distributing Jamaat height", () =>
   assert.match(CARD_CSS,
     /\.summary-shell \.panels:not\(\.single-panel\) > \.prayer-panel > \.count\s*\{\s*min-height:\s*2\.36em/);
   assert.match(CARD_CSS,
+    /@container\(max-width:21rem\)\s*\{\s*\.summary-shell \.panels:not\(\.single-panel\) > \.prayer-panel > \.label,[\s\S]*?min-height:\s*0/);
+  assert.match(CARD_CSS,
     /\.content\.kiosk \.summary-shell \.panels:not\(\.single-panel\) > \.prayer-panel \.prayer-times\s*\{\s*margin-top:\s*0/);
   assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*display:\s*grid/);
 });
