@@ -176,7 +176,7 @@ The README **coverage** badge is generated from the *measured Python line-covera
 
 | CI entry | What is verified |
 | --- | --- |
-| `.github/workflows/validate.yml` | Version-marker consistency (`scripts/sync_versions.py --check`) on every run; full Python pytest, coverage, Ruff, Node/Chromium, HACS/hassfest, packaging and HA checks for code PRs and all pushes to `main` |
+| `.github/workflows/validate.yml` | Every run checks versions, canonical excerpts, local Markdown/HTML links and heading anchors, plus asset provenance; full Python pytest, coverage, Ruff, Node/Chromium, HACS/hassfest, packaging and HA checks for code PRs and all pushes to `main` |
 | `.github/workflows/codeql.yml` | Python/JavaScript security analysis on PRs targeting `main`, all `main` pushes, manual runs and weekly; superseded PR scans cancel |
 | `.github/workflows/unit-compatibility.yml` | **All recursively discovered Python test files**, in one pytest run on each pinned Home Assistant compatibility lane |
 | `.github/workflows/live-smoke.yml` | Real disposable HA Container onboarding/browser smoke (manual and weekly; reusable workflow) |
@@ -185,7 +185,7 @@ The README **coverage** badge is generated from the *measured Python line-covera
 | `.github/workflows/stable-release.yml` | Publish a new stable version only after Validate/CodeQL on the exact latest `main`; preserve existing tags/releases |
 | `.github/workflows/release.yml` | Optional manual draft preparation from an existing validated tag; checks provenance, archive and checksum without publishing |
 
-Pull requests changing **only Markdown files** (including shared excerpts) run the documentation integrity check but skip heavyweight Python/Node, HACS/hassfest and HA integration/compatibility jobs in Validate. CodeQL still analyzes PRs targeting `main`. Any non-Markdown file—including code, configuration, workflow definitions or asset metadata—activates full validation. Every push to `main`, manual run and scheduled security/compatibility check retains the full checks; the draft-release requirement for a successful full `Validate` push run on the tagged commit is preserved.
+Pull requests changing **only Markdown files** (including shared excerpts) run the stdlib-only documentation integrity checks (`sync_versions.py --check`, `sync_documentation.py --check`, and `check_asset_provenance.py --require-cleared`) but skip heavyweight Python/Node, HACS/hassfest and HA integration/compatibility jobs in Validate. CodeQL still analyzes PRs targeting `main`. Any non-Markdown file—including code, configuration, workflow definitions or asset metadata—activates full validation. Every push to `main`, manual run and scheduled security/compatibility check retains the full checks; the draft-release requirement for a successful full `Validate` push run on the tagged commit is preserved.
 
 Workflow triggers are deliberately not filtered by `paths-ignore`: required checks could remain pending. Job-level skipping retains existing check names. The classifier uses a merge-base diff and includes the original path of renamed files to avoid bypassing code checks.
 
