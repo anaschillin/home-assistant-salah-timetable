@@ -1109,7 +1109,16 @@ test("kiosk 3.0 renders the three-zone display from published prayers and respec
   const tabs = find(card.shadowRoot, "nav").find(element => element.className === "date-tabs");
   assert.equal(footer.children[1], tabs);
   assert.equal(footer.children[2], toolbar);
-  assert.ok(toolbar.children.some(child => child.className === "kiosk-fullscreen"));
+  const summary = find(card.shadowRoot, "div").find(element => element.className === "summary-shell");
+  const fullscreen = summary.children.find(child => child.className === "kiosk-fullscreen");
+  assert.ok(fullscreen, "Fullscreen icon is a direct child of the glass summary");
+  assert.equal(fullscreen.textContent, "", "Only the icon is visible, not button text");
+  assert.equal(fullscreen.children[0].tagName, "ha-icon");
+  assert.equal(fullscreen.children[0].attributes.icon, "mdi:fullscreen");
+  assert.equal(fullscreen.attributes["aria-label"], "Enter fullscreen");
+  assert.equal(fullscreen.attributes["aria-pressed"], "false");
+  assert.ok(!toolbar.children.some(child => child.className === "kiosk-fullscreen"),
+    "The previous footer fullscreen button is removed");
   assert.ok(toolbar.children.some(child => child.className === "card-actions-menu"),
     "Compact monthly actions stay in More disclosure");
   card._tick(start + 60000);
@@ -1149,6 +1158,61 @@ test("kiosk 3.0 renders the three-zone display from published prayers and respec
   assert.equal(find(card.shadowRoot, "time").length, 0, "Non-kiosk has no live wall clock");
   assert.equal(find(card.shadowRoot, "section").filter(element => element.className === "kiosk-strip").length, 0);
   assert.equal(find(card.shadowRoot, "table").length, 1, "Normal timetable remains unchanged");
+});
+
+test("kiosk fullscreen icon enters, exits and follows external Escape", () => {
+  const card = new SalahTimetableCard();
+  const entity = "sensor.mosque_prayer_timetable";
+  card.setConfig({entity, kiosk_mode: true, show_month_view: true});
+  card.hass = hass();
+  const summary = find(card.shadowRoot, "div").find(element => element.className === "summary-shell");
+  const fullscreen = summary.children.find(child => child.className === "kiosk-fullscreen");
+  const surface = find(card.shadowRoot, "ha-card")[0];
+  const oldFullscreen = document.fullscreenElement;
+  const oldExit = document.exitFullscreen;
+  let enters = 0, exits = 0;
+  card.shadowRoot.querySelector = selector => selector === "ha-card" ? surface : null;
+  surface.requestFullscreen = () => {
+    enters++;
+    document.fullscreenElement = surface;
+    card._onFullscreenChange();
+    return Promise.resolve();
+  };
+  document.exitFullscreen = () => {
+    exits++;
+    document.fullscreenElement = null;
+    card._onFullscreenChange();
+    return Promise.resolve();
+  };
+  try {
+    assert.equal(fullscreen.attributes["aria-label"], "Enter fullscreen");
+    assert.equal(fullscreen.children[0].attributes.icon, "mdi:fullscreen");
+    fullscreen.dispatchEvent(new Event("click"));
+    assert.equal(enters, 1, "First tap requests fullscreen on this card only");
+    assert.equal(document.fullscreenElement, surface);
+    assert.equal(fullscreen.attributes["aria-label"], "Exit fullscreen");
+    assert.equal(fullscreen.attributes["aria-pressed"], "true");
+    assert.equal(fullscreen.children[0].attributes.icon, "mdi:fullscreen-exit");
+
+    fullscreen.dispatchEvent(new Event("click"));
+    assert.equal(exits, 1, "Second tap exits fullscreen to the previous view");
+    assert.equal(document.fullscreenElement, null);
+    assert.equal(fullscreen.attributes["aria-label"], "Enter fullscreen");
+    assert.equal(fullscreen.attributes["aria-pressed"], "false");
+    assert.equal(fullscreen.children[0].attributes.icon, "mdi:fullscreen");
+
+    fullscreen.dispatchEvent(new Event("click"));
+    document.fullscreenElement = null;
+    card._onFullscreenChange();
+    assert.equal(fullscreen.attributes["aria-label"], "Enter fullscreen",
+      "Esc and external fullscreen exits must restore the expand icon");
+    assert.equal(fullscreen.children[0].attributes.icon, "mdi:fullscreen");
+  } finally {
+    if (oldFullscreen === undefined) delete document.fullscreenElement;
+    else document.fullscreenElement = oldFullscreen;
+    if (oldExit === undefined) delete document.exitFullscreen;
+    else document.exitFullscreen = oldExit;
+  }
 });
 
 test("kiosk distinguishes tomorrow's Salah and the next published Jamaat", () => {
