@@ -413,8 +413,11 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_mosque_background` | `true`; legacy YAML visibility flag. The editor sets it via the unified background dropdown; `false` disables the photograph without clearing its saved selection |
 | `mosque_background` | `daily` (default); `none`, or a bundled mosque ID for a fixed photo. In the editor, Off sets `show_mosque_background: false` |
 
-Hiding either main countdown half removes it; the remaining half fills
-the available summary width. Hiding both leaves the mosque header and
+Hiding either main countdown half removes it. In Compact, Standard,
+Detailed and kiosk layouts, the remaining countdown is centred within
+the summary, with a comfortable maximum width on wide screens and
+full-width presentation on narrow devices. Showing both keeps the paired
+layout, including kiosk's equal-width halves. Hiding both leaves the mosque header and
 the timetable **when Standard or Detailed is selected**; Compact still
 omits today's full timetable (but retains the date footer). Connection warnings and narrow-card
 scrolling guidance remain available when the timezone note is hidden. Taraweeh
