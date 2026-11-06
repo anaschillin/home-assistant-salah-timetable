@@ -1,18 +1,18 @@
 # Documentation Simplification — Action Plan
 
-**Status:** First guide simplification pass merged; this is the maintained audit and follow-up list.
+**Status:** Core documentation simplification completed; the remaining items are optional redacted examples, candidate-specific CI and recurring release checks.
 
-**Audit baseline:** Initial guide audit against `main` on 1 November 2026; card/editor screenshot refresh verified against merged `main` on 4 November 2026.
+**Audit baseline:** All 37 Markdown files originally reviewed on 1 November 2026; rechecked against `main` and the published `v3.0.1` tag on 6 November 2026 (identical at commit `7b045c91`).
 
 **Scope:** All 37 tracked Markdown documents: root guidance, user/contributor guides, shared excerpts, research notes, examples and test/fixture READMEs.
 
 **Owner / execution:** A maintainer or Codex following [AGENTS.md](../AGENTS.md).
 
-The readiness and import features, documentation plan and first guide cleanup are
-already merged. The stable 1.0.0 release is published. Do not restart those tasks
-or wait for their old PRs to merge. The [roadmap](roadmap.md) contains future
-product work; this file records documentation ownership and concrete remaining
-work. The original guide screenshot pass is merged; this latest card/editor gallery refresh remains proposed until its PR merges.
+The readiness/import changes, first guide simplification, card/editor screenshots,
+v3 kiosk redesign and cast fixes are all on the published `v3.0.1` baseline.
+The previous 1.0.0-era prerequisites and unmerged screenshot disclaimer are obsolete.
+Do not reopen completed work. The [roadmap](roadmap.md) contains *upcoming product
+features only*; this file tracks the documentation audit and residual work.
 
 ## Starting conditions
 
@@ -30,36 +30,35 @@ work. The original guide screenshot pass is merged; this latest card/editor gall
 - Change documentation to match the implementation; report code discrepancies separately rather than changing runtime behaviour during an audit.
 - Retain stable headings, links, shared excerpt/version markers and image provenance. Use existing guides rather than introducing parallel reference pages.
 
-## File-by-file backlog
+## File-by-file completion record
 
-The audit reviewed every tracked Markdown file, including unchanged documents.
-Implementation checks used the config/source/import flows, parsers, persistence,
-sensors/calendar, domain resolvers, card/editor, blueprints, version tooling,
-release scripts and all workflow definitions. Local links, heading anchors,
-HTML image references and documented file inventories are checked separately.
+All **37 tracked Markdown files** were reviewed in the initial simplification
+pass and re-screened for stale version/PR status on the v3.0.1 baseline.
+A checked row means the document's **audit and ownership review** is complete;
+it does not claim every optional screenshot or every future release audit is done.
 
-| Documents | Audit result / action |
-| --- | --- |
-| `README.md` | Keep the concise install/navigation entry point; name both coverage and completeness alerts. Recommend direct HACS catalogue installation; retain custom-repository and manual release-copy fallbacks. |
-| `AGENTS.md` | Replace obsolete unmerged-feature prerequisites with current-branch/release verification; align heading rules with Contributing. |
-| `CHANGELOG.md` | Correct the current release's stale unreleased label against GitHub Releases; retain historical entries and explain old development-snapshot labels. |
-| `CONTRIBUTING.md` | Version/excerpt ownership, Linux/WSL setup and browser commands agree with tooling; qualify full CI versus Markdown-only PR validation. |
-| `SECURITY.md` | Replace candidate-era maintenance wording with stable-release/development scope; retain private reporting and upstream-pin policy. |
-| `docs/getting-started.md` | Setup fields, readiness, approval, card selection, reconfiguration and deletion match the flows; retain the task screenshots and separate completeness from coverage. |
-| `docs/import_review.md` | Cross-year CSV, mapping suggestions, removed-date warnings and rollover are implemented. Correct rollover eligibility/year derivation, PDF fallback precedence and manual-upload Source status; remove attachment-session/live-URL diary text. |
-| `docs/dashboard.md` | Defaults and seven editor groups agree with the card; distinguish supported YAML/legacy options from graphical controls and document optional title. History switches remain disabled. |
-| `docs/automations.md` | All 27 sensors, calendar and six blueprints checked; include selected media players among required Adhan inputs. Keep timestamp and activation limits. |
-| `docs/architecture.md` | Module inventory agrees with production files; clarify that only PDF extraction is subprocess-isolated and remove obsolete publication-URL status. |
-| `docs/testing.md` | Python/Node counts, coverage gates, compatibility pairs and commands match the repository. Include all release workflows in the CI ownership table and correct stale link labels. |
-| `docs/releasing.md` | Automatic publication is implemented. Correct same-version reconciliation claims; remove workflow-installation prerequisites and dated acceptance diary text, document the completed catalogue listing and ongoing maintenance and keep candidate evidence in PR/release reviews. |
-| `docs/roadmap.md` | Remove old unmerged-PR prerequisites and distinguish implemented import/readiness features from further usability work. |
-| `docs/documentation-simplification-plan.md` | Replace the unstarted proposal with this audit, completed scope, ownership and specific remaining work. |
-| `docs/asset-provenance.md` | Keep inventory ownership, separate photograph rights and screenshot redaction/resampling disclosure; distinguish current-tree removal from Git-history removal. |
-| All four `docs/_excerpts/*.md` files | Installation, support, standard development commands and validation boundaries remain canonical; regenerate consumers after excerpt edits. |
-| `examples/README.md` | Two-day synthetic CSV instructions agree with the example; retain its fictional-data and partial-year warning. |
-| `tests/README.md` and all ten `tests/<area>/README.md` files | Ownership and focused commands checked against actual modules. Include completeness/health alerts and both release-script Node suites; clarify that missing dates stay explicit in month data. |
-| All four fixture READMEs under `tests/fixtures/` | CSV/PDF generators, expected-value files and frozen storage schemas match their provenance. Preserve historical serializer identities; do not regenerate legacy fixtures from current code. |
-| Both `research/islamic-history/*.md` audits | Dated source research and proposed event delivery remain explicitly research-only. Do not promote candidates, historical source counts or permission claims into current runtime guarantees. |
+| Documents | Audit | Verified responsibility / retained boundary |
+| --- | :---: | --- |
+| `README.md` | [x] | Concise feature/install entry point, current v3.0.1 kiosk preview, official HACS catalogue first, custom-repository/manual fallbacks and links to canonical guides. |
+| `AGENTS.md` | [x] | Current-main instructions, documentation handoff, unnumbered descriptive headings and no unmerged-feature prerequisites. |
+| `CHANGELOG.md` | [x] | Current 3.0.1 release heading and history; older `unreleased` labels are explicitly historical development snapshots. |
+| `CONTRIBUTING.md` | [x] | Version/excerpt ownership, Linux/WSL and browser setup; required CI and Markdown-only fast paths distinguished. |
+| `SECURITY.md` | [x] | Stable-release scope, private reporting and constrained dependency advisory policy. |
+| `docs/getting-started.md` | [x] | Installation, first import, approval, readiness, mosque settings, card usage, deletion and common issues. More optional redacted edge-case captures remain below. |
+| `docs/import_review.md` | [x] | PDF/CSV/HTTPS boundaries, cross-year CSV, reviewed mapping suggestions, removed-date warnings and guided annual rollover; source state and approval are distinct. |
+| `docs/dashboard.md` | [x] | Released v3 kiosk, card/editor ordering, seven groups, device gallery, YAML-only/legacy options and disabled history switches. |
+| `docs/automations.md` | [x] | 27 mosque sensor entries, prayer calendar, six blueprints, explicit timestamp/activation and coverage/completeness distinctions. |
+| `docs/architecture.md` | [x] | Production module and data-flow inventory, approved/pending boundary and PDF-only worker isolation. |
+| `docs/testing.md` | [x] | Verified 56 Python test modules, frontend suites, supported HA pairs and CI ownership. The source-controlled inventory remains curated. |
+| `docs/releasing.md` | [x] | Validated feature/stable pipelines, immutable same-version release reconciliation, HACS catalogue status, manual acceptance and internal Quality Scale audit. |
+| `docs/roadmap.md` | [x] | Unreleased product proposals only; shipped features, dependency upkeep, CI and documentation chores are excluded. |
+| `docs/documentation-simplification-plan.md` | [x] | Audit record, source-of-truth ownership, accepted decisions, open follow-ups and verification criteria. |
+| `docs/asset-provenance.md` | [x] | Maintainer inventory, fixture/photo licensing, screenshot disclosure and current-tree versus history distinctions. |
+| Four `docs/_excerpts/*.md` files | [x] | Shared installation, support, development checks and validation boundaries; sync consumers instead of duplicating them. |
+| `examples/README.md` | [x] | Synthetic two-day CSV example and partial-year restriction. |
+| `tests/README.md` and ten `tests/<area>/README.md` files | [x] | Test ownership, focused commands, alert and release-script suites, and explicit missing dates. |
+| Four fixture READMEs in `tests/fixtures/` | [x] | Fixture generators, expected values and frozen historical storage-schema/provenance. |
+| Two `research/islamic-history/*.md` notes | [x] | Dated research only; neither source counts nor proposed historical events imply a shipped feature. |
 
 ## Completed user-guide scope
 
@@ -76,20 +75,21 @@ unstarted product proposals:
 - [x] Shorter contributor/release references linking to canonical test and acceptance procedures.
 - [x] Verified default HACS catalogue listing, with catalogue-first installation instructions and both custom-repository and manual release-copy fallbacks.
 
-The earlier merged documentation pass added setup/import/settings screenshots
-and anonymised desktop/mobile card examples. The new device gallery includes
-16 fresh desktop, mobile and tablet screenshots from a configured real mosque;
-those newer captures are not anonymised. Treat all interface screenshots as
-illustrative, not independently verified timetable publications. See the
-[asset provenance guide](asset-provenance.md) for screenshot and photo rights.
+The merged screenshot passes added setup/import/settings examples and the
+desktop/mobile/tablet card-editor gallery. The v3 kiosk screenshot also shipped.
+The newer device captures show a real configured mosque rather than anonymised
+data: they illustrate the interface, **not** independently verified published
+prayer schedules. See [asset provenance](asset-provenance.md) for rights,
+redaction and decorative photograph licences.
 
-## Remaining documentation work
+## Remaining documentation work and decisions
 
-- [ ] Add captures for readiness with named missing fields, CSV mapping suggestions, removed-date warnings and comparison filtering when suitable redacted examples are available; the supplied review summary is not a comparison-screen capture.
-- [ ] Consider generating the long test-module inventory from its existing ownership checks; keep the inventory guard and coverage requirements intact. Changes to tooling need their own reviewed implementation.
-- [ ] Evaluate further consolidation of architecture, testing and release references only where a specific duplicate remains. Preserve the complete module inventory, exact commands and internal rule audit.
-- [x] Stable-release same-version reconciliation: subsequent `main` commits now skip an existing published stable version while preserving immutable tags and rejecting collisions; see the release guide and regression tests.
-- [ ] On later releases, recheck screenshots, form labels, defaults, source bounds, compatibility pins and research/runtime separation against the actual release tag.
+- [ ] **Optional screenshots:** add suitably redacted captures of readiness with named missing fields, CSV mapping suggestions, removed-date warnings and comparison filtering when representative examples are available. The existing review-summary capture is not a comparison-screen capture. Do not substitute fabricated UI states or expose real timetable owners' data.
+- [x] **Test-inventory assessment:** keep the maintained 56-module inventory and its existing ownership checks. Generating the inventory would introduce extra tooling without a demonstrated maintenance failure; revisit only if actual drift appears.
+- [x] **Further consolidation assessment:** architecture, testing and release guides have different primary audiences and canonical responsibilities. No remaining cross-guide duplication warrants merging them; preserve the full inventory, reproducible commands and rule-specific audit.
+- [x] **Stable release reconciliation:** already implemented; later `main` commits with a published version leave immutable tags intact and report a no-publication result.
+- [x] **v3.0.1 baseline refresh:** current release/tag checked; released kiosk/card editor/screenshots and merged casting changes no longer described as proposed.
+- [ ] **Recurring release verification:** for every later candidate, compare screenshots, UI labels, defaults, source limits, compatibility pins and research/runtime separation with the **actual release tag**. Record results in that candidate's PR/release rather than treating this recurring duty as permanently complete.
 
 ## Canonical document ownership
 
@@ -121,8 +121,8 @@ illustrative, not independently verified timetable publications. See the
 - [x] All tracked documentation has been reviewed against its canonical implementation or historical evidence; current claims do not rely on obsolete PR status.
 - [x] Local file links, heading anchors, HTML image references, shared excerpts and generated version fields resolve.
 - [x] `python scripts/sync_documentation.py --check`, `python scripts/sync_versions.py --check` and `python scripts/check_asset_provenance.py --require-cleared` pass.
-- [ ] Suite-inventory/provenance checks and applicable CI pass on the final candidate. Keep run-specific evidence in the PR rather than turning guides into a validation diary.
-- [x] Remaining work is explicit and does not describe completed features as future work. Research notes and old changelog snapshots remain clearly historical.
+- [ ] The current documentation PR's applicable CI and inventory/provenance checks complete successfully; put run-specific evidence in the PR, not in this permanent plan.
+- [x] The roadmap contains only upcoming product features. The changelog preserves historical entries; research notes remain research-only; unresolved documentation work is separate.
 
 **Out of scope:** runtime changes, new product features, publication discovery,
 religious/date certification, licensing decisions and creating releases.
