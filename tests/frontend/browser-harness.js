@@ -734,7 +734,7 @@ try {
     Boolean(fullscreen) &&
     fullscreen.textContent.trim() === "" &&
     fullscreen.querySelector("ha-icon")?.getAttribute("icon") === "mdi:fullscreen" &&
-    fullscreen.getAttribute("aria-label") === "Enter fullscreen" &&
+    fullscreen.getAttribute("aria-label") === tr(ui, "card.kiosk_fullscreen_enter") &&
     getComputedStyle(fullscreen).position === "absolute" &&
     Math.abs(fullscreen.getBoundingClientRect().right - hero.getBoundingClientRect().right + 12) <= 2 &&
     Math.abs(fullscreen.getBoundingClientRect().top - hero.getBoundingClientRect().top - 12) <= 2 &&
