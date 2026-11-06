@@ -4,7 +4,7 @@ Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.4<!-- /docs:pypdf --> (fro
 
 Pinned compatibility targets: Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested --> (pinned current).
 
-This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 56 Python test modules are grouped by the behaviour they protect, not by test framework. All 16 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
+This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 56 Python test modules are grouped by the behaviour they protect, not by test framework. All 17 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
 
@@ -131,12 +131,13 @@ Names indicate the primary module ownership; some tests deliberately span unit, 
 
 ## JavaScript and browser tests
 
-The following 16 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
+The following 17 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
 
 | File in `tests/frontend/` | Responsibility |
 | --- | --- |
 | `browser-startup.test.mjs` | Browser-process startup and failure handling |
 | `card-i18n.test.mjs` | Localisation and translation fallback |
+| `card-registry-race.test.mjs` | Re-register the card and editor safely after Home Assistant replaces its custom-element registry |
 | `card-styles.test.mjs` | CSS and responsive style expectations |
 | `card-utils.test.mjs` | Date, duration and card formatting helpers |
 | `card.test.mjs` | Card/editor rendering, interactions and state |
