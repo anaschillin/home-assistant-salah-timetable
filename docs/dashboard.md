@@ -424,7 +424,10 @@ stack underneath the enlarged countdown to prevent clipping. Showing both
 keeps the original paired layout, including kiosk's equal-width halves. The
 Next Salah and contextual Jamaat headings, live clocks and published
 Beginning/Jamaat rows are aligned from the top; an optional Fajr sunrise
-note is shown beneath the relevant panel without shifting its neighbour. Hiding both leaves the mosque header and
+note is shown beneath the relevant panel without shifting its neighbour.
+Narrow side-by-side cards reserve matching heading and countdown row heights
+when the Jamaat label or elapsed text wraps; once mobile panels stack, that
+extra space is removed. Hiding both leaves the mosque header and
 the timetable **when Standard or Detailed is selected**; Compact still
 omits today's full timetable (but retains the date footer). Connection warnings and narrow-card
 scrolling guidance remain available when the timezone note is hidden. Taraweeh
