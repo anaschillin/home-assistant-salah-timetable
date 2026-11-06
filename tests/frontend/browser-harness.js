@@ -339,7 +339,10 @@ try {
     check(pass ? label : `${label}: ${JSON.stringify({panelColumns, measured, topAligned, timeAnchored})}`, pass);
   }
   render();
-  check("container layout uses one column on mobile and two on tablet", gridStyle.gridTemplateColumns.split(" ").length === (width <= 336 ? 1 : 2));
+  // Rendered nodes are replaced by the paired visibility matrix. Read the
+  // restored grid instead of reusing its now-detached computed-style object.
+  const restoredGridColumns = getComputedStyle(card.shadowRoot.querySelector(".panels")).gridTemplateColumns.split(" ").length;
+  check("container layout uses one column on mobile and two on tablet", restoredGridColumns === (width <= 336 ? 1 : 2));
   // The layout is measured in native Chromium; this catches a future cascade
   // regression that leaves a lone summary stuck in one half of the kiosk grid.
   for (const [detail_level, kiosk_mode] of [
