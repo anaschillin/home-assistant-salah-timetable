@@ -335,7 +335,17 @@ try {
       const leadingSize = parseFloat(getComputedStyle(count).fontSize);
       const normalSize = parseFloat(salahClockStyle.fontSize);
       const constrained = rect.width <= (kiosk_mode ? 1152 : 896) + 2;
-      check(`single ${salah ? "Salah" : "Jamaat"} is centred in ${detail_level}${kiosk_mode ? " kiosk" : ""}`,
+      const metrics = {width, dir: ui.dir, detail_level, kiosk_mode, centered, constrained,
+        className: grid?.className, children: grid?.children.length,
+        display: getComputedStyle(panel).display,
+        columns: getComputedStyle(panel).gridTemplateColumns, panelColumns,
+        shouldStack, publishedBelow, publishedOnInlineEnd,
+        leadingSize, normalSize,
+        frame: frame && {left: frame.left, right: frame.right, width: frame.width},
+        panel: rect && {left: rect.left, right: rect.right, width: rect.width},
+        time: publishedRect && {left: publishedRect.left, right: publishedRect.right, top: publishedRect.top},
+        count: countRect && {left: countRect.left, right: countRect.right, bottom: countRect.bottom}};
+      check(`single ${salah ? "Salah" : "Jamaat"} is centred in ${detail_level}${kiosk_mode ? " kiosk" : ""}: ${JSON.stringify(metrics)}`,
         grid?.classList.contains("single-panel") && grid.children.length === 1 &&
         centered && constrained &&
         getComputedStyle(panel).display === "grid" &&
