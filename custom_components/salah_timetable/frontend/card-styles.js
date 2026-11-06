@@ -853,6 +853,22 @@ ha-card.has-mosque-background::after {
   gap: 0;
   border-top: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
 }
+/* Centre whichever countdown remains when its companion is disabled. Keep a
+   comfortable maximum width on wide dashboards without shrinking mobile cards.
+   Use an explicit class rather than :has(), for older Cast Chromium engines. */
+.summary-shell .panels.single-panel {
+  grid-template-columns: minmax(0,1fr);
+  justify-items: center;
+}
+.summary-shell .panels.single-panel > .prayer-panel {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 38rem;
+  text-align: center;
+}
+.summary-shell .panels.single-panel > .prayer-panel .prayer-times {
+  width: 100%;
+}
 /* Both countdown halves get exactly the same transparent glass formatting. */
 .summary-shell .panel.prayer-panel,
 .summary-shell .panel.prayer-panel[data-panel="salah"] {
@@ -1378,6 +1394,19 @@ ha-card.kiosk:fullscreen .content.kiosk {
   margin: clamp(14px, 1.6cqi, 26px) 0 0;
   padding: 0;
   border-top: none;
+}
+/* Override the two-column kiosk hero only when one countdown is enabled. */
+.content.kiosk .summary-shell .panels.single-panel {
+  grid-template-columns: minmax(0,1fr);
+  justify-items: center;
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel {
+  width: 100%;
+  max-width: 48rem;
+  text-align: center;
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel .label {
+  justify-content: center;
 }
 .content.kiosk .summary-shell .panel.prayer-panel,
 .content.kiosk .summary-shell .panel.prayer-panel[data-panel="salah"] {
