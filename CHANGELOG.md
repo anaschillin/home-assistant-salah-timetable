@@ -7,6 +7,24 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 ## Unreleased
 
+## 3.1.0 — 6 November 2026
+
+### Card Layout Improvements
+
+- Automatically centre the remaining Next Salah or contextual Previous/Next Jamaat countdown when the other summary is hidden, in Compact, Standard, Detailed and Kiosk views.
+- Use a bounded panel width on wide screens with full usable width on narrow devices; preserve the 50/50 split when both countdowns are visible and omit the empty grid when both are disabled.
+- Retain published prayer times, live countdown updates, mosque/date settings, fullscreen behaviour and existing responsive layouts.
+- Add Node, CSS and native Chromium regression checks for all countdown visibility combinations, including single-panel alignment on mobile and desktop.
+
+## 3.0.1 — 6 November 2026
+
+### Cast receiver compatibility and startup reliability
+
+- Recover Salah Timetable card/editor registration after Home Assistant replaces the browser custom-element registry during frontend startup. Use bounded post-initialisation checks to avoid duplicate imports, recasts or dashboard refreshes (#134).
+- Support Chrome 92-based Cast receivers by avoiding `Object.hasOwn()` in frontend translations and adding regression tests for fallbacks, parameters and prayer labels (#135).
+- Preserve existing kiosk v3, mosque ordering/editor, prayer calculations and all approved timetable data.
+- Device acceptance reported by the maintainer on the Home Assistant browser, Google Nest Hub Max and Home Assistant Companion app. Record precise installed integration versions and results in the release PR before publishing.
+
 ## 3.0.0 — 5 November 2026
 
 ### Kiosk Mode redesign

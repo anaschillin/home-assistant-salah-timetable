@@ -1,6 +1,6 @@
 # Architecture
 
-Current integration version: <!-- docs:version -->3.0.0<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->3.1.0<!-- /docs:version -->.
 
 ## Boundaries
 
