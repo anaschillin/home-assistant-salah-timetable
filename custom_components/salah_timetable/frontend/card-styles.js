@@ -1267,6 +1267,7 @@ ha-card.kiosk:fullscreen .content.kiosk {
 }
 .content.kiosk .summary-shell {
   box-sizing: border-box;
+  position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   width: 100%;
@@ -1337,6 +1338,9 @@ ha-card.kiosk:fullscreen .content.kiosk {
 }
 .content.kiosk .header .kiosk-dates {
   display: grid;
+  /* Leave breathing room beside the overlay icon without changing the
+     header grid or moving the rest of the display. */
+  padding-inline-end: 18px;
   gap: 3px;
   justify-items: end;
   align-content: center;
@@ -1597,11 +1601,40 @@ ha-card.kiosk:fullscreen .content.kiosk {
   position: static;
   inset: auto;
 }
-.content.kiosk .kiosk-fullscreen {
-  min-height: clamp(42px, 6dvh, 62px);
-  padding: 8px clamp(12px, 1.2cqi, 22px);
-  white-space: nowrap;
-  font-size: clamp(.75rem, 1cqi, .95rem);
+/* One icon in the glass itself, outside header/grid flow. */
+.content.kiosk .summary-shell > .kiosk-fullscreen {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(0, 0, 0, .28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  line-height: 1;
+}
+.content.kiosk .summary-shell > .kiosk-fullscreen ha-icon {
+  width: 17px;
+  height: 17px;
+  --mdc-icon-size: 17px;
+}
+.content.kiosk .summary-shell > .kiosk-fullscreen:hover {
+  background: rgba(0, 0, 0, .42);
+}
+.content.kiosk .summary-shell > .kiosk-fullscreen:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 .content.kiosk .kiosk-toolbar .card-action-strip {
   grid-column: auto;
@@ -1641,7 +1674,11 @@ ha-card.kiosk:fullscreen .content.kiosk {
 }
 @container(max-width:40rem) {
   .content.kiosk .header { grid-template-columns: 1fr; text-align: center; }
-  .content.kiosk .header .kiosk-identity { text-align: center; }
+  .content.kiosk .header .kiosk-identity {
+    text-align: center;
+    max-width: calc(100% - 40px);
+    margin-inline: auto;
+  }
   .content.kiosk .header h2 { text-align: center; }
   .content.kiosk .header .kiosk-clock { grid-column: 1; }
   .content.kiosk .header .kiosk-dates { grid-column: 1; grid-row: auto; }
