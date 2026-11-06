@@ -374,3 +374,62 @@ def test_excerpt_rendering_rejects_missing_or_unbalanced_sources(tmp_path):
     complete = opening + "\nold\n<!-- /docs:excerpt unknown -->"
     with pytest.raises(ValueError, match="Missing documentation excerpt"):
         render_excerpts(tmp_path, Path("README.md"), complete, {})
+
+
+def test_documentation_links_validate_markdown_html_and_duplicate_anchors(tmp_path):
+    """Check ordinary and HTML links without external network access."""
+    from scripts.sync_documentation import check_local_links
+
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "card.webp").write_bytes(b"synthetic")
+    target = docs / "guide.md"
+    target.write_text("# Guide\n## Example\n## Example\n")
+    source = (
+        "# Index\n"
+        "[second heading](guide.md#example-1)\n"
+        "[first heading](guide.md#example)\n"
+        "[same page](#index)\n"
+        "![image](card.webp)\n"
+        '<a href="guide.md#example">Reference</a>\n'
+        '<img src="card.webp" alt="Sample">\n'
+        "[external](https://example.com/not-local)\n"
+    )
+    check_local_links(tmp_path, Path("docs/index.md"), source)
+
+
+@pytest.mark.parametrize(
+    ("reference", "expected"),
+    [
+        ("[missing](guide.md#not-a-heading)", "Missing heading anchor"),
+        ('<a href="#not-a-heading">Broken</a>', "Missing heading anchor"),
+        ("![missing](missing.webp)", "Missing link destination"),
+        ('<img src="missing.webp">', "Missing link destination"),
+        ('<a href="missing.md">Broken</a>', "Missing link destination"),
+    ],
+)
+def test_documentation_links_fail_for_missing_targets_or_anchors(
+    tmp_path, reference, expected
+):
+    """Prevent broken document navigation and screenshot links."""
+    from scripts.sync_documentation import check_local_links
+
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "guide.md").write_text("# Guide\n## Example\n")
+    with pytest.raises(ValueError, match=expected):
+        check_local_links(tmp_path, Path("docs/index.md"), "# Index\n" + reference)
+
+
+def test_documentation_links_ignore_headings_inside_code_fences(tmp_path):
+    """Code examples must not introduce false heading anchors."""
+    from scripts.sync_documentation import check_local_links
+
+    (tmp_path / "guide.md").write_text(
+        "# Guide\n\n" + chr(96) * 3 + "md\n## Not a heading\n"
+        + chr(96) * 3 + "\n"
+    )
+    with pytest.raises(ValueError, match="Missing heading anchor"):
+        check_local_links(
+            tmp_path, Path("README.md"), "[bad](guide.md#not-a-heading)"
+        )
