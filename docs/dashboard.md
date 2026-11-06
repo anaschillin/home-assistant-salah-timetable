@@ -415,9 +415,13 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 
 Hiding either main countdown half removes it. In Compact, Standard,
 Detailed and kiosk layouts, the remaining countdown is centred within
-the summary, with a comfortable maximum width on wide screens and
-full-width presentation on narrow devices. Showing both keeps the paired
-layout, including kiosk's equal-width halves. Hiding both leaves the mosque header and
+the summary and uses larger prayer-name and live-timer lettering. The published
+**Beginning** and **Jamaat** values move into a separate column at the right
+(or to the left for RTL languages). The single panel expands to use more
+of the available glass surface without stretching indefinitely on wide displays.
+On unusually narrow cards, and phone-sized kiosk views, the published times
+stack underneath the enlarged countdown to prevent clipping. Showing both
+keeps the original paired layout, including kiosk's equal-width halves. Hiding both leaves the mosque header and
 the timetable **when Standard or Detailed is selected**; Compact still
 omits today's full timetable (but retains the date footer). Connection warnings and narrow-card
 scrolling guidance remain available when the timezone note is hidden. Taraweeh
