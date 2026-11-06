@@ -47,7 +47,7 @@ test('publish only once both security and validation workflows passed', () => {
 
 test('existing published releases are idempotent; draft/prerelease is protected', () => {
   const stable = { tag_name: 'v1.2.3', draft: false, prerelease: false };
-  assert.match(assessRelease(candidate({ release: stable })).reason, /already exists/);
+  assert.match(assessRelease(candidate({ release: stable, tagSha: sha })).reason, /already exists/);
   assert.deepEqual(assessRelease(candidate({ release: stable, tagSha: oldSha })), {
     publish: false, tag: 'v1.2.3', reason: 'stable release already exists',
   }, 'subsequent main commits with the same version must skip without moving the tag');
