@@ -150,9 +150,9 @@ as unavailable rather than inferred. Ramadan details are shown in all three disp
 ## Device screenshots
 
 The screenshots below document the repository's card/editor layout after the
-redesign, on desktop, mobile and tablet; installed release behaviour may differ
-until those changes are published. They are examples from one configured
-mosque, not authoritative prayer schedules. Click a screenshot for its full
+redesign, on desktop, mobile and tablet. The v3.0 kiosk layout and redesigned
+card editor are included in the v3.0.1 stable release; these remain examples
+from one configured mosque, not authoritative prayer schedules. Click a screenshot for its full
 resolution. The bundled mosque photograph is decorative.
 
 ### Kiosk / wall display (v3.0)
@@ -161,8 +161,8 @@ resolution. The bundled mosque photograph is decorative.
 
 *Actual Home Assistant kiosk capture supplied by the maintainer on 6 November 2026.
 The times belong to the configured mosque; the background photograph is decorative
-and its original licence remains separate. The screenshot shows the current
-unmerged v3.0 design, not every possible device size or card setting.*
+and its original licence remains separate. The screenshot shows the released v3.0 kiosk design, not every possible
+device size or card setting.*
 
 See [Wall and tablet display](#wall-and-tablet-display) for setup, day navigation
 and fullscreen behaviour. Compact, Standard and Detailed screenshots below

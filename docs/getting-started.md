@@ -98,8 +98,7 @@ The Yesterday, Today and Tomorrow controls show approved rows for the selected d
 The calculated Hijri header is for display; it does not activate Ramadan or change
 published timestamps. See [Dashboard](dashboard.md) for card options and
 [Automations](automations.md) for alerts and speaker playback. The [Prayer reminders wizard](automations.md#guided-prayer-reminders) guides
-administrators through mosque selection, prayers, advance minutes and delivery;
-confirm your installed release includes the wizard before following its steps.
+administrators through mosque selection, prayers, advance minutes and delivery.
 
 ![Add to dashboard dialog with Salah Timetable selected by card](screenshots/add-dashboard-card.png)
 
@@ -111,7 +110,7 @@ The graphical editor has one ordered mosque checkbox list, a **Card detail**
 selector and seven expandable settings groups. The **Shown first** label marks
 the default mosque; changes are reflected in the live preview. The new screen
 captures show a real configured mosque name rather than anonymised sample data.
-They reflect the repository's updated card UI; installed releases can differ.
+They reflect the current published card UI; older installations can differ.
 
 <img src="screenshots/showcase/tablet/card-editor.webp" width="720" alt="Home Assistant tablet card editor with mosque ordering and a live timetable preview">
 

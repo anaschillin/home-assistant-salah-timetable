@@ -114,8 +114,16 @@ GitHub Markdown does not support native cross-file includes. Canonical excerpts 
 `docs/_excerpts/` are materialised inside `docs:excerpt NAME` blocks so GitHub renders
 complete prose and commands. Edit the excerpt source, never its generated copies.
 Visible values inside `<!-- docs:... -->` markers also come from `versions.toml`.
-Run the same `--write` command after changing excerpts or guide links. The
-documentation helper retains canonical guide redirects and shell/matrix exports:
+Run the `--write` command after changing excerpts or guide links. Verify the
+result before committing; CI checks rendered excerpts, local Markdown/HTML
+links and heading anchors, as well as recorded asset provenance:
+
+```sh
+python scripts/sync_documentation.py --check
+python scripts/check_asset_provenance.py --require-cleared
+```
+
+The documentation helper retains canonical guide redirects and shell/matrix exports:
 
 ```bash
 source <(python3 scripts/sync_documentation.py --shell)
