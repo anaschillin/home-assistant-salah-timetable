@@ -203,6 +203,7 @@ def check_local_links(root: Path, source_path: Path, source: str) -> None:
             if unquote(fragment) not in anchors_by_target[destination]:
                 raise ValueError(f"Missing heading anchor in {current}: {target}")
 
+
 def render_excerpts(
     root: Path, destination: Path, text: str, values: dict[str, str]
 ) -> str:
