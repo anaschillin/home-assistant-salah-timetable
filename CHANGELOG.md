@@ -11,8 +11,9 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 ### Card Layout Improvements
 
-- Automatically centre the remaining Next Salah or contextual Previous/Next Jamaat countdown when the other summary is hidden, in Compact, Standard, Detailed and Kiosk views.
-- Use a bounded panel width on wide screens with full usable width on narrow devices; preserve the 50/50 split when both countdowns are visible and omit the empty grid when both are disabled.
+- Centre and enlarge the remaining Next Salah or contextual Previous/Next Jamaat countdown when the other summary is hidden in Compact, Standard, Detailed and Kiosk views.
+- Use the newly available horizontal space for larger prayer headings and countdowns, with published Beginning/Jamaat times in a separate right-hand column (mirrored for RTL). Stack the details only on very narrow devices.
+- Retain a sensible maximum panel width on wide screens, preserve the 50/50 split when both countdowns are visible, and omit the empty grid when both are disabled.
 - Retain published prayer times, live countdown updates, mosque/date settings, fullscreen behaviour and existing responsive layouts.
 - Add Node, CSS and native Chromium regression checks for all countdown visibility combinations, including single-panel alignment on mobile and desktop.
 
