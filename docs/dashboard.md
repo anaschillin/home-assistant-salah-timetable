@@ -515,6 +515,41 @@ obsolete manual duplicates that may load an older definition first. YAML-managed
 manual resources remain yours to edit; do not keep an old manual card URL alongside
 the integration's automatic module registration.
 
+### Custom cards show Configuration error after a cold dashboard load
+
+Home Assistant may create a custom card before its JavaScript module completes
+registration. On some frontend versions, the scoped custom-element registry can
+also replace the native registry after the module evaluates, leaving a previously
+defined element invisible to Lovelace. This is particularly noticeable on a
+cold-started Chromecast/DashCast dashboard or a `panel: true` view.
+
+The bundled Salah Timetable card now **rechecks and registers both the card and
+its editor against the active custom-element registry** after Home Assistant
+initialises. This needs no dashboard configuration change or Cast-specific
+resource injection. It does not recast the screen or force a page reload.
+
+If a **Configuration error** remains:
+
+1. Verify the card resource was loaded and registered exactly once. Remove stale
+   extra copies of `salah-timetable-card.js` from Resources; do not manually
+   import a second URL just to hide a loading error.
+2. Check your browser console for a `Failed to fetch dynamically imported
+   module`, authentication, content-type, or syntax error, or a
+   `Salah Timetable: could not register` warning.
+3. If using a Cast device, load the exact same dashboard URL in a clean browser
+   session to distinguish a missing-module error from a receiver limitation.
+4. If only other third-party custom cards fail, update those card modules. This
+   integration can only repair registration for its **own** custom elements.
+5. Report your Home Assistant version, the precise error and the registered
+   module URL; do not share access tokens or private dashboard URLs.
+
+A successful `customElements.get("salah-timetable-card")` check establishes
+registration in that browser only; it does not prove the Cast receiver rendered
+the card or that HA entities were loaded. Home Assistant frontend issues
+[52570](https://github.com/home-assistant/frontend/issues/52570) and
+[52960](https://github.com/home-assistant/frontend/issues/52960) document
+these distinct frontend timing and registry problems.
+
 If the card reports a missing entity, choose the mosque's Prayer timetable sensor
 again. If prayer values are unavailable, check the approved source's date coverage,
 field mappings and mosque timezone. An empty mosque has no prayer times until an

@@ -1248,8 +1248,45 @@ export class SalahTimetableCardEditor extends HTMLElement {
   }
 }
 
-if (!customElements.get("salah-timetable-card")) customElements.define("salah-timetable-card", SalahTimetableCard);
-if (!customElements.get("salah-timetable-card-editor")) customElements.define("salah-timetable-card-editor", SalahTimetableCardEditor);
+// HA 2026.8+ may install the scoped-custom-element-registry polyfill after
+// our resource module evaluated. Elements defined in the earlier native
+// registry then appear missing to the active registry, causing a permanent
+// "Configuration error", especially on cold loads and Cast displays.
+// Re-register the SAME constructors with the current registry after HA starts;
+// never load a second copy of this module or forcibly reload the dashboard.
+function registerSalahCardElements() {
+  for (const [tag, constructor] of [
+    ["salah-timetable-card", SalahTimetableCard],
+    ["salah-timetable-card-editor", SalahTimetableCardEditor],
+  ]) {
+    if (customElements.get(tag)) continue;
+    try {
+      customElements.define(tag, constructor);
+    } catch (error) {
+      // If another source completed registration concurrently, that's fine.
+      // A genuine failure must remain visible in logs for troubleshooting.
+      if (!customElements.get(tag)) {
+        console.warn("Salah Timetable: could not register", tag, error);
+      }
+    }
+  }
+}
+
+registerSalahCardElements();
+
+if (typeof customElements.whenDefined === "function") {
+  // The Home Assistant shell is the earliest stable frontend signal. This
+  // promise may be tied to the old registry, so bounded timers also check
+  // when HA swaps/patches the registry later.
+  customElements.whenDefined("home-assistant")
+    .then(() => registerSalahCardElements())
+    .catch(() => {});
+}
+for (const delay of [100, 1500, 4000]) {
+  const timer = setTimeout(registerSalahCardElements, delay);
+  timer?.unref?.(); // Do not hold Node's frontend unit-test process open.
+}
+
 window.customCards = window.customCards || [];
 const registrationUi = resolveUi({}, {language: globalThis.navigator?.language});
 if (!window.customCards.some(card => card.type === "salah-timetable-card")) window.customCards.push({type: "salah-timetable-card", name: tr(registrationUi, "card.name"), description: tr(registrationUi, "card.description"), preview: true});
