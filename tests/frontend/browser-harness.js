@@ -285,6 +285,9 @@ try {
     panelStyle.borderRadius === "0px" && gridStyle.display === "grid");
   const [salahStyle, jamaatStyle] = bothClocks.map(panel => getComputedStyle(panel));
   const [salahClockStyle, jamaatClockStyle] = bothClocks.map(panel => getComputedStyle(panel.querySelector(".count")));
+  // getComputedStyle is live; capture the reference size before render()
+  // replaces these paired panels during the visibility matrix below.
+  const pairedCountFontSize = Number.parseFloat(salahClockStyle.fontSize);
   const [salahEventStyle, jamaatEventStyle] = bothClocks.map(panel => getComputedStyle(panel.querySelector(".event")));
   check("Salah and Jamaat use identical backgrounds, padding, countdown sizes and type hierarchy",
     salahStyle.backgroundColor === jamaatStyle.backgroundColor &&
@@ -333,7 +336,7 @@ try {
       const publishedBelow = shouldStack && publishedRect && countRect &&
         publishedRect.top >= countRect.bottom - 2;
       const leadingSize = parseFloat(getComputedStyle(count).fontSize);
-      const normalSize = parseFloat(salahClockStyle.fontSize);
+      const normalSize = pairedCountFontSize;
       const constrained = rect.width <= (kiosk_mode ? 1152 : 896) + 2;
       const metrics = {width, dir: ui.dir, detail_level, kiosk_mode, centered, constrained,
         className: grid?.className, children: grid?.children.length,
@@ -345,14 +348,16 @@ try {
         panel: rect && {left: rect.left, right: rect.right, width: rect.width},
         time: publishedRect && {left: publishedRect.left, right: publishedRect.right, top: publishedRect.top},
         count: countRect && {left: countRect.left, right: countRect.right, bottom: countRect.bottom}};
-      check(`single ${salah ? "Salah" : "Jamaat"} is centred in ${detail_level}${kiosk_mode ? " kiosk" : ""}: ${JSON.stringify(metrics)}`,
+      const singleLayoutPasses =
         grid?.classList.contains("single-panel") && grid.children.length === 1 &&
         centered && constrained &&
         getComputedStyle(panel).display === "grid" &&
         panelColumns === (shouldStack ? 1 : 2) &&
         (shouldStack ? publishedBelow : publishedOnInlineEnd) &&
         leadingSize > normalSize &&
-        rect.left >= frame.left - 1 && rect.right <= frame.right + 1);
+        rect.left >= frame.left - 1 && rect.right <= frame.right + 1;
+      const label = `single ${salah ? "Salah" : "Jamaat"} is centred in ${detail_level}${kiosk_mode ? " kiosk" : ""}`;
+      check(singleLayoutPasses ? label : `${label}: ${JSON.stringify(metrics)}`, singleLayoutPasses);
     }
   }
   render();
