@@ -205,3 +205,12 @@ test("kiosk 3.0 layout preserves full-bleed photo and distance-readable contrast
   assert.match(CARD_CSS, /@container\(max-width:24rem\)/);
   assert.match(CARD_CSS, /prefers-reduced-transparency:\s*reduce/);
 });
+
+test("kiosk fullscreen is a tiny overlay inside summary, not a footer button", () => {
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell\s*\{[^}]*position:\s*relative/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell > \.kiosk-fullscreen\s*\{[^}]*position:\s*absolute;[^}]*top:\s*12px;[^}]*right:\s*12px/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell > \.kiosk-fullscreen\s*\{[^}]*width:\s*30px;[^}]*height:\s*30px/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell > \.kiosk-fullscreen ha-icon\s*\{[^}]*--mdc-icon-size:\s*17px/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell > \.kiosk-fullscreen:focus-visible\s*\{[^}]*outline:/);
+  assert.doesNotMatch(CARD_CSS, /\.content\.kiosk \.kiosk-footer \.kiosk-fullscreen\s*\{/);
+});
