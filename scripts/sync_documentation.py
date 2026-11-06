@@ -190,7 +190,7 @@ def check_local_links(root: Path, source_path: Path, source: str) -> None:
             posixpath.join(posixpath.dirname(current), bare or source_path.name)
         )
         destination = root / candidate
-        if not destination.exists():
+        if bare and not destination.exists():
             raise ValueError(f"Missing link destination in {current}: {target}")
         if marker and fragment and destination.suffix.lower() == ".md":
             if destination not in anchors_by_target:
