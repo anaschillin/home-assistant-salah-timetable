@@ -320,7 +320,7 @@ try {
       const rect = panel?.getBoundingClientRect();
       const centered = Boolean(rect && frame) &&
         Math.abs((frame.left + frame.right - rect.left - rect.right) / 2) <= 2;
-      const constrained = width < 600 || rect.width < frame.width * .9;
+      const constrained = width < 600 || rect.width <= (kiosk_mode ? 768 : 608) + 2;
       check(`single ${salah ? "Salah" : "Jamaat"} is centred in ${detail_level}${kiosk_mode ? " kiosk" : ""}`,
         grid?.classList.contains("single-panel") && grid.children.length === 1 &&
         centered && constrained &&
