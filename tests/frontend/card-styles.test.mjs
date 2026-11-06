@@ -58,7 +58,8 @@ test("mosque photo fills the measured visible viewport but can grow beyond it", 
   assert.ok(rule, "Missing full-canvas background rule");
   assert.match(rule[1], /min-height:\s*var\(--salah-viewport-card-height,\s*calc\(100dvh/);
   assert.doesNotMatch(rule[1], /max-height:|height:\s*\d+dvh/);
-  assert.match(CARD_CSS, /ha-card\.kiosk\s*\{[^}]*min-height:\s*var\(--salah-viewport-card-height/);
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*min-height:\s*var\(--salah-viewport-card-height/);
+  assert.match(CARD_CSS, /ha-card\.kiosk\s*\{[^}]*min-height:\s*0/);
   assert.match(CARD_CSS, /ha-card\.kiosk:fullscreen\s*\{[^}]*min-height:\s*100dvh/);
   assert.match(CARD_CSS, /ha-card\s*\{[^}]*overflow:\s*hidden/);
   assert.doesNotMatch(CARD_CSS, /\.summary-shell\s*\{[^}]*min-height:\s*100dvh/);
@@ -157,4 +158,59 @@ test("Compact More menu is an overlay and does not reflow the summary header", (
   assert.match(CARD_CSS, /\.card-actions-menu \.card-menu-items\s*\{[^}]*position:\s*absolute/);
   assert.match(CARD_CSS, /\.summary-shell:has\(\.card-actions-menu\[open\]\)\s*\{[^}]*overflow:\s*visible/);
   assert.match(CARD_CSS, /\.summary-shell \.header:has\(\.card-actions-menu\[open\]\)\s*\{[^}]*z-index:/);
+});
+
+test("kiosk 3.0 layout preserves full-bleed photo and distance-readable contrast", () => {
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*grid-template-rows:\s*auto auto auto/);
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*align-content:\s*safe center/);
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*justify-items:\s*center/);
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk > \.summary-shell,[\s\S]*?\.content\.kiosk > \.kiosk-footer,[\s\S]*?\.content\.kiosk > \.monthly-shell\s*\{[^}]*max-width:\s*1600px/);
+  assert.match(CARD_CSS, /ha-card\.kiosk:fullscreen \.content\.kiosk\s*\{[^}]*min-height:\s*100dvh/);
+  assert.match(CARD_CSS, /\.content\.kiosk\s*\{[^}]*min-height:\s*var\(--salah-viewport-card-height/);
+  assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content\.kiosk\s*\{[^}]*grid-template-rows:\s*auto/);
+  assert.match(CARD_CSS, /:host\(\[dashboard-editing\]\) \.content\.kiosk\s*\{[^}]*align-content:\s*start/);
+  assert.match(CARD_CSS, /ha-card\.kiosk\.has-mosque-background::before,[\s\S]*?ha-card\.kiosk\.has-mosque-background::after\s*\{[^}]*width:\s*100%;[^}]*height:\s*100%;[^}]*background-size:\s*cover/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell\s*\{[^}]*min-height:\s*clamp\(270px, 33dvh, 350px\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.header\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.count\s*\{[^}]*color:\s*var\(--primary-text-color\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-strip\s*\{[^}]*grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\s*\{[^}]*97%, transparent\)[^}]*backdrop-filter:\s*blur\(18px\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\.is-next\s*\{[^}]*background:\s*color-mix\(in srgb, var\(--primary-color\) 74%, #10202b\)/);
+
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\.is-next-jamaat\s*\{[^}]*box-shadow:\s*inset 0 0 0 2px/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-next-day\s*\{[^}]*border:\s*1px solid/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.count\s*\{[^}]*font-size:\s*clamp\(2rem, min\(5\.6cqi, 9\.2dvh\), 6\.2rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.event\s*\{[^}]*font-size:\s*clamp\(1\.5rem, calc\(var\(--kiosk-u\) \* 4\.7\), 3\.5rem\)/);
+
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile\.is-past\s*\{[^}]*opacity:/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-tile-label\s*\{[^}]*font-size:\s*clamp\(1rem, 1\.13cqi, 1\.125rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer-info\s*\{[^}]*grid-column:\s*1/);
+
+  assert.match(CARD_CSS, /ha-card\.kiosk\s*\{[^}]*min-height:\s*0/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel \.count\s*\{[^}]*font-size:\s*clamp\(2rem, min\(5\.6cqi, 9\.2dvh\), 6\.2rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-panel\[data-panel="jamaat"\] \.count span\s*\{[^}]*color:\s*inherit/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.prayer-time \.label\s*\{[^}]*font-size:\s*clamp\(1rem, 1\.13cqi, 1\.125rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-clock-label\s*\{[^}]*font-size:\s*clamp\(1rem, 1\.15cqi, 1\.125rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer-info \.background-credit\s*\{[^}]*max-width:\s*100%/);
+
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer-info \.background-credit\s*\{[^}]*font-size:\s*clamp\(\.73rem, \.9cqi, \.87rem\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-day-tabs \.date-tab:not\(\[aria-pressed="true"\]\)\s*\{[^}]*opacity:\s*\.95/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-footer \.kiosk-toolbar\s*\{[^}]*grid-column:\s*3/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.kiosk-clock-value\s*\{[^}]*font-variant-numeric:\s*tabular-nums/);
+  assert.match(CARD_CSS, /@container\(max-width:60rem\)/);
+  assert.match(CARD_CSS, /@container\(max-width:40rem\)/);
+  assert.match(CARD_CSS, /@container\(max-width:24rem\)/);
+  assert.match(CARD_CSS, /prefers-reduced-transparency:\s*reduce/);
+});
+
+test("kiosk fullscreen is a tiny overlay inside summary, not a footer button", () => {
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell\s*\{[^}]*position:\s*relative/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell > \.kiosk-fullscreen\s*\{[^}]*position:\s*absolute;[^}]*top:\s*12px;[^}]*right:\s*12px/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell > \.kiosk-fullscreen\s*\{[^}]*width:\s*30px;[^}]*height:\s*30px/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell > \.kiosk-fullscreen ha-icon\s*\{[^}]*--mdc-icon-size:\s*17px/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell > \.kiosk-fullscreen:focus-visible\s*\{[^}]*outline:/);
+  assert.doesNotMatch(CARD_CSS, /\.content\.kiosk \.kiosk-footer \.kiosk-fullscreen\s*\{/);
 });

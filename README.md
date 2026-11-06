@@ -5,13 +5,14 @@
 [![HACS validation](https://img.shields.io/github/check-runs/anaschillin/home-assistant-salah-timetable/main?nameFilter=hacs&label=HACS)](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Current integration version: **<!-- docs:version -->2.0.0<!-- /docs:version -->**.
+Current integration version: **<!-- docs:version -->3.0.0<!-- /docs:version -->**.
 
 A Home Assistant custom integration for importing **published mosque Salah and Jamaat timetables**. Configure one or more mosques, import a supported PDF/CSV or public HTTPS source, explicitly approve the timetable, and display it with a bundled Lovelace card.
 
 ## Features
 
 - Separate mosque configurations, sensors, independent next-Salah and next-Jamaat countdowns, and a prayer calendar.
+- Dedicated v3 kiosk / wall-display layout: live clock and mosque-local dates, spacious Salah/Jamaat countdowns, five published prayer tiles, and accessible day/fullscreen controls.
 - Annual, monthly and Ramadan sources; automatic recognition of **supported** PDF layouts, source comparison and guided next-year URL imports with approval before activation.
 - Guided readiness checks, optional publisher URL templates and manual CSV imports spanning two adjacent years.
 - Compact, standard and detailed responsive cards with multiple mosque selection, Yesterday/Today/Tomorrow navigation, Gregorian/Hijri dates and optional mosque photography.
@@ -23,11 +24,19 @@ A Home Assistant custom integration for importing **published mosque Salah and J
 
 ## Dashboard preview
 
-![Detailed Salah Timetable card with Next Salah, contextual Jamaat, published prayer timetable and mosque photograph](docs/screenshots/showcase/desktop/detailed-card.webp)
+### Kiosk / wall display — v3.0
 
-*Example of the Detailed dashboard card from the repository's current implementation. An installed release may differ until the next version is published. The photograph is decorative; times belong to the configured mosque, not a universal prayer timetable.*
+![Salah Timetable v3.0 kiosk displaying a live mosque-local clock, equal Salah and Jamaat countdown panels, five prayer tiles and a small fullscreen icon inside the glass card](docs/screenshots/showcase/desktop/kiosk-v3.webp)
 
-Explore [desktop, mobile and tablet screenshots](docs/dashboard.md#device-screenshots), including Compact's **More** menu, the monthly timetable and the redesigned card editor. For configuration, see [Dashboard getting started](docs/getting-started.md#add-the-dashboard-card) and the [Dashboard guide](docs/dashboard.md).
+*Maintainer-approved kiosk screenshot (6 November 2026), showing the configured mosque and its published prayer times. The mosque photograph is decorative and separately licensed. The stable v3.0 release may not be available until PR #133 is merged.*
+
+### Standard and Detailed dashboard
+
+<img src="docs/screenshots/showcase/desktop/detailed-card.webp" width="900" alt="Detailed non-kiosk dashboard with contextual countdowns and published daily prayer timetable">
+
+*The non-kiosk Compact, Standard and Detailed layouts remain available independently of kiosk mode.*
+
+Explore [kiosk, desktop, mobile and tablet screenshots](docs/dashboard.md#device-screenshots), including Compact's **More** menu, the monthly timetable and the redesigned card editor. For configuration, see [Dashboard getting started](docs/getting-started.md#add-the-dashboard-card) and the [Dashboard guide](docs/dashboard.md).
 
 ## Install
 

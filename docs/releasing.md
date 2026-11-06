@@ -1,6 +1,6 @@
 # Building and accepting a release
 
-Current integration version: <!-- docs:version -->2.0.0<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->3.0.0<!-- /docs:version -->.
 
 ## Current release readiness
 

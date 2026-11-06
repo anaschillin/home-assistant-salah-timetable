@@ -1,7 +1,7 @@
 /** Real-browser fixture: native shadow DOM/CSS with small HA control stand-ins. */
 import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.19";
 import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.19";
-import {formatDate, formatHijriDate, hijriMonthInfo} from "/custom_components/salah_timetable/frontend/card-utils.js?v=0.9.19";
+import {formatDate, formatHijriDate, hijriMonthInfo, formatTime} from "/custom_components/salah_timetable/frontend/card-utils.js?v=0.9.19";
 
 class Selector extends HTMLElement {
   constructor() {
@@ -26,6 +26,12 @@ const bilingual = query.get("bilingual") === "true";
 const width = window.innerWidth;
 const checks = [];
 function check(name, assertion) { if (!assertion) throw new Error(name); checks.push(name); }
+// Static browser fixtures use explicit _tick calls at known instants. Prevent
+// the production 1-second interval from replacing their DOM with today's data
+// while an asynchronous layout/interaction assertion is still inspecting it.
+function pauseFixtureTicker(card) {
+  if (card._timer !== null) window.clearInterval(card._timer);
+}
 function visibility(card) {
   const root = card.shadowRoot;
   const nodes = {
@@ -72,7 +78,7 @@ const zero = `${digits(0)}:${digits(0)}:${digits(0)}`;
 try {
   const card = new SalahTimetableCard();
   const render = (patch = {}, now = time(4, 40)) => { card.setConfig({...config, ...patch}); card._render(Date.parse(now)); };
-  card.setConfig(config); card.hass = hass; document.body.append(card); card._render(Date.parse(time(4, 40)));
+  card.setConfig(config); card.hass = hass; document.body.append(card); pauseFixtureTicker(card); card._render(Date.parse(time(4, 40)));
   check("shadow DOM renders five prayer rows", card.shadowRoot.querySelectorAll("tbody tr").length === 5);
   render({show_mosque_background: true, mosque_background: "masjid-al-haram"});
   check("bundled mosque background resolves to local WebP", card.shadowRoot.querySelector("ha-card").style.getPropertyValue("--mosque-background-image").includes("/salah_timetable/backgrounds/masjid-al-haram.webp"));
@@ -111,6 +117,7 @@ try {
     wrappedCard.hass = hass;
     document.body.append(wrapper);
     wrapper.append(wrappedCard);
+    pauseFixtureTicker(wrappedCard);
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const editSurface = wrappedCard.shadowRoot.querySelector("ha-card");
     check(`${wrapperName} shortens the real editor canvas without preview=true`,
@@ -133,6 +140,7 @@ try {
         surfaceStyle.maxHeight === "none");
     }
     document.body.append(wrappedCard);
+    pauseFixtureTicker(wrappedCard);
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     // The fixture puts this card after the tall primary example, often below
     // the screen. In that case the normal viewport minimum is correctly 0px:
@@ -148,6 +156,8 @@ try {
     wrappedCard.remove();
     wrapper.remove();
   }
+  check("background card remains mounted across asynchronous layout checks",
+    photoCard.isConnected && card.shadowRoot.querySelector("ha-card") === photoCard);
   check("full-canvas card has no outer drop shadow", photoStyle.boxShadow === "none");
   const imageStyle = getComputedStyle(photoCard, "::before");
   check("unobscured photo stays inside themed borders at mobile/tablet widths",
@@ -633,6 +643,141 @@ try {
   check("reminder Close restores launch focus", editor.shadowRoot.activeElement === launch);
   check("countdowns never write HA service or state", serviceCalls === 0);
   check("real browser resource registration", customElements.get("salah-timetable-card") === SalahTimetableCard && window.customCards.some(item => item.type === "salah-timetable-card"));
+  // Exercise the actual 3.0 wall display at the fixture's real browser width.
+  // No changes to the standard dashboard fixture or its screenshot baseline.
+  const kioskCard = new SalahTimetableCard();
+  kioskCard.setConfig({...config, kiosk_mode: true, show_timezone_note: true,
+    show_month_view: true, show_mosque_background: true,
+    mosque_background: "masjid-al-haram", detail_level: "standard"});
+  kioskCard.hass = hass;
+  document.body.append(kioskCard);
+  pauseFixtureTicker(kioskCard);
+  kioskCard._render(Date.parse(time(14, 15)));
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const kioskRoot = kioskCard.shadowRoot;
+  const kioskContent = kioskRoot.querySelector(".content.kiosk");
+  const kioskHeader = kioskRoot.querySelector("header");
+  const kioskStrip = kioskRoot.querySelector(".kiosk-strip");
+  const kioskFooter = kioskRoot.querySelector(".kiosk-footer");
+  check("kiosk 3.0 uses one hero, five live tiles and a bottom control row",
+    kioskContent && kioskContent.children[0].className === "summary-shell" &&
+    kioskStrip?.children.length === 5 && kioskFooter?.tagName === "FOOTER");
+  check("kiosk 3.0 header has mosque identity, live clock and optional dates",
+    kioskHeader.querySelector(".kiosk-identity")?.textContent.includes("Example Mosque") &&
+    kioskHeader.querySelector(".kiosk-timezone")?.textContent.includes("Europe/London") &&
+    kioskHeader.querySelector(".kiosk-clock-value")?.textContent === formatTime(time(14, 15), data.time_zone, ui, "24h") &&
+    kioskHeader.querySelector(".kiosk-dates .hijri") &&
+    kioskHeader.querySelector(".kiosk-dates .gregorian") &&
+    getComputedStyle(kioskHeader).display === "grid");
+  check("kiosk 3.0 renders two responsive countdown panels",
+    kioskRoot.querySelectorAll(".summary-shell .prayer-panel").length === 2 &&
+    getComputedStyle(kioskRoot.querySelector(".summary-shell .panels")).display === "grid");
+  if (width >= 900) {
+    const prayerPanels = [...kioskRoot.querySelectorAll(".summary-shell .prayer-panel")];
+    check("kiosk two main countdown panels share equal 50/50 width",
+      Math.abs(prayerPanels[0].getBoundingClientRect().width -
+        prayerPanels[1].getBoundingClientRect().width) <= 2);
+  }
+  check("kiosk 3.0 highlights published next and most recently begun Salah",
+    kioskStrip.querySelector('[data-prayer="maghrib"]')?.classList.contains("is-next") &&
+    kioskStrip.querySelector('[data-prayer="asr"]')?.classList.contains("is-current"));
+  check("kiosk marks the next published Jamaat with a subtle tile outline",
+    kioskStrip.querySelector('[data-prayer="asr"]')?.classList.contains("is-next-jamaat") &&
+    getComputedStyle(kioskStrip.querySelector('[data-prayer="asr"]')).boxShadow.includes("inset"));
+  const upcomingClock = kioskRoot.querySelector('[data-panel="salah"] .count');
+  const jamaatClock = kioskRoot.querySelector('[data-panel="jamaat"] .count');
+  const nextTitle = kioskRoot.querySelector('[data-panel="salah"] .event');
+  const jamaatTitle = kioskRoot.querySelector('[data-panel="jamaat"] .event');
+  check("kiosk Salah and Jamaat countdowns have identical size and line-height",
+    Math.abs(parseFloat(getComputedStyle(upcomingClock).fontSize) -
+      parseFloat(getComputedStyle(jamaatClock).fontSize)) <= 1 &&
+    getComputedStyle(upcomingClock).lineHeight === getComputedStyle(jamaatClock).lineHeight &&
+    getComputedStyle(nextTitle).fontSize === getComputedStyle(jamaatTitle).fontSize);
+  if (width >= 900 && !bilingual) {
+    const salahTimeRow = kioskRoot.querySelector('[data-panel="salah"] .prayer-times');
+    const jamaatTimeRow = kioskRoot.querySelector('[data-panel="jamaat"] .prayer-times');
+    check("kiosk countdowns and published-time rows align across both panels",
+      Math.abs(upcomingClock.getBoundingClientRect().top - jamaatClock.getBoundingClientRect().top) <= 6 &&
+      Math.abs(salahTimeRow.getBoundingClientRect().top - jamaatTimeRow.getBoundingClientRect().top) <= 6);
+  }
+  check("kiosk footer retains day tabs and month actions without fullscreen button",
+    kioskFooter.querySelectorAll(".date-tab").length === 3 &&
+    !kioskFooter.querySelector(".kiosk-fullscreen") &&
+    kioskFooter.querySelector(".card-action-strip") &&
+    kioskFooter.querySelector(".kiosk-footer-note"));
+  check("kiosk 3.0 tile row does not cause horizontal page overflow",
+    kioskStrip.scrollWidth <= kioskStrip.clientWidth + 2 &&
+    document.documentElement.scrollWidth <= width + 1);
+  const photoSurface = kioskRoot.querySelector("ha-card");
+  const photo = getComputedStyle(photoSurface, "::before");
+  const surfaceRect = photoSurface.getBoundingClientRect();
+  check("kiosk mosque photo uses cover across the rendered canvas, ignoring cached frames",
+    photo.backgroundSize === "cover" &&
+    Math.abs(Number.parseFloat(photo.width) - surfaceRect.width) <= 3 &&
+    Math.abs(Number.parseFloat(photo.height) - surfaceRect.height) <= 3);
+  check("kiosk photographer credit sits in footer away from fullscreen control",
+    Boolean(kioskFooter.querySelector(".kiosk-footer-info .background-credit a")) &&
+    !kioskContent.querySelector(":scope > .background-credit"));
+  const nextCountdown = kioskRoot.querySelector('[data-panel="salah"] .count');
+  const previousCountdown = kioskRoot.querySelector('[data-panel="jamaat"] .count');
+  check("kiosk previous Jamaat uses secondary text colour",
+    getComputedStyle(nextCountdown).color !== getComputedStyle(previousCountdown).color);
+  check("kiosk five-tile labels remain legible from a distance",
+    Number.parseFloat(getComputedStyle(kioskStrip.querySelector(".kiosk-tile-label")).fontSize) >= 16);
+  check("kiosk current-time and main prayer labels are readable from a wall display",
+    Number.parseFloat(getComputedStyle(kioskHeader.querySelector(".kiosk-clock-label")).fontSize) >= 16 &&
+    [...kioskRoot.querySelectorAll(".summary-shell .prayer-time .label")].every(label =>
+      Number.parseFloat(getComputedStyle(label).fontSize) >= 16));
+  const fullscreen = kioskRoot.querySelector(".summary-shell > .kiosk-fullscreen");
+  const hero = kioskRoot.querySelector(".summary-shell");
+  check("kiosk fullscreen is one small icon embedded top-right of summary glass",
+    Boolean(fullscreen) &&
+    fullscreen.textContent.trim() === "" &&
+    fullscreen.querySelector("ha-icon")?.getAttribute("icon") === "mdi:fullscreen" &&
+    fullscreen.getAttribute("aria-label") === tr(ui, "card.kiosk_fullscreen_enter") &&
+    getComputedStyle(fullscreen).position === "absolute" &&
+    Math.abs(fullscreen.getBoundingClientRect().right - hero.getBoundingClientRect().right + 12) <= 2 &&
+    Math.abs(fullscreen.getBoundingClientRect().top - hero.getBoundingClientRect().top - 12) <= 2 &&
+    Math.abs(fullscreen.getBoundingClientRect().width - 30) <= 2 &&
+    Math.abs(fullscreen.getBoundingClientRect().height - 30) <= 2);
+  check("kiosk photographer attribution never overlaps embedded fullscreen icon",
+    (() => {
+      const link = kioskFooter.querySelector(".kiosk-footer-info .background-credit a");
+      if (!link || !fullscreen) return false;
+      const a = link.getBoundingClientRect(), b = fullscreen.getBoundingClientRect();
+      return a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
+    })());
+  check("kiosk avoids a second card viewport minimum and does not suppress body scrolling",
+    getComputedStyle(photoSurface).minHeight === "0px" &&
+    getComputedStyle(photoSurface).maxHeight === "none" &&
+    getComputedStyle(document.body).overflowY !== "hidden");
+  fullscreen.focus({preventScroll: true});
+  check("kiosk fullscreen is keyboard focusable", kioskRoot.activeElement === fullscreen);
+  fullscreen.dispatchEvent(new PointerEvent("pointerup", {bubbles: true, pointerType: "mouse"}));
+  check("kiosk pointer activation does not leave a stale focus ring",
+    kioskRoot.activeElement !== fullscreen);
+  // Verify the whole three-zone group, rather than merely a centered title,
+  // is positioned symmetrically on a spacious wall display. The same CSS
+  // uses safe center, falling back to start when a mobile view needs scrolling.
+  const kioskLayout = [hero, kioskStrip, kioskFooter];
+  const horizontalCentre = element => {
+    const rect = element.getBoundingClientRect();
+    return (rect.left + rect.right) / 2;
+  };
+  check("kiosk hero, prayer tiles and footer share the viewport horizontal centre",
+    kioskLayout.every(element =>
+      Math.abs(horizontalCentre(element) - horizontalCentre(kioskContent)) <= 2));
+  const naturalHeight = kioskContent.scrollHeight;
+  kioskContent.style.minHeight = `${Math.ceil(naturalHeight + 180)}px`;
+  const canvas = kioskContent.getBoundingClientRect();
+  const padding = getComputedStyle(kioskContent);
+  const upperGap = hero.getBoundingClientRect().top -
+    canvas.top - Number.parseFloat(padding.paddingTop);
+  const lowerGap = canvas.bottom - Number.parseFloat(padding.paddingBottom) -
+    kioskFooter.getBoundingClientRect().bottom;
+  check("kiosk three-zone group is vertically centred with equal free space",
+    upperGap > 0 && lowerGap > 0 && Math.abs(upperGap - lowerGap) <= 4);
+  kioskCard.remove();
   card.remove(); check("disconnected card clears local timer", card._timer === null);
   // Keep a static native-DOM preview for optional CDP screenshots.
   document.body.prepend(card); card.disconnectedCallback(); card._render(Date.parse(time(4, 40))); card.shadowRoot.querySelector(".table-scroll").scrollLeft = 0;
@@ -645,6 +790,7 @@ try {
       return Promise.resolve({rows: [{date: data.date, published: true, times: {fajr_begin: ["05:45"]}}]});
     }};
     document.body.prepend(actionCard);
+    pauseFixtureTicker(actionCard);
     return {actionCard, requests};
   };
   parent.postMessage({kind: "salah-browser-result", status: "passed", width, language, bilingual, checks}, location.origin);

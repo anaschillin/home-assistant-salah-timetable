@@ -118,6 +118,13 @@ They reflect the repository's updated card UI; installed releases can differ.
 The same card editor also works on a tablet. On narrow screens, scroll within
 the editor to reach lower settings. Planned Islamic-history switches remain disabled.
 
+For a dedicated display, enable **Kiosk / wall display mode** in the card editor.
+The [approved v3.0 kiosk screenshot](screenshots/showcase/desktop/kiosk-v3.webp)
+shows the live clock, two countdowns, five daily prayer tiles, and the icon-only
+fullscreen toggle in the summary's upper-right corner. Tap the icon to enter
+fullscreen and tap it again (or press Escape) to return to the previous view.
+See [Wall and tablet display](dashboard.md#wall-and-tablet-display) for details.
+
 ### Browse yesterday and the monthly timetable
 
 ![Yesterday tab showing the previous date and its published five-prayer timetable without live countdown panels](screenshots/yesterday.png)

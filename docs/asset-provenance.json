@@ -543,6 +543,14 @@
       "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
       "evidence": "docs/asset-provenance.md",
       "sha256": "b1b101652ad04dc658d8c39a7cac055aaa155795f76908f4dd78838719345ee5"
+    },
+    {
+      "path": "docs/screenshots/showcase/desktop/kiosk-v3.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); original bundled mosque background photo remains separately licensed",
+      "basis": "Maintainer-approved Home Assistant Salah Timetable v3.0 kiosk screenshot supplied 6 November 2026, converted from PNG to same-resolution WebP. Published prayer values and public mosque name belong to the configured timetable; underlying photo retains its separate source licence.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "e1f3c15d5901518c211f15e0be1d8b5e02ee9642a812555d64a67cc604748a8d"
     }
   ]
 }

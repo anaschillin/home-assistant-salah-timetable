@@ -7,6 +7,25 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 ## Unreleased
 
+## 3.0.0 — 5 November 2026
+
+### Kiosk Mode redesign
+
+- Add the maintainer-approved 1920 × 1080 kiosk screenshot to the README and dashboard device gallery, with checksum and redistribution provenance.
+- Replace the kiosk's stacked dashboard card layout with a dedicated, full-viewport **three-zone wall display**, based on the approved prayer-screen design.
+- Place the mosque name and optional timezone on the left, the large live mosque-local clock in the centre, and enabled Gregorian/Hijri dates on the right. Preserve Hijri month information and all date visibility preferences.
+- Give Next Salah and Previous/Next Jamaat equal-width 50/50 panels, with matching countdown font sizes, title scale and space above the published-time rows, retaining their distinct cyan/neutral emphasis and live event calculations.
+- Label the next Salah **Tomorrow** when it crosses the mosque-local civil date; distinguish today's published next-Jamaat tile with a subtle outline rather than another cyan background.
+- Introduce five responsive prayer tiles from **published** daily timetable rows. Highlight the next beginning and most recently begun prayer, respect bilingual labels and 12/24-hour formatting, and never invent missing times.
+- Move Yesterday / Today / Tomorrow navigation and optional monthly-timetable actions into the bottom control row, keeping these available in Compact, Standard and Detailed kiosk views. Embed a small fullscreen icon at the glass summary's top-right without changing layout; it toggles fullscreen on/off and updates for Escape/external exit.
+- Preserve multiple mosques, Ramadan details, Friday congregations, night calculations, source attribution and accessible responsive layouts; non-kiosk Compact/Standard/Detailed dashboards remain unchanged.
+- Improve kiosk legibility and proportions: shorten the hero panel, enlarge the Next Salah countdown, make Previous Jamaat and elapsed labels neutral, increase clock/prayer time labels to at least 16px, darken highlighted tiles, strengthen tile glass, keep the photograph full-bleed and relocate attribution to a non-overlapping footer.
+- Avoid a redundant outer viewport-height minimum and reserve space for Home Assistant's shell margins to reduce unnecessary desktop scrollbars; preserve natural scrolling for genuinely taller mobile layouts.
+- Strengthen prayer tile text contrast over bright background photography.
+- Keep keyboard focus visible while preventing a persistent pointer-triggered fullscreen focus ring.
+- Centre the entire kiosk display group horizontally and vertically within the available viewport, including fullscreen changes, while keeping tall/mobile layouts scrollable and the dashboard editor top-aligned.
+- Update frontend/browser regression coverage and kiosk documentation for desktop, tablet, phone and cast displays.
+
 ## 2.0.0 — 4 November 2026
 
 - Prepare for HACS release, with versioned integration metadata and documentation ready for catalogue review.

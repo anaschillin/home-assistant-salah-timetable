@@ -1,8 +1,8 @@
-import {openReminderWizard} from "./reminder-wizard.js?v=2.0.0";
-import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=2.0.0";
-import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=2.0.0";
-import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=2.0.0";
-import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=2.0.0";
+import {openReminderWizard} from "./reminder-wizard.js?v=3.0.0";
+import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=3.0.0";
+import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=3.0.0";
+import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.0.0";
+import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=3.0.0";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
 const RENDER_ATTRIBUTES = [
@@ -100,11 +100,33 @@ function panelSilhouette(kind) {
   return holder;
 }
 
+/** Compare upcoming Salah against the mosque's civil date, not the browser UTC date. */
+function kioskSalahDayLabel(event, now, zone, ui) {
+  const target = timestamp(event?.timestamp);
+  if (target === null) return null;
+  const localDay = instant => {
+    const parts = new Intl.DateTimeFormat("en", {
+      timeZone: zone, calendar: "gregory",
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).formatToParts(instant);
+    const part = kind => parts.find(value => value.type === kind)?.value;
+    const year = part("year"), month = part("month"), day = part("day");
+    return year && month && day ? `${year}-${month}-${day}` : null;
+  };
+  try {
+    const today = localDay(now), upcoming = localDay(target);
+    if (!today || !upcoming || upcoming <= today) return null;
+    const interval = (Date.parse(`${upcoming}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86400000;
+    return interval === 1 ? tr(ui, "card.tomorrow") : formatDate(upcoming, ui);
+  } catch { return null; }
+}
+
 // Shared structure and styles for the upcoming Salah and contextual Jamaat.
 function prayerPanel(kind, event, data, zone, ui, config, clock, mode = "previous") {
   const result = node("section", undefined, "panel prayer-panel");
   result.setAttribute("data-panel", kind);
   const label = node("div", tr(ui, kind === "salah" ? "panel.next_salah" : mode === "upcoming" ? "panel.next_jamaat" : "panel.previous_jamaat"), "label");
+  result.label = label;
   const name = node("div", undefined, "event");
   if (event) name.append(prayerNode(eventPrayerKey(event), ui, config.bilingual_prayer_labels, event.name));
   else name.textContent = tr(ui, "status.unavailable");
@@ -125,6 +147,80 @@ function prayerPanel(kind, event, data, zone, ui, config, clock, mode = "previou
   return result;
 }
 
+
+/** Five published daily prayers in display order; no estimates or synthetic times. */
+function kioskPrayerStrip(rows, next, congregation, data, zone, ui, config, selectedDay, now) {
+  const strip = node("section", undefined, "kiosk-strip");
+  strip.setAttribute("aria-label", tr(ui, "table.caption"));
+  const ordered = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
+    .map(key => Array.isArray(rows) ? rows.find(row => row?.key === key) : null)
+    .filter(Boolean);
+  if (!ordered.length) {
+    strip.append(node("p", tr(ui, "card.day_unavailable"), "kiosk-strip-empty"));
+    return strip;
+  }
+  const nextTime = timestamp(next?.timestamp);
+  const nextKey = selectedDay === 0 && nextTime !== null
+    ? ordered.find(row => timestamp(row.begin) === nextTime)?.key : null;
+  const currentKey = selectedDay === 0
+    ? ordered.filter(row => {
+      const begin = timestamp(row.begin);
+      return begin !== null && begin <= now;
+    }).at(-1)?.key : null;
+  const nextJamaatTime = selectedDay === 0 && congregation?.mode === "upcoming"
+    ? timestamp(congregation.event?.timestamp) : null;
+  const nextJamaatKey = nextJamaatTime === null ? null
+    : ordered.find(row => Array.isArray(row.jamaat) &&
+      row.jamaat.some(value => timestamp(value) === nextJamaatTime))?.key;
+
+  for (const prayer of ordered) {
+    const status = prayer.key === nextKey ? "is-next"
+      : prayer.key === currentKey ? "is-current"
+      : selectedDay === 0 && prayerIsPast(prayer, now) ? "is-past" : "";
+    const isNextJamaat = prayer.key === nextJamaatKey;
+    const tile = node("div", undefined, "kiosk-tile" + (status ? " " + status : "") +
+      (isNextJamaat ? " is-next-jamaat" : ""));
+    tile.setAttribute("data-prayer", prayer.key);
+    if (isNextJamaat) {
+      tile.setAttribute("data-next-jamaat", "true");
+      tile.setAttribute("title", tr(ui, "panel.next_jamaat"));
+    }
+    if (status === "is-next") tile.setAttribute("aria-current", "true");
+    const heading = node("h3", undefined, "kiosk-tile-name");
+    heading.append(prayerNode(prayer.key, ui, config.bilingual_prayer_labels, prayer.name));
+    const times = node("div", undefined, "kiosk-tile-times");
+    const beginning = node("div", undefined, "kiosk-tile-time");
+    beginning.append(
+      node("span", tr(ui, "table.beginning"), "kiosk-tile-label"),
+      formattedNode("strong", formatTime(prayer.begin, zone, ui, config.time_format)),
+    );
+    times.append(beginning);
+    const jamaat = node("div", undefined, "kiosk-tile-time");
+    jamaat.append(node("span", tr(ui, "table.jamaat"), "kiosk-tile-label"));
+    const congregations = Array.isArray(prayer.jamaat) && prayer.jamaat.length
+      ? prayer.jamaat : [null];
+    const jamaatValues = node("div", undefined, "kiosk-tile-jamaat-values");
+    for (const [index, value] of congregations.entries()) {
+      if (index) jamaatValues.append(node("span", " · ", "kiosk-tile-separator"));
+      const isJumuah = prayer.key === "dhuhr" && Array.isArray(data.jamaat_events)
+        && data.jamaat_events.some(event => event.prayer === "jumuah"
+          && timestamp(event.timestamp) !== null
+          && timestamp(event.timestamp) === timestamp(value));
+      if (isJumuah) {
+        const marker = node("span", undefined, "kiosk-tile-jumuah");
+        marker.append(prayerNode("jumuah", ui, config.bilingual_prayer_labels));
+        jamaatValues.append(marker);
+      }
+      jamaatValues.append(formattedNode("strong", formatTime(value, zone, ui, config.time_format)));
+    }
+    jamaat.append(jamaatValues);
+    times.append(jamaat);
+    tile.append(heading, times);
+    strip.append(tile);
+  }
+  return strip;
+}
+
 export class SalahTimetableCard extends HTMLElement {
   constructor() {
     super();
@@ -138,6 +234,11 @@ export class SalahTimetableCard extends HTMLElement {
     this._viewportObserver = null;
     this._viewportHeight = null;
     this._onViewportResize = () => this._scheduleViewportHeight();
+    this._onFullscreenChange = () => {
+      this._syncFullscreenButton();
+      this._scheduleViewportHeight();
+    };
+    this._fullscreenButton = null;
     this._monthView = false;
     this._monthState = null;
     this._sourceState = null;
@@ -185,6 +286,7 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._timer === null) this._timer = window.setInterval(() => this._tick(), 1000);
     window.addEventListener?.("resize", this._onViewportResize);
     window.visualViewport?.addEventListener?.("resize", this._onViewportResize);
+    document.addEventListener?.("fullscreenchange", this._onFullscreenChange);
     if (typeof ResizeObserver !== "undefined") {
       this._viewportObserver = new ResizeObserver(this._onViewportResize);
       this._viewportObserver.observe(this);
@@ -198,10 +300,32 @@ export class SalahTimetableCard extends HTMLElement {
     this._timer = null;
     window.removeEventListener?.("resize", this._onViewportResize);
     window.visualViewport?.removeEventListener?.("resize", this._onViewportResize);
+    document.removeEventListener?.("fullscreenchange", this._onFullscreenChange);
     this._viewportObserver?.disconnect();
     this._viewportObserver = null;
     if (this._viewportFrame !== null) window.cancelAnimationFrame?.(this._viewportFrame);
     this._viewportFrame = null;
+  }
+  _isKioskFullscreen() {
+    const surface = this.shadowRoot?.querySelector?.("ha-card");
+    // The Fullscreen API retargets document.fullscreenElement at shadow roots.
+    // ShadowRoot.fullscreenElement identifies the actual fullscreen card.
+    return Boolean(surface && (
+      this.shadowRoot.fullscreenElement === surface ||
+      document.fullscreenElement === surface ||
+      document.fullscreenElement === this
+    ));
+  }
+  _syncFullscreenButton() {
+    const button = this._fullscreenButton;
+    if (!button) return;
+    const expanded = this._isKioskFullscreen();
+    const label = expanded ? button._exitFullscreenLabel : button._enterFullscreenLabel;
+    button.setAttribute("aria-label", label);
+    button.setAttribute("title", label);
+    button.setAttribute("aria-pressed", String(expanded));
+    button.children[0]?.setAttribute("icon",
+      expanded ? "mdi:fullscreen-exit" : "mdi:fullscreen");
   }
   _scheduleViewportHeight() {
     this._syncDashboardEditing();
@@ -224,7 +348,11 @@ export class SalahTimetableCard extends HTMLElement {
         !Number.isFinite(bottom) || bottom <= 0) return;
     // Do not let a scrolled-out card grow beyond one screen. Reserve a little
     // bottom breathing room for HA's dashboard margins and mobile safe area.
-    const visibleHeight = Math.max(0, Math.floor(bottom - Math.max(0, rect.top) - 12));
+    // HA may add a bottom margin beneath a full-screen dashboard card. In
+    // kiosk mode leave room for that shell margin instead of inducing a tiny
+    // document scrollbar; genuinely taller mobile content still scrolls.
+    const reserve = this._config.kiosk_mode && !this.hasAttribute("dashboard-editing") ? 32 : 12;
+    const visibleHeight = Math.max(0, Math.floor(bottom - Math.max(0, rect.top) - reserve));
     const value = `${visibleHeight}px`;
     if (this._viewportHeight === value) return;
     this._viewportHeight = value;
@@ -570,27 +698,70 @@ export class SalahTimetableCard extends HTMLElement {
       title.textContent = this._config.title || data.mosque_name;
       title.setAttribute("dir", "auto");
     }
-    header.append(title);
+    if (this._config.kiosk_mode) {
+      const identity = node("div", undefined, "kiosk-identity");
+      identity.append(title);
+      if (this._config.show_timezone_note) {
+        identity.append(node("small", tr(ui, "card.kiosk_timezone", {zone}), "kiosk-timezone"));
+      }
+      header.append(identity);
+    } else {
+      header.append(title);
+    }
+    // Kiosk dates remain visible even in Compact and follow the same per-card
+    // and per-mosque visibility settings as the regular header.
+    const dateTarget = this._config.kiosk_mode ? node("div", undefined, "kiosk-dates") : header;
+    const showHeaderDates = this._config.kiosk_mode || this._config.detail_level !== "compact";
     const hijriDate = hijriDisplayDate(displayDate, data, this._selectedDay, this._config.hijri_day_boundary, now);
-    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false) header.append(node("div", `${formatHijriDate(hijriDate, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
-    if (this._config.detail_level !== "compact" && this._config.show_gregorian_date) header.append(node("div", formatDate(displayDate, ui), "date gregorian"));
-    if (this._config.detail_level !== "compact" && this._config.show_hijri_date && data.show_hijri_date !== false && this._config.show_hijri_month_info) {
+    if (showHeaderDates && this._config.show_hijri_date && data.show_hijri_date !== false) dateTarget.append(node("div", `${formatHijriDate(hijriDate, this._config.hijri_adjustment, ui)} · ${tr(ui, "card.hijri_calculated")}`, "date hijri"));
+    if (showHeaderDates && this._config.show_gregorian_date) dateTarget.append(node("div", formatDate(displayDate, ui), "date gregorian"));
+    if (showHeaderDates && this._config.show_hijri_date && data.show_hijri_date !== false && this._config.show_hijri_month_info) {
       // The month description tracks the selected day's Hijri date, too.
       const month = hijriMonthInfo(hijriDate, this._config.hijri_adjustment);
-      if (month) header.append(node("div", month.summary_en, "month-description"));
+      if (month) dateTarget.append(node("div", month.summary_en, "month-description"));
     }
     // One cohesive glass surface for mosque identity and both live summaries.
     // Individual countdown components remain independent for timing and options.
     const summary = node("div", undefined, "summary-shell");
+    this._fullscreenButton = null;
+    let kioskToolbar = null;
+    let kioskClock = null;
+    let kioskToggle = null;
     if (this._config.kiosk_mode) {
-      // Fullscreen requires a user gesture; unsupported WebViews keep kiosk styling.
-      const tools = node("div", undefined, "kiosk-toolbar");
-      const toggle = node("button", tr(ui, "card.kiosk_fullscreen"), "kiosk-fullscreen");
-      toggle.type = "button";
-      toggle.setAttribute("aria-label", tr(ui, "card.kiosk_fullscreen"));
-      toggle.addEventListener("click", () => {
-        const surface = this.shadowRoot?.querySelector("ha-card");
-        if (document.fullscreenElement === surface) {
+      // Reuse the existing countdown tick so wall displays need no extra timer.
+      kioskToolbar = node("div", undefined, "kiosk-toolbar");
+      kioskClock = node("div", undefined, "kiosk-clock");
+      kioskClock.setAttribute("title", zone);
+      const clockLabel = node("span", tr(ui, "card.current_time"), "kiosk-clock-label");
+      const clockValue = node("time", undefined, "kiosk-clock-value");
+      clockValue.setAttribute("dir", "ltr");
+      const updateClock = instant => {
+        const iso = new Date(instant).toISOString();
+        const value = formatTime(iso, zone, ui, timeFormat);
+        if (clockValue.textContent !== value) clockValue.textContent = value;
+        clockValue.setAttribute("datetime", iso);
+      };
+      updateClock(now);
+      updates.push(updateClock);
+      kioskClock.append(clockLabel, clockValue);
+      // The fullscreen control is an icon embedded in the main summary.
+      // Its label and glyph follow the actual Fullscreen API state, including Esc.
+      kioskToggle = node("button", undefined, "kiosk-fullscreen");
+      kioskToggle.type = "button";
+      kioskToggle._enterFullscreenLabel = tr(ui, "card.kiosk_fullscreen_enter");
+      kioskToggle._exitFullscreenLabel = tr(ui, "card.kiosk_fullscreen_exit");
+      const fullscreenIcon = node("ha-icon");
+      fullscreenIcon.setAttribute("icon", "mdi:fullscreen");
+      fullscreenIcon.setAttribute("aria-hidden", "true");
+      kioskToggle.append(fullscreenIcon);
+      this._fullscreenButton = kioskToggle;
+      this._syncFullscreenButton();
+      // Pointer activation must not leave a persistent ring on a wall display.
+      // Keyboard activation retains :focus-visible for accessibility.
+      kioskToggle.addEventListener("pointerup", () => kioskToggle.blur());
+      kioskToggle.addEventListener("click", () => {
+        const surface = this.shadowRoot?.querySelector?.("ha-card");
+        if (this._isKioskFullscreen()) {
           const exit = document.exitFullscreen?.();
           exit?.catch?.(() => {});
         } else {
@@ -598,8 +769,6 @@ export class SalahTimetableCard extends HTMLElement {
           enter?.catch?.(() => {});
         }
       });
-      tools.append(toggle);
-      summary.append(tools);
     }
     summary.append(header);
     const cardActions = this._cardActions(ui, displayDate);
@@ -608,14 +777,31 @@ export class SalahTimetableCard extends HTMLElement {
       if (this._monthView && this._config.detail_level !== "compact") {
         header.classList.add("has-many-month-actions");
       }
-      header.append(cardActions);
+      if (kioskToolbar) kioskToolbar.append(cardActions);
+      else header.append(cardActions);
+    }
+    if (kioskToolbar) {
+      header.append(kioskClock);
+      if (dateTarget.children.length) header.append(dateTarget);
+      // Absolutely positioned over the glass, outside header/footer flow.
+      summary.append(kioskToggle);
+      // Monthly actions still live in the footer toolbar, when enabled.
     }
     content.append(summary);
     if (this._monthView && this._config.show_month_view && this._monthState) {
       const monthlyPanel = this._monthlyPanel(ui);
       content.append(monthlyPanel);
+      if (kioskToolbar) {
+        const footer = node("footer", undefined, "kiosk-footer kiosk-month-footer");
+        footer.append(node("span", undefined, "kiosk-footer-placeholder"),
+          node("span", undefined, "kiosk-footer-placeholder"), kioskToolbar);
+        content.append(footer);
+      }
       card.append(content);
       this.shadowRoot.replaceChildren(style, card);
+      this._syncFullscreenButton();
+      this._live = {data, updates, selection: this._selection(data, now)};
+      this._scheduleViewportHeight();
       return;
     }
     const dateTabs = node("nav", undefined, "date-tabs");
@@ -637,7 +823,7 @@ export class SalahTimetableCard extends HTMLElement {
     }
     const selectedPrayers = this._selectedDay === 0 ? data.prayers : data.day_prayers?.[selectedDate];
     const tableShell = node("div", undefined, "timetable-shell");
-    if (this._selectedDay !== 0 && (this._config.detail_level === "compact" || !this._config.show_gregorian_date)) {
+    if (!this._config.kiosk_mode && this._selectedDay !== 0 && (this._config.detail_level === "compact" || !this._config.show_gregorian_date)) {
       tableShell.append(node("div", formatDate(displayDate, ui), "selected-date"));
     }
     if (this._hass?.connection?.connected === false) summary.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
@@ -646,6 +832,14 @@ export class SalahTimetableCard extends HTMLElement {
     const panels = node("div", undefined, "panels");
     if (this._selectedDay === 0 && this._config.show_salah_countdown) {
       const box = prayerPanel("salah", next, data, zone, ui, this._config, countdown(next?.timestamp, now, ui));
+      if (this._config.kiosk_mode) {
+        const dayLabel = kioskSalahDayLabel(next, now, zone, ui);
+        if (dayLabel) {
+          const indicator = node("span", dayLabel, "kiosk-next-day");
+          indicator.setAttribute("data-role", "next-salah-day");
+          box.label.append(indicator);
+        }
+      }
       updates.push(instant => { box.clock.run.textContent = countdown(next?.timestamp, instant, ui); });
       panels.append(box);
     }
@@ -660,7 +854,7 @@ export class SalahTimetableCard extends HTMLElement {
     if (panels.children.length) summary.append(panels);
     const highlighted = highlightedPrayer(data, now);
     let tableRegion;
-    if (Array.isArray(selectedPrayers) && (this._selectedDay !== 0 || this._config.detail_level !== "compact")) {
+    if (!this._config.kiosk_mode && Array.isArray(selectedPrayers) && (this._selectedDay !== 0 || this._config.detail_level !== "compact")) {
     const table = node("table");
     table.append(node("caption", tr(ui, "table.caption"), "sr-only"));
     const head = node("thead"); const headRow = node("tr");
@@ -696,9 +890,14 @@ export class SalahTimetableCard extends HTMLElement {
     const scrollHelp = node("p", tr(ui, "table.scroll_help"), "note scroll-help");
     tableRegion.append(table); tableShell.append(tableRegion, scrollHelp);
     }
-    if (!selectedPrayers) tableShell.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
-    tableShell.append(dateTabs);
-    content.append(tableShell);
+    if (this._config.kiosk_mode) {
+      content.append(kioskPrayerStrip(selectedPrayers, next, congregation, data, zone, ui, this._config, this._selectedDay, now));
+      dateTabs.classList.add("kiosk-day-tabs");
+    } else {
+      if (!selectedPrayers) tableShell.append(node("div", tr(ui, "card.day_unavailable"), "empty"));
+      tableShell.append(dateTabs);
+      if (tableShell.children.length) content.append(tableShell);
+    }
     if (this._selectedDay === 0 && this._config.detail_level === "detailed" && timestamp(data.second_khutbah) !== null && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) && new Date(`${data.date}T12:00:00Z`).getUTCDay() === 5) {
       content.append(translatedRun("p", ui, "card.second_khutbah", "time", formatTime(data.second_khutbah, zone, ui, timeFormat), "note khutbah"));
     }
@@ -738,7 +937,18 @@ export class SalahTimetableCard extends HTMLElement {
       night.append(grid, node("p", tr(ui, "night.note"), "note"));
       content.append(night);
     }
-    if (this._selectedDay === 0 && this._config.show_timezone_note) {
+    let kioskFooterInfo = null;
+    if (this._config.kiosk_mode) {
+      const footer = node("footer", undefined, "kiosk-footer");
+      kioskFooterInfo = node("div", undefined, "kiosk-footer-info");
+      const note = this._config.show_timezone_note
+        ? node("p", tr(ui, "card.kiosk_missing_times"), "kiosk-footer-note")
+        : node("span", undefined, "kiosk-footer-placeholder");
+      if (this._config.show_timezone_note) note.setAttribute("data-role", "timezone-note");
+      kioskFooterInfo.append(note);
+      footer.append(kioskFooterInfo, dateTabs, kioskToolbar);
+      content.append(footer);
+    } else if (this._selectedDay === 0 && this._config.show_timezone_note) {
       const note = translatedRun("p", ui, "card.timezone_note", "zone", zone, "note");
       note.setAttribute("data-role", "timezone-note"); content.append(note);
     }
@@ -749,9 +959,11 @@ export class SalahTimetableCard extends HTMLElement {
       link.target = "_blank";
       link.rel = "noopener noreferrer";
       credit.append(link);
-      content.append(credit);
+      if (kioskFooterInfo) kioskFooterInfo.append(credit);
+      else content.append(credit);
     }
     card.append(content); this.shadowRoot.replaceChildren(style, card);
+    this._syncFullscreenButton();
     if (this._selectedDay === 0 && background) this._rememberBackgroundFrame();
     if (tableRegion) {
       tableRegion.scrollLeft = scrollLeft;

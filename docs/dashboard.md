@@ -1,6 +1,6 @@
 # Dashboard card
 
-Current integration version: <!-- docs:version -->2.0.0<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->3.0.0<!-- /docs:version -->.
 
 The **Salah Timetable** card is bundled with the integration. It uses the mosque's
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
@@ -155,6 +155,19 @@ until those changes are published. They are examples from one configured
 mosque, not authoritative prayer schedules. Click a screenshot for its full
 resolution. The bundled mosque photograph is decorative.
 
+### Kiosk / wall display (v3.0)
+
+<a href="screenshots/showcase/desktop/kiosk-v3.webp"><img src="screenshots/showcase/desktop/kiosk-v3.webp" width="960" alt="Approved 1920 × 1080 Salah Timetable kiosk view with the tiny embedded fullscreen icon, live clock, equal Salah and Jamaat countdowns, and five published daily prayer tiles"></a>
+
+*Actual Home Assistant kiosk capture supplied by the maintainer on 6 November 2026.
+The times belong to the configured mosque; the background photograph is decorative
+and its original licence remains separate. The screenshot shows the current
+unmerged v3.0 design, not every possible device size or card setting.*
+
+See [Wall and tablet display](#wall-and-tablet-display) for setup, day navigation
+and fullscreen behaviour. Compact, Standard and Detailed screenshots below
+illustrate the **non-kiosk** layouts, which remain available.
+
 ### Daily display modes
 
 | Mode | Desktop | Mobile |
@@ -275,9 +288,68 @@ times, create sensors/calendar events or change Ramadan activation.
 ## Wall and tablet display
 
 Enable **Kiosk / wall display mode** in the card editor (`kiosk_mode: true`)
-for larger responsive presentation. The card keeps its existing mosque/day
-controls and timetable data. Place it in a full-width dashboard view when
-using a dedicated display.
+for the dedicated v3 wall-screen layout shown in the
+[approved kiosk screenshot](screenshots/showcase/desktop/kiosk-v3.webp). The card uses a responsive three-zone
+display modelled on the published prayer-screen reference. Its main glass panel
+has the mosque name and optional timezone on the left, a live clock in the
+middle, and configured Gregorian/Hijri dates on the right. The clock uses the
+mosque's actual timezone and the existing 12/24-hour preference. The Hijri
+date also respects the mosque-level visibility preference and the optional
+published-Maghrib day boundary. When month information is enabled, it appears
+with the date details.
+
+The main panel gives Next Salah and contextual Previous/Next Jamaat **equal
+50/50 panel widths, matching font sizes, title scale and vertical spacing**. Their colours distinguish urgency: cyan for the next
+Salah, neutral for Jamaat and elapsed time. The shorter hero avoids a large
+empty band above the published Beginning/Jamaat row; all event times and
+second-level updates still come from the approved timetable.
+
+If the next Salah begins on the following *mosque-local* civil day, a
+**Tomorrow** indicator appears beside Next Salah Begins. The daily tiles
+continue to describe the selected day's published timetable, so the two
+different Fajr times are not mistaken for a disagreement.
+
+Below the hero are five prayer tiles (Fajr, Dhuhr, Asr, Maghrib, Isha),
+populated only from the **selected day's published rows**. The next published
+beginning is highlighted, the most recently begun prayer is distinguished,
+and a subtle outline marks the upcoming published Jamaat when it matches
+one of today's congregations. No missing times are estimated. Dhuhr retains
+published Friday congregations where available, and prayer labels follow
+the configured language and bilingual setting.
+
+The bottom row contains the missing-time note (when timezone/help text is
+enabled), Yesterday / Today / Tomorrow controls and optional monthly
+timetable actions. Instead of the old footer button, a **30px icon-only
+fullscreen toggle** sits 12px from the top-right corner *inside* the glass
+summary, absolutely positioned so it does not shift the header or prayer
+panels. Tap it to enter fullscreen; tap it again to return to the prior
+dashboard view. Its icon and accessible label update automatically when
+fullscreen ends, including when pressing Escape. The selected day controls both the tiles
+and dates; the clock always displays the current time. The monthly view remains
+available via the existing controls, and optional Ramadan/night details remain
+available below the main display. The mosque photograph fills the entire kiosk
+canvas with `cover` even when normal dashboard day-tab sizing is cached. Its
+photographer credit appears in the left footer, away from the fullscreen
+icon, with wrapping and responsive stacking so it cannot overlap. The kiosk avoids
+a duplicate outer viewport-height requirement and reserves a small amount
+of space for Home Assistant's surrounding dashboard margins. This reduces
+unnecessary desktop scrolling without hiding overflow when mobile content is
+naturally taller than the screen. The five prayer tiles use stronger glass
+contrast and larger published-time labels;
+the upcoming prayer tile uses a deeper highlight and inactive date tabs remain
+legible. Pointer clicks clear fullscreen focus without hiding keyboard focus.
+
+Kiosk mode intentionally replaces the ordinary scrolling timetable with the
+five-tile display regardless of Compact, Standard or Detailed selection. When
+kiosk mode is disabled, those ordinary layouts are unchanged. Wider screens
+use the three-column header and 50/50 countdown layout. Narrow screens stack
+the header and countdowns and wrap the tiles and bottom controls to prevent
+clipping. The whole hero, five-tile strip and footer group is centred both
+horizontally and vertically within the visible kiosk canvas, including browser
+fullscreen and viewport resizing. On short or narrow displays where content
+cannot fit, alignment safely starts at the top and content scrolls rather than
+being clipped. The editor retains normal top-aligned behaviour. Use a full-width
+Home Assistant dashboard view on a dedicated wall display.
 
 The fullscreen button requires a tap or click and browser support. If the
 browser or WebView rejects fullscreen, the larger card presentation remains
