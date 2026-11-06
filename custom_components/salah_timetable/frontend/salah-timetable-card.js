@@ -1,8 +1,8 @@
-import {openReminderWizard} from "./reminder-wizard.js?v=3.0.0";
-import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=3.0.0";
-import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=3.0.0";
-import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.0.0";
-import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=3.0.0";
+import {openReminderWizard} from "./reminder-wizard.js?v=3.0.1";
+import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=3.0.1";
+import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=3.0.1";
+import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.0.1";
+import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=3.0.1";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
 const RENDER_ATTRIBUTES = [
