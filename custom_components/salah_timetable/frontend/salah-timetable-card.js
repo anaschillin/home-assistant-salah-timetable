@@ -234,6 +234,11 @@ export class SalahTimetableCard extends HTMLElement {
     this._viewportObserver = null;
     this._viewportHeight = null;
     this._onViewportResize = () => this._scheduleViewportHeight();
+    this._onFullscreenChange = () => {
+      this._syncFullscreenButton();
+      this._scheduleViewportHeight();
+    };
+    this._fullscreenButton = null;
     this._monthView = false;
     this._monthState = null;
     this._sourceState = null;
@@ -281,7 +286,7 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._timer === null) this._timer = window.setInterval(() => this._tick(), 1000);
     window.addEventListener?.("resize", this._onViewportResize);
     window.visualViewport?.addEventListener?.("resize", this._onViewportResize);
-    document.addEventListener?.("fullscreenchange", this._onViewportResize);
+    document.addEventListener?.("fullscreenchange", this._onFullscreenChange);
     if (typeof ResizeObserver !== "undefined") {
       this._viewportObserver = new ResizeObserver(this._onViewportResize);
       this._viewportObserver.observe(this);
@@ -295,11 +300,32 @@ export class SalahTimetableCard extends HTMLElement {
     this._timer = null;
     window.removeEventListener?.("resize", this._onViewportResize);
     window.visualViewport?.removeEventListener?.("resize", this._onViewportResize);
-    document.removeEventListener?.("fullscreenchange", this._onViewportResize);
+    document.removeEventListener?.("fullscreenchange", this._onFullscreenChange);
     this._viewportObserver?.disconnect();
     this._viewportObserver = null;
     if (this._viewportFrame !== null) window.cancelAnimationFrame?.(this._viewportFrame);
     this._viewportFrame = null;
+  }
+  _isKioskFullscreen() {
+    const surface = this.shadowRoot?.querySelector?.("ha-card");
+    // The Fullscreen API retargets document.fullscreenElement at shadow roots.
+    // ShadowRoot.fullscreenElement identifies the actual fullscreen card.
+    return Boolean(surface && (
+      this.shadowRoot.fullscreenElement === surface ||
+      document.fullscreenElement === surface ||
+      document.fullscreenElement === this
+    ));
+  }
+  _syncFullscreenButton() {
+    const button = this._fullscreenButton;
+    if (!button) return;
+    const expanded = this._isKioskFullscreen();
+    const label = expanded ? button._exitFullscreenLabel : button._enterFullscreenLabel;
+    button.setAttribute("aria-label", label);
+    button.setAttribute("title", label);
+    button.setAttribute("aria-pressed", String(expanded));
+    button.children[0]?.setAttribute("icon",
+      expanded ? "mdi:fullscreen-exit" : "mdi:fullscreen");
   }
   _scheduleViewportHeight() {
     this._syncDashboardEditing();
@@ -697,6 +723,7 @@ export class SalahTimetableCard extends HTMLElement {
     // One cohesive glass surface for mosque identity and both live summaries.
     // Individual countdown components remain independent for timing and options.
     const summary = node("div", undefined, "summary-shell");
+    this._fullscreenButton = null;
     let kioskToolbar = null;
     let kioskClock = null;
     let kioskToggle = null;
@@ -717,16 +744,24 @@ export class SalahTimetableCard extends HTMLElement {
       updateClock(now);
       updates.push(updateClock);
       kioskClock.append(clockLabel, clockValue);
-      // Fullscreen requires a user gesture; unsupported WebViews keep kiosk styling.
-      kioskToggle = node("button", tr(ui, "card.kiosk_fullscreen"), "kiosk-fullscreen");
+      // The fullscreen control is an icon embedded in the main summary.
+      // Its label and glyph follow the actual Fullscreen API state, including Esc.
+      kioskToggle = node("button", undefined, "kiosk-fullscreen");
       kioskToggle.type = "button";
-      kioskToggle.setAttribute("aria-label", tr(ui, "card.kiosk_fullscreen"));
+      kioskToggle._enterFullscreenLabel = tr(ui, "card.kiosk_fullscreen_enter");
+      kioskToggle._exitFullscreenLabel = tr(ui, "card.kiosk_fullscreen_exit");
+      const fullscreenIcon = node("ha-icon");
+      fullscreenIcon.setAttribute("icon", "mdi:fullscreen");
+      fullscreenIcon.setAttribute("aria-hidden", "true");
+      kioskToggle.append(fullscreenIcon);
+      this._fullscreenButton = kioskToggle;
+      this._syncFullscreenButton();
       // Pointer activation must not leave a persistent ring on a wall display.
       // Keyboard activation retains :focus-visible for accessibility.
       kioskToggle.addEventListener("pointerup", () => kioskToggle.blur());
       kioskToggle.addEventListener("click", () => {
-        const surface = this.shadowRoot?.querySelector("ha-card");
-        if (document.fullscreenElement === surface) {
+        const surface = this.shadowRoot?.querySelector?.("ha-card");
+        if (this._isKioskFullscreen()) {
           const exit = document.exitFullscreen?.();
           exit?.catch?.(() => {});
         } else {
@@ -748,8 +783,9 @@ export class SalahTimetableCard extends HTMLElement {
     if (kioskToolbar) {
       header.append(kioskClock);
       if (dateTarget.children.length) header.append(dateTarget);
-      kioskToolbar.append(kioskToggle);
-      // Kiosk actions belong in the bottom control strip, not above the clock.
+      // Absolutely positioned over the glass, outside header/footer flow.
+      summary.append(kioskToggle);
+      // Monthly actions still live in the footer toolbar, when enabled.
     }
     content.append(summary);
     if (this._monthView && this._config.show_month_view && this._monthState) {
@@ -763,6 +799,7 @@ export class SalahTimetableCard extends HTMLElement {
       }
       card.append(content);
       this.shadowRoot.replaceChildren(style, card);
+      this._syncFullscreenButton();
       this._live = {data, updates, selection: this._selection(data, now)};
       this._scheduleViewportHeight();
       return;
@@ -926,6 +963,7 @@ export class SalahTimetableCard extends HTMLElement {
       else content.append(credit);
     }
     card.append(content); this.shadowRoot.replaceChildren(style, card);
+    this._syncFullscreenButton();
     if (this._selectedDay === 0 && background) this._rememberBackgroundFrame();
     if (tableRegion) {
       tableRegion.scrollLeft = scrollLeft;
