@@ -851,6 +851,7 @@ export class SalahTimetableCard extends HTMLElement {
       updates.push(instant => { box.clock.run.textContent = congregationClock(instant); });
       panels.append(box);
     }
+    if (panels.children.length === 1) panels.classList.add("single-panel");
     if (panels.children.length) summary.append(panels);
     const highlighted = highlightedPrayer(data, now);
     let tableRegion;
