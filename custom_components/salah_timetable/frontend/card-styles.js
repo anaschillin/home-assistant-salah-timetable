@@ -941,6 +941,13 @@ ha-card.has-mosque-background::after {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
+/* With two visible countdowns, distribute content from the top, not across
+   available height. Previous Jamaat previously inherited space-between, so
+   the extra sunrise line under Next Salah moved every Jamaat row down. Only
+   target paired panels: the enlarged single-panel grid remains untouched. */
+.summary-shell .panels:not(.single-panel) > .prayer-panel {
+  justify-content: flex-start;
+}
 .summary-shell .prayer-panel + .prayer-panel {
   border-inline-start: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
 }
@@ -1486,6 +1493,11 @@ ha-card.kiosk:fullscreen .content.kiosk {
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel[data-panel] {
   display: grid;
 }
+/* The kiosk's standard flex styling also spaces its two halves vertically.
+   Align the shared rows from the top when both countdowns are enabled. */
+.content.kiosk .summary-shell .panels:not(.single-panel) > .prayer-panel[data-panel] {
+  justify-content: flex-start;
+}
 .content.kiosk .summary-shell .prayer-panel:first-child { padding-inline-start: 0; }
 .content.kiosk .summary-shell .prayer-panel:last-child { padding-inline-end: 0; }
 .content.kiosk .summary-shell .prayer-panel + .prayer-panel {
@@ -1547,6 +1559,12 @@ ha-card.kiosk:fullscreen .content.kiosk {
   margin-top: auto;
   padding-top: clamp(12px, 1.3cqi, 20px);
   gap: clamp(12px, 2cqi, 32px);
+}
+/* Do not bottom-anchor a paired timetable row while the other panel has a
+   published sunrise note below it. That note must not offset the clock/time
+   baselines of the adjacent panel. */
+.content.kiosk .summary-shell .panels:not(.single-panel) > .prayer-panel .prayer-times {
+  margin-top: 0;
 }
 .content.kiosk .summary-shell .prayer-time .absolute {
   font-size: clamp(1.15rem, 2.1cqi, 1.85rem);
