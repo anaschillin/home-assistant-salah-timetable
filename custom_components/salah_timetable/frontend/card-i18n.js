@@ -383,17 +383,22 @@ export function resolveUi(config = {}, hass = {}) {
   return {language, locale, dir: language === "ar" ? "rtl" : "ltr"};
 }
 
+/** Own-key check compatible with Chromium 92 / older Cast receivers. */
+function hasOwn(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key);
+}
+
 /** Translate plain text; callers decide which DOM nodes carry direction metadata. */
 export function tr(uiOrLanguage, key, params = {}) {
   const language = languageOf(uiOrLanguage);
-  const template = Object.hasOwn(CATALOGS[language], key) ? CATALOGS[language][key] : Object.hasOwn(CATALOGS.en, key) ? CATALOGS.en[key] : String(key);
-  return template.replace(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g, (placeholder, name) => Object.hasOwn(params || {}, name) ? String(params[name]) : placeholder);
+  const template = hasOwn(CATALOGS[language], key) ? CATALOGS[language][key] : hasOwn(CATALOGS.en, key) ? CATALOGS.en[key] : String(key);
+  return template.replace(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g, (placeholder, name) => hasOwn(params || {}, name) ? String(params[name]) : placeholder);
 }
 
 /** Known prayer names only; custom published names stay with the calling card. */
 export function prayerLabels(key, uiOrLanguage, bilingual = false) {
   const language = languageOf(uiOrLanguage);
-  const catalogKey = Object.hasOwn(CATALOGS.en, `prayer.${key}`) ? `prayer.${key}` : "prayer.prayer";
+  const catalogKey = hasOwn(CATALOGS.en, `prayer.${key}`) ? `prayer.${key}` : "prayer.prayer";
   const languages = bilingual ? [language, language === "ar" ? "en" : "ar"] : [language];
   return languages.map(lang => ({text: tr(lang, catalogKey), lang, dir: lang === "ar" ? "rtl" : "ltr"}));
 }
