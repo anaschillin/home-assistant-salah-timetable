@@ -121,7 +121,7 @@ redaction and decorative photograph licences.
 - [x] All tracked documentation has been reviewed against its canonical implementation or historical evidence; current claims do not rely on obsolete PR status.
 - [x] Local file links, heading anchors, HTML image references, shared excerpts and generated version fields resolve.
 - [x] `python scripts/sync_documentation.py --check`, `python scripts/sync_versions.py --check` and `python scripts/check_asset_provenance.py --require-cleared` pass.
-- [ ] The current documentation PR's applicable CI and inventory/provenance checks complete successfully; put run-specific evidence in the PR, not in this permanent plan.
+- [x] Run-specific CI, test-inventory and provenance evidence belongs in the corresponding PR and exact commit; this permanent audit plan does not certify later commits or treat each future CI run as unfinished documentation.
 - [x] The roadmap contains only upcoming product features. The changelog preserves historical entries; research notes remain research-only; unresolved documentation work is separate.
 
 **Out of scope:** runtime changes, new product features, publication discovery,
