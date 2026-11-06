@@ -177,54 +177,6 @@
       "sha256": "800ab5e6f641a43fa841026435307819d4396405cdbe2539f08bbd277af8d070"
     },
     {
-      "path": "docs/screenshots/add-dashboard-card.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "d5bf02686e21ae105ccfd5074aff90b561bdc075c36a567857ef3b0bf6e1c71d"
-    },
-    {
-      "path": "docs/screenshots/add-mosque.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "f71d518721bafcc5922a36aa6010b99e91ba689a69e3dda51106d1b3af280d50"
-    },
-    {
-      "path": "docs/screenshots/card-editor-compact.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); The Simple Travel (bundled photograph)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present; includes bundled National Mosque of Malaysia photograph under its separately recorded Unsplash License",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "a634be51b02cca7080e6e4d50a019068c1320c9bb1d8a84d7af0c59ee594e477"
-    },
-    {
-      "path": "docs/screenshots/card-editor-mobile.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "66db6d288d469957d4d88ef7a1f2d34a1480f371c89fdb219b308bdc11cca885"
-    },
-    {
-      "path": "docs/screenshots/card-editor-standard.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); The Simple Travel (bundled photograph)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present; includes bundled National Mosque of Malaysia photograph under its separately recorded Unsplash License",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "a3bf553f471f0ec8f361b9a12930414d98ba9fa19cba4f4a0ac8f7ac023ef5c8"
-    },
-    {
-      "path": "docs/screenshots/dashboard-mobile.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Jimmy Whitson (bundled photograph)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present; includes bundled Sultan Omar Ali Saifuddien Mosque photograph under its separately recorded Unsplash License",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "95b4c99395cf22e588acbda4afa570a0527568f213399dfbc18287e7473698d6"
-    },
-    {
       "path": "docs/screenshots/main-card.png",
       "rights": "permission_documented",
       "owner": "Project maintainer (UI capture); Naveed Ahmed (bundled photograph)",
@@ -239,214 +191,6 @@
       "basis": "Maintainer-supplied screenshot of the project UI showing an approved monthly timetable; no original publisher document is redistributed; AI-assisted privacy redaction and resampling obscure the mosque display name",
       "evidence": "docs/asset-provenance.md",
       "sha256": "1b0f1a0ec41cc0d33de7e13dcc0116a7cfd7a412756507b0f6a6a45cf8f9b28c"
-    },
-    {
-      "path": "docs/screenshots/mosque-device.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "bed8ecb49fedd89b3a384185324f062675cfef3e2200def60eec48ebdf32af8e"
-    },
-    {
-      "path": "docs/screenshots/mosque-options.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "7a80567d4594e267e329e74d268fb8dd0629dce8e0b56647edb38294c10bb39a"
-    },
-    {
-      "path": "docs/screenshots/mosque-settings.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "4789d4c3ce44fa71020d8d46b28208b3ade92eb0b0525e1870973d0b38e98997"
-    },
-    {
-      "path": "docs/screenshots/name-and-assign.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "1f1a97e9f7635cf5c2aae29937538982ae453ceab82347d66d2239753ecab9ca"
-    },
-    {
-      "path": "docs/screenshots/pending-import.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "445c340226dfd1621b3ee4301a7e2176393270a150ff2bb271134055a91543d8"
-    },
-    {
-      "path": "docs/screenshots/ramadan-settings.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "2d07b31db8f7677a8cba42e14f1713f418002957ecbd76744d4c94434417aeb3"
-    },
-    {
-      "path": "docs/screenshots/review-decision.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "6707ba5d898ba9d63184c68f95b4ea3d28f175446ef2c5b5aa37297311b9c536"
-    },
-    {
-      "path": "docs/screenshots/review-summary.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "8d4017011921ef6ed1ba71daa23252f2106daf6d4811ca0d082ff0a345d04705"
-    },
-    {
-      "path": "docs/screenshots/showcase/desktop/card-editor.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "71b00e011f970509a57c29f6b7b33c74fd404887e21e9235755a30d28977ffd3"
-    },
-    {
-      "path": "docs/screenshots/showcase/desktop/compact-card.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "0f55b00b9ca7809a64ccf9e76a07a9a40e4e1e640d6fd4afb3847c050d665463"
-    },
-    {
-      "path": "docs/screenshots/showcase/desktop/compact-monthly-menu.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "0ccdb345b76b4b348bc92f86d22950507aa8aa8b8719beb4bafb05fb9515d92e"
-    },
-    {
-      "path": "docs/screenshots/showcase/desktop/compact-monthly-view.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "09457e080874a461b64894f7ca6fd1da420730266f02c022b37b7ff18e2e16a3"
-    },
-    {
-      "path": "docs/screenshots/showcase/desktop/detailed-card.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "fe284891fc290664453112420275498017256fd016767a4a03b47fff012809de"
-    },
-    {
-      "path": "docs/screenshots/showcase/desktop/detailed-monthly-view.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "2b78411e04fd89a27251b6a89624d8e8db81c50574241adf86bd7bd0f357ed70"
-    },
-    {
-      "path": "docs/screenshots/showcase/desktop/kiosk-v3.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); original bundled mosque background photo remains separately licensed",
-      "basis": "Maintainer-approved Home Assistant Salah Timetable v3.0 kiosk screenshot supplied 6 November 2026, converted from PNG to same-resolution WebP. Published prayer values and public mosque name belong to the configured timetable; underlying photo retains its separate source licence.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "e1f3c15d5901518c211f15e0be1d8b5e02ee9642a812555d64a67cc604748a8d"
-    },
-    {
-      "path": "docs/screenshots/showcase/desktop/standard-card.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "5f749a99da22c6f522c97ceead530b159b12c5bbf49668e7f0291dd75619b330"
-    },
-    {
-      "path": "docs/screenshots/showcase/desktop/standard-monthly-view.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "ac22890f1d30e089d633591e0697fed206e4dee76bcf28310e783ac7b1b69eca"
-    },
-    {
-      "path": "docs/screenshots/showcase/mobile/compact-card.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "47b8805e224ca417a7d9c03c46c619395dabc3e88d1d3a0ccd121f713cea8b47"
-    },
-    {
-      "path": "docs/screenshots/showcase/mobile/compact-monthly-menu.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "8bd67a4cd71c6f5d2b326711cfa09e09b7674c0772a54f9feaf5991871e0816b"
-    },
-    {
-      "path": "docs/screenshots/showcase/mobile/compact-monthly-view.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "03f1c57c486c2654114ddc35aeec2bd2ac3d1a81f87c30679d4cd5c48f38b433"
-    },
-    {
-      "path": "docs/screenshots/showcase/mobile/detailed-card.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "38d257bc1e761a319230ade8a06ea7d93c35cb8ade2ec5a0ea19f1cd48599756"
-    },
-    {
-      "path": "docs/screenshots/showcase/mobile/detailed-monthly-view.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "2d1a3a0de1c29ec5cd97918f69dcd8803bf087ddf289a47301e812e23d0d2089"
-    },
-    {
-      "path": "docs/screenshots/showcase/mobile/standard-card.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "73f3f157d6f8996730eed37e99a4986e8bdb27a43387771489b19d9ef87e6635"
-    },
-    {
-      "path": "docs/screenshots/showcase/tablet/card-editor.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "6ecdab26d5912d0ab37018fce3d042efa7e8cc853bf48bfda39ed19acf18ba08"
-    },
-    {
-      "path": "docs/screenshots/showcase/tablet/standard-card.webp",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
-      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "b1b101652ad04dc658d8c39a7cac055aaa155795f76908f4dd78838719345ee5"
-    },
-    {
-      "path": "docs/screenshots/upload-pdf.png",
-      "rights": "permission_documented",
-      "owner": "Project maintainer (UI capture)",
-      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
-      "evidence": "docs/asset-provenance.md",
-      "sha256": "92dc4ed45b92b2c32be2eff1e58986a307b51174326b4f336fc4f2cf494ad099"
     },
     {
       "path": "docs/screenshots/yesterday.png",
@@ -551,6 +295,262 @@
       "basis": "Synthetic historical import/approval state with fictional values",
       "evidence": "tests/fixtures/storage/README.md",
       "sha256": "3bded584866ef16de79a2a6afc4febad309cb46311c28c56b251bf4f61d5df73"
+    },
+    {
+      "path": "docs/screenshots/add-dashboard-card.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "d5bf02686e21ae105ccfd5074aff90b561bdc075c36a567857ef3b0bf6e1c71d"
+    },
+    {
+      "path": "docs/screenshots/add-mosque.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "f71d518721bafcc5922a36aa6010b99e91ba689a69e3dda51106d1b3af280d50"
+    },
+    {
+      "path": "docs/screenshots/card-editor-compact.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); The Simple Travel (bundled photograph)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present; includes bundled National Mosque of Malaysia photograph under its separately recorded Unsplash License",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "a634be51b02cca7080e6e4d50a019068c1320c9bb1d8a84d7af0c59ee594e477"
+    },
+    {
+      "path": "docs/screenshots/card-editor-mobile.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "66db6d288d469957d4d88ef7a1f2d34a1480f371c89fdb219b308bdc11cca885"
+    },
+    {
+      "path": "docs/screenshots/card-editor-standard.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); The Simple Travel (bundled photograph)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present; includes bundled National Mosque of Malaysia photograph under its separately recorded Unsplash License",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "a3bf553f471f0ec8f361b9a12930414d98ba9fa19cba4f4a0ac8f7ac023ef5c8"
+    },
+    {
+      "path": "docs/screenshots/dashboard-mobile.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Jimmy Whitson (bundled photograph)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation; AI-assisted privacy redactions and resampling obscure identifying mosque names and entity IDs where present; includes bundled Sultan Omar Ali Saifuddien Mosque photograph under its separately recorded Unsplash License",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "95b4c99395cf22e588acbda4afa570a0527568f213399dfbc18287e7473698d6"
+    },
+    {
+      "path": "docs/screenshots/mosque-device.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "bed8ecb49fedd89b3a384185324f062675cfef3e2200def60eec48ebdf32af8e"
+    },
+    {
+      "path": "docs/screenshots/mosque-options.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "7a80567d4594e267e329e74d268fb8dd0629dce8e0b56647edb38294c10bb39a"
+    },
+    {
+      "path": "docs/screenshots/mosque-settings.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "4789d4c3ce44fa71020d8d46b28208b3ade92eb0b0525e1870973d0b38e98997"
+    },
+    {
+      "path": "docs/screenshots/name-and-assign.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "1f1a97e9f7635cf5c2aae29937538982ae453ceab82347d66d2239753ecab9ca"
+    },
+    {
+      "path": "docs/screenshots/pending-import.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "445c340226dfd1621b3ee4301a7e2176393270a150ff2bb271134055a91543d8"
+    },
+    {
+      "path": "docs/screenshots/ramadan-settings.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "2d07b31db8f7677a8cba42e14f1713f418002957ecbd76744d4c94434417aeb3"
+    },
+    {
+      "path": "docs/screenshots/review-decision.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "6707ba5d898ba9d63184c68f95b4ea3d28f175446ef2c5b5aa37297311b9c536"
+    },
+    {
+      "path": "docs/screenshots/review-summary.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "8d4017011921ef6ed1ba71daa23252f2106daf6d4811ca0d082ff0a345d04705"
+    },
+    {
+      "path": "docs/screenshots/upload-pdf.png",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture)",
+      "basis": "Maintainer-supplied screenshot of project UI, provided 1 November 2026 for documentation",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "92dc4ed45b92b2c32be2eff1e58986a307b51174326b4f336fc4f2cf494ad099"
+    },
+    {
+      "path": "docs/screenshots/showcase/desktop/compact-card.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "0f55b00b9ca7809a64ccf9e76a07a9a40e4e1e640d6fd4afb3847c050d665463"
+    },
+    {
+      "path": "docs/screenshots/showcase/desktop/compact-monthly-menu.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "0ccdb345b76b4b348bc92f86d22950507aa8aa8b8719beb4bafb05fb9515d92e"
+    },
+    {
+      "path": "docs/screenshots/showcase/desktop/compact-monthly-view.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "09457e080874a461b64894f7ca6fd1da420730266f02c022b37b7ff18e2e16a3"
+    },
+    {
+      "path": "docs/screenshots/showcase/desktop/detailed-monthly-view.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "2b78411e04fd89a27251b6a89624d8e8db81c50574241adf86bd7bd0f357ed70"
+    },
+    {
+      "path": "docs/screenshots/showcase/desktop/detailed-card.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "fe284891fc290664453112420275498017256fd016767a4a03b47fff012809de"
+    },
+    {
+      "path": "docs/screenshots/showcase/desktop/card-editor.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "71b00e011f970509a57c29f6b7b33c74fd404887e21e9235755a30d28977ffd3"
+    },
+    {
+      "path": "docs/screenshots/showcase/desktop/standard-monthly-view.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "ac22890f1d30e089d633591e0697fed206e4dee76bcf28310e783ac7b1b69eca"
+    },
+    {
+      "path": "docs/screenshots/showcase/desktop/standard-card.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "5f749a99da22c6f522c97ceead530b159b12c5bbf49668e7f0291dd75619b330"
+    },
+    {
+      "path": "docs/screenshots/showcase/mobile/compact-monthly-view.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "03f1c57c486c2654114ddc35aeec2bd2ac3d1a81f87c30679d4cd5c48f38b433"
+    },
+    {
+      "path": "docs/screenshots/showcase/mobile/compact-monthly-menu.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "8bd67a4cd71c6f5d2b326711cfa09e09b7674c0772a54f9feaf5991871e0816b"
+    },
+    {
+      "path": "docs/screenshots/showcase/mobile/compact-card.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "47b8805e224ca417a7d9c03c46c619395dabc3e88d1d3a0ccd121f713cea8b47"
+    },
+    {
+      "path": "docs/screenshots/showcase/mobile/detailed-monthly-view.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "2d1a3a0de1c29ec5cd97918f69dcd8803bf087ddf289a47301e812e23d0d2089"
+    },
+    {
+      "path": "docs/screenshots/showcase/mobile/detailed-card.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "38d257bc1e761a319230ade8a06ea7d93c35cb8ade2ec5a0ea19f1cd48599756"
+    },
+    {
+      "path": "docs/screenshots/showcase/mobile/standard-card.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "73f3f157d6f8996730eed37e99a4986e8bdb27a43387771489b19d9ef87e6635"
+    },
+    {
+      "path": "docs/screenshots/showcase/tablet/card-editor.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "6ecdab26d5912d0ab37018fce3d042efa7e8cc853bf48bfda39ed19acf18ba08"
+    },
+    {
+      "path": "docs/screenshots/showcase/tablet/standard-card.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); Haidan (bundled mosque photograph where pictured)",
+      "basis": "Maintainer-supplied Home Assistant UI capture, 4 November 2026; converted to WebP for documentation. Shows a configured public mosque name and published illustrative timetable values; bundled Masjid an-Nabawi photograph remains separately governed under its Unsplash License.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "b1b101652ad04dc658d8c39a7cac055aaa155795f76908f4dd78838719345ee5"
+    },
+    {
+      "path": "docs/screenshots/showcase/desktop/kiosk-v3.webp",
+      "rights": "permission_documented",
+      "owner": "Project maintainer (UI capture); original bundled mosque background photo remains separately licensed",
+      "basis": "Maintainer-approved Home Assistant Salah Timetable v3.0 kiosk screenshot supplied 6 November 2026, converted from PNG to same-resolution WebP. Published prayer values and public mosque name belong to the configured timetable; underlying photo retains its separate source licence.",
+      "evidence": "docs/asset-provenance.md",
+      "sha256": "e1f3c15d5901518c211f15e0be1d8b5e02ee9642a812555d64a67cc604748a8d"
     }
   ]
 }
