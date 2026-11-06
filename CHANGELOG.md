@@ -7,6 +7,15 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 
 ## Unreleased
 
+## 3.0.1 — 6 November 2026
+
+### Cast receiver compatibility and startup reliability
+
+- Recover Salah Timetable card/editor registration after Home Assistant replaces the browser custom-element registry during frontend startup. Use bounded post-initialisation checks to avoid duplicate imports, recasts or dashboard refreshes (#134).
+- Support Chrome 92-based Cast receivers by avoiding `Object.hasOwn()` in frontend translations and adding regression tests for fallbacks, parameters and prayer labels (#135).
+- Preserve existing kiosk v3, mosque ordering/editor, prayer calculations and all approved timetable data.
+- Device acceptance reported by the maintainer on the Home Assistant browser, Google Nest Hub Max and Home Assistant Companion app. Record precise installed integration versions and results in the release PR before publishing.
+
 ## 3.0.0 — 5 November 2026
 
 ### Kiosk Mode redesign
