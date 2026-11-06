@@ -307,6 +307,38 @@ try {
       return rect.left >= summaryRect.left - 1 && rect.right <= summaryRect.right + 1 &&
         rect.top >= summaryRect.top - 1 && rect.bottom <= summaryRect.bottom + 1;
     }));
+  // The published Fajr sunrise note is present only in the Salah panel. It
+  // must never push Previous Jamaat's label, clock or published times down.
+  // Check actual rows, not merely equal-height outer grid cells.
+  for (const [detail_level, kiosk_mode, now] of [
+    ["compact", false, time(4, 40)],
+    ["standard", false, time(4, 40)],
+    ["detailed", false, time(4, 40)],
+    ["standard", false, time(4, 50)], // upcoming rather than previous Jamaat
+    ["standard", true, time(4, 40)],
+    ["standard", true, time(4, 50)],
+  ]) {
+    render({detail_level, kiosk_mode, show_salah_countdown: true, show_jamaat_countdown: true}, now);
+    const pairGrid = card.shadowRoot.querySelector(".summary-shell .panels");
+    const pair = [...(pairGrid?.querySelectorAll(".prayer-panel") || [])];
+    const panelColumns = getComputedStyle(pairGrid).gridTemplateColumns.split(" ").length;
+    const props = [".label", ".event", ".count", ".prayer-times"];
+    const measured = props.map(selector => {
+      const a = pair[0]?.querySelector(selector)?.getBoundingClientRect();
+      const b = pair[1]?.querySelector(selector)?.getBoundingClientRect();
+      return {selector, delta: a && b ? Math.abs(a.top - b.top) : null};
+    });
+    const aligned = panelColumns === 1 || measured.every(row => row.delta !== null && row.delta <= 2);
+    const topAligned = pair.length === 2 && pair.every(panel =>
+      getComputedStyle(panel).justifyContent === "flex-start");
+    const timeAnchored = !kiosk_mode || pair.every(panel =>
+      Math.abs(Number.parseFloat(getComputedStyle(panel.querySelector(".prayer-times")).marginTop)) <= 1);
+    const label = `paired ${detail_level}${kiosk_mode ? " kiosk" : ""} ${now === time(4, 50) ? "upcoming" : "previous"} Jamaat rows align`;
+    const pass = pairGrid && !pairGrid.classList.contains("single-panel") && topAligned &&
+      timeAnchored && aligned;
+    check(pass ? label : `${label}: ${JSON.stringify({panelColumns, measured, topAligned, timeAnchored})}`, pass);
+  }
+  render();
   check("container layout uses one column on mobile and two on tablet", gridStyle.gridTemplateColumns.split(" ").length === (width <= 336 ? 1 : 2));
   // The layout is measured in native Chromium; this catches a future cascade
   // regression that leaves a lone summary stuck in one half of the kiosk grid.
