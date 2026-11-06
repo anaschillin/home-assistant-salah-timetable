@@ -320,11 +320,28 @@ try {
       const rect = panel?.getBoundingClientRect();
       const centered = Boolean(rect && frame) &&
         Math.abs((frame.left + frame.right - rect.left - rect.right) / 2) <= 2;
-      const constrained = width < 600 || rect.width <= (kiosk_mode ? 768 : 608) + 2;
+      const published = panel?.querySelector(".prayer-times");
+      const count = panel?.querySelector(".count");
+      const publishedRect = published?.getBoundingClientRect();
+      const countRect = count?.getBoundingClientRect();
+      const panelColumns = getComputedStyle(panel).gridTemplateColumns.split(" ").length;
+      const shouldStack = (kiosk_mode && width <= 640) || width <= 320;
+      const publishedOnInlineEnd = !shouldStack && publishedRect && countRect &&
+        (ui.dir === "rtl"
+          ? publishedRect.right <= countRect.left + 2
+          : publishedRect.left >= countRect.right - 2);
+      const publishedBelow = shouldStack && publishedRect && countRect &&
+        publishedRect.top >= countRect.bottom - 2;
+      const leadingSize = parseFloat(getComputedStyle(count).fontSize);
+      const normalSize = parseFloat(salahClockStyle.fontSize);
+      const constrained = rect.width <= (kiosk_mode ? 1152 : 896) + 2;
       check(`single ${salah ? "Salah" : "Jamaat"} is centred in ${detail_level}${kiosk_mode ? " kiosk" : ""}`,
         grid?.classList.contains("single-panel") && grid.children.length === 1 &&
         centered && constrained &&
-        getComputedStyle(panel).textAlign === "center" &&
+        getComputedStyle(panel).display === "grid" &&
+        panelColumns === (shouldStack ? 1 : 2) &&
+        (shouldStack ? publishedBelow : publishedOnInlineEnd) &&
+        leadingSize > normalSize &&
         rect.left >= frame.left - 1 && rect.right <= frame.right + 1);
     }
   }
