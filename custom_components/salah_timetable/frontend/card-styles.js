@@ -948,6 +948,14 @@ ha-card.has-mosque-background::after {
 .summary-shell .panels:not(.single-panel) > .prayer-panel {
   justify-content: flex-start;
 }
+/* A narrow two-column card may wrap "Previous Jamaat" while "Next Salah"
+   remains on one line. Give both labels the same two-line space so the
+   following prayer name, clock and published times keep their baselines. */
+@container(max-width:28rem) {
+  .summary-shell .panels:not(.single-panel) > .prayer-panel > .label {
+    min-height: 2.5em;
+  }
+}
 .summary-shell .prayer-panel + .prayer-panel {
   border-inline-start: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
 }
