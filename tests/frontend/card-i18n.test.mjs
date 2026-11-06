@@ -73,6 +73,21 @@ test("translation substitutes literal values without interpreting HTML or replac
   assert.equal(tr("en", "config.boolean", Object.create({option: "inherited"})), "{option} must be true or false");
 });
 
+test("translations work on Chromium 92 without Object.hasOwn", () => {
+  const original = Object.hasOwn;
+  try {
+    Object.hasOwn = undefined;
+    assert.equal(tr("en", "table.prayer"), "Prayer");
+    assert.equal(tr("en", "missing.key"), "missing.key");
+    assert.equal(tr("en", "config.boolean", {option: "Example"}), "Example must be true or false");
+    assert.equal(tr("en", "config.boolean", Object.create({option: "inherited"})), "{option} must be true or false");
+    assert.equal(prayerLabels("fajr", "en")[0].text, "Fajr");
+    assert.equal(prayerLabels("unknown", "en")[0].text, "Prayer");
+  } finally {
+    Object.hasOwn = original;
+  }
+});
+
 test("prayer labels carry explicit language and direction in UI-first bilingual order", () => {
   assert.deepEqual(prayerLabels("fajr", "ar", true), [
     {text: "الفجر", lang: "ar", dir: "rtl"},
