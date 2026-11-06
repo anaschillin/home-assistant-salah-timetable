@@ -305,6 +305,30 @@ try {
         rect.top >= summaryRect.top - 1 && rect.bottom <= summaryRect.bottom + 1;
     }));
   check("container layout uses one column on mobile and two on tablet", gridStyle.gridTemplateColumns.split(" ").length === (width <= 336 ? 1 : 2));
+  // The layout is measured in native Chromium; this catches a future cascade
+  // regression that leaves a lone summary stuck in one half of the kiosk grid.
+  for (const [detail_level, kiosk_mode] of [
+    ["compact", false], ["standard", false], ["detailed", false], ["standard", true],
+  ]) {
+    for (const [salah, jamaat] of [[true, false], [false, true]]) {
+      render({detail_level, kiosk_mode,
+        show_salah_countdown: salah, show_jamaat_countdown: jamaat});
+      const root = card.shadowRoot;
+      const grid = root.querySelector(".summary-shell .panels");
+      const panel = grid?.querySelector(".prayer-panel");
+      const frame = grid?.getBoundingClientRect();
+      const rect = panel?.getBoundingClientRect();
+      const centered = Boolean(rect && frame) &&
+        Math.abs((frame.left + frame.right - rect.left - rect.right) / 2) <= 2;
+      const constrained = width < 600 || rect.width < frame.width * .9;
+      check(`single ${salah ? "Salah" : "Jamaat"} is centred in ${detail_level}${kiosk_mode ? " kiosk" : ""}`,
+        grid?.classList.contains("single-panel") && grid.children.length === 1 &&
+        centered && constrained &&
+        getComputedStyle(panel).textAlign === "center" &&
+        rect.left >= frame.left - 1 && rect.right <= frame.right + 1);
+    }
+  }
+  render();
   check("card language and direction match configuration", card.getAttribute("lang") === language && card.getAttribute("dir") === ui.dir);
   check("summary icon silhouettes are hidden from accessibility", card.shadowRoot.querySelectorAll(".panel-silhouette[aria-hidden=\"true\"] svg").length === 2);
   check("day controls follow timetable, not countdowns", Boolean(card.shadowRoot.querySelector(".timetable-shell > .date-tabs")));
