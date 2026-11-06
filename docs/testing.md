@@ -176,7 +176,7 @@ The README **coverage** badge is generated from the *measured Python line-covera
 
 | CI entry | What is verified |
 | --- | --- |
-| `.github/workflows/validate.yml` | Documentation integrity on every run; full Python pytest, coverage, Ruff, Node/Chromium, HACS/hassfest, packaging and HA checks for code PRs and all pushes to `main` |
+| `.github/workflows/validate.yml` | Version-marker consistency (`scripts/sync_versions.py --check`) on every run; full Python pytest, coverage, Ruff, Node/Chromium, HACS/hassfest, packaging and HA checks for code PRs and all pushes to `main` |
 | `.github/workflows/codeql.yml` | Python/JavaScript security analysis on PRs targeting `main`, all `main` pushes, manual runs and weekly; superseded PR scans cancel |
 | `.github/workflows/unit-compatibility.yml` | **All recursively discovered Python test files**, in one pytest run on each pinned Home Assistant compatibility lane |
 | `.github/workflows/live-smoke.yml` | Real disposable HA Container onboarding/browser smoke (manual and weekly; reusable workflow) |
