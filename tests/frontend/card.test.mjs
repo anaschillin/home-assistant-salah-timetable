@@ -188,7 +188,7 @@ test("mosque header and both live countdowns share one summary card", () => {
   for (const [salah, jamaat] of [[true, false], [false, true], [false, false]]) {
     card.setConfig({...config, show_salah_countdown: salah, show_jamaat_countdown: jamaat});
     assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "summary-shell").length, 1);
-    const groups = contents().filter(element => element.className === "panels");
+    const groups = contents().filter(element => element.className?.split(" ").includes("panels"));
     assert.equal(groups.length, salah || jamaat ? 1 : 0);
     if (groups.length) assert.equal(groups[0].children.length, Number(salah) + Number(jamaat));
   }
@@ -568,7 +568,7 @@ test("the sole visible countdown is centred across normal and kiosk modes", () =
       card._render(Date.parse("2026-10-21T04:40:00Z"));
       const summary = classNodes(card.shadowRoot, "summary-shell")[0];
       const visible = find(summary, "section").filter(panel => panel.className === "panel prayer-panel");
-      const panels = classNodes(summary, "panels");
+      const panels = find(summary, "div").filter(element => element.className?.split(" ").includes("panels"));
       const count = Number(salah) + Number(jamaat);
       assert.equal(visible.length, count, `${detail_level}/kiosk=${kiosk_mode}: panel count`);
       assert.equal(panels.length, count ? 1 : 0, "No empty grid when both cards are hidden");
