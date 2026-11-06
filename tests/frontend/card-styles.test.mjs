@@ -126,6 +126,13 @@ test("summary and timetable share one CSS-first liquid-glass material", () => {
   assert.match(CARD_CSS, /@container\(max-width:21rem\)\s*\{\s*\.summary-shell \.panels\s*\{\s*grid-template-columns:\s*1fr/);
 });
 
+test("single countdown layouts override the regular and kiosk two-column grid", () => {
+  assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\);[^}]*justify-items:\s*center/);
+  assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*max-width:\s*38rem;[^}]*text-align:\s*center/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\);[^}]*justify-items:\s*center/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*max-width:\s*48rem;[^}]*text-align:\s*center/);
+});
+
 test("glass readability uses the same high-contrast substrate without an extra timetable tint", () => {
   const shared = CARD_CSS.match(/\.summary-shell,\s*\.timetable-shell\s*\{([^}]+)\}/);
   assert.ok(shared);
