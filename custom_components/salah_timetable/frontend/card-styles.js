@@ -906,8 +906,8 @@ ha-card.has-mosque-background::after {
   width: 100%;
   min-width: 0;
   margin: 0;
-  padding: 0 0 0 clamp(12px, 2.8cqi, 28px);
-  padding-inline: clamp(12px, 2.8cqi, 28px) 0;
+  padding: 0;
+  padding-inline-start: clamp(12px, 2.8cqi, 28px);
   border: 0;
   border-inline-start: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
   text-align: start;
@@ -1552,7 +1552,7 @@ ha-card.kiosk:fullscreen .content.kiosk {
 .content.kiosk .summary-shell .panel-silhouette { opacity: .07; }
 /* These rules must beat the later, general kiosk flex and clock-size styles. */
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .count {
-  font-size: clamp(2.15rem, min(6cqi, 9dvh), 7rem);
+  font-size: clamp(2.4rem, min(6.5cqi, 9dvh), 7rem);
 }
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .event {
   font-size: clamp(1.55rem, 3.7cqi, 4rem);
@@ -1788,6 +1788,32 @@ ha-card.kiosk:fullscreen .content.kiosk {
   .content.kiosk .kiosk-footer .kiosk-toolbar { grid-column: 2; }
 }
 @container(max-width:40rem) {
+  /* On phone-size kiosk screens give the enlarged timer the full width,
+     with its published times still paired neatly underneath. */
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel {
+    grid-template-columns: minmax(0,1fr);
+    grid-template-rows: auto;
+    justify-items: center;
+    text-align: center;
+  }
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .label,
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .event,
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .count,
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times,
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .fajr-sunrise {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    padding: clamp(12px,2cqi,18px) 0 0;
+    border-inline-start: 0;
+    border-top: 1px solid var(--divider-color);
+    text-align: center;
+  }
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel[data-panel="salah"] > .label {
+    justify-content: center;
+  }
   .content.kiosk .header { grid-template-columns: 1fr; text-align: center; }
   .content.kiosk .header .kiosk-identity {
     text-align: center;
