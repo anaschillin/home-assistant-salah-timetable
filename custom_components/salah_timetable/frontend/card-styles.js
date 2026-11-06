@@ -961,6 +961,14 @@ ha-card.has-mosque-background::after {
     min-height: 2.36em;
   }
 }
+/* Once the paired panels stack, their rows no longer need synchronized
+   heights. Remove the reserved lines so phones keep the compact spacing. */
+@container(max-width:21rem) {
+  .summary-shell .panels:not(.single-panel) > .prayer-panel > .label,
+  .summary-shell .panels:not(.single-panel) > .prayer-panel > .count {
+    min-height: 0;
+  }
+}
 .summary-shell .prayer-panel + .prayer-panel {
   border-inline-start: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
 }
