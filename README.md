@@ -28,7 +28,7 @@ A Home Assistant custom integration for importing **published mosque Salah and J
 
 ![Salah Timetable v3.0 kiosk displaying a live mosque-local clock, equal Salah and Jamaat countdown panels, five prayer tiles and a small fullscreen icon inside the glass card](docs/screenshots/showcase/desktop/kiosk-v3.webp)
 
-*Maintainer-approved kiosk screenshot (6 November 2026), showing the configured mosque and its published prayer times. The mosque photograph is decorative and separately licensed. The stable v3.0 release may not be available until PR #133 is merged.*
+*Maintainer-approved kiosk screenshot (6 November 2026), showing one configured mosque and its published prayer times. The kiosk layout shipped in v3.0.0 and remains available in v3.0.1; the decorative mosque photograph is separately licensed.*
 
 ### Standard and Detailed dashboard
 
