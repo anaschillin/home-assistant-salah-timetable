@@ -700,9 +700,9 @@ try {
       Math.abs(upcomingClock.getBoundingClientRect().top - jamaatClock.getBoundingClientRect().top) <= 6 &&
       Math.abs(salahTimeRow.getBoundingClientRect().top - jamaatTimeRow.getBoundingClientRect().top) <= 6);
   }
-  check("kiosk 3.0 footer keeps day tabs, fullscreen and month actions visible",
+  check("kiosk footer retains day tabs and month actions without fullscreen button",
     kioskFooter.querySelectorAll(".date-tab").length === 3 &&
-    kioskFooter.querySelector(".kiosk-fullscreen") &&
+    !kioskFooter.querySelector(".kiosk-fullscreen") &&
     kioskFooter.querySelector(".card-action-strip") &&
     kioskFooter.querySelector(".kiosk-footer-note"));
   check("kiosk 3.0 tile row does not cause horizontal page overflow",
@@ -728,19 +728,29 @@ try {
     Number.parseFloat(getComputedStyle(kioskHeader.querySelector(".kiosk-clock-label")).fontSize) >= 16 &&
     [...kioskRoot.querySelectorAll(".summary-shell .prayer-time .label")].every(label =>
       Number.parseFloat(getComputedStyle(label).fontSize) >= 16));
-  check("kiosk photographer attribution never overlaps fullscreen controls",
+  const fullscreen = kioskRoot.querySelector(".summary-shell > .kiosk-fullscreen");
+  const hero = kioskRoot.querySelector(".summary-shell");
+  check("kiosk fullscreen is one small icon embedded top-right of summary glass",
+    Boolean(fullscreen) &&
+    fullscreen.textContent.trim() === "" &&
+    fullscreen.querySelector("ha-icon")?.getAttribute("icon") === "mdi:fullscreen" &&
+    fullscreen.getAttribute("aria-label") === "Enter fullscreen" &&
+    getComputedStyle(fullscreen).position === "absolute" &&
+    Math.abs(fullscreen.getBoundingClientRect().right - hero.getBoundingClientRect().right + 12) <= 2 &&
+    Math.abs(fullscreen.getBoundingClientRect().top - hero.getBoundingClientRect().top - 12) <= 2 &&
+    Math.abs(fullscreen.getBoundingClientRect().width - 30) <= 2 &&
+    Math.abs(fullscreen.getBoundingClientRect().height - 30) <= 2);
+  check("kiosk photographer attribution never overlaps embedded fullscreen icon",
     (() => {
       const link = kioskFooter.querySelector(".kiosk-footer-info .background-credit a");
-      const button = kioskFooter.querySelector(".kiosk-fullscreen");
-      if (!link || !button) return false;
-      const a = link.getBoundingClientRect(), b = button.getBoundingClientRect();
+      if (!link || !fullscreen) return false;
+      const a = link.getBoundingClientRect(), b = fullscreen.getBoundingClientRect();
       return a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
     })());
   check("kiosk avoids a second card viewport minimum and does not suppress body scrolling",
     getComputedStyle(photoSurface).minHeight === "0px" &&
     getComputedStyle(photoSurface).maxHeight === "none" &&
     getComputedStyle(document.body).overflowY !== "hidden");
-  const fullscreen = kioskFooter.querySelector(".kiosk-fullscreen");
   fullscreen.focus({preventScroll: true});
   check("kiosk fullscreen is keyboard focusable", kioskRoot.activeElement === fullscreen);
   fullscreen.dispatchEvent(new PointerEvent("pointerup", {bubbles: true, pointerType: "mouse"}));
@@ -749,7 +759,6 @@ try {
   // Verify the whole three-zone group, rather than merely a centered title,
   // is positioned symmetrically on a spacious wall display. The same CSS
   // uses safe center, falling back to start when a mobile view needs scrolling.
-  const hero = kioskRoot.querySelector(".summary-shell");
   const kioskLayout = [hero, kioskStrip, kioskFooter];
   const horizontalCentre = element => {
     const rect = element.getBoundingClientRect();
