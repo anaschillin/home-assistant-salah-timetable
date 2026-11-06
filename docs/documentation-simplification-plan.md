@@ -88,7 +88,7 @@ illustrative, not independently verified timetable publications. See the
 - [ ] Add captures for readiness with named missing fields, CSV mapping suggestions, removed-date warnings and comparison filtering when suitable redacted examples are available; the supplied review summary is not a comparison-screen capture.
 - [ ] Consider generating the long test-module inventory from its existing ownership checks; keep the inventory guard and coverage requirements intact. Changes to tooling need their own reviewed implementation.
 - [ ] Evaluate further consolidation of architecture, testing and release references only where a specific duplicate remains. Preserve the complete module inventory, exact commands and internal rule audit.
-- [ ] Review the stable-release script's same-version reconciliation separately: it rejects a later `main` commit when the published tag points to its earlier release commit, before reaching its already-published skip. The release guide now documents that behaviour; this documentation audit does not change publication code or existing tags.
+- [x] Stable-release same-version reconciliation: subsequent `main` commits now skip an existing published stable version while preserving immutable tags and rejecting collisions; see the release guide and regression tests.
 - [ ] On later releases, recheck screenshots, form labels, defaults, source bounds, compatibility pins and research/runtime separation against the actual release tag.
 
 ## Canonical document ownership
