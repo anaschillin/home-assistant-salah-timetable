@@ -1,12 +1,11 @@
 # Roadmap
 
-This page contains **upcoming product features only**, not delivered capabilities, routine maintenance, release procedures or historical PR milestones. Priorities are proposals, not committed dates. The comparison baseline is the **v3.0.1 stable release (6 November 2026)**; see the [README](../README.md#features) and [changelog](../CHANGELOG.md) for released functionality.
+This page contains **upcoming product features only**, not delivered capabilities, routine maintenance, release procedures or historical PR milestones. Priorities are proposals, not committed dates. For released functionality, see the [README](../README.md#features) and [changelog](../CHANGELOG.md).
 
 Documentation follow-ups belong in the [documentation simplification plan](documentation-simplification-plan.md), and release/quality procedures belong in [Releasing](releasing.md). An item in an open draft branch is still upcoming until merged and included in a release.
 
 ## Dashboard and card layouts
 
-- **Centre a single visible summary panel:** when either Next Salah or Next/Previous Jamaat is hidden, centre the remaining panel within Compact, Standard, Detailed and kiosk layouts. Preserve balanced side-by-side cards when both are shown.
 - **Upcoming Jamaat changes:** show when tomorrow's approved congregation time differs from today's, including the earlier/later difference without implying a missing value.
 - **Timetable health overview:** show approved date coverage, missing required prayer fields and pending source updates in the dashboard, with links to relevant setup or review controls.
 - **Jumu’ah detail:** present every published congregation clearly and, when independently published, support separate Bayaan, Adhaan and Khutbah timestamps. Allow reminder selection for a specific congregation without treating a Khutbah as a Jamaat.
@@ -39,7 +38,7 @@ Documentation follow-ups belong in the [documentation simplification plan](docum
 
 ## Suggested delivery order
 
-1. Centre the remaining prayer summary panel and improve upcoming-change and timetable-health presentation.
+1. Improve upcoming-change and timetable-health presentation.
 2. Add the arrangement editor, presets and responsive ordering controls.
 3. Improve Jumu’ah detail and reminder targeting.
 4. Deliver holiday profiles, scheduled activation and travel reminder preferences.

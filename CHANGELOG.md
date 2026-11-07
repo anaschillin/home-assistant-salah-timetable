@@ -5,7 +5,17 @@ not the current backlog. For available features see the [README](README.md#featu
 for pending work see the [roadmap](docs/roadmap.md). Published releases and their
 exact source tags are listed on [GitHub Releases](https://github.com/anaschillin/home-assistant-salah-timetable/releases).
 
-## Unreleased
+## 3.1.0 — 7 November 2026
+
+### Card Layout Improvements
+
+- Centre and enlarge the remaining Next Salah or contextual Previous/Next Jamaat countdown when the other summary is hidden in Compact, Standard, Detailed and Kiosk views.
+- Use the newly available horizontal space for larger prayer headings and countdowns, with published Beginning/Jamaat times in a separate right-hand column (mirrored for RTL). Stack the details only on very narrow devices.
+- Retain a sensible maximum panel width on wide screens, preserve the 50/50 split when both countdowns are visible, and omit the empty grid when both are disabled.
+- Align the two visible countdown panels from the top, including the live clocks and published Beginning/Jamaat rows; the optional Fajr sunrise line no longer pushes Previous Jamaat content down.
+- Retain published prayer times, live countdown updates, mosque/date settings, fullscreen behaviour and existing responsive layouts.
+- Add Node, CSS and native Chromium regression checks for all countdown visibility combinations, including single-panel alignment on mobile and desktop.
+- Maintainer-confirmed acceptance on the Home Assistant device after testing the single-panel and paired-panel layouts; PR #138's full Validate, CodeQL and approved visual comparison passed before squash merge.
 
 ## 3.0.1 — 6 November 2026
 

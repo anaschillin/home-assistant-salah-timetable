@@ -1,6 +1,6 @@
 # Dashboard card
 
-Current integration version: <!-- docs:version -->3.0.1<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->3.1.0<!-- /docs:version -->.
 
 The **Salah Timetable** card is bundled with the integration. It uses the mosque's
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
@@ -149,11 +149,11 @@ as unavailable rather than inferred. Ramadan details are shown in all three disp
 
 ## Device screenshots
 
-The screenshots below document the repository's card/editor layout after the
-redesign, on desktop, mobile and tablet. The v3.0 kiosk layout and redesigned
-card editor are included in the v3.0.1 stable release; these remain examples
-from one configured mosque, not authoritative prayer schedules. Click a screenshot for its full
-resolution. The bundled mosque photograph is decorative.
+The screenshots below illustrate the released card/editor layouts on desktop,
+mobile and tablet. The gallery shows representative configurations, not every
+v3.1.0 countdown visibility or paired-alignment option. The screenshots come
+from one configured mosque and are not authoritative prayer schedules.
+Click a screenshot for its full resolution; the bundled photograph is decorative.
 
 ### Kiosk / wall display (v3.0)
 
@@ -161,8 +161,9 @@ resolution. The bundled mosque photograph is decorative.
 
 *Actual Home Assistant kiosk capture supplied by the maintainer on 6 November 2026.
 The times belong to the configured mosque; the background photograph is decorative
-and its original licence remains separate. The screenshot shows the released v3.0 kiosk design, not every possible
-device size or card setting.*
+and its original licence remains separate. This shows the released v3 kiosk design
+with both countdowns enabled; v3.1.0 also supports the single-countdown layout
+and aligned paired countdown rows. Device size and optional settings can vary.*
 
 See [Wall and tablet display](#wall-and-tablet-display) for setup, day navigation
 and fullscreen behaviour. Compact, Standard and Detailed screenshots below
@@ -413,8 +414,21 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_mosque_background` | `true`; legacy YAML visibility flag. The editor sets it via the unified background dropdown; `false` disables the photograph without clearing its saved selection |
 | `mosque_background` | `daily` (default); `none`, or a bundled mosque ID for a fixed photo. In the editor, Off sets `show_mosque_background: false` |
 
-Hiding either main countdown half removes it; the remaining half fills
-the available summary width. Hiding both leaves the mosque header and
+**Available from v3.1.0:** hiding either main countdown half removes it. In
+Compact, Standard, Detailed and kiosk layouts, the remaining countdown is centred within
+the summary and uses larger prayer-name and live-timer lettering. The published
+**Beginning** and **Jamaat** values move into a separate column at the right
+(or to the left for RTL languages). The single panel expands to use more
+of the available glass surface without stretching indefinitely on wide displays.
+On unusually narrow cards, and phone-sized kiosk views, the published times
+stack underneath the enlarged countdown to prevent clipping. Showing both
+keeps the original paired layout, including kiosk's equal-width halves. The
+Next Salah and contextual Jamaat headings, live clocks and published
+Beginning/Jamaat rows are aligned from the top; an optional Fajr sunrise
+note is shown beneath the relevant panel without shifting its neighbour.
+Narrow side-by-side cards reserve matching heading and countdown row heights
+when the Jamaat label or elapsed text wraps; once mobile panels stack, that
+extra space is removed. Hiding both leaves the mosque header and
 the timetable **when Standard or Detailed is selected**; Compact still
 omits today's full timetable (but retains the date footer). Connection warnings and narrow-card
 scrolling guidance remain available when the timezone note is hidden. Taraweeh

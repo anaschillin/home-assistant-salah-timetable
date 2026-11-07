@@ -853,6 +853,81 @@ ha-card.has-mosque-background::after {
   gap: 0;
   border-top: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
 }
+/* A lone countdown uses the whole glass summary, rather than the left half of
+   the old paired grid. The name and larger live timer lead; published beginning
+   and Jamaat sit in a distinct inline-end column. Logical properties preserve RTL.
+   Explicit .single-panel works on older Chromecast Chromium versions. */
+.summary-shell .panels.single-panel {
+  grid-template-columns: minmax(0,1fr);
+  justify-items: center;
+}
+.summary-shell .panels.single-panel > .prayer-panel {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-rows: repeat(4, auto);
+  align-content: center;
+  align-items: center;
+  gap: clamp(4px, .8cqi, 10px) clamp(10px, 2.8cqi, 40px);
+  width: 100%;
+  max-width: 56rem;
+  padding: clamp(16px, 2.4cqi, 28px) clamp(8px, 1.8cqi, 22px);
+  text-align: start;
+}
+.summary-shell .panels.single-panel > .prayer-panel > .label {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: end;
+  font-size: clamp(.72rem, 1.6cqi, .95rem);
+}
+.summary-shell .panels.single-panel > .prayer-panel > .event {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  font-size: clamp(1.2rem, 3.7cqi, 2.15rem);
+  font-weight: 700;
+}
+.summary-shell .panels.single-panel > .prayer-panel > .count {
+  grid-column: 1;
+  grid-row: 3;
+  min-width: 0;
+  font-size: clamp(1.55rem, 5.4cqi, 3.15rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+.summary-shell .panels.single-panel > .prayer-panel > .prayer-times {
+  grid-column: 2;
+  grid-row: 1 / 5;
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  align-content: center;
+  align-self: stretch;
+  gap: clamp(12px, 2.4cqi, 24px);
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  padding-inline-start: clamp(12px, 2.8cqi, 28px);
+  border: 0;
+  border-inline-start: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
+  text-align: start;
+}
+.summary-shell .panels.single-panel > .prayer-panel .prayer-time .label {
+  font-size: clamp(.67rem, 1.3cqi, .86rem);
+}
+.summary-shell .panels.single-panel > .prayer-panel .prayer-time .absolute {
+  font-size: clamp(1.05rem, 2.7cqi, 1.65rem);
+}
+.summary-shell .panels.single-panel > .prayer-panel > .fajr-sunrise {
+  grid-column: 1;
+  grid-row: 4;
+  align-self: start;
+}
+.summary-shell .panels.single-panel > .prayer-panel > .panel-silhouette {
+  inset-inline-start: 23%;
+  inset-inline-end: auto;
+  opacity: .06;
+}
 /* Both countdown halves get exactly the same transparent glass formatting. */
 .summary-shell .panel.prayer-panel,
 .summary-shell .panel.prayer-panel[data-panel="salah"] {
@@ -865,6 +940,34 @@ ha-card.has-mosque-background::after {
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+/* With two visible countdowns, distribute content from the top, not across
+   available height. Previous Jamaat previously inherited space-between, so
+   the extra sunrise line under Next Salah moved every Jamaat row down. Only
+   target paired panels: the enlarged single-panel grid remains untouched. */
+.summary-shell .panels:not(.single-panel) > .prayer-panel {
+  justify-content: flex-start;
+}
+/* A narrow two-column card may wrap "Previous Jamaat" while "Next Salah"
+   remains on one line. Give both labels the same two-line space so the
+   following prayer name, clock and published times keep their baselines. */
+@container(max-width:28rem) {
+  .summary-shell .panels:not(.single-panel) > .prayer-panel > .label {
+    min-height: 2.5em;
+  }
+  /* The smaller elapsed suffix can wrap onto a second countdown line. Match
+     the height on both sides so the Beginning/Jamaat divider stays level. */
+  .summary-shell .panels:not(.single-panel) > .prayer-panel > .count {
+    min-height: 2.36em;
+  }
+}
+/* Once the paired panels stack, their rows no longer need synchronized
+   heights. Remove the reserved lines so phones keep the compact spacing. */
+@container(max-width:21rem) {
+  .summary-shell .panels:not(.single-panel) > .prayer-panel > .label,
+  .summary-shell .panels:not(.single-panel) > .prayer-panel > .count {
+    min-height: 0;
+  }
 }
 .summary-shell .prayer-panel + .prayer-panel {
   border-inline-start: 1px solid color-mix(in srgb,var(--primary-text-color) 14%,transparent);
@@ -1379,6 +1482,22 @@ ha-card.kiosk:fullscreen .content.kiosk {
   padding: 0;
   border-top: none;
 }
+/* The single countdown expands inside the kiosk hero, retaining the same
+   left/main and right/published-time composition as the regular card. */
+.content.kiosk .summary-shell .panels.single-panel {
+  grid-template-columns: minmax(0,1fr);
+  justify-items: center;
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  grid-template-rows: repeat(4, auto);
+  width: 100%;
+  max-width: 72rem;
+  padding: clamp(14px, 2cqi, 28px) clamp(8px, 1.8cqi, 22px);
+  gap: clamp(8px, 1.4cqi, 20px) clamp(14px, 3cqi, 48px);
+  text-align: start;
+}
 .content.kiosk .summary-shell .panel.prayer-panel,
 .content.kiosk .summary-shell .panel.prayer-panel[data-panel="salah"] {
   display: flex;
@@ -1389,6 +1508,16 @@ ha-card.kiosk:fullscreen .content.kiosk {
   padding: 0 clamp(12px, 2.2cqi, 34px);
   min-width: 0;
   min-height: 0;
+}
+/* The pair's Salah-specific flex selector above has higher specificity than
+   the general single-panel rule. Restore grid for either remaining panel. */
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel[data-panel] {
+  display: grid;
+}
+/* The kiosk's standard flex styling also spaces its two halves vertically.
+   Align the shared rows from the top when both countdowns are enabled. */
+.content.kiosk .summary-shell .panels:not(.single-panel) > .prayer-panel[data-panel] {
+  justify-content: flex-start;
 }
 .content.kiosk .summary-shell .prayer-panel:first-child { padding-inline-start: 0; }
 .content.kiosk .summary-shell .prayer-panel:last-child { padding-inline-end: 0; }
@@ -1452,6 +1581,12 @@ ha-card.kiosk:fullscreen .content.kiosk {
   padding-top: clamp(12px, 1.3cqi, 20px);
   gap: clamp(12px, 2cqi, 32px);
 }
+/* Do not bottom-anchor a paired timetable row while the other panel has a
+   published sunrise note below it. That note must not offset the clock/time
+   baselines of the adjacent panel. */
+.content.kiosk .summary-shell .panels:not(.single-panel) > .prayer-panel .prayer-times {
+  margin-top: 0;
+}
 .content.kiosk .summary-shell .prayer-time .absolute {
   font-size: clamp(1.15rem, 2.1cqi, 1.85rem);
 }
@@ -1459,6 +1594,30 @@ ha-card.kiosk:fullscreen .content.kiosk {
   font-size: clamp(1rem, 1.13cqi, 1.125rem);
 }
 .content.kiosk .summary-shell .panel-silhouette { opacity: .07; }
+/* These rules must beat the later, general kiosk flex and clock-size styles. */
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .count {
+  font-size: clamp(2.4rem, min(6.5cqi, 9dvh), 7rem);
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .event {
+  font-size: clamp(1.55rem, 3.7cqi, 4rem);
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times {
+  margin: 0;
+  padding: 0;
+  padding-inline-start: clamp(14px, 3cqi, 48px);
+  gap: clamp(14px, 2.5cqi, 36px);
+  border-top: 0;
+  border-inline-start: 1px solid var(--divider-color);
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .label {
+  justify-content: flex-start;
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel .prayer-time .absolute {
+  font-size: clamp(1.15rem, 2.3cqi, 2.2rem);
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .panel-silhouette {
+  opacity: .06;
+}
 
 /* Five daily tiles replace the scrolling timetable only in kiosk mode. */
 .content.kiosk .kiosk-strip {
@@ -1673,6 +1832,32 @@ ha-card.kiosk:fullscreen .content.kiosk {
   .content.kiosk .kiosk-footer .kiosk-toolbar { grid-column: 2; }
 }
 @container(max-width:40rem) {
+  /* On phone-size kiosk screens give the enlarged timer the full width,
+     with its published times still paired neatly underneath. */
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel {
+    grid-template-columns: minmax(0,1fr);
+    grid-template-rows: auto;
+    justify-items: center;
+    text-align: center;
+  }
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .label,
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .event,
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .count,
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times,
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .fajr-sunrise {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    padding: clamp(12px,2cqi,18px) 0 0;
+    border-inline-start: 0;
+    border-top: 1px solid var(--divider-color);
+    text-align: center;
+  }
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel[data-panel="salah"] > .label {
+    justify-content: center;
+  }
   .content.kiosk .header { grid-template-columns: 1fr; text-align: center; }
   .content.kiosk .header .kiosk-identity {
     text-align: center;
@@ -1699,6 +1884,32 @@ ha-card.kiosk:fullscreen .content.kiosk {
   .content.kiosk .kiosk-day-tabs { grid-column: 1; justify-self: center; }
   .content.kiosk .kiosk-footer .kiosk-toolbar {
     grid-column: 1; justify-self: center; justify-content: center;
+  }
+}
+/* At very narrow card widths, preserve an enlarged timer without clipping the
+   published values. Wider phones still use the side-by-side composition. */
+@container(max-width:20rem) {
+  .summary-shell .panels.single-panel > .prayer-panel,
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel {
+    grid-template-columns: minmax(0,1fr);
+    grid-template-rows: auto;
+    text-align: center;
+  }
+  .summary-shell .panels.single-panel > .prayer-panel > .label,
+  .summary-shell .panels.single-panel > .prayer-panel > .event,
+  .summary-shell .panels.single-panel > .prayer-panel > .count,
+  .summary-shell .panels.single-panel > .prayer-panel > .prayer-times,
+  .summary-shell .panels.single-panel > .prayer-panel > .fajr-sunrise {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .summary-shell .panels.single-panel > .prayer-panel > .prayer-times,
+  .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    padding: 12px 0 0;
+    border-inline-start: 0;
+    border-top: 1px solid var(--divider-color);
+    text-align: center;
   }
 }
 @container(max-width:24rem) {

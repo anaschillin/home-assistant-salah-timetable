@@ -188,7 +188,7 @@ test("mosque header and both live countdowns share one summary card", () => {
   for (const [salah, jamaat] of [[true, false], [false, true], [false, false]]) {
     card.setConfig({...config, show_salah_countdown: salah, show_jamaat_countdown: jamaat});
     assert.equal(find(card.shadowRoot, "div").filter(element => element.className === "summary-shell").length, 1);
-    const groups = contents().filter(element => element.className === "panels");
+    const groups = contents().filter(element => element.className?.split(" ").includes("panels"));
     assert.equal(groups.length, salah || jamaat ? 1 : 0);
     if (groups.length) assert.equal(groups[0].children.length, Number(salah) + Number(jamaat));
   }
@@ -554,6 +554,34 @@ test("all main countdown visibility combinations keep the timetable and both dat
   }
 });
 
+
+test("the sole visible countdown is centred across normal and kiosk modes", () => {
+  for (const [detail_level, kiosk_mode] of [
+    ["compact", false], ["standard", false], ["detailed", false],
+    ["compact", true], ["standard", true], ["detailed", true],
+  ]) {
+    for (const [salah, jamaat] of [[true, true], [true, false], [false, true], [false, false]]) {
+      const card = new SalahTimetableCard();
+      card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level, kiosk_mode,
+        show_salah_countdown: salah, show_jamaat_countdown: jamaat});
+      card.hass = hass();
+      card._render(Date.parse("2026-10-21T04:40:00Z"));
+      const summary = classNodes(card.shadowRoot, "summary-shell")[0];
+      const visible = find(summary, "section").filter(panel => panel.className === "panel prayer-panel");
+      const panels = find(summary, "div").filter(element => element.className?.split(" ").includes("panels"));
+      const count = Number(salah) + Number(jamaat);
+      assert.equal(visible.length, count, `${detail_level}/kiosk=${kiosk_mode}: panel count`);
+      assert.equal(panels.length, count ? 1 : 0, "No empty grid when both cards are hidden");
+      if (count) {
+        assert.equal(panels[0].className, count === 1 ? "panels single-panel" : "panels");
+      }
+      if (count === 1) {
+        assert.equal(visible[0].attributes["data-panel"], salah ? "salah" : "jamaat");
+        assert.ok(visible[0].textContent.includes(salah ? "Next Salah" : "Previous Jamaat"));
+      }
+    }
+  }
+});
 
 test("ordinary ticks update clocks and progress without rebuilding the table", () => {
   const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = hass();
