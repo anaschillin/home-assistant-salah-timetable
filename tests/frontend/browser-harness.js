@@ -410,10 +410,15 @@ try {
   const timeRows = computedTimeGrid?.gridTemplateRows.split(" ").length;
   const timeFont = kioskTimeCells[0] && parseFloat(getComputedStyle(kioskTimeCells[0].querySelector(".absolute")).fontSize);
   const centreOf = rect => (rect.left + rect.right) / 2;
+  // The grid's inline-start padding protects its divider. Compare each clock
+  // against the centre of its usable cell, not the padded outer grid box.
   const rightTimesCentred = kioskTimesRect && cellRects.length === 2 &&
-    (mobileKiosk
-      ? Math.abs((centreOf(cellRects[0]) + centreOf(cellRects[1])) / 2 - centreOf(kioskTimesRect)) <= 3
-      : cellRects.every(rect => Math.abs(centreOf(rect) - centreOf(kioskTimesRect)) <= 3));
+    kioskTimeCells.every((cell, index) => {
+      const valueRect = cell.querySelector(".absolute")?.getBoundingClientRect();
+      const rect = cellRects[index];
+      return valueRect && Math.abs(centreOf(valueRect) - centreOf(rect)) <= 3 &&
+        rect.left >= kioskTimesRect.left - 1 && rect.right <= kioskTimesRect.right + 1;
+    });
   const timePosition = mobileKiosk
     ? cellRects.length === 2 && Math.abs(cellRects[0].top - cellRects[1].top) <= 2
     : cellRects.length === 2 && cellRects[1].top > cellRects[0].bottom + 3;
