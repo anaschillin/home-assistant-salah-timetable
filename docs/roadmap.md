@@ -2,12 +2,9 @@
 
 This page records **upcoming features only**, not delivered changes or old pull request history. The order below is indicative, not a commitment.
 
-For features available in the current implementation, see the [README](../README.md#features)
-and [setup guide](getting-started.md). In particular, prayer-completeness diagnostics,
-monthly browsing/CSV export, cross-year manual CSV imports, completeness alerts,
-publisher URL templates and automatic stable-release publishing already exist.
-The follow-ups below describe their remaining limits;
-their presence here does not mean those features still need to be built.
+Already delivered capabilities, including v3.1.0 countdown layout improvements,
+are documented in the [README](../README.md#features), [dashboard guide](dashboard.md)
+and [changelog](../CHANGELOG.md); they are not repeated here.
 
 ## Planned improvements
 
@@ -51,7 +48,7 @@ their presence here does not mean those features still need to be built.
 
 ## Suggested delivery order
 
-These are proposed priorities, not release commitments:
+The sequence is indicative and does not set release dates:
 
 1. Upcoming-change summaries and timetable health information.
 2. Layout presets, section ordering and full-width/half-width placement, followed by richer visual previews.
