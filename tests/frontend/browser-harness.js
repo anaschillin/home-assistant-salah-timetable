@@ -395,6 +395,34 @@ try {
       check(singleLayoutPasses ? label : `${label}: ${JSON.stringify(metrics)}`, singleLayoutPasses);
     }
   }
+  // Physical geometry of the approved Beginning/Jamaat values in a solo
+  // kiosk hero. Both right-column cells expand on wall/tablet screens; mobile
+  // kiosk widths instead place both values side-by-side below the countdown.
+  render({detail_level: "standard", kiosk_mode: true,
+    show_salah_countdown: true, show_jamaat_countdown: false});
+  const kioskTimes = card.shadowRoot.querySelector(".content.kiosk .panels.single-panel .prayer-times");
+  const kioskTimeCells = [...(kioskTimes?.querySelectorAll(".prayer-time") || [])];
+  const kioskTimesRect = kioskTimes?.getBoundingClientRect();
+  const cellRects = kioskTimeCells.map(cell => cell.getBoundingClientRect());
+  const computedTimeGrid = kioskTimes && getComputedStyle(kioskTimes);
+  const mobileKiosk = width <= 640;
+  const timeColumns = computedTimeGrid?.gridTemplateColumns.split(" ").length;
+  const timeRows = computedTimeGrid?.gridTemplateRows.split(" ").length;
+  const timeFont = kioskTimeCells[0] && parseFloat(getComputedStyle(kioskTimeCells[0].querySelector(".absolute")).fontSize);
+  const centreOf = rect => (rect.left + rect.right) / 2;
+  const rightTimesCentred = kioskTimesRect && cellRects.length === 2 &&
+    (mobileKiosk
+      ? Math.abs((centreOf(cellRects[0]) + centreOf(cellRects[1])) / 2 - centreOf(kioskTimesRect)) <= 3
+      : cellRects.every(rect => Math.abs(centreOf(rect) - centreOf(kioskTimesRect)) <= 3));
+  const timePosition = mobileKiosk
+    ? cellRects.length === 2 && Math.abs(cellRects[0].top - cellRects[1].top) <= 2
+    : cellRects.length === 2 && cellRects[1].top > cellRects[0].bottom + 3;
+  const publishedFits = kioskTimeCells.length === 2 &&
+    kioskTimeCells.every(cell => cell.scrollWidth <= cell.clientWidth + 1);
+  check("solo kiosk published Beginning/Jamaat values use available right-hand space",
+    kioskTimeCells.length === 2 && timeColumns === (mobileKiosk ? 2 : 1) &&
+    timeRows === (mobileKiosk ? 1 : 2) && rightTimesCentred && timePosition &&
+    timeFont >= (mobileKiosk ? 24 : 28) && publishedFits);
   render();
   check("card language and direction match configuration", card.getAttribute("lang") === language && card.getAttribute("dir") === ui.dir);
   check("summary icon silhouettes are hidden from accessibility", card.shadowRoot.querySelectorAll(".panel-silhouette[aria-hidden=\"true\"] svg").length === 2);
