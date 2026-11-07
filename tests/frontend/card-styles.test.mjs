@@ -142,6 +142,13 @@ test("paired countdowns align rows instead of distributing Jamaat height", () =>
   assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*display:\s*grid/);
 });
 
+test("solo kiosk displays make Beginning and Jamaat responsive in the right column", () => {
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel > \.prayer-times\s*\{[^}]*grid-template-rows:\s*repeat\(2, minmax\(0, 1fr\)\);[^}]*align-content:\s*stretch;[^}]*text-align:\s*center/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel > \.prayer-times > \.prayer-time\s*\{[^}]*justify-content:\s*center;[^}]*align-items:\s*center/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel \.prayer-time \.absolute\s*\{[^}]*font-size:\s*clamp\(1\.55rem, 3\.9cqi, 3\.2rem\)/);
+  assert.match(CARD_CSS, /@container\(max-width:40rem\)\s*\{[\s\S]*?\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel > \.prayer-times\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\);[^}]*grid-template-rows:\s*auto/);
+});
+
 test("single countdowns use larger leading text and a separate published-time column", () => {
   assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\);[^}]*justify-items:\s*center/);
   assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(0, 1\.35fr\) minmax\(0, 1fr\);[^}]*max-width:\s*56rem/);
