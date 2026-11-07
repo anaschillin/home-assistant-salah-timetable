@@ -3,6 +3,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {CARD_CSS, EDITOR_CSS} from "../../custom_components/salah_timetable/frontend/card-styles.js";
 
+test("single kiosk published times expand into their right-hand column", () => {
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel > \.prayer-times\s*\{[^}]*grid-template-rows:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel > \.prayer-times\s*\{[^}]*justify-items:\s*center/);
+  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel \.prayer-time \.absolute\s*\{\s*font-size:\s*clamp\(1\.6rem,\s*3\.3cqi,\s*3\.4rem\)/);
+  assert.match(CARD_CSS, /@container\(max-width:40rem\)\s*\{[\s\S]*?\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel > \.prayer-times\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\);[^}]*grid-template-rows:\s*auto/);
+});
+
 test("theme, accessibility and responsive styles remain bundled", () => {
   for (const token of [
     ":host", "ha-card", "--primary-color", "--secondary-background-color",

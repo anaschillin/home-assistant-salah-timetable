@@ -420,8 +420,11 @@ the summary and uses larger prayer-name and live-timer lettering. The published
 **Beginning** and **Jamaat** values move into a separate column at the right
 (or to the left for RTL languages). The single panel expands to use more
 of the available glass surface without stretching indefinitely on wide displays.
-On unusually narrow cards, and phone-sized kiosk views, the published times
-stack underneath the enlarged countdown to prevent clipping. Showing both
+On landscape kiosk displays, the right-hand Beginning/Jamaat column divides
+its height evenly between the two published times, centres each block, and
+scales their typography to the available space. On unusually narrow cards,
+and phone-sized kiosk views, the published times stack underneath the enlarged
+countdown to prevent clipping. Showing both
 keeps the original paired layout, including kiosk's equal-width halves. The
 Next Salah and contextual Jamaat headings, live clocks and published
 Beginning/Jamaat rows are aligned from the top; an optional Fajr sunrise

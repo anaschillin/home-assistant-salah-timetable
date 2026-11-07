@@ -1601,19 +1601,36 @@ ha-card.kiosk:fullscreen .content.kiosk {
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .event {
   font-size: clamp(1.55rem, 3.7cqi, 4rem);
 }
+/* Fill the kiosk's right-hand half rather than leaving both published
+   times clustered at its leading edge. Keep the stacked Beginning/Jamaat
+   hierarchy while giving each block half the available height. */
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  justify-items: center;
+  align-items: center;
+  align-content: stretch;
   margin: 0;
-  padding: 0;
+  padding: clamp(6px, .8cqi, 14px) clamp(8px, 1.4cqi, 22px);
   padding-inline-start: clamp(14px, 3cqi, 48px);
-  gap: clamp(14px, 2.5cqi, 36px);
+  gap: clamp(8px, 1.2cqi, 20px);
   border-top: 0;
   border-inline-start: 1px solid var(--divider-color);
+  text-align: center;
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times > .prayer-time {
+  width: 100%;
+  min-width: 0;
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel .prayer-time .label {
+  font-size: clamp(1rem, 1.55cqi, 1.5rem);
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel .prayer-time .absolute {
+  font-size: clamp(1.6rem, 3.3cqi, 3.4rem);
+  font-variant-numeric: tabular-nums;
 }
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .label {
   justify-content: flex-start;
-}
-.content.kiosk .summary-shell .panels.single-panel > .prayer-panel .prayer-time .absolute {
-  font-size: clamp(1.15rem, 2.3cqi, 2.2rem);
 }
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .panel-silhouette {
   opacity: .06;
@@ -1850,6 +1867,7 @@ ha-card.kiosk:fullscreen .content.kiosk {
   }
   .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times {
     grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-rows: auto;
     padding: clamp(12px,2cqi,18px) 0 0;
     border-inline-start: 0;
     border-top: 1px solid var(--divider-color);
