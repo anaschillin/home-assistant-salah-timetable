@@ -1,6 +1,6 @@
 # Roadmap
 
-This page records **future work only**, not completed milestones or old pull request history. Priorities are proposals, not committed dates.
+This page records **upcoming features only**, not delivered changes or old pull request history. The order below is indicative, not a commitment.
 
 For features available in the current implementation, see the [README](../README.md#features)
 and [setup guide](getting-started.md). In particular, prayer-completeness diagnostics,
@@ -11,18 +11,12 @@ their presence here does not mean those features still need to be built.
 
 ## Planned improvements
 
-- **Documentation maintenance:** the first guide simplification pass is implemented. Use the [documentation audit and remaining action plan](documentation-simplification-plan.md) for specific follow-ups, canonical ownership and checks; do not restart the completed import/readiness documentation work.
-- **Upstream dependency advisories:** review current [dependency alerts](https://github.com/anaschillin/home-assistant-salah-timetable/security/dependabot) against the locked candidate environment and adopt supported upstream fixes under the [advisory policy](../SECURITY.md#dependency-advisories). The roadmap is not a live advisory inventory; do not override Home Assistant's exact requirements to clear an alert.
-- **Home Assistant Integration Quality Scale:** address the [remaining Platinum gaps in the 54-rule audit](releasing.md#home-assistant-integration-quality-scale-internal-gap-audit): strict typing and HA-managed HTTP sessions with the current public-only DNS/redirect protections preserved. Review rule-specific evidence, the custom branding route and each exemption before claiming a tier.
 - **Verified timetable coverage:** support additional annual, monthly and Ramadan publications only with reviewed examples and independent expected results; preserve strict date, format and HTTPS validation.
 - **Monthly/export follow-up:** consider a native download fallback for Android WebViews that restrict browser Blob downloads. [Monthly browsing and approved-year CSV export](getting-started.md#browse-yesterday-and-the-monthly-timetable) are implemented; keep any fallback within authenticated Home Assistant APIs.
 - **Import usability:** evaluate further improvements from concrete user feedback. Readiness shortcuts, missing-field names, saved manual-CSV mapping suggestions, removed-date warnings and comparison filters already exist; build on these with clearer summaries of exactly which dates and prayer fields changed, and preserve explicit approval.
-- **Release acceptance:** record candidate-specific manual HACS/Home Assistant results using the [acceptance checklist](releasing.md#manual-hacs-and-home-assistant-acceptance). [Stable publication after passing CI](releasing.md#automatic-stable-releases) is automated; full HAOS/Supervisor restoration remains an optional separate resilience exercise.
-- **Release reconciliation:** handle later `main` commits retaining an already published version as an explicit no-publication outcome while preserving immutable tag identity and collision checks. The current script fails safely on that older tag; see [current behaviour](releasing.md#automatic-stable-releases).
 
 ## Dashboard and configurable card layouts
 
-- **Today at a glance:** improve the visual hierarchy of the next Salah beginning, next Jamaat and their countdowns while keeping beginning and congregation times distinct.
 - **Upcoming changes:** highlight tomorrow's approved Jamaat changes, including how much earlier or later they occur.
 - **Timetable health:** show approved coverage remaining, missing required fields and pending updates, with links to the relevant setup or review controls. Build on the existing diagnostics.
 - **Jumu’ah view:** clearly display every published congregation and allow users to select the congregation targeted by their reminders.
