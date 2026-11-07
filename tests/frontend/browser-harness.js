@@ -419,10 +419,18 @@ try {
     : cellRects.length === 2 && cellRects[1].top > cellRects[0].bottom + 3;
   const publishedFits = kioskTimeCells.length === 2 &&
     kioskTimeCells.every(cell => cell.scrollWidth <= cell.clientWidth + 1);
-  check("solo kiosk published Beginning/Jamaat values use available right-hand space",
-    kioskTimeCells.length === 2 && timeColumns === (mobileKiosk ? 2 : 1) &&
+  const kioskTimeChecks = {count: kioskTimeCells.length, width, timeColumns, timeRows,
+    mobileKiosk, rightTimesCentred, timePosition, timeFont, publishedFits,
+    gridWidth: kioskTimesRect?.width, cellRects: cellRects.map(r => ({
+      left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height
+    }))};
+  const kioskTimePass = kioskTimeCells.length === 2 && timeColumns === (mobileKiosk ? 2 : 1) &&
     timeRows === (mobileKiosk ? 1 : 2) && rightTimesCentred && timePosition &&
-    timeFont >= (mobileKiosk ? 24 : 28) && publishedFits);
+    timeFont >= (mobileKiosk ? 24 : 28) && publishedFits;
+  check(kioskTimePass
+    ? "solo kiosk published Beginning/Jamaat values use available right-hand space"
+    : `solo kiosk published Beginning/Jamaat values use available right-hand space: ${JSON.stringify(kioskTimeChecks)}`,
+    kioskTimePass);
   render();
   check("card language and direction match configuration", card.getAttribute("lang") === language && card.getAttribute("dir") === ui.dir);
   check("summary icon silhouettes are hidden from accessibility", card.shadowRoot.querySelectorAll(".panel-silhouette[aria-hidden=\"true\"] svg").length === 2);
