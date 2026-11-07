@@ -1632,9 +1632,6 @@ ha-card.kiosk:fullscreen .content.kiosk {
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .label {
   justify-content: flex-start;
 }
-.content.kiosk .summary-shell .panels.single-panel > .prayer-panel .prayer-time .absolute {
-  font-size: clamp(1.15rem, 2.3cqi, 2.2rem);
-}
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .panel-silhouette {
   opacity: .06;
 }
