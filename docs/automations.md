@@ -88,8 +88,10 @@ current prayer's valid time.
 
 ## Entities per mosque
 
-Each configured mosque has one logical Home Assistant device with **27 sensors
-and one read-only calendar**. Select entities by mosque and displayed name; Home
+Each configured mosque has one logical Home Assistant device with **30 registered sensors
+and one read-only calendar**. The three optional Jumu’ah announcement sensors and
+Previous Jamaat are disabled by default, leaving 26 enabled sensors. Enable any
+optional announcement sensor from Home Assistant's entity settings when needed. Select entities by mosque and displayed name; Home
 Assistant permits entity IDs to be renamed. Timestamp values are absolute
 date/times interpreted in the mosque's configured timezone. Daily sensors retain
 today's published instant after it passes; rolling Next sensors advance to a later
@@ -101,6 +103,7 @@ event.
 | Sunrise / `sunrise`, Sehri ends / `sehri_ends` | Today's published sunrise and Sehri cutoff, independently available when present. |
 | Dhuhr beginning / `dhuhr_begin`, Dhuhr Jamaat / `dhuhr_jamaat` | Today's published Dhuhr beginning and congregation; Friday Jumu’ah is separate. |
 | Jumu’ah / `jumuah` | Today's first published Jumu’ah congregation. The `scheduled_times` attribute includes every published congregation in order. |
+| Jumu’ah Bayaan / `jumuah_bayaan`, Adhaan / `jumuah_adhaan`, Khutbah / `jumuah_khutbah` | Optional, independently published Friday announcements. These timestamp sensors are disabled by default and do not affect prayer/Jamaat countdowns or reminders. |
 | Asr beginning / `asr_begin`, Asr Jamaat / `asr_jamaat` | Today's published Asr beginning and congregation. |
 | Maghrib beginning / `maghrib_begin`, Maghrib Jamaat / `maghrib_jamaat` | Today's published Maghrib beginning and congregation, without equating the two. |
 | Isha beginning / `isha_begin`, Isha Jamaat / `isha_jamaat` | Today's published Isha beginning and congregation. |

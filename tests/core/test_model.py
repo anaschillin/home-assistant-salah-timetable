@@ -99,3 +99,31 @@ def test_date_subclasses_preserve_calendar_date_round_trip():
 def test_datetime_is_not_a_canonical_calendar_date(day):
     with pytest.raises(ValueError, match="calendar date"):
         DailyPrayers(day, {}, {})
+
+
+@pytest.mark.parametrize(
+    ("label", "field"),
+    [
+        ("Jummah Bayaan", PrayerField.JUMUAH_BAYAAN),
+        ("Jumu'ah Adhaan", PrayerField.JUMUAH_ADHAAN),
+        ("Jumuah Adhan", PrayerField.JUMUAH_ADHAAN),
+        ("Jummah Khutbah", PrayerField.JUMUAH_KHUTBAH),
+    ],
+)
+def test_explicit_jumuah_announcements_are_separate_fields(label, field):
+    assert normalize_field(label) == field
+
+
+def test_optional_jumuah_announcements_round_trip():
+    row = DailyPrayers(
+        date(2026, 11, 6),
+        {
+            PrayerField.JUMUAH_BAYAAN: (time(12, 15),),
+            PrayerField.JUMUAH_ADHAAN: (time(12, 45),),
+            PrayerField.JUMUAH_KHUTBAH: (time(13),),
+            PrayerField.JUMUAH: (time(13, 30),),
+        },
+        {},
+    )
+    assert DailyPrayers.from_dict(row.as_dict()) == row
+    assert row.times[PrayerField.JUMUAH] == (time(13, 30),)

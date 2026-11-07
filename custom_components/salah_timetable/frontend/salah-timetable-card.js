@@ -882,6 +882,27 @@ export class SalahTimetableCard extends HTMLElement {
       if (this._config.detail_level === "detailed" && prayer.key === "fajr") beginningCell.append(translatedRun("div", ui, "table.fajr_end", "time", formatTime(prayer.end, zone, ui, timeFormat), "note fajr-end"));
       row.append(name, beginningCell, congregationCell);
       body.append(row);
+      // Keep published Friday announcements distinct from the actual
+      // Jumu'ah congregation; they are neither beginnings nor Jamaats.
+      if (prayer.key === "dhuhr" && prayer.jumuah_announcements) {
+        for (const [field, label] of [
+          ["jumuah_bayaan", "table.jumuah_bayaan"],
+          ["jumuah_adhaan", "table.jumuah_adhaan"],
+          ["jumuah_khutbah", "table.jumuah_khutbah"],
+        ]) {
+          const timestamp = prayer.jumuah_announcements[field];
+          if (!timestamp) continue;
+          const announcementRow = node("tr", undefined, "jumuah-announcement");
+          const announcementName = node("th", tr(ui, label));
+          announcementName.scope = "row";
+          announcementRow.append(
+            announcementName,
+            formattedNode("td", formatTime(timestamp, zone, ui, timeFormat)),
+            node("td", "—"),
+          );
+          body.append(announcementRow);
+        }
+      }
     }
     table.append(body);
     tableRegion = node("div", undefined, "table-scroll");

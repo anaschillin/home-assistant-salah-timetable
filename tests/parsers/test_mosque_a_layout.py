@@ -8,7 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from custom_components.salah_timetable.domain.model import PrayerField
+from custom_components.salah_timetable.domain.model import (
+    STANDARD_PRAYER_FIELDS,
+    PrayerField,
+)
 from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 from custom_components.salah_timetable.parsers.import_model import ImportValidationError
 from custom_components.salah_timetable.parsers.mosque_a_layout import (
@@ -175,9 +178,9 @@ def test_no_duplicate_canonical_columns_or_inferred_fields():
     rows = list(csv.DictReader(io.StringIO(MosqueALayout().to_csv(text_pages()))))
     assert len(rows[0]) == 32
     assert "Taraweeh" not in rows[0]
-    assert set(MOSQUE_A_COLUMNS.values()) == {field.value for field in PrayerField} - {
-        "taraweeh"
-    }
+    assert set(MOSQUE_A_COLUMNS.values()) == {
+        field.value for field in STANDARD_PRAYER_FIELDS
+    } - {"taraweeh"}
 
 
 def test_contact_page_cannot_be_a_dated_table():
