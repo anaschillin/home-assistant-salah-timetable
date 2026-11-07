@@ -367,7 +367,7 @@ The inventory below maps the shipped `custom_components/salah_timetable/` module
 
 ### Home Assistant and executable entry points (package root)
 
-These files stay at the package root because Home Assistant discovers them there, they follow its common-module conventions, they contain public integration wiring, or (for `pdf_worker.py`) a direct subprocess invocation depends on that entry path.
+These files stay at the package root because Home Assistant discovers them there, they follow its common-module conventions, they contain public integration or reminder/trigger wiring, or (for `pdf_worker.py`) a direct subprocess invocation depends on that entry path.
 
 | File | Responsibility |
 | --- | --- |
@@ -381,6 +381,8 @@ These files stay at the package root because Home Assistant discovers them there
 | `frontend.py` | Serve the versioned dashboard resource and register it in HA |
 | `sensor.py` | Read-only sensor entities and dashboard attributes |
 | `pdf_worker.py` | Standalone bounded PDF extraction subprocess; invoked by absolute file path |
+| `reminders.py` | Administrator-only reminder discovery, validation and automation preview WebSocket handlers |
+| `trigger.py` | Home Assistant prayer reminder trigger scheduling against approved published timestamps |
 
 ### Grouped Python implementation
 
@@ -427,6 +429,7 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 | `frontend/card-i18n.js` | Localized client-side labels |
 | `frontend/card-styles.js` | Dashboard CSS and layout tokens |
 | `frontend/mosque-backgrounds.js` | Background catalog and selection logic |
+| `frontend/reminder-wizard.js` | Guided prayer reminder UI that previews and saves normal Home Assistant automations |
 | `frontend/backgrounds/*.webp` | Attributed bundled mosque images; see [provenance inventory](asset-provenance.json) |
 | `brand/icon.png` | Integration icon |
 | `manifest.json` | HACS and HA integration metadata/dependencies |

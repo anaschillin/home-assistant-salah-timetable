@@ -1,70 +1,58 @@
 # Roadmap
 
-This page records **upcoming features only**, not delivered changes or old pull request history. The order below is indicative, not a commitment.
+This page contains **upcoming product features only**, not delivered capabilities, routine maintenance, release procedures or historical PR milestones. Priorities are proposals, not committed dates. For released functionality, see the [README](../README.md#features) and [changelog](../CHANGELOG.md).
 
-Already delivered capabilities, including v3.1.0 countdown layout improvements,
-are documented in the [README](../README.md#features), [dashboard guide](dashboard.md)
-and [changelog](../CHANGELOG.md); they are not repeated here.
+Documentation follow-ups belong in the [documentation simplification plan](documentation-simplification-plan.md), and release/quality procedures belong in [Releasing](releasing.md). An item in an open draft branch is still upcoming until merged and included in a release.
 
-## Planned improvements
+## Dashboard and card layouts
 
-- **Verified timetable coverage:** support additional annual, monthly and Ramadan publications only with reviewed examples and independent expected results; preserve strict date, format and HTTPS validation.
-- **Monthly/export follow-up:** consider a native download fallback for Android WebViews that restrict browser Blob downloads. [Monthly browsing and approved-year CSV export](getting-started.md#browse-yesterday-and-the-monthly-timetable) are implemented; keep any fallback within authenticated Home Assistant APIs.
-- **Import usability:** evaluate further improvements from concrete user feedback. Readiness shortcuts, missing-field names, saved manual-CSV mapping suggestions, removed-date warnings and comparison filters already exist; build on these with clearer summaries of exactly which dates and prayer fields changed, and preserve explicit approval.
+- **Upcoming Jamaat changes:** show when tomorrow's approved congregation time differs from today's, including the earlier/later difference without implying a missing value.
+- **Timetable health overview:** show approved date coverage, missing required prayer fields and pending source updates in the dashboard, with links to relevant setup or review controls.
+- **Jumu’ah detail:** present every published congregation clearly and, when independently published, support separate Bayaan, Adhaan and Khutbah timestamps. Allow reminder selection for a specific congregation without treating a Khutbah as a Jamaat.
+- **Cross-mosque comparison:** compare today's approved Jamaat times across enabled mosques.
+- **Visual layout editor:** add a dedicated arrangement view with selectable presets, ordered sections, visibility controls, full-width/half-width placement and phone/tablet/desktop previews.
+- **Layout presets:** offer countdown-focused, balanced, timetable-first, Ramadan, wall-display and holiday arrangements, building on the existing Compact/Standard/Detailed modes and kiosk layout rather than replacing them.
+- **Movable sections:** arrange mosque selector, dates, prayer summary panels, timetable, Ramadan information, calculated night information and timetable status within the card. Provide drag-and-drop **and** accessible Move up/Move down controls.
+- **Independent saved arrangements:** keep configuration per card/dashboard, including a Reset layout action, with responsive fallbacks that avoid clipping on small screens.
+- **Accessibility improvements:** further improve scalable type, high-contrast options, keyboard focus and accessible touch targets across customised layouts.
 
-## Dashboard and configurable card layouts
+## Timetable, importing and prayer events
 
-- **Upcoming changes:** highlight tomorrow's approved Jamaat changes, including how much earlier or later they occur.
-- **Timetable health:** show approved coverage remaining, missing required fields and pending updates, with links to the relevant setup or review controls. Build on the existing diagnostics.
-- **Jumu’ah view:** clearly display every published congregation and allow users to select the congregation targeted by their reminders.
-- **Mosque comparison:** compare today's published Jamaat times across selected mosques side by side.
-- **Visual layout editor:** add a Layout tab with presets, section ordering, visibility controls, full-width or half-width placement, and phone/tablet/desktop previews before saving.
-- **Layout presets:** offer Compact/Quick glance, Balanced, Timetable first/Full timetable, Ramadan, Wall display and Holiday arrangements, reusing existing detail levels where appropriate.
-- **Movable sections:** support arranging the mosque selector, Gregorian/Hijri dates, Next Salah, Next Jamaat, timetable, Ramadan details, calculated night information and timetable status. Consider a large clock for wall layouts and destination/trip dates for holiday layouts.
-- **Accessible arrangement controls:** provide drag-and-drop plus keyboard-accessible Move up/Move down controls. Adapt side-by-side sections to narrow screens without clipping or losing content.
-- **Independent saved layouts:** save arrangements per card so home, holiday and wall dashboards can differ. Preserve existing card appearances and provide Reset layout.
-- **Example arrangements:** countdown-focused cards place dates above side-by-side Salah/Jamaat panels and the timetable; timetable-focused cards put the full timetable before compact countdowns; Ramadan cards prioritise Sehri/Iftar; wall displays prioritise a large clock, dates and countdowns; holiday cards prioritise destination, trip dates and destination-local times.
-- **Accessibility polish:** improve scalable text, touch targets, keyboard navigation and high-contrast presentation.
+- **Additional verified PDF layouts:** add annual, monthly and Ramadan publishers only after obtaining representative, permitted examples and independent expected rows. Keep unsupported scans/OCR out of the supported-layout claim until separately implemented and validated.
+- **More informative import comparisons:** summarise precisely which approved dates and published prayer fields changed, without weakening explicit review or overwriting source values.
+- **Android CSV export fallback:** provide a native or authenticated download path for WebViews that block browser Blob downloads.
+- **Coverage planning:** warn before an upcoming month, journey or new publication year has insufficient approved dates or required fields, extending existing diagnostics.
+- **Published special prayer events:** add explicitly dated Eid prayer sessions, venues and other verified mosque announcements without altering the daily five-prayer countdowns.
+- **Time-bounded mosque exceptions:** support approved temporary schedule or venue overrides with clear effective dates, source provenance and automatic expiry.
 
-## Holiday profiles and additional Salah features
+## Holiday profiles and personal reminders
 
-- **Temporary holiday timetable:** provide a guided flow to choose a destination mosque, IANA timezone and trip dates, import and explicitly approve its published timetable, preview the temporary card and choose reminder preferences.
-- **Scheduled activation and return:** activate the travel profile for the selected dates and restore the home view afterward. Provide End trip now and Extend trip controls.
-- **Separate home and travel data:** retain independent approved timetables and settings, and clearly label the active destination, timezone and trip dates.
-- **Personal travel selection:** support per-person or per-dashboard activation so one traveller does not switch the household's wall display. Define selection and permissions explicitly before implementation.
-- **Travel reminders:** explicitly choose whether destination reminders replace that person's home reminders, preserving other household users' preferences.
-- **Saved destinations:** reuse a previously configured destination mosque for another trip, checking current approved coverage before activation.
-- **Trip coverage checks:** flag missing dates or required prayer fields before activation and show unavailable values rather than copying or inventing times.
-- **Leave-for-Jamaat reminders:** support a user-entered journey duration and preparation buffer before the selected published congregation.
-- **Date-limited mosque exceptions:** support explicitly approved temporary schedule or venue changes, with clear effective dates and automatic expiry.
-- **Published Eid schedules:** support explicitly published dates, multiple prayer sessions and venues. Extend the special-event proposal only with verified source data.
-- **Reminder profiles:** offer weekday, weekend, home and travel delivery preferences. Coordinate with the existing reminder blueprints and the proposed Before Salah reminder work rather than duplicating them.
-
-## Setup, coverage and recovery
-
-- **Coverage planning:** warn when an upcoming trip, month or new year lacks approved timetable data, extending the existing coverage diagnostics and alert blueprints.
-- **Automation setup wizard:** guide users through existing reminder and media blueprints, device selection and a test notification.
-- **Backup and restore guidance:** document how to preserve and recover approved timetables and mosque settings, with clearly stated verification limits.
+- **Temporary holiday timetable:** guide the user to select a destination mosque, timezone and travel dates; import, review and explicitly approve its published timetable before activation.
+- **Scheduled activation and return:** enable the selected holiday profile during its dates, then restore the home view. Include End trip now and Extend trip actions.
+- **Separate home/travel data:** preserve approved sources and settings independently, showing the selected destination, timezone and trip dates.
+- **Per-person or per-dashboard selection:** ensure one traveller's holiday setting does not unexpectedly switch shared household displays or reminders; define permissions and device scope before implementation.
+- **Travel reminder choice:** choose whether the traveller's destination reminders temporarily replace home reminders without changing other household users' preferences.
+- **Saved destinations and readiness:** reuse configured mosques for later trips, checking approved coverage and showing missing values rather than guessing prayer times.
+- **Leave-for-Jamaat reminders:** use a user-entered journey time and preparation buffer against the selected published congregation.
+- **Reminder profiles and guided setup:** offer weekday/weekend and home/travel preferences, plus a guided setup/test flow built on existing reminder/media blueprints rather than duplicate automation engines.
 
 ## Suggested delivery order
 
-The sequence is indicative and does not set release dates:
+1. Improve upcoming-change and timetable-health presentation.
+2. Add the arrangement editor, presets and responsive ordering controls.
+3. Improve Jumu’ah detail and reminder targeting.
+4. Deliver holiday profiles, scheduled activation and travel reminder preferences.
+5. Extend verified publication imports, approved special events and export compatibility.
 
-1. Upcoming-change summaries and timetable health information.
-2. Layout presets, section ordering and full-width/half-width placement, followed by richer visual previews.
-3. Holiday profiles using manually selected dates and approved destination publications.
-4. Jumu’ah congregation selection and travel-aware reminders.
-5. Other dashboard, setup, recovery and verified publication improvements as supporting work permits.
+## Deferred or exploratory features
 
-## Deferred or exploratory
+- **Automated publication discovery:** investigate sources beyond user-configured URL templates only with explicit review and no guessed publisher URLs.
+- **Cross-year PDF/URL imports:** extend the bounded manual CSV cross-year workflow to other source formats after reviewing date and replacement semantics.
+- **Scanned PDF/OCR recognition:** assess a securely isolated, reviewable OCR workflow separately from currently supported text-based PDF parsing.
+- **Arabic and integration translations:** additional setup/entity translations and Arabic wording review are on hold; the card's existing bilingual/RTL capabilities are not a substitute for integration-wide translations.
+- **Islamic history companion:** research only until date authenticity, editorial scope and rights are resolved; see the [source audit](../research/islamic-history/islamic-history-source-audit.md).
+- **Location-based holiday activation:** explore only after predictable manual holiday profiles, with consent and card/reminder isolation.
+- **Calculated travel prayer times:** consider a clearly labelled, opt-in calculation feature with explicit settings and provenance; never silently substitute estimates for approved mosque publications.
+- **Travel prayer guidance:** consider separately sourced educational content about combining or shortening prayers, without having holiday profiles automatically change religious rules.
 
-- **Publication discovery:** consider automated discovery beyond the user-configured template and confirmation flow; no publisher URLs are guessed.
-- **Cross-year imports:** consider PDF and URL support beyond the manual CSV upload; see [import limits](import_review.md#remaining-limits).
-- **Additional integration translations and Arabic wording review:** on hold. The card already supports English/Arabic labels and RTL; Home Assistant setup/entity translations currently ship in English. Preserve identifiers and data behaviour; no target release date is assigned.
-- **Special prayer events:** consider only events with verified publication dates.
-- **Location-based travel activation:** explore only after manual holiday profiles, with explicit opt-in and predictable effects on individual cards and reminders.
-- **Calculated travel times:** consider as a separate, clearly labelled feature with explicit calculation settings and provenance; never silently substitute calculations for approved mosque publications.
-- **Travel prayer guidance:** consider separately sourced educational material about combining or shortening prayers. Holiday activation must not automatically change religious rules or alter published times.
-- **Islamic history companion:** research only; resolve date authenticity, editorial scope and rights before considering a runtime dataset. See [source review](../research/islamic-history/islamic-history-source-audit.md).
-
-Completed work belongs in the implementation and Git history, not this roadmap.
+Once a feature ships, remove its proposal from this page and document its behaviour in the appropriate guide and changelog.

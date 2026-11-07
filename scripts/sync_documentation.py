@@ -11,6 +11,7 @@ import posixpath
 import re
 import shlex
 from pathlib import Path
+from urllib.parse import unquote
 
 if __package__:
     from .versions import ROOT, load_versions
@@ -45,6 +46,12 @@ for _name in (
     GUIDE_ROUTES["docs/" + _name] = "research/islamic-history/" + _name
 
 LINK = re.compile(r"(?<!!)\]\((?P<target>[^)\s]+)(?P<suffix>\s+\"[^\"]*\")?\)")
+IMAGE_LINK = re.compile(r"!\[[^\]]*\]\((?P<target>[^)\s]+)(?:\s+\"[^\"]*\")?\)")
+HTML_LINK = re.compile(
+    r"""<(?:a|img)\b[^>]*?\b(?:href|src)\s*=\s*["'](?P<target>[^"']+)["']""",
+    re.IGNORECASE,
+)
+
 MARKER = re.compile(
     r"<!-- docs:(?P<key>[a-z_]+) -->(?P<value>.*?)<!-- /docs:(?P=key) -->"
 )
@@ -131,17 +138,70 @@ def rewrite_links(source_path: Path, text: str) -> str:
     return LINK.sub(replace, text)
 
 
-def check_local_links(root: Path, source_path: Path, source: str) -> None:
-    """Reject broken relative Markdown paths after redirects are applied."""
-    current = source_path.as_posix()
-    for match in LINK.finditer(source):
-        target = match.group("target")
-        if target.startswith(("https:", "http:", "mailto:", "#", "data:", "/", "//")):
+def _markdown_anchors(markdown: str) -> set[str]:
+    """Build GitHub-style heading IDs, including suffixes for repeated headings."""
+    seen: dict[str, int] = {}
+    result = set(re.findall(r"""<a\b[^>]*\bid=["']([^"']+)["']""", markdown))
+    in_fence = False
+    fence = ""
+    for line in markdown.splitlines():
+        marker = re.match(r"^\s{0,3}(\x60{3,}|~{3,})", line)
+        if marker:
+            character = marker.group(1)[0]
+            if not in_fence:
+                in_fence, fence = True, character
+            elif fence == character:
+                in_fence = False
             continue
-        bare = target.partition("#")[0].partition("?")[0]
-        candidate = posixpath.normpath(posixpath.join(posixpath.dirname(current), bare))
-        if not (root / candidate).exists():
+        if in_fence:
+            continue
+        match = re.match(r"^\s{0,3}#{1,6}\s+(.+?)\s*$", line)
+        if match is None:
+            continue
+        heading = re.sub(r"\s+#+\s*$", "", match.group(1))
+        heading = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", heading)
+        heading = re.sub(r"<[^>]+>", "", heading).replace("&#39;", "'")
+        heading = re.sub(r"[^\w\s-]", "", heading.lower().replace(chr(96), ""))
+        slug = re.sub(r"\s", "-", heading)
+        if not slug:
+            continue
+        count = seen.get(slug, 0)
+        seen[slug] = count + 1
+        result.add(f"{slug}-{count}" if count else slug)
+    return result
+
+
+def check_local_links(root: Path, source_path: Path, source: str) -> None:
+    """Reject missing local Markdown/HTML targets and broken heading fragments."""
+    current = source_path.as_posix()
+    anchors_by_target: dict[Path, set[str]] = {}
+    references = (
+        list(LINK.finditer(source))
+        + list(IMAGE_LINK.finditer(source))
+        + list(HTML_LINK.finditer(source))
+    )
+    for match in references:
+        target = match.group("target")
+        if target.startswith(("https:", "http:", "mailto:", "data:", "/", "//")):
+            continue
+        bare, marker, fragment = target.partition("#")
+        bare = bare.partition("?")[0]
+        candidate = posixpath.normpath(
+            posixpath.join(posixpath.dirname(current), bare or source_path.name)
+        )
+        destination = root / candidate
+        if bare and not destination.exists():
             raise ValueError(f"Missing link destination in {current}: {target}")
+        if marker and fragment and destination.suffix.lower() == ".md":
+            if destination not in anchors_by_target:
+                markdown = (
+                    source
+                    if candidate == current
+                    else destination.read_text(encoding="utf-8")
+                )
+                anchors_by_target[destination] = _markdown_anchors(markdown)
+            if unquote(fragment) not in anchors_by_target[destination]:
+                raise ValueError(f"Missing heading anchor in {current}: {target}")
 
 
 def render_excerpts(
