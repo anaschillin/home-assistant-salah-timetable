@@ -99,6 +99,27 @@ function stopBrowser(child) {
   try { process.kill(process.platform === "win32" ? child.pid : -child.pid, "SIGKILL"); } catch { /* Already exited. */ }
 }
 
+async function captureWidget(debuggerSession, index, source, name) {
+  if (!process.env.BROWSER_WIDGET_SCREENSHOT_DIR) return;
+  const output = resolve(process.env.BROWSER_WIDGET_SCREENSHOT_DIR);
+  await mkdir(output, {recursive: true});
+  const evaluation = await debuggerSession.call("Runtime.evaluate", {
+    expression: `(async () => {
+      const frame=document.querySelectorAll('iframe')[${index}];
+      const f=frame.contentWindow.widgetFixture;
+      const element=${source};
+      element.scrollIntoView({block:'start',inline:'nearest'});
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      const bounds=element.getBoundingClientRect();
+      const outer=frame.getBoundingClientRect();
+      return {x:outer.x+window.scrollX+bounds.x,y:outer.y+window.scrollY+bounds.y,width:bounds.width,height:bounds.height,scale:1};
+    })()`, awaitPromise: true, returnByValue: true,
+  });
+  assert.ok(!evaluation.exceptionDetails, evaluation.exceptionDetails?.exception?.description);
+  const screenshot = await debuggerSession.call("Page.captureScreenshot", {format: "png", captureBeyondViewport: true, clip: evaluation.result.value});
+  await writeFile(join(output, name), Buffer.from(screenshot.data, "base64"));
+}
+
 test("real Chromium card, editor and reminder wizard smoke", {skip, timeout: 90000}, async t => {
   assert.ok(browser, "A Chromium browser is required for this run");
   t.diagnostic(`Browser executable: ${browser}`);
@@ -438,6 +459,223 @@ nextFixture();
           assert.equal(disconnected.changesUnavailable, true, "Disconnected change data is explicitly unavailable");
         } finally {
           await evaluate("f.destroy(); delete frame.contentWindow.widgetFixture;");
+        }
+      });
+    }
+    for (const [index, {width, language, bilingual}] of fixtures.entries()) {
+      await t.test(`${width}px ${language}${bilingual ? " bilingual" : ""} independent widgets, custom arrangement and visual editor`, async () => {
+        const evaluate = async source => {
+          const result = await debuggerSession.call("Runtime.evaluate", {
+            expression: `(async () => {const frame = document.querySelectorAll('iframe')[${index}]; const f = frame.contentWindow.widgetFixture; ${source}})()`,
+            awaitPromise: true, returnByValue: true,
+          });
+          assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
+          return result.result?.value;
+        };
+        await evaluate(`
+          const helpers = await frame.contentWindow.eval("import('/tests/frontend/widget-browser-fixture.js')");
+          frame.contentWindow.widgetFixture = helpers.mountWidgetFixture(${JSON.stringify({language, bilingual})});
+        `);
+        try {
+          const standalone = await evaluate(`
+            const module = await frame.contentWindow.eval("import('/custom_components/salah_timetable/frontend/widget-utils.js?v=3.1.0')");
+            f.widgetModule = module;
+            f.standalone = module.SECTIONS.map(({id, show}) => {
+              const type = module.widgetType(id).slice('custom:'.length);
+              const card = f.mount(type, {[show]:false});
+              return {id, card};
+            });
+            return f.standalone.map(({id,card}) => ({
+              id,
+              registered: Boolean(frame.contentWindow.customElements.get(module.widgetType(id).slice('custom:'.length))),
+              picker: frame.contentWindow.customCards.some(item => item.type === module.widgetType(id).slice('custom:'.length)),
+              content: card.shadowRoot.querySelector('ha-card.standalone-widget')?.textContent.trim(),
+              section: Boolean(card.shadowRoot.querySelector('[data-section="'+id+'"]')),
+            }));
+          `);
+          assert.equal(standalone.length, 10);
+          for (const item of standalone) {
+            assert.equal(item.registered && item.picker, true, `${item.id} has its own registered Add card entry`);
+            assert.ok(item.content, `${item.id} always has useful standalone content`);
+            if (item.id !== "mosque_selector") assert.equal(item.section, true, `${item.id} renders its requested section rather than only a mosque title`);
+          }
+          assert.equal(await evaluate(`return Boolean(f.standalone.find(item=>item.id==='timetable').card.shadowRoot.querySelector('table, .kiosk-prayer-strip'));`), true, "Standalone timetable renders despite its section visibility flag");
+          assert.equal(await evaluate(`return Boolean(f.standalone.find(item=>item.id==='ramadan').card.shadowRoot.querySelector('.widget-status'));`), true, "Inactive standalone Ramadan explains its unavailable content");
+          assert.equal(await evaluate(`return Boolean(f.standalone.find(item=>item.id==='night_calculations').card.shadowRoot.querySelector('.night-calculations'));`), true, "Standalone calculated-night data is available without an enabling section switch");
+
+          const arrangement = await evaluate(`
+            f.custom = f.mount('salah-timetable-card', {
+              detail_level:'compact',show_mosque_selector:false,show_dates:true,show_timetable:true,
+              show_salah_countdown:true,show_jamaat_countdown:true,show_clock:false,
+              show_ramadan_details:false,show_night_calculations:false,
+              show_jamaat_changes:false,show_timetable_health:false,
+              arrangement:{sections:[{id:'salah',width:'half'},{id:'jamaat',width:'half'},{id:'timetable',width:'full'},{id:'dates',width:'full'}]},
+            });
+            const root = f.custom.shadowRoot;
+            const grid = root.querySelector('.arrangement-grid');
+            const cells = [...grid.querySelectorAll(':scope > .arrangement-section')];
+            const bounds = grid.getBoundingClientRect();
+            const rect = element => {const b=element.getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,width:b.width};};
+            return {
+              order:cells.map(cell=>cell.getAttribute('data-section')),
+              table:Boolean(root.querySelector('table')),
+              dates:Boolean(root.querySelector('.hijri, .gregorian')),
+              first:rect(cells[0]),second:rect(cells[1]),full:rect(cells[2]),
+              fits:cells.every(cell=>{const b=cell.getBoundingClientRect();return b.left>=bounds.left-1&&b.right<=bounds.right+1;}),
+            };
+          `);
+          assert.deepEqual(arrangement.order, ["salah", "jamaat", "timetable", "dates"], "Saved custom order also defines DOM order");
+          assert.equal(arrangement.table && arrangement.dates, true, "Explicit arrangement can show dates and timetable in Compact mode");
+          assert.equal(arrangement.fits, true, "Every arranged section stays inside the card container");
+          if (width < 600) assert.ok(arrangement.second.top >= arrangement.first.bottom - 1, "Half-width sections stack on narrow cards");
+          else {
+            assert.ok(Math.abs(arrangement.first.top - arrangement.second.top) <= 1, "Half-width sections share a row on wider cards");
+            assert.ok(arrangement.full.width > arrangement.first.width * 1.8, "Full-width timetable spans both grid columns");
+          }
+          const ticking = await evaluate(`
+            const root=f.custom.shadowRoot;
+            const table=root.querySelector('table');
+            const clock=root.querySelector('[data-panel="salah"] .count');
+            const before=clock.textContent;
+            f.custom._tick(f.now+1000);
+            return {tableSame:root.querySelector('table')===table,clockSame:root.querySelector('[data-panel="salah"] .count')===clock,changed:before!==clock.textContent};
+          `);
+          assert.deepEqual(ticking, {tableSame: true, clockSame: true, changed: true}, "Custom arrangement retains live countdown nodes and table focus targets on ticks");
+
+          await evaluate(`
+            f.editorState=f.mountEditor({selection_group:'browser-status-widgets',arrangement:f.custom._config.arrangement,
+              show_salah_countdown:true,show_jamaat_countdown:true,show_timetable:true,show_dates:true});
+            f.editorState.editor.shadowRoot.querySelector('[data-editor-tab="layout"]').click();
+          `);
+          const controls = await evaluate(`
+            const root=f.editorState.editor.shadowRoot;
+            return {rows:root.querySelectorAll('[data-layout-section]').length,
+              labelled:[...root.querySelectorAll('[data-layout-action]')].every(control=>Boolean(control.getAttribute('aria-label'))),
+              preview:Boolean(root.querySelector('[data-layout-preview-card]')),
+              settingsHidden:frame.contentWindow.getComputedStyle(root.querySelector('.form')).display==='none'};
+          `);
+          assert.equal(controls.rows, 10);
+          assert.equal(controls.labelled && controls.preview, true, "Layout controls have accessible labels and a preview of the actual card");
+          assert.equal(controls.settingsHidden, true, "The Settings panel is visually hidden while Layout is selected");
+          assert.equal(await evaluate(`
+            const editor=f.mountEditor({type:'custom:salah-widget-timetable-health'}).editor;
+            return frame.contentWindow.getComputedStyle(editor.shadowRoot.querySelector('.editor-tabs')).display==='none';
+          `), true, "Standalone widget editors visually hide the composite Layout tabs");
+
+          const ordering = await evaluate(`
+            const root=f.editorState.editor.shadowRoot;
+            const helper=root.querySelector('.layout-editor');
+            const start=f.editorState.config;
+            const source=root.querySelector('[data-layout-section="jamaat"]');
+            const up=source.querySelector('[data-layout-action="up"]');
+            up.focus();up.click();
+            const arrow=f.editorState.config.arrangement.sections.map(item=>item.id);
+            const focused=root.activeElement?.closest('[data-layout-section]')?.getAttribute('data-layout-section');
+            f.editorState.editor.setConfig(start);
+            const from=root.querySelector('[data-layout-section="jamaat"] [data-layout-action="drag"]');
+            const to=root.querySelector('[data-layout-section="salah"]');
+            const transfer=new frame.contentWindow.DataTransfer();
+            from.dispatchEvent(new frame.contentWindow.DragEvent('dragstart',{bubbles:true,dataTransfer:transfer}));
+            to.dispatchEvent(new frame.contentWindow.DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:transfer}));
+            to.dispatchEvent(new frame.contentWindow.DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:transfer}));
+            from.dispatchEvent(new frame.contentWindow.DragEvent('dragend',{bubbles:true,dataTransfer:transfer}));
+            return {arrow,drag:f.editorState.config.arrangement.sections.map(item=>item.id),focused};
+          `);
+          assert.deepEqual(ordering.drag, ordering.arrow, "Native drag/drop and Move up produce identical saved arrangements");
+          assert.equal(ordering.focused, "jamaat", "Moving a section preserves focus within that section after configuration echo");
+
+          const edited = await evaluate(`
+            const root=f.editorState.editor.shadowRoot;
+            const row=root.querySelector('[data-layout-section="jamaat"]');
+            const width=row.querySelector('[data-layout-action="width"]');
+            width.value='full';width.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
+            const visibility=row.querySelector('[data-layout-action="visible"]');
+            visibility.checked=false;visibility.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
+            return {width:f.editorState.config.arrangement.sections.find(item=>item.id==='jamaat').width,
+              visible:f.editorState.config.show_jamaat_countdown};
+          `);
+          assert.deepEqual(edited, {width: "full", visible: false}, "Layout width and visibility edit the saved per-card settings");
+
+          for (const [device, expectedWidth] of [["phone", 360], ["tablet", 768], ["desktop", 1280]]) {
+            const preview = await evaluate(`
+              const root=f.editorState.editor.shadowRoot;
+              const control=root.querySelector('[data-layout-device]');
+              control.value=${JSON.stringify(device)};control.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
+              const card=root.querySelector('[data-layout-preview-card]');
+              const viewport=root.querySelector('[data-layout-preview-frame]');
+              const inner=viewport.firstElementChild;
+              return {width:inner.style.width,preview:card.preview,group:card._config.selection_group,
+                fits:card.getBoundingClientRect().width<=viewport.getBoundingClientRect().width+1};
+            `);
+            assert.equal(preview.width, `${expectedWidth}px`, `${device} preview uses its advertised logical device width`);
+            assert.equal(preview.preview && preview.fits, true, `${device} preview scales inside the editor`);
+            assert.ok(!preview.group, "Device previews are isolated from live mosque groups");
+          }
+          if (!bilingual && ((width === 360 && language === "en") || (width === 900 && language === "en") || (width === 400 && language === "ar"))) {
+            const suffix = `${width}-${language}`;
+            await captureWidget(debuggerSession, index, "f.custom", `custom-layout-${suffix}.png`);
+            await captureWidget(debuggerSession, index, "f.health", `health-widget-${suffix}.png`);
+            await captureWidget(debuggerSession, index, "f.editorState.editor.shadowRoot.querySelector('[data-layout-preview-frame]')", `layout-preview-${suffix}.png`);
+          }
+          const reset = await evaluate(`
+            const root=f.editorState.editor.shadowRoot;
+            const before=f.editorState.config;
+            root.querySelector('[data-layout-reset]').click();
+            return {custom:Boolean(f.editorState.config.arrangement),entity:f.editorState.config.entity,
+              language:f.editorState.config.language,mosques:f.editorState.config.mosque_entities,
+              initialEntity:before.entity,initialLanguage:before.language,initialMosques:before.mosque_entities};
+          `);
+          assert.equal(reset.custom, false, "Reset restores the legacy mode arrangement");
+          assert.equal(reset.entity, reset.initialEntity);
+          assert.equal(reset.language, reset.initialLanguage);
+          assert.deepEqual(reset.mosques, reset.initialMosques, "Reset preserves selected mosques");
+        } finally {
+          await evaluate("f.destroy(); delete frame.contentWindow.widgetFixture;");
+        }
+      });
+    }
+    for (const language of ["en", "ar"]) {
+      await t.test(`1280px ${language} custom wall layout`, async () => {
+        const index = fixtures.findIndex(fixture => fixture.width === 900 && fixture.language === language && !fixture.bilingual);
+        await debuggerSession.call("Emulation.setDeviceMetricsOverride", {width: 1400, height: 1200, deviceScaleFactor: 1, mobile: false});
+        const evaluate = async source => {
+          const result = await debuggerSession.call("Runtime.evaluate", {
+            expression: `(async () => {const frame=document.querySelectorAll('iframe')[${index}];const f=frame.contentWindow.widgetFixture;${source}})()`,
+            awaitPromise: true, returnByValue: true,
+          });
+          assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
+          return result.result?.value;
+        };
+        await evaluate(`
+          frame.style.width='1280px';
+          frame.style.height='1200px';
+          const helpers=await frame.contentWindow.eval("import('/tests/frontend/widget-browser-fixture.js')");
+          frame.contentWindow.widgetFixture=helpers.mountWidgetFixture({language:${JSON.stringify(language)}});
+        `);
+        try {
+          const wall = await evaluate(`
+            const module=await frame.contentWindow.eval("import('/custom_components/salah_timetable/frontend/widget-utils.js?v=3.1.0')");
+            f.wall=f.mount('salah-timetable-card', {...module.applyPreset(f.base,'wall'),show_jamaat_changes:false,show_timetable_health:false});
+            const root=f.wall.shadowRoot;
+            const grid=root.querySelector('.arrangement-grid');
+            const bounds=grid.getBoundingClientRect();
+            const cells=[...grid.querySelectorAll(':scope>.arrangement-section')];
+            const count=root.querySelector('[data-panel="salah"] .count');
+            const before=count.textContent;
+            f.wall._tick(f.now+1000);
+            return {kiosk:f.wall._config.kiosk_mode,
+              clock:Boolean(root.querySelector('.kiosk-clock')),
+              strip:root.querySelectorAll('.kiosk-strip .kiosk-tile').length,
+              fullscreen:Boolean(root.querySelector('.kiosk-fullscreen')),
+              dateTabs:Boolean(root.querySelector('[data-section="timetable"] .date-tabs')),
+              live:count.textContent!==before,
+              fits:cells.every(cell=>{const b=cell.getBoundingClientRect();return b.left>=bounds.left-1&&b.right<=bounds.right+1;})};
+          `);
+          assert.equal(wall.kiosk && wall.clock && wall.fullscreen && wall.dateTabs && wall.live && wall.fits, true, "Custom wall arrangements retain clock, published timetable, navigation, fullscreen and live timers without clipping");
+          assert.equal(wall.strip, 5, "Kiosk uses the existing five published daily-prayer tiles");
+          await captureWidget(debuggerSession, index, "f.wall", `custom-kiosk-1280-${language}.png`);
+        } finally {
+          await evaluate("f.destroy();delete frame.contentWindow.widgetFixture;frame.style.width='900px';frame.style.height='1500px';");
         }
       });
     }

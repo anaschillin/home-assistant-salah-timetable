@@ -19,6 +19,10 @@ test("widget translations preserve bilingual coverage and literal parameters", (
   assert.equal(widgetTr("ar", "table.prayer"), "الصلاة");
   assert.equal(widgetTr("en", "unknown.key"), "unknown.key");
   assert.equal(widgetTr("en", "toString"), "toString");
+  for (const key of ["arrangement", "widget_type", "selection_group"]) {
+    assert.notEqual(widgetTr("en", `config.${key}`), `config.${key}`);
+    assert.notEqual(widgetTr("ar", `config.${key}`), widgetTr("en", `config.${key}`));
+  }
 });
 
 test("English and Arabic catalogs cover the same plain-text keys and placeholders", () => {

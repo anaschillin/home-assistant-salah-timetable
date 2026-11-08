@@ -13,6 +13,9 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
   missing publications, Friday congregations and source checks from time changes;
   compare mosque-local clocks correctly across daylight-saving changes.
 - Keep existing card layouts and the explicit timetable-review workflow unchanged.
+- Add standalone versions of all ten sections and an opt-in visual arrangement
+  editor with presets, accessible ordering, visibility, full/half widths and
+  isolated phone/tablet/desktop previews, including custom kiosk arrangements.
 
 ## 3.1.0 — 7 November 2026
 
