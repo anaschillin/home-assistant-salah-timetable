@@ -3,13 +3,17 @@ import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.j
 import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=3.1.0";
 import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.1.0";
 import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=3.1.0";
+import {widgetSection, widgetType} from "./widget-utils.js?v=3.1.0";
+import {joinSelectionGroup} from "./widget-selection.js?v=3.1.0";
+import {buildJamaatChanges, buildTimetableHealth} from "./widget-renderers.js?v=3.1.0";
+import {widgetTr} from "./widget-i18n.js?v=3.1.0";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
 const RENDER_ATTRIBUTES = [
   "mosque_name", "date", "time_zone", "prayers", "day_prayers", "beginning_events", "jamaat_events",
   "next_salah", "next_jamaat", "previous_jamaat", "context_jamaat", "context_mode",
   "ramadan", "sehri_events", "iftar_events", "next_sehri", "next_iftar",
-  "show_hijri_date", "second_khutbah", "night_calculations",
+  "show_hijri_date", "second_khutbah", "night_calculations", "timetable_health", "config_entry_id",
 ];
 const PRAYERS = new Set(["fajr", "sunrise", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
@@ -20,6 +24,16 @@ function node(tag, text, className) {
   if (text !== undefined) element.textContent = text;
   if (className) element.className = className;
   return element;
+}
+
+function backgroundCredit(background) {
+  const credit = node("small", undefined, "background-credit");
+  const link = node("a", `Photo: ${background.photographer} · ${background.name}`);
+  link.href = background.source_url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  credit.append(link);
+  return credit;
 }
 
 function direction(element, ui) {
@@ -243,6 +257,10 @@ export class SalahTimetableCard extends HTMLElement {
     this._monthState = null;
     this._sourceState = null;
     this._monthRequest = 0;
+    this._connected = false;
+    this._group = null;
+    this._groupName = null;
+    this._groupEntity = null;
   }
 
   static getConfigElement() { return document.createElement("salah-timetable-card-editor"); }
@@ -252,10 +270,12 @@ export class SalahTimetableCard extends HTMLElement {
     // Reordered mosque lists establish a new first (default) mosque.
     if (this._config?.entity !== next.entity) this._selectedMosque = null;
     this._config = next;
+    this._syncSelectionGroup();
     this._render();
   }
   set hass(value) {
     this._hass = value;
+    this._syncSelectionGroup();
     if (this._hassRenderKey() !== this._renderedHassKey) this._render();
   }
   // Lovelace passes preview=true for some editor paths, but existing
@@ -269,6 +289,7 @@ export class SalahTimetableCard extends HTMLElement {
     if (editing === Boolean(this.hasAttribute?.("dashboard-editing"))) return;
     if (editing) this.setAttribute("dashboard-editing", "");
     else this.removeAttribute("dashboard-editing");
+    this._syncSelectionGroup();
   }
   set preview(value) {
     this._preview = Boolean(value);
@@ -279,10 +300,12 @@ export class SalahTimetableCard extends HTMLElement {
   // HA still assigns editMode for compatibility with older custom cards.
   set editMode(value) { this.preview = value; }
   get editMode() { return this.preview; }
-  getCardSize() { return (this._config.kiosk_mode ? 7 : this._config.detail_level === "compact" ? 3 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
-  getGridOptions() { return {columns: 12, rows: this.getCardSize(), min_columns: 6, min_rows: 4}; }
+  getCardSize() { if (widgetSection(this._config)) return widgetSection(this._config) === "mosque_selector" ? 1 : 3; return (this._config.kiosk_mode ? 7 : this._config.detail_level === "compact" ? 3 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
+  getGridOptions() { return {columns: 12, rows: this.getCardSize(), min_columns: widgetSection(this._config) ? 3 : 6, min_rows: widgetSection(this._config) ? 1 : 4}; }
 
   connectedCallback() {
+    this._connected = true;
+    this._syncSelectionGroup();
     if (this._timer === null) this._timer = window.setInterval(() => this._tick(), 1000);
     window.addEventListener?.("resize", this._onViewportResize);
     window.visualViewport?.addEventListener?.("resize", this._onViewportResize);
@@ -296,6 +319,8 @@ export class SalahTimetableCard extends HTMLElement {
     this._scheduleViewportHeight();
   }
   disconnectedCallback() {
+    this._connected = false;
+    this._leaveSelectionGroup();
     if (this._timer !== null) window.clearInterval(this._timer);
     this._timer = null;
     window.removeEventListener?.("resize", this._onViewportResize);
@@ -339,7 +364,7 @@ export class SalahTimetableCard extends HTMLElement {
   _measureViewportHeight() {
     // Measure from the card's real viewport position, not a guessed HA header
     // height. visualViewport accounts for mobile browser toolbar resizing.
-    if (typeof this.getBoundingClientRect !== "function") return;
+    if (widgetSection(this._config) || typeof this.getBoundingClientRect !== "function") return;
     const rect = this.getBoundingClientRect();
     const visual = window.visualViewport;
     const bottom = Number.isFinite(visual?.height) && visual.height > 0
@@ -371,6 +396,7 @@ export class SalahTimetableCard extends HTMLElement {
     return this._config.mosque_entities.map(entity => byEntity.get(entity)).filter(Boolean);
   }
   _activeEntity() {
+    if (this._groupEntity !== null) return this._groupEntity;
     const mosques = this._mosques();
     if (this._selectedMosque && mosques.some(item => item.entity === this._selectedMosque)) return this._selectedMosque;
     // An explicitly ordered selection defines the default, even for older YAML
@@ -378,6 +404,87 @@ export class SalahTimetableCard extends HTMLElement {
     if (this._config.mosque_entities?.length) return mosques[0]?.entity || this._config.mosque_entities[0];
     if (this._config.entity) return this._config.entity;
     return mosques[0]?.entity || "";
+  }
+  _leaveSelectionGroup() {
+    this._group?.leave();
+    this._group = null;
+    this._groupName = null;
+    this._groupEntity = null;
+  }
+  _syncSelectionGroup() {
+    const name = this._config.selection_group || "";
+    const eligible = this._connected && !this.preview && !this.hasAttribute("dashboard-editing") && Boolean(name);
+    if (!eligible) { this._leaveSelectionGroup(); return; }
+    if (this._groupName === name || this._joiningGroup) return;
+    this._leaveSelectionGroup();
+    const initial = this._activeEntity();
+    if (!initial) return;
+    this._groupName = name;
+    this._joiningGroup = true;
+    try {
+      this._group = joinSelectionGroup(this, name, initial, entity => {
+        if (entity === this._groupEntity) return;
+        this._groupEntity = entity;
+        this._selectedMosque = entity;
+        this._resetBrowsing();
+        if (!this._joiningGroup) this._render();
+      });
+      this._groupEntity = this._group.entity;
+    } finally { this._joiningGroup = false; }
+  }
+  _resetBrowsing() {
+    this._selectedDay = 0;
+    this._monthView = false;
+    this._monthState = null;
+    this._sourceState = null;
+    this._monthRequest++;
+  }
+  _selectMosque(entity) {
+    this._selectedMosque = entity;
+    this._resetBrowsing();
+    if (this._group) this._group.publish(entity);
+  }
+  _mosqueIdentity(ui, data) {
+    const mosques = this._mosques();
+    const title = node("h2");
+    if (mosques.length > 1) {
+      // The active mosque is displayed only in the header, never repeated in tabs.
+      const chooser = node("select", undefined, "mosque-select");
+      chooser.setAttribute("aria-label", tr(ui, "card.select_mosque"));
+      chooser.setAttribute("dir", "auto");
+      for (const mosque of mosques) {
+        const name = mosque.entity === this._config.entity && this._config.title
+          ? this._config.title : (mosque.name || mosque.entity);
+        const option = node("option", name);
+        option.value = mosque.entity;
+        chooser.append(option);
+      }
+      chooser.value = this._activeEntity();
+      chooser.addEventListener("change", () => {
+        if (chooser.value === this._activeEntity()) return;
+        this._selectMosque(chooser.value);
+        // Replacing the Shadow DOM must not strand keyboard focus on a removed select.
+        const wasFocused = this.shadowRoot.activeElement === chooser;
+        this._render();
+        if (wasFocused) this.shadowRoot.querySelector(".mosque-select")?.focus({preventScroll: true});
+      });
+      title.append(chooser);
+    } else {
+      title.textContent = this._config.title || data.mosque_name;
+      title.setAttribute("dir", "auto");
+    }
+    return title;
+  }
+  _standaloneContent(card, data, ui, background) {
+    const section = widgetSection(this._config);
+    const content = node("div", undefined, "content standalone-content");
+    content.append(this._mosqueIdentity(ui, data));
+    if (section === "jamaat_changes") content.append(buildJamaatChanges(data, ui, this._config, this._hass?.connection?.connected !== false));
+    if (section === "timetable_health") content.append(buildTimetableHealth(data, ui, this._config, this._hass));
+    if (this._hass?.connection?.connected === false) content.append(node("p", tr(ui, "card.disconnected"), "disconnected"));
+    if (background) content.append(backgroundCredit(background));
+    card.append(content);
+    return content;
   }
   _state() { return this._hass?.states?.[this._activeEntity()]; }
 
@@ -628,6 +735,7 @@ export class SalahTimetableCard extends HTMLElement {
     const style = node("style", CARD_CSS);
     const card = direction(node("ha-card"), ui);
     if (this._config.kiosk_mode) card.classList.add("kiosk");
+    if (widgetSection(this._config)) card.classList.add("standalone-widget");
     const state = this._state();
     const background = this._config.show_mosque_background && chooseMosqueBackground(MOSQUE_BACKGROUNDS, this._config.mosque_background, (state?.attributes?.date || new Date(now).toISOString().slice(0, 10)));
     if (background) {
@@ -647,11 +755,21 @@ export class SalahTimetableCard extends HTMLElement {
       card.style.setProperty("--mosque-background-image", `url("${background.path}")`);
       card.style.setProperty("--mosque-background-position", background.position || "center");
     }
+    if (this._groupEntity !== null && this._config.mosque_entities && !this._config.mosque_entities.includes(this._groupEntity)) {
+      card.append(node("p", widgetTr(ui, "group.not_enabled"), "empty group-selection-error"));
+      this.shadowRoot.replaceChildren(style, card);
+      return;
+    }
     if (!this._activeEntity() || !state || ["unavailable", "unknown"].includes(state.state) || !isTimetableState(state)) {
       const key = !this._activeEntity() ? "card.choose_entity" : !state ? "card.entity_missing" : "card.unavailable";
       card.append(node("div", tr(ui, key), "empty"));
       this.shadowRoot.replaceChildren(style, card);
       this._scheduleViewportHeight();
+      return;
+    }
+    if (widgetSection(this._config)) {
+      this._standaloneContent(card, state.attributes, ui, background);
+      this.shadowRoot.replaceChildren(style, card);
       return;
     }
     const previousRegion = this.shadowRoot.querySelector?.(".table-scroll");
@@ -666,38 +784,7 @@ export class SalahTimetableCard extends HTMLElement {
     const timeFormat = this._config.time_format;
     const header = node("header", undefined, "header");
     const mosques = this._mosques();
-    const title = node("h2");
-    if (mosques.length > 1) {
-      // The active mosque is displayed only in the header, never repeated in tabs.
-      const chooser = node("select", undefined, "mosque-select");
-      chooser.setAttribute("aria-label", tr(ui, "card.select_mosque"));
-      chooser.setAttribute("dir", "auto");
-      for (const mosque of mosques) {
-        const name = mosque.entity === this._config.entity && this._config.title
-          ? this._config.title : (mosque.name || mosque.entity);
-        const option = node("option", name);
-        option.value = mosque.entity;
-        chooser.append(option);
-      }
-      chooser.value = this._activeEntity();
-      chooser.addEventListener("change", () => {
-        if (chooser.value === this._activeEntity()) return;
-        this._selectedMosque = chooser.value;
-        this._selectedDay = 0;
-        this._monthView = false;
-        this._monthState = null;
-        this._sourceState = null;
-        this._monthRequest++;
-        // Replacing the Shadow DOM must not strand keyboard focus on a removed select.
-        const wasFocused = this.shadowRoot.activeElement === chooser;
-        this._render();
-        if (wasFocused) this.shadowRoot.querySelector(".mosque-select")?.focus({preventScroll: true});
-      });
-      title.append(chooser);
-    } else {
-      title.textContent = this._config.title || data.mosque_name;
-      title.setAttribute("dir", "auto");
-    }
+    const title = this._mosqueIdentity(ui, data);
     if (this._config.kiosk_mode) {
       const identity = node("div", undefined, "kiosk-identity");
       identity.append(title);
@@ -938,6 +1025,8 @@ export class SalahTimetableCard extends HTMLElement {
       night.append(grid, node("p", tr(ui, "night.note"), "note"));
       content.append(night);
     }
+    if (this._selectedDay === 0 && this._config.show_jamaat_changes) content.append(buildJamaatChanges(data, ui, this._config, this._hass?.connection?.connected !== false));
+    if (this._selectedDay === 0 && this._config.show_timetable_health) content.append(buildTimetableHealth(data, ui, this._config, this._hass));
     let kioskFooterInfo = null;
     if (this._config.kiosk_mode) {
       const footer = node("footer", undefined, "kiosk-footer");
@@ -954,12 +1043,7 @@ export class SalahTimetableCard extends HTMLElement {
       note.setAttribute("data-role", "timezone-note"); content.append(note);
     }
     if (background) {
-      const credit = node("small", undefined, "background-credit");
-      const link = node("a", `Photo: ${background.photographer} · ${background.name}`);
-      link.href = background.source_url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      credit.append(link);
+      const credit = backgroundCredit(background);
       if (kioskFooterInfo) kioskFooterInfo.append(credit);
       else content.append(credit);
     }
@@ -980,7 +1064,7 @@ const EDITOR_GROUPS = [
   {id: "countdowns", icon: "mdi:timer-outline", keys: ["show_salah_countdown", "show_jamaat_countdown"]},
   {id: "ramadan", icon: "mdi:moon-waning-crescent", keys: ["show_ramadan_details", "show_sehri_countdown", "show_iftar_countdown", "show_night_calculations"]},
   {id: "appearance", icon: "mdi:image-outline", keys: ["mosque_background"]},
-  {id: "tools", icon: "mdi:calendar-text-outline", keys: ["show_month_view", "show_timezone_note"]},
+  {id: "tools", icon: "mdi:calendar-text-outline", keys: ["show_month_view", "show_timezone_note", "show_jamaat_changes", "show_timetable_health"]},
   {id: "history", icon: "mdi:book-open-variant", keys: ["show_historical_day_events", "show_historical_month_highlights", "show_historical_sources", "show_disputed_historical_dates"]},
   {id: "advanced", icon: "mdi:tune-variant", keys: ["language", "bilingual_prayer_labels", "kiosk_mode", "time_format", "hijri_adjustment", "hijri_day_boundary"]},
 ];
@@ -1034,9 +1118,9 @@ export class SalahTimetableCardEditor extends HTMLElement {
     const ui = resolveUi(this._config, this._hass);
     direction(this, ui); direction(this._form, ui);
     for (const [key, {control, checkbox, label, hint, field, options}] of Object.entries(this._extraControls || {})) {
-      const title = tr(ui, `editor.${key}`);
+      const title = key === "show_jamaat_changes" || key === "show_timetable_health" ? widgetTr(ui, `section.${key.slice(5)}`) : tr(ui, `editor.${key}`);
       label.textContent = title;
-      hint.textContent = tr(ui, `editor.hint.${key}`);
+      hint.textContent = key === "show_jamaat_changes" || key === "show_timetable_health" ? widgetTr(ui, `widget.${key.slice(5)}.description`) : tr(ui, `editor.hint.${key}`);
       control.setAttribute("aria-label", title);
       for (const {option, value} of options || []) {
         option.textContent = key === "hijri_adjustment"
@@ -1056,10 +1140,16 @@ export class SalahTimetableCardEditor extends HTMLElement {
       field.setAttribute("data-disabled", String(disabled));
     }
     if (this._reminderAction) {
-      this._reminderAction.hidden = !this._hass?.user?.is_admin || this._config.kiosk_mode;
+      this._reminderAction.hidden = Boolean(widgetSection(this._config)) || !this._hass?.user?.is_admin || this._config.kiosk_mode;
       this._reminderAction.textContent = tr(ui, "card.prayer_reminders");
     }
     this._updateSections(ui);
+    if (this._groupControl) {
+      this._groupLabel.textContent = widgetTr(ui, "group.label");
+      this._groupHint.textContent = widgetTr(ui, "group.hint");
+      this._groupControl.setAttribute("aria-label", widgetTr(ui, "group.label"));
+      this._groupControl.value = this._config.selection_group || "";
+    }
     const {help, mosqueGroup, mosqueHeading, mosqueHint, mosqueList} = this._controls;
     const mosques = discoverTimetableEntities(this._hass);
     // Keep temporarily missing sensors in the list without exposing a second
@@ -1185,13 +1275,22 @@ export class SalahTimetableCardEditor extends HTMLElement {
       ["show_salah_countdown"], ["show_jamaat_countdown"],
       ["show_ramadan_details"], ["show_sehri_countdown"], ["show_iftar_countdown"], ["show_night_calculations"],
       ["mosque_background", ["none", "daily", ...MOSQUE_BACKGROUNDS.map(item => item.id)]],
-      ["show_month_view"], ["show_timezone_note"],
+      ["show_month_view"], ["show_timezone_note"], ["show_jamaat_changes"], ["show_timetable_health"],
       ["show_historical_day_events"], ["show_historical_month_highlights"], ["show_historical_sources"], ["show_disputed_historical_dates"],
       ["language", ["auto", "en", "ar"]], ["bilingual_prayer_labels"], ["kiosk_mode"], ["time_format", ["24h", "12h"]],
       ["hijri_adjustment", [-3, -2, -1, 0, 1, 2, 3]], ["hijri_day_boundary", ["midnight", "maghrib"]]
     ];
+    const section = widgetSection(this._config);
+    const standaloneKeys = {
+      mosque_selector: [], dates: ["show_hijri_date", "show_gregorian_date", "show_hijri_month_info", "hijri_adjustment", "hijri_day_boundary"],
+      clock: ["time_format"], salah: ["detail_level", "bilingual_prayer_labels", "time_format"], jamaat: ["bilingual_prayer_labels", "time_format"],
+      timetable: ["detail_level", "bilingual_prayer_labels", "time_format", "show_month_view", "kiosk_mode"],
+      ramadan: ["show_sehri_countdown", "show_iftar_countdown", "time_format"], night_calculations: ["time_format"],
+      jamaat_changes: ["time_format", "bilingual_prayer_labels"], timetable_health: ["time_format"],
+    };
+    const allowed = section ? new Set(["language", "mosque_background", ...standaloneKeys[section]]) : null;
     const fields = new Map();
-    for (const [key, choices] of settings) {
+    for (const [key, choices] of settings.filter(([key]) => !allowed || allowed.has(key))) {
       const field = node(choices ? "label" : "div", undefined, "setting");
       const copy = node("span", undefined, "setting-copy");
       const label = node("span", undefined, "setting-label");
@@ -1228,8 +1327,9 @@ export class SalahTimetableCardEditor extends HTMLElement {
       text.append(heading, description); toggle.append(graphic, text, chevron);
       const body = node("div", undefined, "editor-section-content");
       body.id = `editor-section-${id}`; toggle.setAttribute("aria-controls", body.id);
-      for (const key of keys) body.append(fields.get(key));
-      if (id === "history") body.append(node("p", undefined, "editor-soon-note"));
+      for (const key of keys) if (fields.has(key)) body.append(fields.get(key));
+      if (section && !body.children.length) continue;
+      if (id === "history" && !section) body.append(node("p", undefined, "editor-soon-note"));
       toggle.addEventListener("click", () => {
         this._expandedSection = this._expandedSection === id ? null : id;
         this._updateSections();
@@ -1238,10 +1338,18 @@ export class SalahTimetableCardEditor extends HTMLElement {
       this._sections[id] = {toggle, body, title: heading, description};
       groups.push(section);
     }
+    const groupField = node("label", undefined, "setting");
+    this._groupLabel = node("span", undefined, "setting-label");
+    this._groupHint = node("span", undefined, "setting-hint");
+    this._groupControl = node("input"); this._groupControl.type = "text";
+    this._groupControl.setAttribute("data-option", "selection_group");
+    this._groupControl.addEventListener("change", () => this._changed({selection_group: this._groupControl.value}));
+    groupField.append(this._groupLabel, this._groupHint, this._groupControl);
     // Keep reminder setup beside the detail selector, outside the dashboard card.
     this._reminderAction = this._reminderButton(resolveUi(this._config, this._hass));
     // One ordered checkbox list replaces the old duplicate radio selector.
-    form.append(mosqueGroup, fields.get("detail_level"));
+    form.append(mosqueGroup, groupField);
+    if (fields.has("detail_level")) form.append(fields.get("detail_level"));
     if (this._reminderAction) form.append(this._reminderAction);
     form.append(...groups, help);
     this._updateControls();
@@ -1255,10 +1363,20 @@ export class SalahTimetableCardEditor extends HTMLElement {
 // "Configuration error", especially on cold loads and Cast displays.
 // Re-register the SAME constructors with the current registry after HA starts;
 // never load a second copy of this module or forcibly reload the dashboard.
+const STANDALONE_SECTIONS = ["mosque_selector", "jamaat_changes", "timetable_health"];
+const WIDGET_CONSTRUCTORS = STANDALONE_SECTIONS.map(section => {
+  const type = widgetType(section);
+  class SalahWidgetCard extends SalahTimetableCard {
+    static getStubConfig(hass) { return normalizeConfig({type, entity: discoverEntity(hass)}); }
+    setConfig(config) { super.setConfig({...config, type}); }
+  }
+  return [type.slice("custom:".length), SalahWidgetCard];
+});
 function registerSalahCardElements() {
   for (const [tag, constructor] of [
     ["salah-timetable-card", SalahTimetableCard],
     ["salah-timetable-card-editor", SalahTimetableCardEditor],
+    ...WIDGET_CONSTRUCTORS,
   ]) {
     if (customElements.get(tag)) continue;
     try {
@@ -1292,3 +1410,8 @@ window.customCards = window.customCards || [];
 const registrationUi = resolveUi({}, {language: globalThis.navigator?.language});
 if (!window.customCards.some(card => card.type === "salah-timetable-card")) window.customCards.push({type: "salah-timetable-card", name: tr(registrationUi, "card.name"), description: tr(registrationUi, "card.description"), preview: true});
 
+
+for (const section of STANDALONE_SECTIONS) {
+  const type = widgetType(section).slice("custom:".length);
+  if (!window.customCards.some(card => card.type === type)) window.customCards.push({type, name: widgetTr(registrationUi, `section.${section}`), description: widgetTr(registrationUi, `widget.${section}.description`), preview: true});
+}

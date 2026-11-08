@@ -26,3 +26,10 @@ edits. Browser smoke uses pointer clicks to open and leave the monthly timetable
 in each mode (Compact More menu, Standard/Detailed labelled header actions). Browser
 acceptance must also check mobile/tablet sizing, RTL and Home Assistant's
 native drag-and-drop behaviour before the PR is merged.
+
+Widget tests cover field-preserving Jamaat comparisons, mosque-local clock
+differences across DST, saved configuration and temporary view-scoped mosque
+selection. The Chromium smoke runner uses `widget-browser-fixture.js` to prepare
+native widget fixtures; assertions stay in `browser-smoke.mjs`. It checks status
+rendering, permission-aware setup links, independent view groups and preview
+isolation alongside the existing card matrix.

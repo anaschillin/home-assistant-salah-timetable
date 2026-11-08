@@ -1,7 +1,7 @@
 /** Real Chromium smoke tests using CDP; no browser automation dependency. */
 import test from "node:test";
 import assert from "node:assert/strict";
-import {access, mkdir, mkdtemp, readFile, rm, writeFile} from "node:fs/promises";
+import {access, mkdir, mkdtemp, readFile, readdir, rm, writeFile} from "node:fs/promises";
 import {constants} from "node:fs";
 import {createServer} from "node:http";
 import {tmpdir} from "node:os";
@@ -130,12 +130,22 @@ nextFixture();
   const files = new Map([
     ["/custom_components/salah_timetable/frontend/reminder-wizard.js", join(root, "custom_components/salah_timetable/frontend/reminder-wizard.js")],
     ["/tests/frontend/browser-harness.js", join(root, "tests/frontend/browser-harness.js")],
+    ["/tests/frontend/widget-browser-fixture.js", join(root, "tests/frontend/widget-browser-fixture.js")],
     ["/custom_components/salah_timetable/frontend/salah-timetable-card.js", join(root, "custom_components/salah_timetable/frontend/salah-timetable-card.js")],
     ["/custom_components/salah_timetable/frontend/card-utils.js", join(root, "custom_components/salah_timetable/frontend/card-utils.js")],
     ["/custom_components/salah_timetable/frontend/card-i18n.js", join(root, "custom_components/salah_timetable/frontend/card-i18n.js")],
     ["/custom_components/salah_timetable/frontend/card-styles.js", join(root, "custom_components/salah_timetable/frontend/card-styles.js")],
     ["/custom_components/salah_timetable/frontend/mosque-backgrounds.js", join(root, "custom_components/salah_timetable/frontend/mosque-backgrounds.js")],
   ]);
+  // Resolve imported helpers from the shipped frontend directory only. Keeping
+  // an explicit filesystem inventory supports new bundled modules without an
+  // unrestricted static server or path traversal through the request URL.
+  const frontendDirectory = join(root, "custom_components/salah_timetable/frontend");
+  for (const entry of await readdir(frontendDirectory, {withFileTypes: true})) {
+    if (entry.isFile() && entry.name.endsWith(".js")) {
+      files.set(`/custom_components/salah_timetable/frontend/${entry.name}`, join(frontendDirectory, entry.name));
+    }
+  }
   for (const photo of MOSQUE_BACKGROUNDS) files.set(photo.path, join(root, "custom_components/salah_timetable/frontend/backgrounds", `${photo.id}.webp`));
   const server = createServer(async (request, response) => {
     const path = new URL(request.url, "http://127.0.0.1").pathname;
@@ -316,6 +326,118 @@ nextFixture();
           } finally {
             await evaluate("frame.contentWindow.actionFixture.actionCard.remove();");
           }
+        }
+      });
+    }
+    for (const [index, {width, language, bilingual}] of fixtures.entries()) {
+      await t.test(`${width}px ${language}${bilingual ? " bilingual" : ""} standalone status widgets and grouped selection`, async () => {
+        const evaluate = async source => {
+          const result = await debuggerSession.call("Runtime.evaluate", {
+            expression: `(async () => {const frame = document.querySelectorAll('iframe')[${index}]; const f = frame.contentWindow.widgetFixture; ${source}})()`,
+            awaitPromise: true, returnByValue: true,
+          });
+          assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
+          return result.result?.value;
+        };
+        await evaluate(`
+          const helpers = await frame.contentWindow.eval("import('/tests/frontend/widget-browser-fixture.js')");
+          frame.contentWindow.widgetFixture = helpers.mountWidgetFixture(${JSON.stringify({language, bilingual})});
+        `);
+        try {
+          const initial = await evaluate(`
+            const changes = f.changes.shadowRoot;
+            const health = f.health.shadowRoot;
+            const adminLink = health.querySelector('.widget-action');
+            return {
+              changeRows: changes.querySelectorAll('.widget-change-row').length,
+              pending: Boolean(health.querySelector('.pending-review')),
+              action: adminLink?.getAttribute('href'),
+              dates: [...changes.querySelectorAll('.widget-change-times')].map(node => node.textContent),
+              selected: [f.selector, f.changes, f.health].map(card => card._activeEntity()),
+              natural: [f.changes, f.health].every(card => {
+                const surface = card.shadowRoot.querySelector('ha-card');
+                return surface.classList.contains('standalone-widget') &&
+                  frame.contentWindow.getComputedStyle(surface).minHeight === '0px' &&
+                  !surface.classList.contains('has-mosque-background');
+              }),
+              fits: [f.changes, f.health].every(card => {
+                const surface = card.shadowRoot.querySelector('ha-card').getBoundingClientRect();
+                return [...card.shadowRoot.querySelectorAll('.widget-panel, .widget-change-row, .widget-health-row')].every(node => {
+                  const bounds = node.getBoundingClientRect();
+                  return bounds.left >= surface.left - 1 && bounds.right <= surface.right + 1;
+                });
+              }),
+            };
+          `);
+          assert.ok(initial.changeRows > 0, "Approved tomorrow changes render as published field rows");
+          assert.ok(initial.dates.every(value => value.trim().length > 0), "Every change row shows the published comparison times");
+          assert.equal(initial.pending, true, "Pending manual imports display even without a URL source");
+          assert.match(initial.action, /\/config\/integrations\/integration\/salah_timetable\?config_entry=entry_0$/);
+          assert.equal(initial.natural, true, "Standalone widgets retain their natural content height without a photo canvas");
+          assert.equal(initial.fits, true, "Status content fits its card at the actual container width");
+          assert.deepEqual(initial.selected, ["sensor.widget_first_prayer_timetable", "sensor.widget_first_prayer_timetable", "sensor.widget_first_prayer_timetable"]);
+
+          assert.deepEqual(await evaluate(`
+            f.select(f.second);
+            return [f.selector, f.changes, f.health].map(card => card._activeEntity());
+          `), Array(3).fill("sensor.widget_second_prayer_timetable"), "One selector changes every member of its group");
+          assert.equal(await evaluate(`return f.health.shadowRoot.querySelector('.widget-action')?.getAttribute('href');`), "/config/integrations/integration/salah_timetable?config_entry=entry_20", "Review action follows the selected mosque");
+
+          const isolation = await evaluate(`
+            const wrapper = frame.contentDocument.createElement('hui-card-options');
+            f.view.append(wrapper);
+            const preview = f.mount('salah-widget-mosque-selector', {selection_group:'browser-status-widgets'}, wrapper);
+            const chooser = preview.shadowRoot.querySelector('.mosque-select');
+            chooser.value = f.first;
+            chooser.dispatchEvent(new frame.contentWindow.Event('change', {bubbles:true}));
+            const restricted = f.mount('salah-widget-timetable-health', {selection_group:'browser-status-widgets',mosque_entities:[f.first]});
+            const ungrouped = f.mount('salah-widget-timetable-health');
+            const view = frame.contentDocument.createElement('hui-view');
+            f.view.after(view);
+            const otherView = f.mount('salah-widget-timetable-health', {selection_group:'browser-status-widgets'}, view);
+            const result = {
+              live: f.health._activeEntity(), preview: preview._activeEntity(),
+              restricted: Boolean(restricted.shadowRoot.querySelector('.group-selection-error')),
+              independent: ungrouped._activeEntity(), otherView: otherView._activeEntity(),
+            };
+            view.remove();wrapper.remove();
+            return result;
+          `);
+          assert.equal(isolation.live, "sensor.widget_second_prayer_timetable", "Dashboard edit previews cannot switch the live group");
+          assert.equal(isolation.preview, "sensor.widget_first_prayer_timetable");
+          assert.equal(isolation.restricted, true, "An excluded group mosque shows an explicit error instead of a fallback mosque");
+          assert.equal(isolation.independent, "sensor.widget_first_prayer_timetable");
+          assert.equal(isolation.otherView, "sensor.widget_first_prayer_timetable", "Identical group names are isolated between dashboard views");
+
+          const nonAdmin = await evaluate(`
+            f.health.hass = {...f.hass,user:{is_admin:false}};
+            return f.health.shadowRoot.querySelectorAll('.widget-action').length;
+          `);
+          assert.equal(nonAdmin, 0, "Non-administrators see status without integration-management actions");
+
+          const refreshed = await evaluate(`
+            const state = f.hass.states[f.second];
+            const next = {...f.hass,states:{...f.hass.states,[f.second]:{
+              ...state,attributes:{...state.attributes,timetable_health:{...state.attributes.timetable_health,
+                source:{...state.attributes.timetable_health.source,pending_review:false}}}
+            }}};
+            f.health.hass = next;
+            return !f.health.shadowRoot.querySelector('.pending-review');
+          `);
+          assert.equal(refreshed, true, "New source status updates the widget without a card reload");
+          const disconnected = await evaluate(`
+            for (const card of [f.health, f.changes]) card.hass = {...f.hass,connection:{connected:false}};
+            return {
+              healthUnavailable: Boolean(f.health.shadowRoot.querySelector('.widget-health .widget-status')) &&
+                !f.health.shadowRoot.querySelector('.pending-review, .widget-action'),
+              changesUnavailable: Boolean(f.changes.shadowRoot.querySelector('.widget-changes .widget-status')) &&
+                !f.changes.shadowRoot.querySelector('.widget-change-row'),
+            };
+          `);
+          assert.equal(disconnected.healthUnavailable, true, "Disconnected health does not retain a current pending/review presentation");
+          assert.equal(disconnected.changesUnavailable, true, "Disconnected change data is explicitly unavailable");
+        } finally {
+          await evaluate("f.destroy(); delete frame.contentWindow.widgetFixture;");
         }
       });
     }

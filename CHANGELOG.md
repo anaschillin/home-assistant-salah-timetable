@@ -5,6 +5,15 @@ not the current backlog. For available features see the [README](README.md#featu
 for pending work see the [roadmap](docs/roadmap.md). Published releases and their
 exact source tags are listed on [GitHub Releases](https://github.com/anaschillin/home-assistant-salah-timetable/releases).
 
+## Unreleased — dashboard widgets
+
+- Add opt-in upcoming Jamaat changes and timetable-health panels, plus standalone
+  status and mosque-selector cards with optional dashboard-local selection groups.
+- Reuse approved prayer events and existing diagnostic summaries. Distinguish
+  missing publications, Friday congregations and source checks from time changes;
+  compare mosque-local clocks correctly across daylight-saving changes.
+- Keep existing card layouts and the explicit timetable-review workflow unchanged.
+
 ## 3.1.0 — 7 November 2026
 
 ### Card Layout Improvements

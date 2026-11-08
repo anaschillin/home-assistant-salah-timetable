@@ -36,7 +36,7 @@ function hass(data = attributes) { return {states: {"sensor.mosque_prayer_timeta
 test("bundled card and graphical editor register once", () => {
   assert.equal(registry.get("salah-timetable-card"), SalahTimetableCard);
   assert.equal(registry.get("salah-timetable-card-editor"), SalahTimetableCardEditor);
-  assert.equal(window.customCards.length, 1);
+  assert.equal(window.customCards.length, 4);
   assert.equal(SalahTimetableCard.getConfigElement() instanceof SalahTimetableCardEditor, true);
   assert.equal(SalahTimetableCard.getStubConfig(hass()).entity, "sensor.mosque_prayer_timetable");
 });
@@ -359,7 +359,7 @@ test("editor omits the title field and preserves an existing YAML title through 
   editor.addEventListener("config-changed", event => emitted.push(event.detail.config));
   assert.equal(find(editor.shadowRoot, "ha-selector").length, 0);
   assert.equal(find(editor._controls.mosqueList, "input").length, 1);
-  assert.ok(find(editor.shadowRoot, "input").every(input => input.type === "checkbox"));
+  assert.ok(find(editor.shadowRoot, "input").every(input => input.type === "checkbox" || input.getAttribute?.("data-option") === "selection_group" || input.attributes["data-option"] === "selection_group"));
   assert.equal(find(editor.shadowRoot, "ha-textfield").length, 0);
   editor._extraControls.detail_level.control.value = "detailed";
   editor._extraControls.detail_level.control.dispatchEvent(new Event("change"));
@@ -860,7 +860,7 @@ test("two configured mosques are both selectable as independent dashboard cards"
   second.hass = multi;
   assert.match(first.shadowRoot.textContent, /Example Mosque/);
   assert.match(second.shadowRoot.textContent, /Second Mosque/);
-  assert.equal(window.customCards.length, 1, "One reusable card type serves every mosque");
+  assert.equal(window.customCards.filter(card => card.type === "salah-timetable-card").length, 1, "One composite card type serves every mosque");
 
   editor.hass = {states: {}};
   assert.deepEqual(
@@ -1369,4 +1369,96 @@ test("ordered mosque list uses a dedicated drag handle and arrow fallback", () =
   checkboxes[1].dispatchEvent(new Event("change"));
   assert.equal(handles()[1].disabled, true);
   assert.equal(find(rows()[1], "button").find(item => item.className === "mosque-move-up").disabled, true);
+});
+
+function widgetAttributes() {
+  return {...attributes,
+    day_prayers: {"2026-10-21": attributes.prayers, "2026-10-22": attributes.prayers},
+    jamaat_events: [
+      {field: "fajr_jamaat", prayer: "fajr", timestamp: "2026-10-21T05:15:00Z"},
+      {field: "fajr_jamaat", prayer: "fajr", timestamp: "2026-10-22T05:00:00Z"},
+    ],
+    config_entry_id: "example-entry",
+    timetable_health: {
+      coverage: {status: "expiring", available_through: "2026-10-22", days_remaining: 1, today_available: true, tomorrow_available: true},
+      completeness: {status: "complete", required_fields: ["fajr_begin"], missing_today: [], missing_tomorrow: []},
+      source: {status: "not_configured", pending_review: true, error_count: 0},
+    },
+  };
+}
+test("new widgets stay opt-in and share read-only sections with standalone cards", () => {
+  const data = widgetAttributes();
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = hass(data);
+  assert.ok(!card.shadowRoot.textContent.includes("15 min earlier"));
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_jamaat_changes: true, show_timetable_health: true});
+  const sections = find(card.shadowRoot, "section");
+  assert.ok(sections.some(section => section.attributes["data-section"] === "jamaat_changes"));
+  assert.ok(sections.some(section => section.attributes["data-section"] === "timetable_health"));
+  assert.ok(card.shadowRoot.textContent.includes("15 min earlier"));
+  const Changes = registry.get("salah-widget-jamaat-changes");
+  const widget = new Changes(); widget.setConfig({entity: "sensor.mosque_prayer_timetable"}); widget.hass = hass(data);
+  assert.equal(widget._config.type, "custom:salah-widget-jamaat-changes");
+  assert.equal(widget._config.show_mosque_background, false);
+  assert.ok(widget.shadowRoot.textContent.includes("15 min earlier"));
+  assert.equal(find(widget.shadowRoot, "table").length, 0);
+});
+test("health refreshes on pending changes and only administrators get setup navigation", () => {
+  const Health = registry.get("salah-widget-timetable-health");
+  const widget = new Health(); widget.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  const data = widgetAttributes(); const state = hass(data);
+  widget.hass = state;
+  assert.equal(find(widget.shadowRoot, "a").length, 0);
+  widget.hass = {...state, user: {is_admin: true}};
+  assert.ok(find(widget.shadowRoot, "a")[0].href.endsWith("?config_entry=example-entry"));
+  data.timetable_health.source.pending_review = false;
+  widget.hass = {...state, user: {is_admin: true}};
+  assert.equal(find(widget.shadowRoot, "a")[0].textContent, "Open mosque setup");
+  widget.hass = {...state, connection: {connected: false}};
+  assert.equal(find(widget.shadowRoot, "a").length, 0);
+  assert.ok(widget.shadowRoot.textContent.includes("unavailable"));
+});
+test("grouped widgets synchronize mosque and reject an excluded selection without fallback", () => {
+  const data = widgetAttributes();
+  const state = hass(data);
+  state.states["sensor.other_prayer_timetable"] = {state: data.date, attributes: {...data, mosque_name: "Other mosque"}};
+  const Selector = registry.get("salah-widget-mosque-selector");
+  const selector = new Selector(); selector.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "example"}); selector.hass = state; selector.connectedCallback();
+  const Health = registry.get("salah-widget-timetable-health");
+  const health = new Health(); health.setConfig({entity: "sensor.mosque_prayer_timetable", mosque_entities: ["sensor.mosque_prayer_timetable"], selection_group: "example"}); health.hass = state; health.connectedCallback();
+  selector._selectMosque("sensor.other_prayer_timetable");
+  assert.equal(health._activeEntity(), "sensor.other_prayer_timetable");
+  assert.ok(health.shadowRoot.textContent.includes("not enabled"));
+  assert.ok(!health.shadowRoot.textContent.includes("approved through"));
+  health.preview = true;
+  selector._selectMosque("sensor.mosque_prayer_timetable");
+  assert.equal(health._group, null, "Preview leaves live group");
+  health.disconnectedCallback(); selector.disconnectedCallback();
+  assert.equal(timers.size, 0);
+});
+test("standalone editor exposes its own settings without an ineffective hide toggle", () => {
+  const editor = new SalahTimetableCardEditor();
+  editor.setConfig({type: "custom:salah-widget-jamaat-changes", entity: "sensor.mosque_prayer_timetable"}); editor.hass = hass();
+  const options = find(editor.shadowRoot, "ha-switch").map(item => item.attributes["data-option"]);
+  assert.ok(!options.includes("show_jamaat_changes"));
+  assert.ok(!options.includes("show_hijri_date"));
+  assert.ok(find(editor.shadowRoot, "input").some(item => item.attributes["data-option"] === "selection_group"));
+});
+
+test("today's complete status does not claim tomorrow's missing fields are complete", () => {
+  const Health = registry.get("salah-widget-timetable-health");
+  const widget = new Health(); widget.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  const data = widgetAttributes(); data.timetable_health.completeness.missing_tomorrow = ["fajr_begin"];
+  widget.hass = hass(data);
+  assert.ok(!widget.shadowRoot.textContent.includes("complete for today and tomorrow"));
+  assert.ok(widget.shadowRoot.textContent.includes("Missing tomorrow"));
+});
+
+
+test("standalone cards retain photographer attribution when backgrounds are explicitly enabled", () => {
+  const Health = registry.get("salah-widget-timetable-health");
+  const widget = new Health();
+  widget.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: true}); widget.hass = hass(widgetAttributes());
+  assert.ok(find(widget.shadowRoot, "small").some(item => item.className === "background-credit"));
+  assert.ok(find(widget.shadowRoot, "a").some(item => item.textContent.startsWith("Photo:")));
 });

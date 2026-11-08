@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const CARD_MODULE = "../../custom_components/salah_timetable/frontend/salah-timetable-card.js";
-const TAGS = ["salah-timetable-card", "salah-timetable-card-editor"];
+const TAGS = ["salah-timetable-card", "salah-timetable-card-editor", "salah-widget-mosque-selector", "salah-widget-jamaat-changes", "salah-widget-timetable-health"];
 
 function createRegistry() {
   const elements = new Map();
@@ -44,7 +44,7 @@ async function loadCardCase(name) {
   try {
     const constructors = await import(`${CARD_MODULE}?registry-race=${name}`);
     for (const tag of TAGS) assert.ok(native.get(tag), tag);
-    assert.equal(window.customCards.length, 1);
+    assert.equal(window.customCards.length, 4);
     return {native, queued, constructors};
   } finally {
     globalThis.setTimeout = originalTimeout;
@@ -90,6 +90,6 @@ test("normal startup never triggers duplicate element definitions", async () => 
   await Promise.resolve();
   await Promise.resolve();
   queued.forEach(check => check());
-  assert.equal(native.definitions.filter(tag => TAGS.includes(tag)).length, 2);
-  assert.equal(window.customCards.length, 1);
+  assert.equal(native.definitions.filter(tag => TAGS.includes(tag)).length, TAGS.length);
+  assert.equal(window.customCards.length, 4);
 });

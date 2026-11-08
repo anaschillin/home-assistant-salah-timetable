@@ -100,6 +100,61 @@ The screenshots show a real configured mosque name and illustrative published
 timetable values. They are not universal prayer times, and the background
 photograph is decorative.
 
+## Jamaat changes and timetable health widgets
+
+These widgets are candidate additions after the released v3.1.0 card. Existing
+cards keep their appearance until you enable a widget. Install a candidate build
+containing these changes to try them; the stable release does not yet include them.
+
+In the main card editor, enable **Upcoming Jamaat changes** or **Timetable health**.
+The changes panel compares today's and tomorrow's approved congregation times in
+the mosque's timezone. It shows published times and an earlier/later difference
+when the same prayer field has one time on each day. Jumu’ah remains separate
+from ordinary Dhuhr and Khutbah. Multiple congregations are shown as published
+lists without guessing which sessions correspond. Missing data is shown as
+unavailable, never as an unchanged or cancelled congregation. Daylight-saving
+offset changes alone do not create a prayer-time change.
+
+Health shows approved date coverage, named missing required fields, staged updates
+awaiting review and source-check problems. Remaining coverage stops at the first
+gap and excludes today. A pending manual import is shown even without an automatic
+URL source. Administrators can open the selected mosque's integration settings to
+import or review data. The widget does not approve an update or expose staged times.
+Connection problems mark the displayed information as stale.
+
+For separate dashboard placement, choose **Add card** and search for the Salah
+Timetable **Mosque selector**, **Upcoming Jamaat changes** or **Timetable health**
+cards. They use the same approved Prayer timetable sensors as the main card.
+Standalone widgets size to their content and have no photograph by default.
+
+### Link mosque selection across widgets
+
+Set the same **Selection group** on widgets that should switch mosque together.
+For example, give a Mosque selector and both status widgets the group `home`.
+Leave the group empty for independent selection. Groups are local to one dashboard
+view and do not change integration settings, another browser or another user's
+display. Selection is temporary: the first connected widget supplies the starting
+mosque, and later members adopt it. Configure matching enabled mosque lists for a
+predictable default.
+
+Every widget retains its enabled-mosque restrictions. If the selected mosque is
+excluded, missing or unavailable, the widget explains the problem instead of
+silently showing another mosque. Editor/device previews never switch live widgets.
+Grouping shares only mosque selection; day and month browsing remain local to each
+card. Standalone status widgets always describe the current mosque-local day.
+
+The additional YAML options are:
+
+| Option | Values and default |
+| --- | --- |
+| `show_jamaat_changes` | `false`; enable the embedded Today/tomorrow comparison |
+| `show_timetable_health` | `false`; enable the embedded approved-data health overview |
+| `selection_group` | Empty by default; a shared name links mosque selection within a dashboard view |
+
+Standalone types are `custom:salah-widget-mosque-selector`,
+`custom:salah-widget-jamaat-changes` and `custom:salah-widget-timetable-health`.
+The graphical editor preserves each type and provides its relevant options.
+
 ## Day navigation
 
 The **Yesterday / Today / Tomorrow** controls sit in the timetable footer.

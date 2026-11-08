@@ -235,14 +235,28 @@ async def test_same_version_deployment_replaces_resource_and_versions_all_import
     assert response.status == 200
     source = await response.text()
     assert "_reminderButton" in source
-    imports = re.findall(r'from "(\./[^"\n]+\.js[^"\n]*)"', source)
-    assert imports
-    for imported in imports:
-        resolved = urljoin(CARD_URL, imported)
+
+    def imports(module):
+        return re.findall(
+            r"""(?:from\s*|import\s*)["'](\./[^"'\n]+\.js[^"'\n]*)["']""",
+            module,
+        )
+
+    pending = [(CARD_URL, imported) for imported in imports(source)]
+    assert pending
+    visited = {CARD_URL}
+    while pending:
+        parent, imported = pending.pop()
+        resolved = urljoin(parent, imported)
+        if resolved in visited:
+            continue
+        visited.add(resolved)
         assert resolved.startswith(BUNDLE_PATH + "/")
+        assert f"?v={CARD_VERSION}" in resolved
         helper = await client.get(resolved)
         assert helper.status == 200, resolved
         content = await helper.text()
+        pending.extend((resolved, child) for child in imports(content))
         if "card-i18n.js" in resolved:
             assert "Prayer reminders" in content
         if "reminder-wizard.js" in resolved:

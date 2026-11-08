@@ -269,12 +269,29 @@ class DashboardSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self):
-        return dashboard_attributes(
-            self.coordinator.data,
-            self.coordinator.zone,
-            self.mosque_name,
-            show_hijri_date=self.entry.options.get(
-                CONF_SHOW_HIJRI_DATE,
-                self.entry.data.get(CONF_SHOW_HIJRI_DATE, True),
+        data = self.coordinator.data
+        return {
+            **dashboard_attributes(
+                data,
+                self.coordinator.zone,
+                self.mosque_name,
+                show_hijri_date=self.entry.options.get(
+                    CONF_SHOW_HIJRI_DATE,
+                    self.entry.data.get(CONF_SHOW_HIJRI_DATE, True),
+                ),
             ),
-        )
+            "config_entry_id": self.entry.entry_id,
+            "timetable_health": {
+                "coverage": {
+                    "status": data.coverage.status,
+                    **data.coverage.attributes(),
+                },
+                "completeness": {
+                    "status": data.completeness.status,
+                    **data.completeness.attributes(),
+                },
+                # This public summary excludes source URLs, original documents,
+                # exception details and unapproved timetable values.
+                "source": self.coordinator.source_updates.status,
+            },
+        }
