@@ -1,5 +1,5 @@
 /** Plain-text widget translations. Arabic wording follows the existing card draft. */
-import {resolveUi, tr} from "./card-i18n.js?v=3.1.0";
+import {resolveUi, tr} from "./card-i18n.js?v=3.1.1";
 
 const labels = {
   "section.mosque_selector": ["Mosque selector", "اختيار المسجد"],
@@ -35,7 +35,7 @@ const labels = {
   "changes.minutes": ["{minutes} min", "{minutes} دقيقة"],
   "changes.no_changes": ["No changes to the comparable published Jamaat times tomorrow.", "لا تغييرات غدًا في مواقيت الجماعة المنشورة القابلة للمقارنة."],
   "changes.unavailable": ["Approved times for both today and tomorrow are needed for comparison.", "تلزم مواقيت معتمدة لليوم والغد لإجراء المقارنة."],
-  "changes.incomplete": ["Some published times are missing; only available values can be compared.", "بعض المواقيت المنشورة ناقصة؛ يمكن مقارنة القيم المتاحة فقط."],
+  "changes.incomplete": ["Some sessions cannot be compared across these dates; only matching published times are compared.", "بعض الجماعات لا يمكن مقارنتها بين هذين اليومين؛ تتم مقارنة المواقيت المنشورة المتطابقة فقط."],
   "changes.no_published_time": ["No published time", "لا يوجد وقت منشور"],
   "changes.schedule_changed": ["Published sessions differ", "تختلف الجلسات المنشورة"],
   "changes.unchanged": ["Unchanged", "دون تغيير"],

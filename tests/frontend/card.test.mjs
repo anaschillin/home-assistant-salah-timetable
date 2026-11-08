@@ -1462,3 +1462,14 @@ test("standalone cards retain photographer attribution when backgrounds are expl
   assert.ok(find(widget.shadowRoot, "small").some(item => item.className === "background-credit"));
   assert.ok(find(widget.shadowRoot, "a").some(item => item.textContent.startsWith("Photo:")));
 });
+
+test("standalone status widgets request natural height in HA Sections dashboards", () => {
+  const Health = registry.get("salah-widget-timetable-health");
+  const widget = new Health();
+  widget.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  assert.equal(widget.getGridOptions().rows, "auto");
+  assert.equal(widget.getGridOptions().min_rows, 1);
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  assert.equal(typeof card.getGridOptions().rows, "number");
+});

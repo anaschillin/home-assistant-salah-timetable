@@ -1602,18 +1602,41 @@ ha-card.kiosk:fullscreen .content.kiosk {
   font-size: clamp(1.55rem, 3.7cqi, 4rem);
 }
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  align-content: stretch;
+  justify-items: stretch;
   margin: 0;
   padding: 0;
   padding-inline-start: clamp(14px, 3cqi, 48px);
-  gap: clamp(14px, 2.5cqi, 36px);
+  gap: clamp(8px, 1.5cqi, 22px);
   border-top: 0;
   border-inline-start: 1px solid var(--divider-color);
+  text-align: center;
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times > .prayer-time {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(4px, .65cqi, 9px);
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel .prayer-time .label {
+  margin: 0;
+  font-size: clamp(.92rem, 1.65cqi, 1.35rem);
+  line-height: 1.2;
+}
+.content.kiosk .summary-shell .panels.single-panel > .prayer-panel .prayer-time .absolute {
+  font-size: clamp(1.55rem, 3.9cqi, 3.2rem);
+  line-height: 1.08;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .label {
   justify-content: flex-start;
-}
-.content.kiosk .summary-shell .panels.single-panel > .prayer-panel .prayer-time .absolute {
-  font-size: clamp(1.15rem, 2.3cqi, 2.2rem);
 }
 .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .panel-silhouette {
   opacity: .06;

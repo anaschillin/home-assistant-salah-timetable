@@ -142,7 +142,9 @@ export function jamaatChanges(attributes) {
       delta_minutes: available && left.length === 1 && right.length === 1 ? right[0].minute - left[0].minute : null,
       status: available ? equal ? "unchanged" : "changed" : "unavailable",
     };
-    if (entry.status === "changed" || (!available && !expected.includes(field) && (left.length || right.length))) changed = true;
+    if (entry.status === "changed") changed = true;
+    // An unmatched session is not proof that another session moved or was cancelled.
+    if (!available && (left.length || right.length)) incomplete = true;
     result.changes.push(entry);
   }
   result.status = incomplete ? "incomplete" : changed ? "changed" : result.changes.length ? "unchanged" : "unavailable";

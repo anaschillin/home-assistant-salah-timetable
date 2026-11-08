@@ -1,12 +1,12 @@
-import {openReminderWizard} from "./reminder-wizard.js?v=3.1.0";
-import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=3.1.0";
-import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=3.1.0";
-import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.1.0";
-import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=3.1.0";
-import {widgetSection, widgetType} from "./widget-utils.js?v=3.1.0";
-import {joinSelectionGroup} from "./widget-selection.js?v=3.1.0";
-import {buildJamaatChanges, buildTimetableHealth} from "./widget-renderers.js?v=3.1.0";
-import {widgetTr} from "./widget-i18n.js?v=3.1.0";
+import {openReminderWizard} from "./reminder-wizard.js?v=3.1.1";
+import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=3.1.1";
+import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=3.1.1";
+import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.1.1";
+import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=3.1.1";
+import {widgetSection, widgetType} from "./widget-utils.js?v=3.1.1";
+import {joinSelectionGroup} from "./widget-selection.js?v=3.1.1";
+import {buildJamaatChanges, buildTimetableHealth} from "./widget-renderers.js?v=3.1.1";
+import {widgetTr} from "./widget-i18n.js?v=3.1.1";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
 const RENDER_ATTRIBUTES = [
@@ -301,7 +301,7 @@ export class SalahTimetableCard extends HTMLElement {
   set editMode(value) { this.preview = value; }
   get editMode() { return this.preview; }
   getCardSize() { if (widgetSection(this._config)) return widgetSection(this._config) === "mosque_selector" ? 1 : 3; return (this._config.kiosk_mode ? 7 : this._config.detail_level === "compact" ? 3 : 5) + (this._state()?.attributes?.ramadan?.active && this._config.show_ramadan_details ? 2 : 0); }
-  getGridOptions() { return {columns: 12, rows: this.getCardSize(), min_columns: widgetSection(this._config) ? 3 : 6, min_rows: widgetSection(this._config) ? 1 : 4}; }
+  getGridOptions() { const standalone = Boolean(widgetSection(this._config)); return {columns: 12, rows: standalone ? "auto" : this.getCardSize(), min_columns: standalone ? 3 : 6, min_rows: standalone ? 1 : 4}; }
 
   connectedCallback() {
     this._connected = true;
