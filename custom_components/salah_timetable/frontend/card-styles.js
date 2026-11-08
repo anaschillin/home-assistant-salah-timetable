@@ -1873,6 +1873,8 @@ ha-card.kiosk:fullscreen .content.kiosk {
   }
   .content.kiosk .summary-shell .panels.single-panel > .prayer-panel > .prayer-times {
     grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-rows: auto;
+    align-content: center;
     padding: clamp(12px,2cqi,18px) 0 0;
     border-inline-start: 0;
     border-top: 1px solid var(--divider-color);
