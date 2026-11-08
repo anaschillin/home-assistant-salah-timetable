@@ -2,16 +2,14 @@
 
 **Status:** Core documentation simplification completed; documentation CI has been strengthened. Remaining work is optional redacted examples and recurring release checks.
 
-**Audit baseline:** All 37 Markdown files originally reviewed on 1 November 2026; rechecked against the published `v3.0.1` tag on 6 November 2026 (commit `7b045c91`). The v3.1.0 release documentation was rechecked on 7 November 2026 after PR #138 was squash-merged and the stable tag published.
+**Audit baseline:** All 37 Markdown files originally reviewed on 1 November 2026; the original 37-file audit completed on 1 November; release-status entries rechecked against the published `v3.1.0` tag on 7 November 2026.
 
 **Scope:** All 37 tracked Markdown documents: root guidance, user/contributor guides, shared excerpts, research notes, examples and test/fixture READMEs.
 
 **Owner / execution:** A maintainer or Codex following [AGENTS.md](../AGENTS.md).
 
 The readiness/import changes, first guide simplification, card/editor screenshots,
-v3 kiosk redesign and cast fixes shipped in `v3.0.1`. The published `v3.1.0`
-release additionally includes centred, enlarged single countdowns and aligned
-paired countdown rows across Compact, Standard, Detailed and Kiosk views.
+v3 kiosk redesign, casting fixes and PR #138's card alignment improvements have all shipped in `v3.1.0`.
 The previous 1.0.0-era prerequisites and unmerged screenshot disclaimer are obsolete.
 Do not reopen completed work. The [roadmap](roadmap.md) contains *upcoming product
 features only*; this file tracks the documentation audit and residual work.
@@ -35,14 +33,13 @@ features only*; this file tracks the documentation audit and residual work.
 ## File-by-file completion record
 
 All **37 tracked Markdown files** were reviewed in the initial simplification
-pass and re-screened for stale version/PR status on the v3.0.1 baseline;
-current release references were checked again against published v3.1.0.
+pass; current version/PR statuses are updated through the v3.1.0 release.
 A checked row means the document's **audit and ownership review** is complete;
 it does not claim every optional screenshot or every future release audit is done.
 
 | Documents | Audit | Verified responsibility / retained boundary |
 | --- | :---: | --- |
-| `README.md` | [x] | Concise feature/install entry point, current v3.1.0 feature summary and v3.0 kiosk preview, official HACS catalogue first, custom-repository/manual fallbacks and links to canonical guides. |
+| `README.md` | [x] | Concise feature/install entry point, current v3.1.0 kiosk preview, official HACS catalogue first, custom-repository/manual fallbacks and links to canonical guides. |
 | `AGENTS.md` | [x] | Current-main instructions, documentation handoff, unnumbered descriptive headings and no unmerged-feature prerequisites. |
 | `CHANGELOG.md` | [x] | Current 3.1.0 release heading and history; older `unreleased` labels are explicitly historical development snapshots. |
 | `CONTRIBUTING.md` | [x] | Version/excerpt ownership, Linux/WSL and browser setup; required CI and Markdown-only fast paths distinguished. |
@@ -91,8 +88,7 @@ redaction and decorative photograph licences.
 - [x] **Test-inventory assessment:** keep the maintained 56-module inventory and its existing ownership checks. Generating the inventory would introduce extra tooling without a demonstrated maintenance failure; revisit only if actual drift appears.
 - [x] **Further consolidation assessment:** architecture, testing and release guides have different primary audiences and canonical responsibilities. No remaining cross-guide duplication warrants merging them; preserve the full inventory, reproducible commands and rule-specific audit.
 - [x] **Stable release reconciliation:** already implemented; later `main` commits with a published version leave immutable tags intact and report a no-publication result.
-- [x] **v3.0.1 baseline refresh:** release/tag checked; kiosk/card editor/screenshots and merged casting changes no longer described as proposed.
-- [x] **v3.1.0 release documentation:** PR #138 squash-merged and stable release published on 7 November 2026. README, dashboard guide and changelog describe the single-panel centring and paired-panel row alignment as shipped; the roadmap has no v3.1.0 layout proposal.
+- [x] **v3.1.0 baseline refresh:** the published tag was checked; PR #138's single- and paired-panel changes read as released, not proposed. Existing casting work remains in release history.
 - [ ] **Recurring release verification:** for every later candidate, compare screenshots, UI labels, defaults, source limits, compatibility pins and research/runtime separation with the **actual release tag**. Record results in that candidate's PR/release rather than treating this recurring duty as permanently complete.
 
 ## Canonical document ownership
