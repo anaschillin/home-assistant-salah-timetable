@@ -17,6 +17,14 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
   editor with presets, accessible ordering, visibility, full/half widths and
   isolated phone/tablet/desktop previews, including custom kiosk arrangements.
 
+## 3.1.1 — Unreleased
+
+### Kiosk right-hand published-time readability
+
+- Centre the single-countdown kiosk's published Beginning and Jamaat times within equally sized rows in the right-hand information column, scaling labels and clock values with the available space.
+- On narrow displays, retain a compact two-column row beneath the enlarged countdown; preserve RTL, approved source values and the unchanged two-panel layouts.
+- Add CSS and real Chromium geometry regression tests at mobile, tablet and desktop widths.
+
 ## 3.1.0 — 7 November 2026
 
 ### Card Layout Improvements

@@ -1,8 +1,8 @@
 /** Small read-only sections shared by composite and standalone cards. */
-import {formatDate, formatTime} from "./card-utils.js?v=3.1.0";
-import {localizedNumber, prayerLabels, tr} from "./card-i18n.js?v=3.1.0";
-import {jamaatChanges} from "./widget-utils.js?v=3.1.0";
-import {widgetTr} from "./widget-i18n.js?v=3.1.0";
+import {formatDate, formatTime} from "./card-utils.js?v=3.1.1";
+import {localizedNumber, prayerLabels, tr} from "./card-i18n.js?v=3.1.1";
+import {jamaatChanges} from "./widget-utils.js?v=3.1.1";
+import {widgetTr} from "./widget-i18n.js?v=3.1.1";
 
 function element(tag, text, className) {
   const result = document.createElement(tag);
@@ -16,7 +16,11 @@ function panel(id, ui) {
   result.append(element("h3", widgetTr(ui, `section.${id}`), "widget-heading"));
   return result;
 }
-function note(result, text, className = "widget-status") { result.append(element("p", text, className)); }
+function note(result, text, className = "widget-status", status = null) {
+  const message = element("p", text, className);
+  if (status) message.setAttribute("data-status", status);
+  result.append(message);
+}
 function prayerName(key, ui) { return prayerLabels(key, ui, false)[0]?.text || key; }
 function fieldName(field, ui) {
   const translated = widgetTr(ui, `field.${field}`);
@@ -60,7 +64,7 @@ export function buildJamaatChanges(data, ui, config, connected = true) {
     result.append(row);
   }
   if (summary.status === "unchanged") note(result, widgetTr(ui, "changes.no_changes"));
-  if (summary.status === "incomplete") note(result, widgetTr(ui, "changes.incomplete"));
+  if (summary.status === "incomplete") note(result, widgetTr(ui, "changes.incomplete"), "widget-status", "incomplete");
   return result;
 }
 export function buildTimetableHealth(data, ui, config, hass) {
@@ -73,7 +77,7 @@ export function buildTimetableHealth(data, ui, config, hass) {
   note(result, widgetTr(ui, "health.as_of", {date: formatDate(data.date, ui)}), "note");
   if (coverage.status === "not_configured") note(result, widgetTr(ui, "health.no_approved_timetable"));
   else {
-    note(result, widgetTr(ui, `health.status.${coverage.status}`), "widget-status");
+    note(result, widgetTr(ui, `health.status.${coverage.status}`), "widget-status", ["missing_today", "missing_tomorrow"].includes(coverage.status) ? "unavailable" : coverage.status === "expiring" ? "incomplete" : "covered");
     if (coverage.available_through) note(result, widgetTr(ui, "health.through", {date: formatDate(coverage.available_through, ui)}));
     else note(result, widgetTr(ui, "health.partial"));
     note(result, widgetTr(ui, "health.days_remaining", {days: localizedNumber(coverage.days_remaining || 0, ui)}));

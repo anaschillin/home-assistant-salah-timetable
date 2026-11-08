@@ -1,6 +1,6 @@
 # Dashboard card
 
-Current integration version: <!-- docs:version -->3.1.0<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->3.1.1<!-- /docs:version -->.
 
 The **Salah Timetable** card is bundled with the integration. It uses the mosque's
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
@@ -566,7 +566,10 @@ the summary and uses larger prayer-name and live-timer lettering. The published
 (or to the left for RTL languages). The single panel expands to use more
 of the available glass surface without stretching indefinitely on wide displays.
 On unusually narrow cards, and phone-sized kiosk views, the published times
-stack underneath the enlarged countdown to prevent clipping. Showing both
+move underneath the enlarged countdown to prevent clipping. In the v3.1.1 kiosk
+candidate, the single-countdown Beginning and Jamaat times scale up and
+centre in equally sized rows of the right-hand information column; on phone-width
+kiosks they appear beside each other underneath the countdown. Showing both
 keeps the original paired layout, including kiosk's equal-width halves. The
 Next Salah and contextual Jamaat headings, live clocks and published
 Beginning/Jamaat rows are aligned from the top; an optional Fajr sunrise

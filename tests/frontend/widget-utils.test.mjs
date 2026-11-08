@@ -150,7 +150,7 @@ test("Friday sessions remain distinct from ordinary Dhuhr and Khutbah", () => {
   const attrs = fixture("2026-10-22", "2026-10-23");
   attrs.jamaat_events.push(event("2026-10-22", "13:00", "dhuhr_jamaat"), event("2026-10-23", "13:30", "jumuah"), event("2026-10-23", "12:30", "jumuah"), event("2026-10-23", "12:15", "khutbah"));
   const result = jamaatChanges(attrs);
-  assert.equal(result.status, "changed");
+  assert.equal(result.status, "incomplete", "Thursday Dhuhr and Friday Jumuah are distinct, not moved");
   assert.equal(result.changes.find(entry => entry.field === "dhuhr_jamaat").delta_minutes, null);
   const friday = result.changes.find(entry => entry.field === "jumuah");
   assert.deepEqual(friday.today, []);
@@ -175,4 +175,16 @@ test("invalid or duplicate events cannot create extra sessions or inferred chang
   assert.equal(jamaatChanges(attrs).status, "unchanged");
   assert.equal(jamaatChanges(attrs).changes[0].today.length, 1);
   for (const value of [undefined, {}, {...attrs, date: "2026-02-30"}, {...attrs, time_zone: "Invalid/Zone"}, {...attrs, date: "9999-12-31"}, {...attrs, jamaat_events: null}]) assert.equal(jamaatChanges(value).status, "unavailable");
+});
+
+test("one-sided optional Jamaat is not treated as a moved congregation", () => {
+  const attrs = fixture();
+  attrs.timetable_health.completeness.required_fields = ["fajr_begin"];
+  attrs.jamaat_events.push(event("2026-10-21", "13:15", "dhuhr_jamaat"));
+  const result = jamaatChanges(attrs);
+  assert.equal(result.status, "incomplete");
+  const dhuhr = result.changes.find(item => item.field === "dhuhr_jamaat");
+  assert.equal(dhuhr.status, "unavailable");
+  assert.equal(dhuhr.delta_minutes, null);
+  assert.deepEqual(dhuhr.tomorrow, []);
 });
