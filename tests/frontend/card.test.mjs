@@ -893,7 +893,9 @@ test("localized Fajr end, Friday khutbah and mosque Hijri visibility preserve th
   assert.doesNotMatch(find(card.shadowRoot, "header")[0].textContent, /هجري/);
   const end = classNodes(card.shadowRoot, "note fajr-end")[0]; assert.match(end.textContent, /الشروق/); assert.match(end.textContent, /٠٧:٣٠/); assert.equal(find(end, "bdi")[0].attributes.dir, "ltr");
   const khutbah = find(card.shadowRoot, "p").find(element => element.className === "note khutbah"); assert.match(khutbah.textContent, /خطبة الجمعة الثانية/); assert.equal(find(khutbah, "bdi")[0].attributes.dir, "ltr");
-  const dhuhr = find(card.shadowRoot, "tr").find(row => row.textContent.includes("الظهر")); assert.match(dhuhr.textContent, /الجمعة/); assert.match(dhuhr.textContent, /Jumu’ah/);
+  const jumuah = find(card.shadowRoot, "tr").find(row => row.children[0]?.textContent.includes("الجمعة"));
+  assert.ok(jumuah, "Friday heading is Jumu'ah in Arabic as well as English");
+  assert.match(jumuah.textContent, /Jumu’ah/);
   const current = hass({...friday, show_hijri_date: true}); card.hass = current;
   assert.match(find(card.shadowRoot, "header")[0].textContent, /هجري \(محسوب\)/);
   current.states["sensor.mosque_prayer_timetable"].attributes.date = "2026-10-22"; card.hass = current;
