@@ -1204,17 +1204,6 @@ export class SalahTimetableCard extends HTMLElement {
   }
 }
 
-const EDITOR_GROUPS = [
-  {id: "dates", icon: "mdi:calendar-month", keys: ["show_hijri_date", "show_gregorian_date", "show_hijri_month_info"]},
-  {id: "countdowns", icon: "mdi:timer-outline", keys: ["show_salah_countdown", "show_jamaat_countdown"]},
-  {id: "ramadan", icon: "mdi:moon-waning-crescent", keys: ["show_ramadan_details", "show_sehri_countdown", "show_iftar_countdown", "show_night_calculations"]},
-  {id: "appearance", icon: "mdi:image-outline", keys: ["mosque_background"]},
-  {id: "tools", icon: "mdi:calendar-text-outline", keys: ["show_month_view", "show_timezone_note", "show_jamaat_changes", "show_timetable_health"]},
-  {id: "history", icon: "mdi:book-open-variant", keys: ["show_historical_day_events", "show_historical_month_highlights", "show_historical_sources", "show_disputed_historical_dates"]},
-  {id: "advanced", icon: "mdi:tune-variant", keys: ["language", "bilingual_prayer_labels", "kiosk_mode", "time_format", "hijri_adjustment", "hijri_day_boundary"]},
-];
-const EDITOR_FUTURE_OPTIONS = new Set(["show_historical_day_events", "show_historical_month_highlights", "show_historical_sources", "show_disputed_historical_dates"]);
-
 // HA 2026.8+ may install the scoped-custom-element-registry polyfill after
 // our resource module evaluated. Elements defined in the earlier native
 // registry then appear missing to the active registry, causing a permanent
