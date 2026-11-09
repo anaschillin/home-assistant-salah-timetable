@@ -135,6 +135,37 @@ function sameDay(first, second, timeZone = "UTC") {
   } catch { return false; }
 }
 
+/** Retain Dhuhr's published beginning, but use the Friday Jumu'ah name only
+ * when this mosque has an explicit Jumu'ah congregation on that civil date.
+ */
+function mosqueLocalDate(value, timeZone) {
+  if (dateInstant(value) !== null) return value;
+  const instant = timestamp(value);
+  if (instant === null) return null;
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      calendar: "gregory", year: "numeric", month: "2-digit", day: "2-digit", timeZone,
+    }).formatToParts(instant);
+    const valueOf = type => parts.find(part => part.type === type)?.value;
+    const year = valueOf("year"), month = valueOf("month"), day = valueOf("day");
+    return year && month && day ? `${year}-${month}-${day}` : null;
+  } catch { return null; }
+}
+
+function publishedJumuah(attributes, onDate) {
+  const zone = attributes?.time_zone || "UTC";
+  const day = mosqueLocalDate(onDate, zone);
+  if (!day || new Date(`${day}T12:00:00Z`).getUTCDay() !== 5) return [];
+  return (Array.isArray(attributes?.jamaat_events) ? attributes.jamaat_events : [])
+    .filter(event => event?.prayer === "jumuah" && timestamp(event.timestamp) !== null &&
+      mosqueLocalDate(event.timestamp, zone) === day)
+    .sort((left, right) => timestamp(left.timestamp) - timestamp(right.timestamp));
+}
+
+export function displayPrayerKey(attributes, prayer, onDate) {
+  return prayer === "dhuhr" && publishedJumuah(attributes, onDate).length ? "jumuah" : prayer;
+}
+
 function events(attributes, congregation) {
   const candidates = [];
   for (const row of Array.isArray(attributes?.prayers) ? attributes.prayers : []) {
@@ -165,11 +196,17 @@ export function publishedTimes(attributes, event, congregation = false) {
   const row = rows.find(item => item && item.key === pair(key) && (timestamp(item.begin) === instant ||
     (Array.isArray(item.jamaat) && item.jamaat.some(value => timestamp(value) === instant))));
   const jamaats = Array.isArray(row?.jamaat) ? row.jamaat : [];
+  // On Friday, use the first published Jumu'ah congregation (not an ordinary
+  // Dhuhr Jamaat that might also be present). Never borrow another day's times.
+  const friday = !congregation && key === "dhuhr" &&
+    displayPrayerKey(attributes, key, event.timestamp) === "jumuah";
+  const firstJumuah = friday && row ? publishedJumuah(attributes, event.timestamp)
+    .find(item => jamaats.some(value => timestamp(value) === timestamp(item.timestamp)))?.timestamp : null;
   // A published event is sufficient to display its own time, but other times
   // must come from the matching dated row (never today's row as a fallback).
   return {
     begin: row?.begin || (congregation ? null : event.timestamp),
-    jamaat: congregation ? event.timestamp : (jamaats[0] || null),
+    jamaat: congregation ? event.timestamp : friday ? (firstJumuah || null) : (jamaats[0] || null),
     end: row && key === "fajr" ? row.end || null : null,
   };
 }

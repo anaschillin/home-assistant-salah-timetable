@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {countdown, duration, elapsed, formatDate, formatHijriDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, timestamp, discoverEntity, discoverTimetableEntities, nextRamadanEvent, publishedTimes} from "../../custom_components/salah_timetable/frontend/card-utils.js";
+import {countdown, duration, elapsed, displayPrayerKey, formatDate, formatHijriDate, formatTime, isTimetableState, jamaatPanel, nextSalah, normalizeConfig, timestamp, discoverEntity, discoverTimetableEntities, nextRamadanEvent, publishedTimes} from "../../custom_components/salah_timetable/frontend/card-utils.js";
 import {resolveUi} from "../../custom_components/salah_timetable/frontend/card-i18n.js";
 
 const instant = value => Date.parse(`2026-10-21T${value}:00Z`);
@@ -215,6 +215,40 @@ test("Jamaat card switches at the exact published Isha boundary", () => {
   assert.equal(after.mode, "previous");
   assert.equal(after.event.prayer, "isha");
   assert.equal(elapsed(after.event.timestamp, Date.parse("2026-10-27T20:00:00Z")), "00:00:00");
+});
+
+test("Friday 6 November displays published Jumu'ah without changing the Dhuhr beginning", () => {
+  const day = "2026-11-06";
+  const row = {
+    key: "dhuhr", begin: `${day}T11:55:00Z`,
+    jamaat: [`${day}T12:20:00Z`, `${day}T12:35:00Z`, `${day}T13:25:00Z`],
+  };
+  const attrs = {
+    date: day, time_zone: "Europe/London", prayers: [row],
+    jamaat_events: [
+      {prayer: "dhuhr", field: "dhuhr_jamaat", timestamp: row.jamaat[0]},
+      {prayer: "jumuah", field: "jumuah", timestamp: row.jamaat[1]},
+      {prayer: "jumuah", field: "jumuah", timestamp: row.jamaat[2]},
+    ],
+  };
+  assert.equal(displayPrayerKey(attrs, "dhuhr", row.begin), "jumuah");
+  assert.equal(displayPrayerKey(attrs, "dhuhr", day), "jumuah");
+  assert.equal(displayPrayerKey(attrs, "asr", day), "asr");
+  assert.equal(displayPrayerKey(attrs, "dhuhr", "2026-11-05"), "dhuhr");
+  assert.equal(displayPrayerKey(attrs, "dhuhr", "2026-11-07"), "dhuhr");
+  assert.equal(displayPrayerKey({...attrs, jamaat_events: []}, "dhuhr", day), "dhuhr");
+  assert.equal(displayPrayerKey(attrs, "dhuhr", "nonsense"), "dhuhr");
+  assert.equal(displayPrayerKey({...attrs, time_zone: "Mars/Invalid"}, "dhuhr", day), "dhuhr");
+  assert.equal(displayPrayerKey({...attrs, time_zone: "Asia/Dubai"},
+    "dhuhr", "2026-11-05T23:30:00Z"), "jumuah",
+    "Day matching uses the mosque timezone, not UTC");
+  assert.deepEqual(publishedTimes(attrs, {prayer: "dhuhr", field: "dhuhr_begin", timestamp: row.begin}), {
+    begin: row.begin, jamaat: row.jamaat[1], end: null,
+  }, "The next-Salah panel uses the first published Jumu'ah, not an earlier Dhuhr Jamaat");
+  assert.deepEqual(publishedTimes({...attrs, prayers: []},
+    {prayer: "dhuhr", timestamp: row.begin}), {
+    begin: row.begin, jamaat: null, end: null,
+  }, "Missing dated rows never borrow another congregation");
 });
 
 test("Friday Jamaat displays the specifically selected congregation", () => {

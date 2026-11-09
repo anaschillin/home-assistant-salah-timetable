@@ -1,7 +1,7 @@
 import {openReminderWizard} from "./reminder-wizard.js?v=3.6.0";
 import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=3.6.0";
 import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=3.6.0";
-import {eventProgress, publishedTimes, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.6.0";
+import {eventProgress, publishedTimes, displayPrayerKey, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.6.0";
 import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=3.6.0";
 import {SECTION_IDS, sectionVisible, widgetSection, widgetType} from "./widget-utils.js?v=3.6.0";
 import {joinSelectionGroup} from "./widget-selection.js?v=3.6.0";
@@ -178,7 +178,8 @@ function prayerPanel(kind, event, data, zone, ui, config, clock, {mode = "previo
   const label = node("div", tr(ui, kind === "salah" ? "panel.next_salah" : mode === "upcoming" ? "panel.next_jamaat" : "panel.previous_jamaat"), "label");
   result.label = label;
   const name = node("div", undefined, "event");
-  if (event) name.append(prayerNode(eventPrayerKey(event), ui, config.bilingual_prayer_labels, event.name));
+  if (event) name.append(prayerNode(displayPrayerKey(data, eventPrayerKey(event), event.timestamp),
+    ui, config.bilingual_prayer_labels, event.name));
   else name.textContent = tr(ui, "status.unavailable");
   result.append(label, name);
   if (kind === "salah" || kind === "jamaat") {
@@ -205,7 +206,7 @@ function prayerPanel(kind, event, data, zone, ui, config, clock, {mode = "previo
 
 
 /** Five published daily prayers in display order; no estimates or synthetic times. */
-function kioskPrayerStrip(rows, next, congregation, data, zone, ui, config, selectedDay, now) {
+function kioskPrayerStrip(rows, next, congregation, data, zone, ui, config, selectedDay, selectedDate, now) {
   const strip = node("section", undefined, "kiosk-strip");
   strip.setAttribute("aria-label", tr(ui, "table.caption"));
   const ordered = ["fajr", "dhuhr", "asr", "maghrib", "isha"]
@@ -243,7 +244,8 @@ function kioskPrayerStrip(rows, next, congregation, data, zone, ui, config, sele
     }
     if (status === "is-next") tile.setAttribute("aria-current", "true");
     const heading = node("h3", undefined, "kiosk-tile-name");
-    heading.append(prayerNode(prayer.key, ui, config.bilingual_prayer_labels, prayer.name));
+    heading.append(prayerNode(displayPrayerKey(data, prayer.key, selectedDate),
+      ui, config.bilingual_prayer_labels, prayer.name));
     const times = node("div", undefined, "kiosk-tile-times");
     const beginning = node("div", undefined, "kiosk-tile-time");
     beginning.append(
@@ -1095,7 +1097,8 @@ export class SalahTimetableCard extends HTMLElement {
       const row = node("tr", undefined, this._selectedDay === 0 ? (prayer.key === highlighted ? "next-prayer" : prayerIsPast(prayer, now) ? "past-prayer" : "") : "");
       if (this._selectedDay === 0 && prayer.key === highlighted) row.setAttribute("aria-current", "true");
       const name = node("th"); name.scope = "row";
-      name.append(prayerNode(prayer.key, ui, this._config.bilingual_prayer_labels, prayer.name));
+      name.append(prayerNode(displayPrayerKey(data, prayer.key, selectedDate),
+        ui, this._config.bilingual_prayer_labels, prayer.name));
       const congregations = Array.isArray(prayer.jamaat) ? prayer.jamaat : [];
       const congregationCell = node("td");
       for (const value of congregations) {
@@ -1120,7 +1123,7 @@ export class SalahTimetableCard extends HTMLElement {
     tableRegion.append(table); tableShell.append(tableRegion, scrollHelp);
     }
     if (this._config.kiosk_mode) {
-      const strip = kioskPrayerStrip(selectedPrayers, next, congregation, data, zone, ui, this._config, this._selectedDay, now);
+      const strip = kioskPrayerStrip(selectedPrayers, next, congregation, data, zone, ui, this._config, this._selectedDay, selectedDate, now);
       if (modern) tableShell.append(strip, dateTabs);
       else content.append(strip);
       dateTabs.classList.add("kiosk-day-tabs");
