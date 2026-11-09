@@ -412,6 +412,26 @@ async function captureWidget(debuggerSession, index, source, name) {
   await writeFile(join(output, name), Buffer.from(screenshot.data, "base64"));
 }
 
+async function captureSoloPrayer(debuggerSession, index, name, kiosk_mode) {
+  if (!process.env.BROWSER_WIDGET_SCREENSHOT_DIR) return;
+  await dispatchWidgetAction(debuggerSession, (index, _action, kiosk_mode) => {
+    const fixture = document.querySelectorAll("iframe")[index].contentWindow.widgetFixture;
+    fixture.view.querySelector("[data-solo-screenshot]")?.remove();
+    const surface = fixture.view.ownerDocument.createElement("div");
+    surface.setAttribute("data-solo-screenshot", "");
+    // Keep the capture in view without scrolling the inner fixture page.
+    surface.style.cssText = "position:fixed;inset:8px;z-index:1";
+    fixture.view.append(surface);
+    fixture.solo = fixture.mount("salah-timetable-card", {
+      detail_level: "compact", kiosk_mode, show_jamaat_countdown: false,
+      show_mosque_selector: false, show_month_view: true, bilingual_prayer_labels: true,
+      show_mosque_background: true, mosque_background: "masjid-al-haram",
+    }, surface);
+    fixture.solo._render(fixture.now + 13 * 60 * 60 * 1000);
+  }, index, "mount", kiosk_mode);
+  await captureWidget(debuggerSession, index, "f.solo.shadowRoot.querySelector('.summary-shell')", name);
+}
+
 test("real Chromium card, editor and reminder wizard smoke", {skip, timeout: 90000}, async t => {
   assert.ok(browser, "A Chromium browser is required for this run");
   t.diagnostic(`Browser executable: ${browser}`);
@@ -745,6 +765,10 @@ nextFixture();
             await captureWidget(debuggerSession, index, "f.custom", `custom-layout-${suffix}.png`);
             await captureWidget(debuggerSession, index, "f.health", `health-widget-${suffix}.png`);
             await captureWidget(debuggerSession, index, "f.editorState.editor.shadowRoot.querySelector('[data-layout-preview-frame]')", `layout-preview-${suffix}.png`);
+            if (language === "en") {
+              await captureSoloPrayer(debuggerSession, index, `solo-compact-${width}.png`, false);
+              if (width === 360) await captureSoloPrayer(debuggerSession, index, `solo-kiosk-${width}.png`, true);
+            }
           }
           const reset = await evaluate("reset");
           assert.equal(reset.custom, false, "Reset restores the legacy mode arrangement");
@@ -767,6 +791,7 @@ nextFixture();
           assert.equal(wall.kiosk && wall.clock && wall.fullscreen && wall.dateTabs && wall.live && wall.fits, true, "Custom wall arrangements retain clock, published timetable, navigation, fullscreen and live timers without clipping");
           assert.equal(wall.strip, 5, "Kiosk uses the existing five published daily-prayer tiles");
           await captureWidget(debuggerSession, index, "f.wall", `custom-kiosk-1280-${language}.png`);
+          if (language === "en") await captureSoloPrayer(debuggerSession, index, "solo-kiosk-1280.png", true);
         } finally {
           await evaluate("destroyWall");
         }

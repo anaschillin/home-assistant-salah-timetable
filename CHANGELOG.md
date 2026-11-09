@@ -5,7 +5,15 @@ not the current backlog. For available features see the [README](README.md#featu
 for pending work see the [roadmap](docs/roadmap.md). Published releases and their
 exact source tags are listed on [GitHub Releases](https://github.com/anaschillin/home-assistant-salah-timetable/releases).
 
-## Unreleased — visual arrangement editor (merged to `main` after v3.5.0)
+## Unreleased
+
+### Single-countdown layout
+
+- When only Next Salah or the contextual Jamaat panel is visible, centre the
+  published Beginning and Jamaat times with each label and time on one line,
+  and move the decorative silhouette to the far right of the panel.
+
+### Visual arrangement editor
 
 - Extend the v3.5 widgets with standalone views of ten card sections, including dates,
   clock, Salah/Jamaat, timetable, Ramadan and calculated-night information.

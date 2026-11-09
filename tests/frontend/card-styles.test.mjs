@@ -142,13 +142,6 @@ test("paired countdowns align rows instead of distributing Jamaat height", () =>
   assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*display:\s*grid/);
 });
 
-test("solo kiosk displays make Beginning and Jamaat responsive in the right column", () => {
-  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel > \.prayer-times\s*\{[^}]*grid-template-rows:\s*repeat\(2, minmax\(0, 1fr\)\);[^}]*align-content:\s*stretch;[^}]*text-align:\s*center/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel > \.prayer-times > \.prayer-time\s*\{[^}]*justify-content:\s*center;[^}]*align-items:\s*center/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel \.prayer-time \.absolute\s*\{[^}]*font-size:\s*clamp\(1\.55rem, 3\.9cqi, 3\.2rem\)/);
-  assert.match(CARD_CSS, /@container\(max-width:40rem\)\s*\{[\s\S]*?\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel > \.prayer-times\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\);[^}]*grid-template-rows:\s*auto/);
-});
-
 test("single countdowns use larger leading text and a separate published-time column", () => {
   assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\);[^}]*justify-items:\s*center/);
   assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(0, 1\.35fr\) minmax\(0, 1fr\);[^}]*max-width:\s*56rem/);
@@ -157,9 +150,8 @@ test("single countdowns use larger leading text and a separate published-time co
   assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel > \.fajr-sunrise\s*\{[^}]*grid-column:\s*1/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\);[^}]*justify-items:\s*center/);
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(0, 1\.3fr\) minmax\(0, 1fr\);[^}]*max-width:\s*72rem/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel > \.prayer-times\s*\{[^}]*border-inline-start:\s*1px solid/);
   assert.match(CARD_CSS, /@container\(max-width:40rem\)\s*\{[^}]*\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/);
-  assert.match(CARD_CSS, /@container\(max-width:20rem\)\s*\{[^}]*\.summary-shell \.panels\.single-panel > \.prayer-panel,[^}]*grid-template-columns:\s*minmax\(0,1fr\)/);
+  assert.match(CARD_CSS, /@container\(max-width:30rem\)\s*\{\s*\.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/);
 });
 
 test("glass readability uses the same high-contrast substrate without an extra timetable tint", () => {
