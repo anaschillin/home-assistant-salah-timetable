@@ -26,6 +26,10 @@ const JS_EMBED_ESCAPE_MAP = {
   "\u2028": "\\u2028",
   "\u2029": "\\u2029",
 };
+
+function escapeJsEmbeddedString(value) {
+  return String(value).replace(/[<>\/\\\b\f\n\r\t\0\u2028\u2029]/g, ch => JS_EMBED_ESCAPE_MAP[ch] ?? ch);
+}
 const JS_EMBED_UNSAFE_PATTERN = /[<>/\\\b\f\n\r\t\0\u2028\u2029]/g;
 const escapeForJsEmbedding = value => value.replace(JS_EMBED_UNSAFE_PATTERN, char => JS_EMBED_ESCAPE_MAP[char]);
 let browser;
@@ -332,8 +336,9 @@ nextFixture();
     for (const [index, {width, language, bilingual}] of fixtures.entries()) {
       await t.test(`${width}px ${language}${bilingual ? " bilingual" : ""} standalone status widgets and grouped selection`, async () => {
         const evaluate = async source => {
+          const safeSource = escapeJsEmbeddedString(source);
           const result = await debuggerSession.call("Runtime.evaluate", {
-            expression: `(async () => {const frame = document.querySelectorAll('iframe')[${index}]; const f = frame.contentWindow.widgetFixture; ${source}})()`,
+            expression: `(async () => {const frame = document.querySelectorAll('iframe')[${index}]; const f = frame.contentWindow.widgetFixture; ${safeSource}})()`,
             awaitPromise: true, returnByValue: true,
           });
           assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
