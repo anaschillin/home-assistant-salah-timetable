@@ -1,6 +1,6 @@
 /** Per-card arrangement controls and an isolated preview of the actual card. */
-import {SECTIONS, applyPreset, normalizeArrangement, resetArrangement, sectionVisible} from "./widget-utils.js?v=3.5.0";
-import {widgetTr} from "./widget-i18n.js?v=3.5.0";
+import {SECTIONS, applyPreset, normalizeArrangement, resetArrangement, sectionVisible} from "./widget-utils.js?v=3.6.0";
+import {widgetTr} from "./widget-i18n.js?v=3.6.0";
 
 const PRESETS = ["countdown", "balanced", "timetable_first", "ramadan", "wall"];
 const DEVICES = {phone: 360, tablet: 768, desktop: 1280};

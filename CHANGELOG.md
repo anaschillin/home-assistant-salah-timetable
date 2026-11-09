@@ -5,13 +5,19 @@ not the current backlog. For available features see the [README](README.md#featu
 for pending work see the [roadmap](docs/roadmap.md). Published releases and their
 exact source tags are listed on [GitHub Releases](https://github.com/anaschillin/home-assistant-salah-timetable/releases).
 
-## Unreleased
+## 3.6.0 — Kiosk and single-countdown improvements
 
 ### Single-countdown layout
 
-- When only Next Salah or the contextual Jamaat panel is visible, centre the
-  published Beginning and Jamaat times with each label and time on one line,
-  and move the decorative silhouette to the far right of the panel.
+- Centre the countdown heading and group the published Beginning and Jamaat
+  times in a responsive tile when a single countdown is displayed. Place the
+  tile beside the countdown on wide cards and beneath it on phones, with the
+  decorative silhouette at the far right.
+- Show the published interval before Salah. The contextual Jamaat panel
+  fills the timeline as Jamaat approaches and shows elapsed minutes once it
+  begins. Missing or invalid intervals leave the timeline hidden.
+- Apply the design to Compact, Standard, Detailed and kiosk layouts, plus
+  standalone countdown widgets and individual sections in custom layouts.
 
 ### Visual arrangement editor
 
@@ -20,7 +26,6 @@ exact source tags are listed on [GitHub Releases](https://github.com/anaschillin
 - Add an opt-in visual Layout editor with five presets, move/drag ordering,
   full/half-width sections, visibility controls and isolated phone/tablet/desktop previews.
 - Preserve custom kiosk presentation, approved prayer values and linked mosque selection.
-  Merged into `main` through PR #143; these changes are **not** in the published v3.5.0 tag and await a later release.
 
 ## 3.5.0 — 9 November 2026
 

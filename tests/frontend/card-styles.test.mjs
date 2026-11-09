@@ -139,19 +139,6 @@ test("paired countdowns align rows instead of distributing Jamaat height", () =>
     /@container\(max-width:21rem\)\s*\{\s*\.summary-shell \.panels:not\(\.single-panel\) > \.prayer-panel > \.label,[\s\S]*?min-height:\s*0/);
   assert.match(CARD_CSS,
     /\.content\.kiosk \.summary-shell \.panels:not\(\.single-panel\) > \.prayer-panel \.prayer-times\s*\{\s*margin-top:\s*0/);
-  assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*display:\s*grid/);
-});
-
-test("single countdowns use larger leading text and a separate published-time column", () => {
-  assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\);[^}]*justify-items:\s*center/);
-  assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(0, 1\.35fr\) minmax\(0, 1fr\);[^}]*max-width:\s*56rem/);
-  assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel > \.count\s*\{[^}]*font-size:\s*clamp\(1\.55rem, 5\.4cqi, 3\.15rem\)/);
-  assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel > \.prayer-times\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1 \/ 5;[^}]*border-inline-start:\s*1px solid/);
-  assert.match(CARD_CSS, /\.summary-shell \.panels\.single-panel > \.prayer-panel > \.fajr-sunrise\s*\{[^}]*grid-column:\s*1/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\);[^}]*justify-items:\s*center/);
-  assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(0, 1\.3fr\) minmax\(0, 1fr\);[^}]*max-width:\s*72rem/);
-  assert.match(CARD_CSS, /@container\(max-width:40rem\)\s*\{[^}]*\.content\.kiosk \.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/);
-  assert.match(CARD_CSS, /@container\(max-width:30rem\)\s*\{\s*\.summary-shell \.panels\.single-panel > \.prayer-panel\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/);
 });
 
 test("glass readability uses the same high-contrast substrate without an extra timetable tint", () => {

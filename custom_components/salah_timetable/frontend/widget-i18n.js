@@ -1,5 +1,5 @@
 /** Plain-text widget translations. Arabic wording follows the existing card draft. */
-import {resolveUi, tr} from "./card-i18n.js?v=3.5.0";
+import {resolveUi, tr} from "./card-i18n.js?v=3.6.0";
 
 const labels = {
   "section.mosque_selector": ["Mosque selector", "اختيار المسجد"],
