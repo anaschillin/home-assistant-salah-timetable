@@ -1,6 +1,6 @@
 # Architecture
 
-Current integration version: <!-- docs:version -->3.1.1<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->3.5.0<!-- /docs:version -->.
 
 ## Boundaries
 
@@ -309,22 +309,6 @@ Equivalent sensor replacements, unrelated HA updates and ordinary ticks
 preserve static table content, focus and text selection. It stops its timer
 when detached from the DOM. Imported/user text uses `textContent`.
 
-The candidate widget implementation reuses these renderers for ten standalone
-sections and optional ordered arrangements. `widget-utils.js` owns the finite
-section catalog, visibility/presets and field-preserving Jamaat comparisons;
-`widget-renderers.js` builds the two read-only status sections. The dashboard
-sensor adds copied coverage/completeness summaries, sanitized source-check status
-and its configuration-entry ID. Comparison uses mosque-local published clock
-minutes rather than subtracting timestamps across civil dates.
-
-`widget-selection.js` keeps temporary selection groups scoped to the containing
-dashboard view. Cards subscribe only while connected outside editor/preview mode,
-enforce their own enabled lists and remove empty groups. Grouping writes no HA
-state or browser storage. `layout-editor.js` edits per-card placement and uses an
-isolated instance of the actual card for device previews. The legacy renderer
-remains the default without an explicit arrangement. See [widget and layout
-configuration](dashboard.md#visual-layouts-and-standalone-sections).
-
 The graphical editor emits `config-changed` events for card-level mosque
 filtering, optional title, `compact`/`standard`/`detailed` detail levels,
 countdown and date visibility, language, bilingual labels and 12/24-hour
@@ -444,18 +428,27 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 | `frontend/history-utils.js` | Research/test-only history selector; not imported by the card |
 | `frontend/card-i18n.js` | Localized client-side labels |
 | `frontend/card-styles.js` | Dashboard CSS and layout tokens |
+| `frontend/widget-utils.js` | Standalone widget configuration and approved Jamaat-comparison helpers |
+| `frontend/widget-selection.js` | Ephemeral linked mosque selection, scoped to the current Home Assistant dashboard view |
+| `frontend/widget-renderers.js` | Read-only Jamaat-change and timetable-health panels, using approved diagnostic data |
+| `frontend/widget-i18n.js` | English/Arabic labels, status messages and linked-widget settings |
+| `frontend/layout-editor.js` | Optional feature-branch visual arrangement editor with accessible controls and isolated previews (PR #143) |
 | `frontend/mosque-backgrounds.js` | Background catalog and selection logic |
 | `frontend/reminder-wizard.js` | Guided prayer reminder UI that previews and saves normal Home Assistant automations |
-| `frontend/widget-utils.js` | Finite section catalog, arrangement/preset configuration and approved Jamaat comparison |
-| `frontend/widget-selection.js` | Temporary dashboard-view mosque selection groups |
-| `frontend/widget-renderers.js` | Shared read-only Jamaat-change and timetable-health sections |
-| `frontend/widget-i18n.js` | Widget and layout labels using existing translation fallback |
-| `frontend/layout-editor.js` | Accessible per-card arrangement controls and isolated device previews |
 | `frontend/backgrounds/*.webp` | Attributed bundled mosque images; see [provenance inventory](asset-provenance.json) |
 | `brand/icon.png` | Integration icon |
 | `manifest.json` | HACS and HA integration metadata/dependencies |
 | `strings.json`, `translations/en.json` | HA setup, options, reconfiguration and entity-name localization |
 | `icons.json` | Home Assistant entity icon translations (including the prayer calendar) |
+
+Version 3.5 adds separately registered **Mosque selector**, **Upcoming Jamaat
+changes** and **Timetable health** Lovelace cards alongside the main card.
+Embedded status panels and standalone cards reuse approved timetable sensor
+attributes; they do not calculate or approve prayer times. `selection_group`
+shares only the selected mosque among eligible cards in one view and never
+persists across browser sessions, devices or user accounts. A card's enabled
+mosque list remains authoritative. Standalone previews use natural height and
+do not mutate live selection state.
 
 The card's JavaScript imports remain in their existing relative locations to
 preserve the versioned static asset URL, browser cache behaviour, HACS packaging

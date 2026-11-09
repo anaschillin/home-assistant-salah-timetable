@@ -1,8 +1,8 @@
 /** Small read-only sections shared by composite and standalone cards. */
-import {formatDate, formatTime} from "./card-utils.js?v=3.1.1";
-import {localizedNumber, prayerLabels, tr} from "./card-i18n.js?v=3.1.1";
-import {jamaatChanges} from "./widget-utils.js?v=3.1.1";
-import {widgetTr} from "./widget-i18n.js?v=3.1.1";
+import {formatDate, formatTime} from "./card-utils.js?v=3.5.0";
+import {localizedNumber, prayerLabels, tr} from "./card-i18n.js?v=3.5.0";
+import {jamaatChanges} from "./widget-utils.js?v=3.5.0";
+import {widgetTr} from "./widget-i18n.js?v=3.5.0";
 
 function element(tag, text, className) {
   const result = document.createElement(tag);

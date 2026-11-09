@@ -94,6 +94,27 @@ lists the sensors and calendar created for each mosque.
 
 Separate cards and dashboards may show different mosques. The duplicate primary-sensor radio selector has been removed.
 
+### Linked dashboard widgets (v3.5)
+
+The bundled **Mosque selector**, **Timetable health** and **Upcoming Jamaat
+changes** cards can be added separately via **Edit dashboard → Add card → By
+card**, then search for **Salah**. The main Salah Timetable card can also show
+the two status panels under **Timetable & information**.
+
+If you use multiple cards on the same view, open **Advanced** in each card's
+editor, enable **Synchronise mosque selection** and enter the same **Group
+name** (for example `home`). A dedicated Mosque selector is optional: the main
+card's built-in dropdown can control the group. Linked status widgets do not
+repeat the dropdown; unlinked widgets remain independent. These are *dashboard
+cards*, not native mobile home-screen widgets.
+
+**Timetable health** reports approved coverage, missing required fields and
+pending reviews. **Upcoming Jamaat changes** needs approved congregation times
+for today and tomorrow; missing values remain unavailable. See
+[Dashboard widgets and troubleshooting](dashboard.md#jamaat-changes-and-timetable-health-widgets)
+for examples and setup steps. Group selection stays local to the dashboard
+view/browser and never approves imported data.
+
 The Yesterday, Today and Tomorrow controls show approved rows for the selected day.
 The calculated Hijri header is for display; it does not activate Ramadan or change
 published timestamps. See [Dashboard](dashboard.md) for card options and

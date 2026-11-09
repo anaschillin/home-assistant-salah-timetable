@@ -4,7 +4,7 @@ Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.4<!-- /docs:pypdf --> (fro
 
 Pinned compatibility targets: Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested --> (pinned current).
 
-This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 56 Python test modules are grouped by the behaviour they protect, not by test framework. All 20 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
+This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 56 Python test modules are grouped by the behaviour they protect, not by test framework. All 19 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
 
@@ -131,7 +131,7 @@ Names indicate the primary module ownership; some tests deliberately span unit, 
 
 ## JavaScript and browser tests
 
-The following 20 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
+The following 19 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
 
 | File in `tests/frontend/` | Responsibility |
 | --- | --- |
@@ -154,7 +154,13 @@ The following 20 Node unit modules are discovered by `npm test` (`node --test te
 | `visual-regression.test.mjs` | Screenshot comparison behaviour |
 | `widget-utils.test.mjs` | Widget configuration, layout presets, approved Jamaat comparisons and missing/DST/Friday cases |
 | `widget-selection.test.mjs` | Dashboard-view mosque groups, late joins, change delivery and cleanup |
-| `layout-editor.test.mjs` | Arrangement editing, drag/arrow ordering, configuration echoes and isolated device previews |
+| `layout-editor.test.mjs` | Separate visual-layout branch (PR #143): arrangement editing, keyboard/drag ordering and isolated device previews |
+
+Version 3.5's frontend tests also cover independent/linked mosque selection,
+view-scoped synchronisation, optional status panels, natural-height standalone
+previews, inaccessible timetable data, Friday/Jumu’ah, DST and missing Jamaat
+fields. Manual acceptance must include Home Assistant's native Add Card picker
+and actual dashboard placements, not just the synthetic browser harness.
 
 `tests/frontend/browser-smoke.mjs` is a separately executed Chromium smoke test via `npm run test:browser` (it intentionally has no `.test.mjs` suffix). `tests/frontend/browser-harness.js` supplies the synthetic HA card environment used by that smoke test. The comparator is `scripts/compare_screenshots.mjs`; pull-request CI compares the base and candidate screenshots, and requires explicit approval for intentional pixel differences. See [visual regression](testing.md#frontend-visual-regression).
 

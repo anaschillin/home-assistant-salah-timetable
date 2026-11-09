@@ -137,7 +137,7 @@ async function runWidgetLayoutAction(index, action, config) {
       return null;
     }
     case "standalone": {
-      const module = await frame.contentWindow.eval("import('/custom_components/salah_timetable/frontend/widget-utils.js?v=3.1.1')");
+      const module = await frame.contentWindow.eval("import('/custom_components/salah_timetable/frontend/widget-utils.js?v=3.5.0')");
       f.widgetModule = module;
       f.standalone = module.SECTIONS.map(({id, show}) => {
       const type = module.widgetType(id).slice('custom:'.length);
@@ -280,7 +280,7 @@ async function runWidgetWallAction(index, action, config) {
       return null;
     }
     case "wall": {
-      const module=await frame.contentWindow.eval("import('/custom_components/salah_timetable/frontend/widget-utils.js?v=3.1.1')");
+      const module=await frame.contentWindow.eval("import('/custom_components/salah_timetable/frontend/widget-utils.js?v=3.5.0')");
       f.wall=f.mount('salah-timetable-card', {...module.applyPreset(f.base,'wall'),show_jamaat_changes:false,show_timetable_health:false});
       const root=f.wall.shadowRoot;
       const grid=root.querySelector('.arrangement-grid');
