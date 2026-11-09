@@ -1,5 +1,6 @@
 /** Pure timestamp and display logic shared by the bundled card and its tests. */
-import {localizedNumber, tr} from "./card-i18n.js?v=3.1.1";
+import {localizedNumber, tr} from "./card-i18n.js?v=3.5.0";
+import {normalizeArrangement, widgetSection} from "./widget-utils.js?v=3.5.0";
 
 const PRAYERS = Object.freeze(["fajr", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
@@ -75,8 +76,23 @@ export function normalizeConfig(config) {
     !config.mosque_entities.length ||
     config.mosque_entities.some(entity => typeof entity !== "string" || !/^sensor\.[a-z0-9_]+$/.test(entity)) ||
     new Set(config.mosque_entities).size !== config.mosque_entities.length)) throw configError("entity");
+  const standalone = widgetSection(config);
+  if (config.type !== undefined && config.type !== "custom:salah-timetable-card" && !standalone) throw configError("widget_type");
+  if (config.selection_group !== undefined && (typeof config.selection_group !== "string" || config.selection_group.trim().length > 100)) throw configError("selection_group");
   const defaults = {detail_level: config.detail_level || (config.layout === "compact" ? "compact" : "standard"), layout: "expanded", time_format: "24h", hijri_adjustment: 0, hijri_day_boundary: "midnight", language: "auto", bilingual_prayer_labels: false, show_hijri_date: true, show_gregorian_date: true, show_salah_countdown: true, show_jamaat_countdown: true, show_ramadan_details: true, show_night_calculations: false, show_month_view: false, show_sehri_countdown: true, show_iftar_countdown: true, show_timezone_note: true, show_hijri_month_info: true, show_historical_day_events: false, show_historical_month_highlights: false, show_historical_sources: false, show_disputed_historical_dates: false, show_mosque_background: true, mosque_background: "daily", kiosk_mode: false};
   const result = {...defaults, ...config};
+  Object.assign(result, {
+    show_mosque_selector: config.show_mosque_selector === undefined ? true : config.show_mosque_selector,
+    show_dates: config.show_dates === undefined ? (result.detail_level !== "compact" || result.kiosk_mode) : config.show_dates,
+    show_clock: config.show_clock === undefined ? result.kiosk_mode : config.show_clock,
+    show_timetable: config.show_timetable === undefined ? (result.detail_level !== "compact" || result.kiosk_mode) : config.show_timetable,
+    show_jamaat_changes: config.show_jamaat_changes === undefined ? false : config.show_jamaat_changes,
+    show_timetable_health: config.show_timetable_health === undefined ? false : config.show_timetable_health,
+    selection_group: config.selection_group?.trim() || "",
+  });
+  if (standalone && config.show_mosque_background === undefined) result.show_mosque_background = false;
+  for (const option of ["show_mosque_selector", "show_dates", "show_clock", "show_timetable", "show_jamaat_changes", "show_timetable_health"]) if (typeof result[option] !== "boolean") throw configError("boolean", {option});
+  if (config.arrangement !== undefined) result.arrangement = normalizeArrangement(config.arrangement);
   if (!["compact", "standard", "detailed"].includes(result.detail_level)) throw configError("detail_level");
   if (!["12h", "24h"].includes(result.time_format)) throw configError("time_format");
   if (!Number.isInteger(result.hijri_adjustment) || Math.abs(result.hijri_adjustment) > 3) throw configError("hijri_adjustment");
@@ -86,7 +102,7 @@ export function normalizeConfig(config) {
   for (const key of Object.keys(defaults).filter(key => key.startsWith("show_") || key === "bilingual_prayer_labels" || key === "kiosk_mode")) if (typeof result[key] !== "boolean") throw configError("boolean", {option: key});
   // Discard this retired visual option from previously saved Lovelace cards.
   const {mode: _legacyMode, mosque_background_opacity: _legacyOpacity, ...withoutMode} = result;
-  return {...withoutMode, type: "custom:salah-timetable-card", entity: config.entity || ""};
+  return {...withoutMode, type: standalone ? config.type : "custom:salah-timetable-card", entity: config.entity || ""};
 }
 
 export function isTimetableState(state) {

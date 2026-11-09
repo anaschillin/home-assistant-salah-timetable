@@ -562,7 +562,7 @@ try {
   const editor = new SalahTimetableCardEditor(); editor.setConfig({...config, title: yamlTitle}); editor.hass = hass; document.body.append(editor);
   const editorForm = editor.shadowRoot.querySelector(".form");
   check("graphical editor stylesheet applies grid and HA theme colors", getComputedStyle(editorForm).display === "grid" && getComputedStyle(editorForm).color === "rgb(20, 20, 20)");
-  check("graphical editor omits the title field", !editor.shadowRoot.querySelector('input[type="text"], ha-textfield'));
+  check("graphical editor omits the title field", !editor.shadowRoot.querySelector('[data-option="title"], input[name="title"], ha-textfield[name="title"]'));
   let lastConfig;
   editor.addEventListener("config-changed", event => { lastConfig = event.detail.config; editor.setConfig(event.detail.config); card.setConfig(event.detail.config); card._render(Date.parse(time(4, 40))); });
   const detail = editor.shadowRoot.querySelector('[data-option="detail_level"]');
@@ -629,6 +629,7 @@ try {
   check("restored graphical configuration", restored._config.title === yamlTitle && restored.shadowRoot.querySelector('[data-option="detail_level"]').value === lastConfig.detail_level);
   check("all graphical options survive configuration reload", [...restored.shadowRoot.querySelectorAll("[data-option]")].every(control => {
     const key = control.getAttribute("data-option");
+    if (key === "synchronise_mosque_selection") return control.checked === Boolean(lastConfig.selection_group);
     if (control.localName === "ha-switch") return control.checked === lastConfig[key];
     if (key === "mosque_background") {
       return control.value === (lastConfig.show_mosque_background ? lastConfig.mosque_background : "none");

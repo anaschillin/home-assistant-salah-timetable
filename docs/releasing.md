@@ -1,6 +1,6 @@
 # Building and accepting a release
 
-Current integration version: <!-- docs:version -->3.1.1<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->3.5.0<!-- /docs:version -->.
 
 ## Current release readiness
 
@@ -55,6 +55,9 @@ Use disposable configurations and synthetic timetables; note the installed HA/in
 5. Verify pending-versus-approved state, updates, restart/upgrade persistence and safe removal/re-addition without affecting another mosque.
 6. Test next Salah/Jamaat events, translated calendar name/icon, Friday entries, missing dates and DST/year boundaries.
 7. Verify mobile/tablet readability, Yesterday/Today/Tomorrow dates, keyboard navigation and relevant optional blueprints.
+8. For v3.5, add the **Mosque selector**, **Upcoming Jamaat changes** and **Timetable health** from the Add Card picker. Confirm natural preview height and readable content on mobile, tablet and desktop.
+9. With two approved mosques, link the selector and status cards via **Advanced → Synchronise mosque selection**. Verify one selection updates only cards with the same group in the same dashboard view; the main card may replace the dedicated selector. Confirm unlinked cards, restricted mosque lists, editor previews and other views remain independent.
+10. Verify source approval, missing tomorrow values, incomplete fields, Friday/Jumu’ah and multiple Jamaat sessions. Status cards must never expose staged timetable values or silently approve an update; non-administrators cannot access review controls.
 
 Full HAOS/Supervisor restore is an **optional** additional test, documented in [Backup and restore](releasing.md#optional-full-backup-and-restore-acceptance). Do not describe Container tests as completing it.
 

@@ -250,3 +250,10 @@ test("kiosk fullscreen is a tiny overlay inside summary, not a footer button", (
   assert.match(CARD_CSS, /\.content\.kiosk \.summary-shell > \.kiosk-fullscreen:focus-visible\s*\{[^}]*outline:/);
   assert.doesNotMatch(CARD_CSS, /\.content\.kiosk \.kiosk-footer \.kiosk-fullscreen\s*\{/);
 });
+
+test("standalone previews align to content and advanced group controls do not overlap", () => {
+  assert.match(CARD_CSS, /:host\(\[data-standalone\]\)/);
+  assert.match(CARD_CSS, /ha-card\.standalone-widget \{[^}]*height: fit-content/);
+  assert.match(EDITOR_CSS, /\.group-name-setting\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/);
+  assert.match(EDITOR_CSS, /\.setting\[hidden\]\s*\{\s*display:\s*none/);
+});

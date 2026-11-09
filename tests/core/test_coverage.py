@@ -1,6 +1,7 @@
 """Approved date coverage and its real HA diagnostic entity."""
 
 from datetime import date, datetime, time, timedelta, timezone
+from unittest.mock import AsyncMock, patch
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -22,6 +23,8 @@ from custom_components.salah_timetable.domain.model import (
 from custom_components.salah_timetable.domain.ramadan import RamadanSettings
 from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 from custom_components.salah_timetable.persistence.storage import TimetableStorage
+from custom_components.salah_timetable.sources.download import DownloadError
+from custom_components.salah_timetable.sources.source_model import RemoteSource
 
 TODAY = date(2026, 10, 21)
 
@@ -144,6 +147,16 @@ def coverage_state(hass, key="example"):
     return result
 
 
+def dashboard_state(hass):
+    entity_id = er.async_get(hass).async_get_entity_id(
+        "sensor", DOMAIN, "example_dashboard"
+    )
+    assert entity_id is not None
+    result = hass.states.get(entity_id)
+    assert result is not None
+    return result
+
+
 async def test_empty_setup_exposes_a_stable_diagnostic(hass, entry, freezer):
     freezer.move_to("2026-10-21T12:00:00+00:00")
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -154,9 +167,37 @@ async def test_empty_setup_exposes_a_stable_diagnostic(hass, entry, freezer):
     assert state.attributes["available_through"] is None
     registry_entry = er.async_get(hass).async_get(state.entity_id)
     assert registry_entry.entity_category.value == "diagnostic"
+    dashboard = dashboard_state(hass)
+    assert dashboard.attributes["config_entry_id"] == entry.entry_id
+    health = dashboard.attributes["timetable_health"]
+    assert health["coverage"]["status"] == "not_configured"
+    assert health["completeness"]["status"] == "not_configured"
+    assert health["source"]["pending_review"] is False
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
     assert coverage_state(hass).entity_id == state.entity_id
+
+
+async def test_dashboard_health_matches_approved_diagnostics(hass, populated, freezer):
+    freezer.move_to("2026-10-21T12:00:00+00:00")
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    health = dashboard_state(hass).attributes["timetable_health"]
+    for key, diagnostic in (
+        ("coverage", coverage_state(hass)),
+        ("completeness", completeness_state(hass)),
+    ):
+        assert health[key]["status"] == diagnostic.state
+        assert all(
+            diagnostic.attributes[name] == value
+            for name, value in health[key].items()
+            if name != "status"
+        )
+    assert health["coverage"]["days_remaining"] == 1
+    assert health["completeness"]["missing_today"] == [
+        field.value for field in DEFAULT_REQUIRED_FIELDS[1:]
+    ]
+    assert health["source"] == populated.runtime_data.source_updates.status
 
 
 async def test_pending_replacement_does_not_extend_approved_coverage(
@@ -169,6 +210,8 @@ async def test_pending_replacement_does_not_extend_approved_coverage(
     await hass.async_block_till_done()
     assert coverage_state(hass).state == "missing_tomorrow"
     coordinator = entry.runtime_data
+    approved_dashboard = dashboard_state(hass)
+    approved_health = approved_dashboard.attributes["timetable_health"]
     proposal = CsvParser().parse(
         b"Date,Fajr Begin\n2026-10-21,06:00\n2026-10-22,06:01\n",
         timetable_id="annual-2026",
@@ -178,10 +221,25 @@ async def test_pending_replacement_does_not_extend_approved_coverage(
         columns={"Fajr Begin": "fajr_begin"},
     )
     stage_id = await coordinator.storage.async_stage(proposal)
-    await coordinator.async_refresh()
+    coordinator.async_update_listeners()
     await hass.async_block_till_done()
     assert coverage_state(hass).state == "missing_tomorrow"
     assert coverage_state(hass).attributes["available_through"] == "2026-10-21"
+    pending_dashboard = dashboard_state(hass)
+    pending_health = pending_dashboard.attributes["timetable_health"]
+    assert pending_health["coverage"] == approved_health["coverage"]
+    assert pending_health["completeness"] == approved_health["completeness"]
+    assert pending_health["source"]["status"] == "not_configured"
+    assert pending_health["source"]["pending_review"] is True
+    assert (
+        pending_dashboard.attributes["day_prayers"]
+        == approved_dashboard.attributes["day_prayers"]
+    )
+    await coordinator.storage.async_reject(stage_id)
+    coordinator.async_update_listeners()
+    await hass.async_block_till_done()
+    assert dashboard_state(hass).attributes["timetable_health"] == approved_health
+    stage_id = await coordinator.storage.async_stage(proposal)
     await coordinator.storage.async_approve(stage_id)
     await coordinator.async_refresh()
     await hass.async_block_till_done()
@@ -189,10 +247,60 @@ async def test_pending_replacement_does_not_extend_approved_coverage(
     assert result.state == "expiring"
     assert result.attributes["days_remaining"] == 1
     assert result.attributes["available_through"] == "2026-10-22"
+    health = dashboard_state(hass).attributes["timetable_health"]
+    assert health["source"]["pending_review"] is False
+    assert health["coverage"]["available_through"] == "2026-10-22"
     assert coordinator.storage.timetables == (proposal.timetable,)
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
     assert coverage_state(hass).attributes["available_through"] == "2026-10-22"
+
+
+async def test_dashboard_health_source_errors_refresh_without_exposing_source_data(
+    hass, populated, freezer
+):
+    freezer.move_to("2026-10-21T12:00:00+00:00")
+    assert await hass.config_entries.async_setup(populated.entry_id)
+    await hass.async_block_till_done()
+    coordinator = populated.runtime_data
+    snapshot = coordinator.data
+    source = RemoteSource(
+        "annual-2026",
+        "https://example.com/private-publication.csv",
+        "csv",
+        "annual",
+        2026,
+        "Date",
+        {"Fajr Begin": "fajr_begin"},
+        parser_id="csv_v1",
+    )
+    await coordinator.storage.async_set_remote_source(source)
+    coordinator.source_updates.source_profiles_changed()
+    await hass.async_block_till_done()
+    before = dashboard_state(hass)
+    with patch(
+        "custom_components.salah_timetable.sources.source_updates.download.async_download",
+        AsyncMock(
+            side_effect=DownloadError("connection_failed", "private transport detail")
+        ),
+    ):
+        await coordinator.source_updates.async_check_all()
+    await hass.async_block_till_done()
+    dashboard = dashboard_state(hass)
+    health = dashboard.attributes["timetable_health"]
+    assert dashboard is not before
+    assert coordinator.data is snapshot
+    assert health["source"] == {
+        "status": "error",
+        "configured_sources": 1,
+        "pending_review": False,
+        "error_count": 1,
+        "last_checked": "2026-10-21T12:00:00+00:00",
+        "last_success": None,
+    }
+    assert "private" not in str(dict(dashboard.attributes))
+    assert source.url not in str(dict(dashboard.attributes))
+    assert coordinator.storage.staged is None
 
 
 async def test_coverage_rolls_at_mosque_midnight_without_per_minute_state_writes(
@@ -202,11 +310,13 @@ async def test_coverage_rolls_at_mosque_midnight_without_per_minute_state_writes
     assert await hass.config_entries.async_setup(populated.entry_id)
     await hass.async_block_till_done()
     previous = coverage_state(hass)
+    previous_dashboard = dashboard_state(hass)
     assert previous.state == "expiring"
     freezer.tick(60)
     await populated.runtime_data.async_refresh()
     await hass.async_block_till_done()
     assert coverage_state(hass) is previous
+    assert dashboard_state(hass) is previous_dashboard
     freezer.move_to("2026-10-21T23:00:00+00:00")
     async_fire_time_changed(hass, datetime(2026, 10, 21, 23, tzinfo=timezone.utc))
     await hass.async_block_till_done()
@@ -216,6 +326,14 @@ async def test_coverage_rolls_at_mosque_midnight_without_per_minute_state_writes
     assert result.attributes["tomorrow_available"] is False
     assert result.attributes["available_through"] == "2026-10-22"
     assert result.attributes["days_remaining"] == 0
+    dashboard = dashboard_state(hass)
+    assert dashboard.state == "2026-10-22"
+    health = dashboard.attributes["timetable_health"]
+    assert health["coverage"]["status"] == "missing_tomorrow"
+    assert health["coverage"]["days_remaining"] == 0
+    assert health["completeness"]["missing_today"] == [
+        field.value for field in DEFAULT_REQUIRED_FIELDS[1:]
+    ]
 
 
 async def test_ramadan_options_reload_updates_coverage(hass, entry, freezer):

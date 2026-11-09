@@ -1,8 +1,8 @@
 # Dashboard card
 
-Current integration version: <!-- docs:version -->3.1.1<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->3.5.0<!-- /docs:version -->.
 
-The **Salah Timetable** card is bundled with the integration. It uses the mosque's
+The **Salah Timetable** card and its custom status widgets are bundled with the integration. They use the mosque's
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
 template sensors or YAML configuration.
 
@@ -58,9 +58,9 @@ detail level and mosque photograph. Each setting has contextual help.
 | **Prayer countdowns** | Salah beginning and Jamaat countdowns |
 | **Ramadan & night** | Ramadan details, Sehri and Iftar countdowns, and calculated night information |
 | **Appearance** | Mosque background photograph |
-| **Timetable & information** | Monthly timetable, CSV export and source details; timezone and help text |
+| **Timetable & information** | Monthly timetable, CSV export, source details, optional Upcoming Jamaat changes and Timetable health; timezone and help text |
 | **Islamic history** | Day events, monthly highlights, sources and disputed dates (all currently disabled) |
-| **Advanced settings** | Language, bilingual labels, kiosk mode, time format, Hijri adjustment and day boundary |
+| **Advanced settings** | Language, bilingual labels, kiosk mode, time format, Hijri adjustment and day boundary; optional mosque-selection synchronisation and group name |
 
 See the [options and defaults](#dates-and-customization) below for the corresponding
 YAML names and default values.
@@ -99,6 +99,119 @@ scrolls on smaller displays, so lower settings can be below the initial view.
 The screenshots show a real configured mosque name and illustrative published
 timetable values. They are not universal prayer times, and the background
 photograph is decorative.
+
+## Jamaat changes and timetable health widgets
+
+Version **3.5** introduces custom Lovelace dashboard widgets that reuse the
+integration's existing approved Prayer timetable data. They are available
+alongside the main Salah Timetable card; existing cards retain their appearance
+unless you explicitly add a widget or enable an optional panel. No additional
+app, template sensors or separate widget download is required.
+
+In the main card editor, enable **Upcoming Jamaat changes** or **Timetable health**.
+The changes panel compares today's and tomorrow's approved congregation times in
+the mosque's timezone. It shows published times and an earlier/later difference
+when the same prayer field has one time on each day. Jumu’ah remains separate
+from ordinary Dhuhr and Khutbah. Multiple congregations are shown as published
+lists without guessing which sessions correspond. Missing data is shown as
+unavailable, never as an unchanged or cancelled congregation. Daylight-saving
+offset changes alone do not create a prayer-time change.
+
+Health shows approved date coverage, named missing required fields, staged updates
+awaiting review and source-check problems. Remaining coverage stops at the first
+gap and excludes today. A pending manual import is shown even without an automatic
+URL source. Administrators can open the selected mosque's integration settings to
+import or review data. The widget does not approve an update or expose staged times.
+Connection problems mark the displayed information as stale.
+
+For separate dashboard placement, choose **Edit dashboard → Add card → By card**
+and search for **Salah**. Select **Mosque selector**, **Upcoming Jamaat changes**
+or **Timetable health**, or the original **Salah Timetable** card. These are
+**Home Assistant dashboard cards**, not Android/iOS home-screen widgets.
+
+**Mosque selector** is an optional shared controller for dashboards built from
+several cards. It is not necessary when using only the main card, which already
+has its own mosque selector. **Upcoming Jamaat changes** compares today with
+tomorrow; **Timetable health** reports approved coverage and any review action.
+Standalone widgets size to their content and have no photograph by default.
+Select enabled mosques in each card's editor before saving.
+
+### Synchronise mosque selection across widgets
+
+Most dashboards need only the main Salah card: its existing mosque dropdown already
+switches the whole card, so no separate selector widget or synchronisation is needed.
+
+For a dashboard made of separate status cards, use the optional **Mosque selector**
+card as one shared control. In each participating card's editor open **Advanced**,
+enable **Synchronise mosque selection** and enter the same **Group name** (for
+example `home`). The main Salah card can also be the group controller instead of
+a separate selector. Linking is off by default; a new group starts with `home`.
+
+Linked standalone status cards display the mosque name without repeating another
+dropdown. Unlinked cards keep their own mosque selector. The dedicated Mosque
+selector and the main Salah card always retain theirs, so users can change the
+active mosque. Groups are local to one dashboard view and do not change integration
+settings, another browser or another user's display. Selection is temporary: the
+first connected card supplies the initial mosque, and later members adopt it.
+Configure matching enabled mosque lists for a predictable default.
+
+Every widget retains its enabled-mosque restrictions. If the selected mosque is
+excluded, missing or unavailable, the widget explains the problem instead of
+silently showing another mosque. Editor/device previews never switch live widgets.
+Grouping shares only mosque selection; day and month browsing remain local to each
+card. Standalone status widgets always describe the current mosque-local day.
+Standalone widget previews use their natural content height rather than filling
+the entire viewport; dashboard Sections layouts likewise use automatic row height.
+
+The additional YAML options are:
+
+| Option | Values and default |
+| --- | --- |
+| `show_jamaat_changes` | `false`; enable the embedded Today/tomorrow comparison |
+| `show_timetable_health` | `false`; enable the embedded approved-data health overview |
+| `selection_group` | Empty by default; a shared name links mosque selection within a dashboard view |
+
+Standalone types are `custom:salah-widget-mosque-selector`,
+`custom:salah-widget-jamaat-changes` and `custom:salah-widget-timetable-health`.
+The graphical editor preserves each type and provides its relevant options.
+
+#### Example: one selector controlling two status cards
+
+Add three separate cards to the **same dashboard view** and open each card's
+**Advanced** settings. Enable **Synchronise mosque selection** and use the
+same group name (`home`). Use the following YAML only if you prefer manual
+configuration; replace the entity with a real **Prayer timetable** sensor from
+your own mosque:
+
+```yaml
+type: custom:salah-widget-mosque-selector
+entity: sensor.my_mosque_prayer_timetable
+selection_group: home
+```
+
+```yaml
+type: custom:salah-widget-timetable-health
+entity: sensor.my_mosque_prayer_timetable
+selection_group: home
+```
+
+```yaml
+type: custom:salah-widget-jamaat-changes
+entity: sensor.my_mosque_prayer_timetable
+selection_group: home
+```
+
+Changing the selected mosque in the first card updates both linked status
+cards. Alternatively, assign `selection_group: home` to the main Salah
+Timetable card and use its built-in selector; you do not need the separate
+Mosque selector card. Leaving the group empty keeps a card independent.
+
+**Troubleshooting:** If a status card says **No approved timetable**, approve
+the selected mosque's publication in its integration settings. The Jamaat
+comparison needs approved times for *both today and tomorrow*; missing times
+are not treated as changes. If widgets do not switch together, verify the exact
+group name, enabled mosque lists and that they share one dashboard view.
+Browser sessions, other dashboards and devices are not synchronised.
 
 ## Day navigation
 
@@ -421,8 +534,7 @@ the summary and uses larger prayer-name and live-timer lettering. The published
 (or to the left for RTL languages). The single panel expands to use more
 of the available glass surface without stretching indefinitely on wide displays.
 On unusually narrow cards, and phone-sized kiosk views, the published times
-move underneath the enlarged countdown to prevent clipping. In the v3.1.1 kiosk
-candidate, the single-countdown Beginning and Jamaat times scale up and
+move underneath the enlarged countdown to prevent clipping. In v3.1.1, the single-countdown kiosk Beginning and Jamaat times scale up and
 centre in equally sized rows of the right-hand information column; on phone-width
 kiosks they appear beside each other underneath the countdown. Showing both
 keeps the original paired layout, including kiosk's equal-width halves. The

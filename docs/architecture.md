@@ -1,6 +1,6 @@
 # Architecture
 
-Current integration version: <!-- docs:version -->3.1.1<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->3.5.0<!-- /docs:version -->.
 
 ## Boundaries
 
@@ -428,6 +428,10 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 | `frontend/history-utils.js` | Research/test-only history selector; not imported by the card |
 | `frontend/card-i18n.js` | Localized client-side labels |
 | `frontend/card-styles.js` | Dashboard CSS and layout tokens |
+| `frontend/widget-utils.js` | Standalone widget configuration and approved Jamaat-comparison helpers |
+| `frontend/widget-selection.js` | Ephemeral linked mosque selection, scoped to the current Home Assistant dashboard view |
+| `frontend/widget-renderers.js` | Read-only Jamaat-change and timetable-health panels, using approved diagnostic data |
+| `frontend/widget-i18n.js` | English/Arabic labels, status messages and linked-widget settings |
 | `frontend/mosque-backgrounds.js` | Background catalog and selection logic |
 | `frontend/reminder-wizard.js` | Guided prayer reminder UI that previews and saves normal Home Assistant automations |
 | `frontend/backgrounds/*.webp` | Attributed bundled mosque images; see [provenance inventory](asset-provenance.json) |
@@ -435,6 +439,15 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 | `manifest.json` | HACS and HA integration metadata/dependencies |
 | `strings.json`, `translations/en.json` | HA setup, options, reconfiguration and entity-name localization |
 | `icons.json` | Home Assistant entity icon translations (including the prayer calendar) |
+
+Version 3.5 adds separately registered **Mosque selector**, **Upcoming Jamaat
+changes** and **Timetable health** Lovelace cards alongside the main card.
+Embedded status panels and standalone cards reuse approved timetable sensor
+attributes; they do not calculate or approve prayer times. `selection_group`
+shares only the selected mosque among eligible cards in one view and never
+persists across browser sessions, devices or user accounts. A card's enabled
+mosque list remains authoritative. Standalone previews use natural height and
+do not mutate live selection state.
 
 The card's JavaScript imports remain in their existing relative locations to
 preserve the versioned static asset URL, browser cache behaviour, HACS packaging

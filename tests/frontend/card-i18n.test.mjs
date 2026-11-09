@@ -1,6 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {CATALOGS, localizedNumber, prayerLabels, resolveUi, tr} from "../../custom_components/salah_timetable/frontend/card-i18n.js";
+import {WIDGET_CATALOGS, widgetTr} from "../../custom_components/salah_timetable/frontend/widget-i18n.js";
+
+test("widget translations preserve bilingual coverage and literal parameters", () => {
+  assert.deepEqual(Object.keys(WIDGET_CATALOGS.ar).sort(), Object.keys(WIDGET_CATALOGS.en).sort());
+  const placeholders = value => [...value.matchAll(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g)].map(match => match[1]).sort();
+  for (const key of Object.keys(WIDGET_CATALOGS.en)) {
+    assert.ok(WIDGET_CATALOGS.en[key].trim(), key);
+    assert.ok(WIDGET_CATALOGS.ar[key].trim(), key);
+    assert.deepEqual(placeholders(WIDGET_CATALOGS.ar[key]), placeholders(WIDGET_CATALOGS.en[key]), key);
+  }
+  assert.equal(widgetTr({language: "ar", locale: "ar-EG"}, "section.timetable_health"), "حالة جدول المواقيت");
+  assert.equal(widgetTr("en", "health.source_errors", {count: 0}), "Source-check errors: 0");
+  assert.equal(widgetTr("en", "layout.move_up", {name: "<b>$&</b>"}), "Move <b>$&</b> up");
+  assert.equal(widgetTr("en", "health.through", Object.create({date: "inherited"})), "Available through {date}");
+  assert.equal(widgetTr("fr-FR", "health.title"), "Timetable health");
+  assert.equal(widgetTr("ar", "table.prayer"), "الصلاة");
+  assert.equal(widgetTr("en", "unknown.key"), "unknown.key");
+  assert.equal(widgetTr("en", "toString"), "toString");
+});
 
 test("English and Arabic catalogs cover the same plain-text keys and placeholders", () => {
   const placeholders = value => [...value.matchAll(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g)].map(match => match[1]).sort();
