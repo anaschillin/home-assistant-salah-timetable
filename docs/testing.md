@@ -131,7 +131,7 @@ Names indicate the primary module ownership; some tests deliberately span unit, 
 
 ## JavaScript and browser tests
 
-The following 19 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
+The following 20 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
 
 | File in `tests/frontend/` | Responsibility |
 | --- | --- |
