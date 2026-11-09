@@ -293,10 +293,75 @@ test("Friday Dhuhr congregation is labelled Jumuah", () => {
   card._render(Date.parse("2026-10-23T11:00:00Z"));
 
   const rows = find(card.shadowRoot, "tr");
-  const dhuhr = rows.find(row => row.textContent.includes("Dhuhr"));
+  const jumuah = rows.find(row => row.children[0]?.textContent.includes("Jumu"));
+  assert.ok(jumuah, "Friday prayer row should be labelled Jumu'ah");
+  assert.match(jumuah.textContent, /Jumu/);
+  assert.match(jumuah.textContent, /13:25/);
+});
 
-  assert.ok(dhuhr, "Dhuhr row should exist");
-  assert.match(dhuhr.textContent, /Jumu[’\']?ah\s+13:25/);
+test("Friday Jumu'ah labels cover countdowns, timetable, kiosk and adjacent dates", () => {
+  const day = "2026-11-06";
+  const row = {key: "dhuhr", name: "Dhuhr", begin: day + "T11:55:00Z",
+    jamaat: [day + "T12:20:00Z", day + "T12:35:00Z", day + "T13:25:00Z"]};
+  const thursdayRow = {key: "dhuhr", name: "Dhuhr", begin: "2026-11-05T11:55:00Z",
+    jamaat: ["2026-11-05T12:20:00Z"]};
+  const saturdayRow = {key: "dhuhr", name: "Dhuhr", begin: "2026-11-07T11:55:00Z",
+    jamaat: ["2026-11-07T12:20:00Z"]};
+  const friday = {...attributes, date: day, prayers: [row],
+    day_prayers: {"2026-11-05": [thursdayRow], [day]: [row], "2026-11-07": [saturdayRow]},
+    beginning_events: [{prayer: "dhuhr", timestamp: row.begin, field: "dhuhr_begin"}],
+    jamaat_events: [
+      {prayer: "dhuhr", timestamp: row.jamaat[0], field: "dhuhr_jamaat"},
+      {prayer: "jumuah", timestamp: row.jamaat[1], field: "jumuah"},
+      {prayer: "jumuah", timestamp: row.jamaat[2], field: "jumuah"},
+    ],
+    next_salah: {prayer: "dhuhr", timestamp: row.begin, field: "dhuhr_begin"}};
+  const before = Date.parse(day + "T11:45:00Z");
+  for (const detail_level of ["compact", "standard", "detailed"]) {
+    const card = new SalahTimetableCard();
+    card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level,
+      bilingual_prayer_labels: true, show_mosque_background: false});
+    card.hass = hass(friday);
+    card._render(before);
+    const panel = find(card.shadowRoot, "section").find(n => n.attributes["data-panel"] === "salah");
+    assert.ok(panel, detail_level);
+    assert.match(panel.children[1].textContent, /Jumu/);
+    assert.match(panel.children[1].textContent, /الجمعة/);
+    assert.doesNotMatch(panel.children[1].textContent, /Dhuhr/);
+    assert.match(panel.textContent, /11:55/);
+    assert.match(panel.textContent, /12:35/, "Show first Jumu'ah, not the ordinary Dhuhr congregation");
+    if (detail_level !== "compact") {
+      assert.ok(find(card.shadowRoot, "tr").some(r => r.children[0]?.textContent.includes("Jumu")));
+    }
+    card._render(Date.parse(day + "T13:30:00Z"));
+    const previous = find(card.shadowRoot, "section").find(n => n.attributes["data-panel"] === "jamaat");
+    assert.match(previous.children[1].textContent, /Jumu/, "Previous congregation retains Jumu'ah");
+  }
+  const kiosk = new SalahTimetableCard();
+  kiosk.setConfig({entity: "sensor.mosque_prayer_timetable", kiosk_mode: true,
+    show_mosque_background: false});
+  kiosk.hass = hass(friday);
+  const tileName = () => {
+    const tile = find(kiosk.shadowRoot, "div").find(n => n.attributes["data-prayer"] === "dhuhr");
+    return find(tile, "h3")[0].textContent;
+  };
+  kiosk._render(before);
+  assert.match(tileName(), /Jumu/);
+  kiosk._selectedDay = -1; kiosk._render(before);
+  assert.match(tileName(), /Dhuhr/);
+  kiosk._selectedDay = 1; kiosk._render(before);
+  assert.match(tileName(), /Dhuhr/);
+
+  const thursday = {...friday, date: "2026-11-05", prayers: [thursdayRow]};
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", show_mosque_background: false});
+  card.hass = hass(thursday);
+  card._render(Date.parse("2026-11-05T20:00:00Z"));
+  const next = find(card.shadowRoot, "section").find(n => n.attributes["data-panel"] === "salah");
+  assert.match(next.children[1].textContent, /Jumu/, "Tomorrow's Friday countdown is Jumu'ah");
+  card._selectedDay = 1; card._render(Date.parse("2026-11-05T20:00:00Z"));
+  assert.ok(find(card.shadowRoot, "tr").some(r => r.children[0]?.textContent.includes("Jumu")),
+    "Tomorrow tab uses its own published Friday events");
 });
 
 test("weekday Dhuhr Jamaat is not labelled Jumuah", () => {
