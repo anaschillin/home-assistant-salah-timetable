@@ -1473,3 +1473,54 @@ test("standalone status widgets request natural height in HA Sections dashboards
   card.setConfig({entity: "sensor.mosque_prayer_timetable"});
   assert.equal(typeof card.getGridOptions().rows, "number");
 });
+
+test("linked standalone widgets follow a central selector without duplicating dropdowns", () => {
+  const state = hass(widgetAttributes());
+  state.states["sensor.other_prayer_timetable"] = {state: attributes.date, attributes: {...widgetAttributes(), mosque_name: "Other mosque"}};
+  const Health = registry.get("salah-widget-timetable-health");
+  const Selector = registry.get("salah-widget-mosque-selector");
+  const linked = new Health();
+  linked.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "home"});
+  linked.hass = state;
+  assert.equal(find(linked.shadowRoot, "select").length, 0, "Linked status shows a label, not another mosque picker");
+  assert.ok(find(linked.shadowRoot, "h2").some(item => item.textContent === "Example Mosque"));
+  assert.equal(linked.hasAttribute("data-standalone"), true);
+  const standalone = new Health();
+  standalone.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  standalone.hass = state;
+  assert.ok(find(standalone.shadowRoot, "select").length > 0, "Ungrouped status remains independently selectable");
+  const selector = new Selector();
+  selector.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "home"});
+  selector.hass = state;
+  assert.ok(find(selector.shadowRoot, "select").length > 0, "Dedicated selector remains the group's controller");
+  const main = new SalahTimetableCard();
+  main.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "home"});
+  main.hass = state;
+  assert.ok(find(main.shadowRoot, "select").length > 0, "Main card keeps its built-in mosque selector");
+});
+
+test("mosque synchronisation is opt-in within Advanced settings and preserves existing group config", () => {
+  const editor = new SalahTimetableCardEditor();
+  editor.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  editor.hass = hass();
+  const advanced = editor._sections.advanced.body;
+  assert.ok(find(advanced, "ha-switch").includes(editor._groupSyncControl));
+  assert.ok(find(advanced, "input").includes(editor._groupControl));
+  assert.equal(editor._groupSyncControl.checked, false);
+  assert.equal(editor._groupNameField.hidden, true);
+  editor._groupSyncControl.checked = true;
+  editor._groupSyncControl.dispatchEvent(new Event("change"));
+  assert.equal(editor._config.selection_group, "home", "Opt-in uses an understandable default group name");
+  assert.equal(editor._groupNameField.hidden, false);
+  editor._groupControl.value = "kitchen";
+  editor._groupControl.dispatchEvent(new Event("change"));
+  assert.equal(editor._config.selection_group, "kitchen");
+  editor._groupSyncControl.checked = false;
+  editor._groupSyncControl.dispatchEvent(new Event("change"));
+  assert.equal(editor._config.selection_group, "");
+  assert.equal(editor._groupNameField.hidden, true);
+  editor.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "legacy-linked"});
+  assert.equal(editor._groupSyncControl.checked, true, "Older saved selection groups remain enabled");
+  assert.equal(editor._groupControl.value, "legacy-linked");
+  assert.equal(editor._groupNameField.hidden, false);
+});

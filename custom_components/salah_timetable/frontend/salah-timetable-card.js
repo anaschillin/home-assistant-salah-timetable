@@ -447,7 +447,11 @@ export class SalahTimetableCard extends HTMLElement {
   _mosqueIdentity(ui, data) {
     const mosques = this._mosques();
     const title = node("h2");
-    if (mosques.length > 1) {
+    // A linked standalone status card is a follower, not another controller.
+    // Keep the selector on the main card and the dedicated selector widget.
+    const follower = Boolean(this._config.selection_group) &&
+      Boolean(widgetSection(this._config)) && widgetSection(this._config) !== "mosque_selector";
+    if (mosques.length > 1 && !follower) {
       // The active mosque is displayed only in the header, never repeated in tabs.
       const chooser = node("select", undefined, "mosque-select");
       chooser.setAttribute("aria-label", tr(ui, "card.select_mosque"));
@@ -470,8 +474,14 @@ export class SalahTimetableCard extends HTMLElement {
       });
       title.append(chooser);
     } else {
-      title.textContent = this._config.title || data.mosque_name;
+      const active = this._activeEntity();
+      const name = mosques.find(mosque => mosque.entity === active)?.name || data.mosque_name || active;
+      title.textContent = active === this._config.entity && this._config.title ? this._config.title : name;
       title.setAttribute("dir", "auto");
+      if (follower) {
+        title.classList.add("linked-mosque-name");
+        title.title = widgetTr(ui, "group.following");
+      }
     }
     return title;
   }
@@ -727,6 +737,9 @@ export class SalahTimetableCard extends HTMLElement {
   _render(now = Date.now()) {
     if (!this.shadowRoot) return;
     this._syncDashboardEditing();
+    // Let HA's card picker and Sections layout size standalone widgets naturally.
+    if (widgetSection(this._config)) this.setAttribute("data-standalone", "");
+    else this.removeAttribute("data-standalone");
     const ui = resolveUi(this._config, this._hass);
     direction(this, ui);
     this._renderedHassKey = this._hassRenderKey();
@@ -1145,9 +1158,15 @@ export class SalahTimetableCardEditor extends HTMLElement {
     }
     this._updateSections(ui);
     if (this._groupControl) {
-      this._groupLabel.textContent = widgetTr(ui, "group.label");
-      this._groupHint.textContent = widgetTr(ui, "group.hint");
-      this._groupControl.setAttribute("aria-label", widgetTr(ui, "group.label"));
+      const enabled = Boolean(this._config.selection_group);
+      this._groupSyncLabel.textContent = widgetTr(ui, "group.sync_label");
+      this._groupSyncHint.textContent = widgetTr(ui, "group.sync_hint");
+      this._groupSyncControl.checked = enabled;
+      this._groupSyncControl.setAttribute("aria-label", widgetTr(ui, "group.sync_label"));
+      this._groupNameLabel.textContent = widgetTr(ui, "group.name_label");
+      this._groupNameHint.textContent = widgetTr(ui, "group.name_hint");
+      this._groupNameField.hidden = !enabled;
+      this._groupControl.setAttribute("aria-label", widgetTr(ui, "group.name_label"));
       this._groupControl.value = this._config.selection_group || "";
     }
     const {help, mosqueGroup, mosqueHeading, mosqueHint, mosqueList} = this._controls;
@@ -1338,17 +1357,32 @@ export class SalahTimetableCardEditor extends HTMLElement {
       this._sections[id] = {toggle, body, title: heading, description};
       groups.push(section);
     }
-    const groupField = node("label", undefined, "setting");
-    this._groupLabel = node("span", undefined, "setting-label");
-    this._groupHint = node("span", undefined, "setting-hint");
+    const syncField = node("div", undefined, "setting group-sync-setting");
+    const syncCopy = node("span", undefined, "setting-copy");
+    this._groupSyncLabel = node("span", undefined, "setting-label");
+    this._groupSyncHint = node("span", undefined, "setting-hint");
+    syncCopy.append(this._groupSyncLabel, this._groupSyncHint);
+    this._groupSyncControl = node("ha-switch");
+    this._groupSyncControl.setAttribute("data-option", "synchronise_mosque_selection");
+    this._groupSyncControl.addEventListener("change", () => {
+      this._changed({selection_group: this._groupSyncControl.checked ? this._config.selection_group || "home" : ""});
+    });
+    syncField.append(syncCopy, this._groupSyncControl);
+    this._groupNameField = node("label", undefined, "setting group-name-setting widget-group-setting");
+    const nameCopy = node("span", undefined, "setting-copy");
+    this._groupNameLabel = node("span", undefined, "setting-label");
+    this._groupNameHint = node("span", undefined, "setting-hint");
+    nameCopy.append(this._groupNameLabel, this._groupNameHint);
     this._groupControl = node("input"); this._groupControl.type = "text";
     this._groupControl.setAttribute("data-option", "selection_group");
     this._groupControl.addEventListener("change", () => this._changed({selection_group: this._groupControl.value}));
-    groupField.append(this._groupLabel, this._groupHint, this._groupControl);
+    this._groupNameField.append(nameCopy, this._groupControl);
+    // Synchronisation is an advanced, opt-in feature rather than a first-run setting.
+    this._sections.advanced?.body.append(syncField, this._groupNameField);
     // Keep reminder setup beside the detail selector, outside the dashboard card.
     this._reminderAction = this._reminderButton(resolveUi(this._config, this._hass));
     // One ordered checkbox list replaces the old duplicate radio selector.
-    form.append(mosqueGroup, groupField);
+    form.append(mosqueGroup);
     if (fields.has("detail_level")) form.append(fields.get("detail_level"));
     if (this._reminderAction) form.append(this._reminderAction);
     form.append(...groups, help);

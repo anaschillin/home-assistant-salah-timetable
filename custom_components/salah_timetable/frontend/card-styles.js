@@ -1953,7 +1953,18 @@ ha-card.kiosk:fullscreen .content.kiosk {
   }
 }
 
-/* Opt-in widgets share the card theme without changing legacy card geometry. */
+/* A standalone card follows its content height in dashboards and card previews.
+   Never inherit full-viewport/kiosk sizing or stretch to fill a picker tile. */
+:host([data-standalone]) {
+  display: block;
+  height: fit-content;
+  min-height: 0;
+  align-self: start;
+}
+ha-card.standalone-widget {
+  height: fit-content;
+  align-self: start;
+}
 ha-card.standalone-widget,
 ha-card.standalone-widget.has-mosque-background,
 ha-card.standalone-widget .content,
@@ -1961,6 +1972,9 @@ ha-card.standalone-widget .content.kiosk {
   min-height: 0;
 }
 ha-card.standalone-widget .content {
+  display: flow-root;
+  height: auto;
+  min-height: 0;
   box-sizing: border-box;
   width: 100%;
   max-width: none;
@@ -1969,6 +1983,16 @@ ha-card.standalone-widget .content {
 ha-card.standalone-widget .summary-shell,
 ha-card.standalone-widget .timetable-shell {
   margin: 0;
+}
+ha-card.standalone-widget .standalone-content > h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1rem, 2.5cqi, 1.18rem);
+  line-height: 1.35;
+}
+ha-card.standalone-widget .standalone-content > h2:only-child { margin-bottom: 0; }
+ha-card.standalone-widget .linked-mosque-name {
+  color: var(--secondary-text-color);
+  overflow-wrap: anywhere;
 }
 .widget-heading {
   display: flex;
@@ -2144,6 +2168,9 @@ export const EDITOR_CSS = `
 .setting-label { font-size: .95rem; font-weight: 500; }
 .setting-hint { color: var(--secondary-text-color); font-size: .8rem; line-height: 1.45; }
 .setting[data-disabled="true"] .setting-label { opacity: .6; }
+.setting[hidden] { display: none; }
+.group-name-setting { grid-template-columns: minmax(0,1fr); gap: 6px; }
+.group-sync-setting { border-top: 1px solid var(--divider-color); padding-top: 12px; }
 .setting select {
   font: inherit;
   color: var(--primary-text-color);
