@@ -19,7 +19,8 @@ from ..parsers.csv_parser import CsvParser, suggest_approved_mapping
 from ..parsers.import_model import MAX_SOURCE_BYTES, ImportValidationError
 from ..persistence.storage import PendingImportError
 from .import_preview import PDF_LAYOUT_LABELS as PDF_LAYOUT_LABELS
-from .import_preview import _safe_text, import_summary as import_summary
+from .import_preview import _safe_text
+from .import_preview import import_summary as import_summary
 from .import_review_flow import ImportReviewFlowMixin
 
 PARSER = CsvParser()
