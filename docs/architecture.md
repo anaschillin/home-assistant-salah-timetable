@@ -423,7 +423,9 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 
 | Path | Responsibility |
 | --- | --- |
-| `frontend/salah-timetable-card.js` | Custom card and editor entrypoint, registered at its existing public URL |
+| `frontend/salah-timetable-card.js` | Custom card, widget registration and public entrypoint; re-exports the editor class at the existing URL |
+| `frontend/card-editor.js` | Graphical editor lifecycle, controls, layout tab and reminder configuration |
+| `frontend/card-shared.js` | Shared DOM construction, language direction and config-error normalisation for card/editor |
 | `frontend/card-utils.js` | Pure timestamp, time formatting and card model helpers |
 | `frontend/history-utils.js` | Research/test-only history selector; not imported by the card |
 | `frontend/card-i18n.js` | Localized client-side labels |
