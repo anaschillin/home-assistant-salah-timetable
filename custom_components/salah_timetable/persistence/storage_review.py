@@ -243,4 +243,3 @@ class StorageReviewMixin:
                     remote_checks=self._decision_checks(staged.candidate, "rejected"),
                 )
             )
-
