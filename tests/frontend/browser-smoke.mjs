@@ -29,6 +29,102 @@ const JS_EMBED_ESCAPE_MAP = {
 
 const JS_EMBED_UNSAFE_PATTERN = /[<>/\\\b\f\n\r\t\0\u2028\u2029]/g;
 const escapeForJsEmbedding = value => value.replace(JS_EMBED_UNSAFE_PATTERN, char => JS_EMBED_ESCAPE_MAP[char]);
+
+// Browser fixture operations are trusted, statically authored JavaScript. Pass
+// only data through CDP arguments; never splice executable source into a string.
+async function runWidgetBrowserAction(index, action, config) {
+  const frame = document.querySelectorAll("iframe")[index];
+  if (!frame) throw new Error("Missing widget smoke frame");
+  const f = frame.contentWindow.widgetFixture;
+  switch (action) {
+    case "setup": {
+      const helpers = await frame.contentWindow.eval("import('/tests/frontend/widget-browser-fixture.js')");
+      frame.contentWindow.widgetFixture = helpers.mountWidgetFixture(config);
+      return null;
+    }
+    case "inspect": {
+      const changes = f.changes.shadowRoot;
+      const health = f.health.shadowRoot;
+      const adminLink = health.querySelector('.widget-action');
+      return {
+      changeRows: changes.querySelectorAll('.widget-change-row').length,
+      pending: Boolean(health.querySelector('.pending-review')),
+      action: adminLink?.getAttribute('href'),
+      dates: [...changes.querySelectorAll('.widget-change-times')].map(node => node.textContent),
+      selected: [f.selector, f.changes, f.health].map(card => card._activeEntity()),
+      natural: [f.changes, f.health].every(card => {
+      const surface = card.shadowRoot.querySelector('ha-card');
+      return surface.classList.contains('standalone-widget') &&
+      frame.contentWindow.getComputedStyle(surface).minHeight === '0px' &&
+      !surface.classList.contains('has-mosque-background');
+      }),
+      fits: [f.changes, f.health].every(card => {
+      const surface = card.shadowRoot.querySelector('ha-card').getBoundingClientRect();
+      return [...card.shadowRoot.querySelectorAll('.widget-panel, .widget-change-row, .widget-health-row')].every(node => {
+      const bounds = node.getBoundingClientRect();
+      return bounds.left >= surface.left - 1 && bounds.right <= surface.right + 1;
+      });
+      }),
+      };
+    }
+    case "selectSecond": {
+      f.select(f.second);
+      return [f.selector, f.changes, f.health].map(card => card._activeEntity());
+    }
+    case "reviewAction": {
+      return f.health.shadowRoot.querySelector('.widget-action')?.getAttribute('href');
+    }
+    case "isolation": {
+      const wrapper = frame.contentDocument.createElement('hui-card-options');
+      f.view.append(wrapper);
+      const preview = f.mount('salah-widget-mosque-selector', {selection_group:'browser-status-widgets'}, wrapper);
+      const chooser = preview.shadowRoot.querySelector('.mosque-select');
+      chooser.value = f.first;
+      chooser.dispatchEvent(new frame.contentWindow.Event('change', {bubbles:true}));
+      const restricted = f.mount('salah-widget-timetable-health', {selection_group:'browser-status-widgets',mosque_entities:[f.first]});
+      const ungrouped = f.mount('salah-widget-timetable-health');
+      const view = frame.contentDocument.createElement('hui-view');
+      f.view.after(view);
+      const otherView = f.mount('salah-widget-timetable-health', {selection_group:'browser-status-widgets'}, view);
+      const result = {
+      live: f.health._activeEntity(), preview: preview._activeEntity(),
+      restricted: Boolean(restricted.shadowRoot.querySelector('.group-selection-error')),
+      independent: ungrouped._activeEntity(), otherView: otherView._activeEntity(),
+      };
+      view.remove();wrapper.remove();
+      return result;
+    }
+    case "nonAdmin": {
+      f.health.hass = {...f.hass,user:{is_admin:false}};
+      return f.health.shadowRoot.querySelectorAll('.widget-action').length;
+    }
+    case "refreshed": {
+      const state = f.hass.states[f.second];
+      const next = {...f.hass,states:{...f.hass.states,[f.second]:{
+      ...state,attributes:{...state.attributes,timetable_health:{...state.attributes.timetable_health,
+      source:{...state.attributes.timetable_health.source,pending_review:false}}}
+      }}};
+      f.health.hass = next;
+      return !f.health.shadowRoot.querySelector('.pending-review');
+    }
+    case "disconnected": {
+      for (const card of [f.health, f.changes]) card.hass = {...f.hass,connection:{connected:false}};
+      return {
+      healthUnavailable: Boolean(f.health.shadowRoot.querySelector('.widget-health .widget-status')) &&
+      !f.health.shadowRoot.querySelector('.pending-review, .widget-action'),
+      changesUnavailable: Boolean(f.changes.shadowRoot.querySelector('.widget-changes .widget-status')) &&
+      !f.changes.shadowRoot.querySelector('.widget-change-row'),
+      };
+    }
+    case "destroy": {
+      f.destroy();
+      delete frame.contentWindow.widgetFixture;
+      return null;
+    }
+    default: throw new Error("Unsupported widget test operation");
+  }
+}
+
 let browser;
 for (const candidate of [process.env.CHROME_BIN, "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/opt/google/chrome/chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser"].filter(Boolean)) {
   try { await access(candidate, constants.X_OK); browser = candidate; break; } catch { /* Try the next installed browser. */ }
@@ -332,47 +428,21 @@ nextFixture();
     }
     for (const [index, {width, language, bilingual}] of fixtures.entries()) {
       await t.test(`${width}px ${language}${bilingual ? " bilingual" : ""} standalone status widgets and grouped selection`, async () => {
-        const evaluate = async source => {
-          // These are trusted JavaScript test fixtures, not HTML or user input.
-          // Escape data when constructing a fixture, never the executable source:
-          // escaping code newlines creates invalid tokens in Chromium.
-          const result = await debuggerSession.call("Runtime.evaluate", {
-            expression: `(async () => {const frame = document.querySelectorAll('iframe')[${index}]; const f = frame.contentWindow.widgetFixture; ${source}})()`,
+        const evaluate = async (operation, config = null) => {
+          const global = await debuggerSession.call("Runtime.evaluate", {expression: "globalThis"});
+          assert.ok(global.result?.objectId, "Chromium global context is available");
+          const result = await debuggerSession.call("Runtime.callFunctionOn", {
+            objectId: global.result.objectId,
+            functionDeclaration: runWidgetBrowserAction.toString(),
+            arguments: [{value: index}, {value: operation}, {value: config}],
             awaitPromise: true, returnByValue: true,
           });
           assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
           return result.result?.value;
         };
-        await evaluate(`
-          const helpers = await frame.contentWindow.eval("import('/tests/frontend/widget-browser-fixture.js')");
-          frame.contentWindow.widgetFixture = helpers.mountWidgetFixture(${JSON.stringify({language, bilingual})});
-        `);
+        await evaluate("setup", {language, bilingual});
         try {
-          const initial = await evaluate(`
-            const changes = f.changes.shadowRoot;
-            const health = f.health.shadowRoot;
-            const adminLink = health.querySelector('.widget-action');
-            return {
-              changeRows: changes.querySelectorAll('.widget-change-row').length,
-              pending: Boolean(health.querySelector('.pending-review')),
-              action: adminLink?.getAttribute('href'),
-              dates: [...changes.querySelectorAll('.widget-change-times')].map(node => node.textContent),
-              selected: [f.selector, f.changes, f.health].map(card => card._activeEntity()),
-              natural: [f.changes, f.health].every(card => {
-                const surface = card.shadowRoot.querySelector('ha-card');
-                return surface.classList.contains('standalone-widget') &&
-                  frame.contentWindow.getComputedStyle(surface).minHeight === '0px' &&
-                  !surface.classList.contains('has-mosque-background');
-              }),
-              fits: [f.changes, f.health].every(card => {
-                const surface = card.shadowRoot.querySelector('ha-card').getBoundingClientRect();
-                return [...card.shadowRoot.querySelectorAll('.widget-panel, .widget-change-row, .widget-health-row')].every(node => {
-                  const bounds = node.getBoundingClientRect();
-                  return bounds.left >= surface.left - 1 && bounds.right <= surface.right + 1;
-                });
-              }),
-            };
-          `);
+          const initial = await evaluate("inspect");
           assert.ok(initial.changeRows > 0, "Approved tomorrow changes render as published field rows");
           assert.ok(initial.dates.every(value => value.trim().length > 0), "Every change row shows the published comparison times");
           assert.equal(initial.pending, true, "Pending manual imports display even without a URL source");
@@ -381,67 +451,26 @@ nextFixture();
           assert.equal(initial.fits, true, "Status content fits its card at the actual container width");
           assert.deepEqual(initial.selected, ["sensor.widget_first_prayer_timetable", "sensor.widget_first_prayer_timetable", "sensor.widget_first_prayer_timetable"]);
 
-          assert.deepEqual(await evaluate(`
-            f.select(f.second);
-            return [f.selector, f.changes, f.health].map(card => card._activeEntity());
-          `), Array(3).fill("sensor.widget_second_prayer_timetable"), "One selector changes every member of its group");
-          assert.equal(await evaluate(`return f.health.shadowRoot.querySelector('.widget-action')?.getAttribute('href');`), "/config/integrations/integration/salah_timetable?config_entry=entry_20", "Review action follows the selected mosque");
+          assert.deepEqual(await evaluate("selectSecond"), Array(3).fill("sensor.widget_second_prayer_timetable"), "One selector changes every member of its group");
+          assert.equal(await evaluate("reviewAction"), "/config/integrations/integration/salah_timetable?config_entry=entry_20", "Review action follows the selected mosque");
 
-          const isolation = await evaluate(`
-            const wrapper = frame.contentDocument.createElement('hui-card-options');
-            f.view.append(wrapper);
-            const preview = f.mount('salah-widget-mosque-selector', {selection_group:'browser-status-widgets'}, wrapper);
-            const chooser = preview.shadowRoot.querySelector('.mosque-select');
-            chooser.value = f.first;
-            chooser.dispatchEvent(new frame.contentWindow.Event('change', {bubbles:true}));
-            const restricted = f.mount('salah-widget-timetable-health', {selection_group:'browser-status-widgets',mosque_entities:[f.first]});
-            const ungrouped = f.mount('salah-widget-timetable-health');
-            const view = frame.contentDocument.createElement('hui-view');
-            f.view.after(view);
-            const otherView = f.mount('salah-widget-timetable-health', {selection_group:'browser-status-widgets'}, view);
-            const result = {
-              live: f.health._activeEntity(), preview: preview._activeEntity(),
-              restricted: Boolean(restricted.shadowRoot.querySelector('.group-selection-error')),
-              independent: ungrouped._activeEntity(), otherView: otherView._activeEntity(),
-            };
-            view.remove();wrapper.remove();
-            return result;
-          `);
+          const isolation = await evaluate("isolation");
           assert.equal(isolation.live, "sensor.widget_second_prayer_timetable", "Dashboard edit previews cannot switch the live group");
           assert.equal(isolation.preview, "sensor.widget_first_prayer_timetable");
           assert.equal(isolation.restricted, true, "An excluded group mosque shows an explicit error instead of a fallback mosque");
           assert.equal(isolation.independent, "sensor.widget_first_prayer_timetable");
           assert.equal(isolation.otherView, "sensor.widget_first_prayer_timetable", "Identical group names are isolated between dashboard views");
 
-          const nonAdmin = await evaluate(`
-            f.health.hass = {...f.hass,user:{is_admin:false}};
-            return f.health.shadowRoot.querySelectorAll('.widget-action').length;
-          `);
+          const nonAdmin = await evaluate("nonAdmin");
           assert.equal(nonAdmin, 0, "Non-administrators see status without integration-management actions");
 
-          const refreshed = await evaluate(`
-            const state = f.hass.states[f.second];
-            const next = {...f.hass,states:{...f.hass.states,[f.second]:{
-              ...state,attributes:{...state.attributes,timetable_health:{...state.attributes.timetable_health,
-                source:{...state.attributes.timetable_health.source,pending_review:false}}}
-            }}};
-            f.health.hass = next;
-            return !f.health.shadowRoot.querySelector('.pending-review');
-          `);
+          const refreshed = await evaluate("refreshed");
           assert.equal(refreshed, true, "New source status updates the widget without a card reload");
-          const disconnected = await evaluate(`
-            for (const card of [f.health, f.changes]) card.hass = {...f.hass,connection:{connected:false}};
-            return {
-              healthUnavailable: Boolean(f.health.shadowRoot.querySelector('.widget-health .widget-status')) &&
-                !f.health.shadowRoot.querySelector('.pending-review, .widget-action'),
-              changesUnavailable: Boolean(f.changes.shadowRoot.querySelector('.widget-changes .widget-status')) &&
-                !f.changes.shadowRoot.querySelector('.widget-change-row'),
-            };
-          `);
+          const disconnected = await evaluate("disconnected");
           assert.equal(disconnected.healthUnavailable, true, "Disconnected health does not retain a current pending/review presentation");
           assert.equal(disconnected.changesUnavailable, true, "Disconnected change data is explicitly unavailable");
         } finally {
-          await evaluate("f.destroy(); delete frame.contentWindow.widgetFixture;");
+          await evaluate("destroy");
         }
       });
     }
