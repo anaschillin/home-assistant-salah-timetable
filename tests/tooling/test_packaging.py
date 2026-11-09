@@ -240,6 +240,8 @@ def test_production_modules_have_single_canonical_location():
         },
         "persistence": {
             "storage.py",
+            "storage_records.py",
+            "storage_review.py",
         },
     }
     for folder, modules in grouped.items():
