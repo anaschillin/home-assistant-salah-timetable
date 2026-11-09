@@ -114,7 +114,7 @@ event.
 | Source status / `source_status` | Diagnostic summary of URL checks and pending approval; see [source states and cadence](import_review.md#when-data-updates). |
 | Timetable coverage / `coverage_status` | Diagnostic summary of consecutive effective approved dates; [states and attributes](#read-timetable-coverage) below. |
 | Prayer completeness / `completeness_status` | Field-level completeness of approved effective timetables; [details](#prayer-completeness) below. |
-| Prayer timetable / `dashboard` | Mosque-local date plus approved yesterday/today/tomorrow rows, event selections and display/status attributes for the bundled card. |
+| Prayer timetable / `dashboard` | Mosque-local date plus approved yesterday/today/tomorrow rows, event selections and display/status attributes for the bundled card. Candidate widgets add sanitized `timetable_health` coverage/completeness/source summaries and `config_entry_id` for setup links; staged prayer values remain excluded. |
 | Prayer calendar | Read-only approved prayer events, as described [below](#prayer-calendar). It omits Istewa and untimed Taraweeh. |
 
 **Previous Jamaat** is disabled by default for new registrations; the card uses

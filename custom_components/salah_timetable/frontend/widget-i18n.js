@@ -132,6 +132,9 @@ const labels = {
   "preset.timetable_first": ["Timetable first", "جدول المواقيت أولًا"],
   "preset.ramadan": ["Ramadan", "رمضان"],
   "preset.wall": ["Wall display", "شاشة الحائط"],
+  "config.arrangement": ["Use known section IDs without duplicates, with full or half widths.", "استخدم معرّفات أقسام معروفة دون تكرار، بعرض كامل أو نصف عرض."],
+  "config.widget_type": ["Choose Salah Timetable or one of its registered widget cards.", "اختر جدول مواقيت الصلاة أو إحدى بطاقات أدواته المسجلة."],
+  "config.selection_group": ["The linked widget group must be text of at most 100 characters.", "يجب أن يكون اسم مجموعة الأدوات المرتبطة نصًا لا يتجاوز ١٠٠ حرف."],
 };
 
 export const WIDGET_CATALOGS = Object.freeze(Object.fromEntries(["en", "ar"].map((language, index) => [

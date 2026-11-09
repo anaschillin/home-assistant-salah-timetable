@@ -41,7 +41,15 @@ export function buildJamaatChanges(data, ui, config, connected = true) {
   for (const change of summary.changes.filter(item => item.status !== "unchanged")) {
     const row = element("div", undefined, "widget-change-row");
     row.setAttribute("data-field", change.field);
-    row.append(element("strong", prayerName(change.prayer, ui)));
+    const name = element("strong");
+    for (const label of prayerLabels(change.prayer, ui, config.bilingual_prayer_labels)) {
+      if (name.children.length) name.append(element("span", " / "));
+      const text = element("span", label.text);
+      text.setAttribute("lang", label.lang);
+      text.setAttribute("dir", label.dir);
+      name.append(text);
+    }
+    row.append(name);
     const times = element("div", undefined, "widget-change-times");
     for (const [day, values] of [["today", change.today], ["tomorrow", change.tomorrow]]) {
       const cell = element("div");

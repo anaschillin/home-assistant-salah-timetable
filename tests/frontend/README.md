@@ -33,3 +33,6 @@ selection. The Chromium smoke runner uses `widget-browser-fixture.js` to prepare
 native widget fixtures; assertions stay in `browser-smoke.mjs`. It checks status
 rendering, permission-aware setup links, independent view groups and preview
 isolation alongside the existing card matrix.
+The layout editor tests cover preset/reset behavior, effective legacy visibility,
+ordering equivalence, focus and preview lifecycle; browser checks additionally
+verify real arrangement geometry, standalone content and kiosk rendering.

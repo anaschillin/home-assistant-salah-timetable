@@ -131,7 +131,7 @@ Names indicate the primary module ownership; some tests deliberately span unit, 
 
 ## JavaScript and browser tests
 
-The following 19 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
+The following 20 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
 
 | File in `tests/frontend/` | Responsibility |
 | --- | --- |
@@ -154,6 +154,7 @@ The following 19 Node unit modules are discovered by `npm test` (`node --test te
 | `visual-regression.test.mjs` | Screenshot comparison behaviour |
 | `widget-utils.test.mjs` | Widget configuration, layout presets, approved Jamaat comparisons and missing/DST/Friday cases |
 | `widget-selection.test.mjs` | Dashboard-view mosque groups, late joins, change delivery and cleanup |
+| `layout-editor.test.mjs` | Separate visual-layout branch (PR #143): arrangement editing, keyboard/drag ordering and isolated device previews |
 
 Version 3.5's frontend tests also cover independent/linked mosque selection,
 view-scoped synchronisation, optional status panels, natural-height standalone

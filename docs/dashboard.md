@@ -213,6 +213,98 @@ are not treated as changes. If widgets do not switch together, verify the exact
 group name, enabled mosque lists and that they share one dashboard view.
 Browser sessions, other dashboards and devices are not synchronised.
 
+## Visual layouts and standalone sections
+
+In the separate visual-layout feature branch (PR #143), the card editor has
+**Settings** and **Layout** tabs. This optional editor is not part of the
+v3.5 linked-widget release. Settings retains
+the existing grouped controls. Layout arranges only this card; it does not move
+other Home Assistant cards or change another dashboard's configuration.
+
+Choose a preset, or drag a section's handle to reorder it. **Move up** and
+**Move down** provide the same ordering with keyboard and touch controls. Each
+section has a visibility checkbox and a **Full width / Half width** selector.
+Half-width sections share a row when the card is wide enough and stack on narrow
+cards. Reading and keyboard order follow the saved order.
+
+| Preset | Visible order |
+| --- | --- |
+| Countdown-focused | Mosque selector, dates, Salah, Jamaat, changes |
+| Balanced | Mosque selector, dates, Salah, Jamaat, timetable, changes, health, Ramadan |
+| Timetable first | Mosque selector, dates, timetable, Salah, Jamaat, changes, health, Ramadan |
+| Ramadan | Mosque selector, dates, Ramadan, Salah, Jamaat, calculated night information, timetable, changes, health |
+| Wall display | Mosque selector, clock, dates, Salah, Jamaat, timetable, changes, health, Ramadan |
+
+Salah and Jamaat default to half width; other sections default to full width.
+Wall display also enables kiosk mode. Presets retain selected mosques, language,
+date preferences and Sehri/Iftar countdown choices. Ramadan and calculated night
+sections still need their applicable approved data; selecting a preset does not
+activate Ramadan or supply missing prayer times.
+
+**Phone**, **Tablet** and **Desktop** previews render the actual card at 360, 768
+and 1280 CSS pixels, scaled to fit the editor. Preview selection is isolated from
+live widget groups. **Reset layout** removes the custom arrangement and restores
+section visibility defaults for the selected detail/kiosk mode, keeping mosque,
+language, photograph and section-specific settings.
+
+Without a custom arrangement, the established Compact/Standard/Detailed and kiosk
+layouts remain unchanged. With an arrangement, the selected sections determine
+what appears, including dates and timetable in Compact; detail level determines
+presentation and detailed prayer-row extras. Kiosk arrangements reuse the live
+clock, larger typography, published prayer tiles and fullscreen control. Timetable
+day/month controls stay with the timetable; attribution stays outside movable
+sections. Live Today sections retain their day-navigation applicability.
+
+Every movable section also has its own **Add card** entry:
+
+| Section | Standalone type |
+| --- | --- |
+| Mosque selector | `custom:salah-widget-mosque-selector` |
+| Gregorian/Hijri dates | `custom:salah-widget-dates` |
+| Mosque-local clock | `custom:salah-widget-clock` |
+| Next Salah | `custom:salah-widget-salah` |
+| Contextual Next/Previous Jamaat | `custom:salah-widget-jamaat` |
+| Daily timetable | `custom:salah-widget-timetable` |
+| Ramadan | `custom:salah-widget-ramadan` |
+| Calculated night information | `custom:salah-widget-night-calculations` |
+| Upcoming Jamaat changes | `custom:salah-widget-jamaat-changes` |
+| Timetable health | `custom:salah-widget-timetable-health` |
+
+Standalone editors expose the relevant settings under **Advanced**, rather than
+an arrangement editor or a switch to hide the card's only section. Inactive Ramadan
+and unavailable night calculations show an explanation instead of an empty card.
+Dates and clock use the current mosque-local day; timetable browsing remains local.
+
+For YAML, use the optional `arrangement` alongside the ordinary visibility flags:
+
+```yaml
+type: custom:salah-timetable-card
+entity: sensor.example_mosque_prayer_timetable
+show_jamaat_changes: true
+show_timetable_health: true
+arrangement:
+  sections:
+    - id: dates
+      width: full
+    - id: salah
+      width: half
+    - id: jamaat
+      width: half
+    - id: timetable
+      width: full
+```
+
+Section IDs are `mosque_selector`, `dates`, `clock`, `salah`, `jamaat`, `timetable`,
+`ramadan`, `night_calculations`, `jamaat_changes` and `timetable_health`. Omitted
+positions append in their default order; visibility still follows the `show_*`
+options. Unknown or duplicate IDs and unsupported widths are rejected. The legacy
+`layout` option keeps its existing meaning.
+
+Additional section switches are `show_mosque_selector` (default true), `show_dates`
+and `show_timetable` (default visible outside non-kiosk Compact), and `show_clock`
+(default visible in kiosk). Existing countdown/Ramadan/night switches remain the
+visibility controls for those sections. The two status switches default false.
+
 ## Day navigation
 
 The **Yesterday / Today / Tomorrow** controls sit in the timetable footer.

@@ -1953,8 +1953,7 @@ ha-card.kiosk:fullscreen .content.kiosk {
   }
 }
 
-/* A standalone card follows its content height in dashboards and card previews.
-   Never inherit full-viewport/kiosk sizing or stretch to fill a picker tile. */
+/* Keep standalone previews and dashboard Sections at their natural height. */
 :host([data-standalone]) {
   display: block;
   height: fit-content;
@@ -1993,6 +1992,11 @@ ha-card.standalone-widget .standalone-content > h2:only-child { margin-bottom: 0
 ha-card.standalone-widget .linked-mosque-name {
   color: var(--secondary-text-color);
   overflow-wrap: anywhere;
+}
+ha-card.standalone-widget .widget-mosque-control {
+  margin: 0 0 12px;
+  font-size: 1.08rem;
+  line-height: 1.35;
 }
 .widget-heading {
   display: flex;
@@ -2099,7 +2103,27 @@ ha-card.standalone-widget .linked-mosque-name {
 }
 .content.custom-arrangement.kiosk .header { grid-template-columns: minmax(0,1fr); }
 .content.custom-arrangement.kiosk > .kiosk-footer { margin-top: 16px; }
+.arrangement-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-block: 0 10px;
+}
+.arrangement-toolbar > .kiosk-fullscreen {
+  position: static;
+  inset: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px;
+}
+.arrangement-toolbar > .kiosk-fullscreen ha-icon { width: 20px; height: 20px; --mdc-icon-size: 20px; }
+.arrangement-section .kiosk-clock { display: grid; gap: 6px; text-align: center; }
+.arrangement-section .kiosk-clock-label { color: var(--secondary-text-color); font-size: .85rem; }
 .arrangement-section .kiosk-clock-value {
+  display: block;
   font-variant-numeric: tabular-nums;
   font-size: clamp(1.8rem,12cqi,4rem);
   line-height: 1.15;
@@ -2231,6 +2255,10 @@ export const EDITOR_CSS = `
 /* The arrangement editor lives in the existing editor shadow root. */
 .editor-tabs,
 .widget-editor-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 8px 14px; }
+.editor-tabs[hidden],
+.widget-editor-tabs[hidden],
+.form[hidden],
+[role="tabpanel"][hidden] { display: none; }
 .editor-tabs button,
 .widget-editor-tabs button {
   min-height: 44px;

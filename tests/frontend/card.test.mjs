@@ -36,7 +36,7 @@ function hass(data = attributes) { return {states: {"sensor.mosque_prayer_timeta
 test("bundled card and graphical editor register once", () => {
   assert.equal(registry.get("salah-timetable-card"), SalahTimetableCard);
   assert.equal(registry.get("salah-timetable-card-editor"), SalahTimetableCardEditor);
-  assert.equal(window.customCards.length, 4);
+  assert.equal(window.customCards.length, 11);
   assert.equal(SalahTimetableCard.getConfigElement() instanceof SalahTimetableCardEditor, true);
   assert.equal(SalahTimetableCard.getStubConfig(hass()).entity, "sensor.mosque_prayer_timetable");
 });
@@ -1463,18 +1463,159 @@ test("standalone cards retain photographer attribution when backgrounds are expl
   assert.ok(find(widget.shadowRoot, "a").some(item => item.textContent.startsWith("Photo:")));
 });
 
-test("standalone status widgets request natural height in HA Sections dashboards", () => {
-  const Health = registry.get("salah-widget-timetable-health");
-  const widget = new Health();
-  widget.setConfig({entity: "sensor.mosque_prayer_timetable"});
-  assert.equal(widget.getGridOptions().rows, "auto");
-  assert.equal(widget.getGridOptions().min_rows, 1);
+
+function arrangedSections(card) {
+  return find(card.shadowRoot, "section").filter(item => item.className === "arrangement-section");
+}
+test("custom arrangements order shared sections and show an explicitly enabled Compact timetable", () => {
   const card = new SalahTimetableCard();
-  card.setConfig({entity: "sensor.mosque_prayer_timetable"});
-  assert.equal(typeof card.getGridOptions().rows, "number");
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "compact", show_timetable: true, show_dates: true,
+    arrangement: {sections: [{id: "timetable", width: "full"}, {id: "jamaat", width: "half"}, {id: "salah", width: "half"}]}});
+  card.hass = hass(widgetAttributes());
+  const sections = arrangedSections(card);
+  assert.deepEqual(sections.slice(0, 3).map(item => item.attributes["data-section"]), ["timetable", "jamaat", "salah"]);
+  assert.equal(sections[1].attributes["data-width"], "half");
+  assert.equal(find(card.shadowRoot, "table").length, 1);
+  assert.ok(sections.some(item => item.attributes["data-section"] === "dates"));
+  assert.equal(find(card.shadowRoot, "nav").filter(item => item.className === "date-tabs").length, 1);
+});
+test("all ten standalone sections register with correct stub types and relevant independent content", () => {
+  const ids = ["mosque-selector", "dates", "clock", "salah", "jamaat", "timetable", "ramadan", "night-calculations", "jamaat-changes", "timetable-health"];
+  const data = widgetAttributes();
+  data.ramadan = {active: true, sehri: "2026-10-21T04:45:00Z", iftar: "2026-10-21T17:00:00Z"};
+  data.night_calculations = {midpoint: "2026-10-21T23:00:00Z", last_third: "2026-10-22T01:00:00Z"};
+  for (const id of ids) {
+    const Widget = registry.get(`salah-widget-${id}`);
+    assert.ok(Widget, id);
+    assert.equal(Widget.getStubConfig(hass()).type, `custom:salah-widget-${id}`);
+    const card = new Widget(); card.setConfig({entity: "sensor.mosque_prayer_timetable", detail_level: "compact"}); card.hass = hass(data);
+    card._render(Date.parse("2026-10-21T03:00:00Z"));
+    if (!["mosque-selector", "jamaat-changes", "timetable-health"].includes(id)) assert.deepEqual(arrangedSections(card).map(item => item.attributes["data-section"]), [id.replaceAll("-", "_")]);
+    assert.equal(find(card.shadowRoot, "table").length, id === "timetable" ? 1 : 0);
+  }
+});
+test("standalone clock uses the host tick and conditional widgets explain inactive data", () => {
+  const Clock = registry.get("salah-widget-clock");
+  const clock = new Clock(); clock.setConfig({entity: "sensor.mosque_prayer_timetable"}); clock.hass = hass();
+  clock._render(Date.parse("2026-10-21T03:00:00Z"));
+  const time = find(clock.shadowRoot, "time")[0];
+  assert.equal(time.textContent, "04:00");
+  clock._tick(Date.parse("2026-10-21T03:01:00Z"));
+  assert.equal(time.textContent, "04:01");
+  for (const [id, message] of [["ramadan", "Ramadan"], ["night-calculations", "night"]]) {
+    const Widget = registry.get(`salah-widget-${id}`); const card = new Widget();
+    card.setConfig({entity: "sensor.mosque_prayer_timetable"}); card.hass = hass();
+    assert.ok(card.shadowRoot.textContent.includes(message));
+    assert.equal(arrangedSections(card).length, 1);
+  }
+});
+test("custom kiosk keeps fullscreen fixed and puts day navigation inside the movable timetable", () => {
+  const card = new SalahTimetableCard();
+  card.setConfig({entity: "sensor.mosque_prayer_timetable", kiosk_mode: true, arrangement: {sections: [{id: "clock", width: "full"}, {id: "timetable", width: "full"}]}});
+  card.hass = hass(widgetAttributes());
+  const sections = arrangedSections(card);
+  assert.equal(sections[0].attributes["data-section"], "clock");
+  const table = sections.find(item => item.attributes["data-section"] === "timetable");
+  assert.ok(find(table, "nav").some(item => item.className.includes("date-tabs")));
+  assert.equal(find(card.shadowRoot, "button").filter(item => item.className === "kiosk-fullscreen").length, 1);
+  assert.ok(find(card.shadowRoot, "div").some(item => item.className === "arrangement-toolbar"));
+});
+test("main editor offers a live isolated Layout tab and Reset removes saved placement", () => {
+  const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "house"}); editor.hass = hass();
+  const tab = find(editor.shadowRoot, "button").find(item => item.attributes["data-editor-tab"] === "layout");
+  tab.dispatchEvent(new Event("click"));
+  assert.ok(editor._layoutRoot);
+  const preview = find(editor._layoutRoot, "custom-element").find(item => item instanceof SalahTimetableCard);
+  assert.ok(preview?.preview);
+  assert.equal(preview._config.selection_group, "");
+  const preset = find(editor._layoutRoot, "select").find(item => item.attributes["data-layout-preset"] !== undefined);
+  preset.value = "balanced"; preset.dispatchEvent(new Event("change"));
+  assert.ok(editor._config.arrangement);
+  const reset = find(editor._layoutRoot, "button").find(item => item.attributes["data-layout-reset"] !== undefined);
+  reset.dispatchEvent(new Event("click"));
+  assert.equal(editor._config.arrangement, undefined);
+  assert.equal(editor._config.selection_group, "house");
+  editor.disconnectedCallback();
+  assert.equal(editor._layoutRoot, null);
 });
 
-test("linked standalone widgets follow a central selector without duplicating dropdowns", () => {
+
+test("hiding the timetable cancels adjacent-day and monthly browsing so live panels remain reachable", () => {
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable", show_month_view: true}); card.hass = hass(widgetAttributes());
+  card._selectedDay = 1; card._monthView = true; card._monthState = {loading: true};
+  const request = card._monthRequest;
+  card.setConfig({...card._config, show_timetable: false, arrangement: {sections: [{id: "salah", width: "full"}]}});
+  assert.equal(card._selectedDay, 0);
+  assert.equal(card._monthView, false);
+  assert.equal(card._monthState, null);
+  assert.ok(card._monthRequest > request);
+  assert.ok(arrangedSections(card).some(item => item.attributes["data-section"] === "salah"));
+});
+test("standalone widgets and custom arrangements use automatic Sections dashboard height", () => {
+  const Health = registry.get("salah-widget-timetable-health");
+  const widget = new Health(); widget.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  assert.equal(widget.getGridOptions().rows, "auto");
+  assert.equal(widget.getGridOptions().min_rows, 1);
+  const card = new SalahTimetableCard(); card.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  assert.equal(typeof card.getGridOptions().rows, "number");
+  card.setConfig({...card._config, arrangement: {sections: []}});
+  assert.equal(card.getGridOptions().rows, "auto");
+});
+test("custom widget identity uses a saved title only for the primary mosque", () => {
+  const primary = "sensor.mosque_prayer_timetable", other = "sensor.other_prayer_timetable";
+  const state = hass(widgetAttributes());
+  state.states[other] = {state: attributes.date, attributes: {...widgetAttributes(), mosque_name: "Other mosque"}};
+  for (const type of ["custom:salah-widget-salah", "custom:salah-timetable-card"]) {
+    const Card = type.endsWith("widget-salah") ? registry.get("salah-widget-salah") : SalahTimetableCard;
+    const card = new Card();
+    card.setConfig({type, entity: primary, title: "Home", show_mosque_selector: false, arrangement: {sections: []}});
+    card.hass = state;
+    const identity = () => {
+      const label = find(card.shadowRoot, "div").find(item => item.className === "widget-mosque-name");
+      if (label) return label.textContent;
+      const chooser = find(card.shadowRoot, "select").find(item => item.className === "mosque-select");
+      if (chooser) return find(chooser, "option").find(item => item.value === chooser.value)?.textContent;
+      return find(card.shadowRoot, "h2")[0]?.textContent;
+    };
+    assert.equal(identity(), "Home");
+    card._selectMosque(other); card._render();
+    assert.equal(identity(), "Other mosque");
+  }
+});
+test("Jamaat-change widgets honor bilingual prayer labels and direction metadata", () => {
+  const Changes = registry.get("salah-widget-jamaat-changes");
+  const card = new Changes(); card.setConfig({entity: "sensor.mosque_prayer_timetable", language: "en"});
+  card.hass = hass(widgetAttributes());
+  assert.ok(!card.shadowRoot.textContent.includes("الفجر"));
+  card.setConfig({...card._config, bilingual_prayer_labels: true});
+  assert.ok(card.shadowRoot.textContent.includes("Fajr / الفجر"));
+  assert.ok(find(card.shadowRoot, "span").some(item => item.attributes.lang === "ar" && item.attributes.dir === "rtl"));
+});
+test("arrangement validation uses localized messages and tab navigation has one keyboard stop", () => {
+  for (const language of ["en", "ar"]) {
+    const card = new SalahTimetableCard();
+    for (const invalid of [{arrangement: {sections: [{id: "unknown", width: "full"}]}}, {selection_group: 42}, {type: "custom:unknown"}]) {
+      assert.throws(() => card.setConfig({...invalid, language}), error => !error.message.startsWith("config.") && (language === "en" || /[\u0600-\u06ff]/.test(error.message)));
+    }
+  }
+  const editor = new SalahTimetableCardEditor(); editor.setConfig({entity: "sensor.mosque_prayer_timetable"}); editor.hass = hass();
+  assert.ok(editor._sections.history.body.children.some(item => item.className === "editor-soon-note"));
+  let focused = null;
+  for (const [id, button] of Object.entries(editor._tabButtons)) button.focus = () => { focused = id; };
+  assert.equal(editor._tabButtons.settings.tabIndex, 0);
+  assert.equal(editor._tabButtons.layout.tabIndex, -1);
+  const right = new Event("keydown", {cancelable: true}); Object.defineProperty(right, "key", {value: "ArrowRight"});
+  editor._tabButtons.settings.dispatchEvent(right);
+  assert.equal(editor._activeTab, "layout"); assert.equal(focused, "layout");
+  assert.equal(editor._tabButtons.settings.tabIndex, -1);
+  assert.equal(editor._tabButtons.layout.tabIndex, 0);
+  const home = new Event("keydown", {cancelable: true}); Object.defineProperty(home, "key", {value: "Home"});
+  editor._tabButtons.layout.dispatchEvent(home);
+  assert.equal(editor._activeTab, "settings"); assert.equal(focused, "settings");
+  editor.disconnectedCallback();
+});
+
+test("linked standalone widgets share mosque choice without repeated dropdowns", () => {
   const state = hass(widgetAttributes());
   state.states["sensor.other_prayer_timetable"] = {state: attributes.date, attributes: {...widgetAttributes(), mosque_name: "Other mosque"}};
   const Health = registry.get("salah-widget-timetable-health");
@@ -1482,45 +1623,55 @@ test("linked standalone widgets follow a central selector without duplicating dr
   const linked = new Health();
   linked.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "home"});
   linked.hass = state;
-  assert.equal(find(linked.shadowRoot, "select").length, 0, "Linked status shows a label, not another mosque picker");
+  assert.equal(find(linked.shadowRoot, "select").length, 0);
   assert.ok(find(linked.shadowRoot, "h2").some(item => item.textContent === "Example Mosque"));
   assert.equal(linked.hasAttribute("data-standalone"), true);
-  const standalone = new Health();
-  standalone.setConfig({entity: "sensor.mosque_prayer_timetable"});
-  standalone.hass = state;
-  assert.ok(find(standalone.shadowRoot, "select").length > 0, "Ungrouped status remains independently selectable");
-  const selector = new Selector();
-  selector.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "home"});
-  selector.hass = state;
-  assert.ok(find(selector.shadowRoot, "select").length > 0, "Dedicated selector remains the group's controller");
+  const separate = new Health();
+  separate.setConfig({entity: "sensor.mosque_prayer_timetable"});
+  separate.hass = state;
+  assert.ok(find(separate.shadowRoot, "select").length > 0);
+  const central = new Selector();
+  central.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "home"});
+  central.hass = state;
+  assert.ok(find(central.shadowRoot, "select").length > 0);
   const main = new SalahTimetableCard();
   main.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "home"});
   main.hass = state;
-  assert.ok(find(main.shadowRoot, "select").length > 0, "Main card keeps its built-in mosque selector");
+  assert.ok(find(main.shadowRoot, "select").length > 0);
 });
 
-test("mosque synchronisation is opt-in within Advanced settings and preserves existing group config", () => {
+test("Advanced makes mosque synchronisation opt-in and retains existing groups", () => {
   const editor = new SalahTimetableCardEditor();
-  editor.setConfig({entity: "sensor.mosque_prayer_timetable"});
-  editor.hass = hass();
-  const advanced = editor._sections.advanced.body;
-  assert.ok(find(advanced, "ha-switch").includes(editor._groupSyncControl));
-  assert.ok(find(advanced, "input").includes(editor._groupControl));
+  editor.setConfig({entity: "sensor.mosque_prayer_timetable"}); editor.hass = hass();
+  assert.ok(find(editor._sections.advanced.body, "ha-switch").includes(editor._groupSyncControl));
+  assert.ok(find(editor._sections.advanced.body, "input").includes(editor._groupControl));
   assert.equal(editor._groupSyncControl.checked, false);
   assert.equal(editor._groupNameField.hidden, true);
   editor._groupSyncControl.checked = true;
   editor._groupSyncControl.dispatchEvent(new Event("change"));
-  assert.equal(editor._config.selection_group, "home", "Opt-in uses an understandable default group name");
+  assert.equal(editor._config.selection_group, "home");
   assert.equal(editor._groupNameField.hidden, false);
-  editor._groupControl.value = "kitchen";
-  editor._groupControl.dispatchEvent(new Event("change"));
+  editor._groupControl.value = "kitchen"; editor._groupControl.dispatchEvent(new Event("change"));
   assert.equal(editor._config.selection_group, "kitchen");
-  editor._groupSyncControl.checked = false;
-  editor._groupSyncControl.dispatchEvent(new Event("change"));
+  editor._groupSyncControl.checked = false; editor._groupSyncControl.dispatchEvent(new Event("change"));
   assert.equal(editor._config.selection_group, "");
-  assert.equal(editor._groupNameField.hidden, true);
   editor.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "legacy-linked"});
-  assert.equal(editor._groupSyncControl.checked, true, "Older saved selection groups remain enabled");
+  assert.equal(editor._groupSyncControl.checked, true);
   assert.equal(editor._groupControl.value, "legacy-linked");
-  assert.equal(editor._groupNameField.hidden, false);
+});
+
+test("all other standalone sections retain a chooser only when independent", () => {
+  const state = hass(widgetAttributes());
+  state.states["sensor.other_prayer_timetable"] = {state: attributes.date, attributes: {...widgetAttributes(), mosque_name: "Other mosque"}};
+  for (const id of ["dates", "clock", "salah", "jamaat", "timetable", "ramadan", "night-calculations"]) {
+    const Card = registry.get(`salah-widget-${id}`);
+    const unlinked = new Card();
+    unlinked.setConfig({entity: "sensor.mosque_prayer_timetable"});
+    unlinked.hass = state;
+    assert.ok(find(unlinked.shadowRoot, "select").length > 0, `${id} allows independent choice`);
+    const linked = new Card();
+    linked.setConfig({entity: "sensor.mosque_prayer_timetable", selection_group: "home"});
+    linked.hass = state;
+    assert.equal(find(linked.shadowRoot, "select").length, 0, `${id} follows linked choice`);
+  }
 });

@@ -51,6 +51,7 @@ export function mountWidgetFixture({language = "en", bilingual = false} = {}) {
   view.style.cssText = "display:block;width:100%;min-width:0";
   document.body.append(view);
   const cards = [];
+  const editors = [];
   const hass = {
     states: {[first]: {state: day, attributes: firstData}, [second]: {state: day, attributes: secondData}},
     language, locale: {language}, user: {is_admin: true},
@@ -72,14 +73,29 @@ export function mountWidgetFixture({language = "en", bilingual = false} = {}) {
   const selector = mount("salah-widget-mosque-selector", {selection_group: group});
   const changes = mount("salah-widget-jamaat-changes", {selection_group: group});
   const health = mount("salah-widget-timetable-health", {selection_group: group});
+  function mountEditor(config = {}) {
+    const editor = document.createElement("salah-timetable-card-editor");
+    const state = {editor, config: {...base, type: "custom:salah-timetable-card", ...config}, changes: []};
+    editor.setConfig(state.config);
+    editor.hass = hass;
+    editor.addEventListener("config-changed", event => {
+      state.config = event.detail.config;
+      state.changes.push(event.detail.config);
+      editor.setConfig(event.detail.config);
+    });
+    view.append(editor);
+    editors.push(editor);
+    return state;
+  }
   return {
-    view, cards, hass, base, now, first, second, selector, changes, health, mount,
+    view, cards, hass, base, now, first, second, selector, changes, health, mount, mountEditor,
     select(entity) {
       const control = selector.shadowRoot.querySelector(".mosque-select");
       control.value = entity;
       control.dispatchEvent(new Event("change", {bubbles: true}));
     },
     destroy() {
+      for (const editor of editors) editor.remove();
       for (const card of cards) card.remove();
       view.remove();
     },
