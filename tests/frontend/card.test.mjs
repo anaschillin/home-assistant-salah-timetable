@@ -482,7 +482,7 @@ test("editor uses Home Assistant switches in collapsible, accessible groups", ()
   assert.equal(control.tagName, "ha-switch");
   assert.equal(control.attributes["aria-label"], tr("en", "editor.show_gregorian_date"));
   assert.match(editor._extraControls.show_gregorian_date.hint.textContent, /civil date/);
-  assert.equal(find(editor.shadowRoot, "ha-switch").length, Object.values(editor._extraControls).filter(item => item.checkbox).length);
+  assert.equal(find(editor.shadowRoot, "ha-switch").length, Object.values(editor._extraControls).filter(item => item.checkbox).length + 1, "Advanced adds one mosque synchronisation switch");
   prayers.toggle.dispatchEvent(new Event("click"));
   assert.equal(dates.body.hidden, true);
   assert.equal(prayers.toggle.attributes["aria-expanded"], "true");
