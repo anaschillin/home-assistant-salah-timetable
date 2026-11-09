@@ -347,9 +347,14 @@ narrow cards, and can be hidden independently. On Yesterday and Tomorrow the
 header remains while live countdowns are hidden. Decorative silhouettes do not
 identify the selected mosque or carry timetable data.
 
-Fajr end is the *published sunrise*, never a calculated estimate. Published
-Jumu’ah congregations remain in Dhuhr's Jamaat row, and the separately published
-second khutbah (if any) is not treated as a Jamaat. Missing times are displayed
+Fajr end is the *published sunrise*, never a calculated estimate. When a
+Friday has an explicitly published Jumu’ah congregation, the Next Salah heading
+and that day's Dhuhr timetable row are labelled **Jumu’ah**. The countdown
+still uses the published Dhuhr beginning; its Jamaat time comes from the first
+published Jumu’ah congregation, not a separate Dhuhr congregation. On other
+days, or when Jumu’ah is not published, the label remains Dhuhr. Multiple
+Jumu’ah times remain visible in the timetable. The separately published second
+khutbah (if any) is not treated as a Jamaat. Missing times are displayed
 as unavailable rather than inferred. Ramadan details are shown in all three display levels when Ramadan is active and the card's Ramadan details option is enabled.
 
 
@@ -516,13 +521,14 @@ If the next Salah begins on the following *mosque-local* civil day, a
 continue to describe the selected day's published timetable, so the two
 different Fajr times are not mistaken for a disagreement.
 
-Below the hero are five prayer tiles (Fajr, Dhuhr, Asr, Maghrib, Isha),
+Below the hero are five prayer tiles (Fajr, Dhuhr/Jumu’ah, Asr, Maghrib, Isha),
 populated only from the **selected day's published rows**. The next published
 beginning is highlighted, the most recently begun prayer is distinguished,
 and a subtle outline marks the upcoming published Jamaat when it matches
-one of today's congregations. No missing times are estimated. Dhuhr retains
-published Friday congregations where available, and prayer labels follow
-the configured language and bilingual setting.
+one of today's congregations. No missing times are estimated. The Dhuhr tile
+is labelled Jumu’ah for Fridays with an explicitly published Jumu’ah event,
+including Yesterday/Tomorrow navigation. Prayer labels follow the configured
+language and bilingual setting.
 
 The bottom row contains the missing-time note (when timezone/help text is
 enabled), Yesterday / Today / Tomorrow controls and optional monthly
