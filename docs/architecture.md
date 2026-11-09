@@ -427,7 +427,12 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 | `frontend/card-utils.js` | Pure timestamp, time formatting and card model helpers |
 | `frontend/history-utils.js` | Research/test-only history selector; not imported by the card |
 | `frontend/card-i18n.js` | Localized client-side labels |
-| `frontend/card-styles.js` | Dashboard CSS and layout tokens |
+| `frontend/card-styles.js` | Public CSS aggregation module; preserves cascade and editor style exports |
+| `frontend/card-style-foundation.js` | Foundational dashboard layout, typography and responsive primitives |
+| `frontend/card-style-dashboard.js` | Mosque-photo and glass dashboard presentation overrides |
+| `frontend/card-style-kiosk.js` | Kiosk, wall-display and fullscreen responsive overrides |
+| `frontend/card-style-widgets.js` | Standalone widget and custom-arrangement styles |
+| `frontend/card-style-editor.js` | Configuration editor styles scoped to its shadow root |
 | `frontend/widget-utils.js` | Standalone widget configuration and approved Jamaat-comparison helpers |
 | `frontend/widget-selection.js` | Ephemeral linked mosque selection, scoped to the current Home Assistant dashboard view |
 | `frontend/widget-renderers.js` | Read-only Jamaat-change and timetable-health panels, using approved diagnostic data |
