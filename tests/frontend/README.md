@@ -18,6 +18,8 @@ This skips the **whole-integration** coverage threshold for a focused run. Full-
 
 Run `npm test` for Node unit tests and `REQUIRE_BROWSER_TESTS=1 npm run test:browser` for Chromium smoke checks. Keep shared browser helpers in `browser-harness.js`; put new interactive regression assertions in a test module or the smoke runner.
 
+The large card suite is split by behaviour: `card.test.mjs` retains core card/editor interactions, `card-kiosk.test.mjs` covers kiosk-only cases, and `card-widgets.test.mjs` covers standalone widgets and custom arrangements. `card-test-harness.mjs` provides the shared minimal DOM, Home Assistant fixtures and card registrations; it is not itself a test file. Keep new assertions in the relevant `*.test.mjs` module.
+
 Shared Home Assistant fixtures belong in [`tests/conftest.py`](../conftest.py). The authoritative per-file inventory, Node/browser commands, and CI scope are in [the test suite guide](../../docs/testing.md).
 
 The editor smoke tests cover the single ordered mosque checkbox list, six-dot
