@@ -215,9 +215,10 @@ Browser sessions, other dashboards and devices are not synchronised.
 
 ## Visual layouts and standalone sections
 
-In the separate visual-layout feature branch (PR #143), the card editor has
-**Settings** and **Layout** tabs. This optional editor is not part of the
-v3.5 linked-widget release. Settings retains
+The **Layout** tab and the ten standalone card sections were merged into
+`main` by PR #143 after the published **v3.5.0** release. They are available
+from a build containing that merge, **not** from the v3.5.0 stable tag.
+The card editor has **Settings** and **Layout** tabs. Settings retains
 the existing grouped controls. Layout arranges only this card; it does not move
 other Home Assistant cards or change another dashboard's configuration.
 

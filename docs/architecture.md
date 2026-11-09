@@ -432,7 +432,7 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 | `frontend/widget-selection.js` | Ephemeral linked mosque selection, scoped to the current Home Assistant dashboard view |
 | `frontend/widget-renderers.js` | Read-only Jamaat-change and timetable-health panels, using approved diagnostic data |
 | `frontend/widget-i18n.js` | English/Arabic labels, status messages and linked-widget settings |
-| `frontend/layout-editor.js` | Optional feature-branch visual arrangement editor with accessible controls and isolated previews (PR #143) |
+| `frontend/layout-editor.js` | Visual arrangement editor merged into `main` after v3.5.0 (PR #143); accessible section ordering, presets and isolated device previews; not included in the v3.5.0 tag |
 | `frontend/mosque-backgrounds.js` | Background catalog and selection logic |
 | `frontend/reminder-wizard.js` | Guided prayer reminder UI that previews and saves normal Home Assistant automations |
 | `frontend/backgrounds/*.webp` | Attributed bundled mosque images; see [provenance inventory](asset-provenance.json) |

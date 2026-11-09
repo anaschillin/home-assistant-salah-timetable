@@ -19,7 +19,7 @@ A Home Assistant custom integration for importing **published mosque Salah and J
 - Optional monthly timetable browsing, approved-year CSV export and redacted source details.
 - Configurable prayer-completeness diagnostics, calculated night information and wall/tablet display mode.
 - **New in v3.5:** standalone **Mosque selector**, **Upcoming Jamaat changes** and **Timetable health** cards, plus optional panels in the main card. Link cards with **Advanced → Synchronise mosque selection** to switch several cards together without repeating dropdowns. Standalone cards also work independently. See the [widget guide](docs/dashboard.md#jamaat-changes-and-timetable-health-widgets).
-- **In development (PR #143):** an optional visual arrangement editor with ten standalone card sections, custom section ordering, presets and isolated device previews. This is separate from the v3.5 linked-widget release.
+- **On `main` after v3.5.0 (not in the published v3.5.0 tag):** visual **Layout** editor with five presets, movable full/half-width sections, Reset and isolated phone/tablet/desktop previews, plus ten standalone card sections. Existing layouts are unchanged unless you opt in. See [Visual layouts and standalone sections](docs/dashboard.md#visual-layouts-and-standalone-sections).
 - Six optional blueprints for prayer reminders, media playback, date-coverage alerts and required-field completeness alerts.
 
 **Important:** Values come from approved publications; this integration does not calculate authoritative prayer schedules or invent missing times. Only [documented PDF layouts](docs/import_review.md#supported-pdf-layouts) are supported.

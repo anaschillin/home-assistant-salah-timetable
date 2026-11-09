@@ -108,6 +108,11 @@ card's built-in dropdown can control the group. Linked status widgets do not
 repeat the dropdown; unlinked widgets remain independent. These are *dashboard
 cards*, not native mobile home-screen widgets.
 
+A visual **Layout** tab with five presets, drag-and-drop/keyboard ordering and
+independent standalone sections was merged into `main` after v3.5.0. The published
+**v3.5.0** tag does not include it; a later build containing PR #143 is required.
+See [Visual layouts and standalone sections](dashboard.md#visual-layouts-and-standalone-sections).
+
 **Timetable health** reports approved coverage, missing required fields and
 pending reviews. **Upcoming Jamaat changes** needs approved congregation times
 for today and tomorrow; missing values remain unavailable. See

@@ -5,14 +5,14 @@ not the current backlog. For available features see the [README](README.md#featu
 for pending work see the [roadmap](docs/roadmap.md). Published releases and their
 exact source tags are listed on [GitHub Releases](https://github.com/anaschillin/home-assistant-salah-timetable/releases).
 
-## Unreleased — visual arrangement editor (PR #143)
+## Unreleased — visual arrangement editor (merged to `main` after v3.5.0)
 
 - Extend the v3.5 widgets with standalone views of ten card sections, including dates,
   clock, Salah/Jamaat, timetable, Ramadan and calculated-night information.
 - Add an opt-in visual Layout editor with five presets, move/drag ordering,
   full/half-width sections, visibility controls and isolated phone/tablet/desktop previews.
 - Preserve custom kiosk presentation, approved prayer values and linked mosque selection.
-  This is a separate feature-branch capability and not part of v3.5.0.
+  Merged into `main` through PR #143; these changes are **not** in the published v3.5.0 tag and await a later release.
 
 ## 3.5.0 — 9 November 2026
 
