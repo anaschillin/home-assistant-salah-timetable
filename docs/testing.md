@@ -154,7 +154,7 @@ The following 20 Node unit modules are discovered by `npm test` (`node --test te
 | `visual-regression.test.mjs` | Screenshot comparison behaviour |
 | `widget-utils.test.mjs` | Widget configuration, layout presets, approved Jamaat comparisons and missing/DST/Friday cases |
 | `widget-selection.test.mjs` | Dashboard-view mosque groups, late joins, change delivery and cleanup |
-| `layout-editor.test.mjs` | Visual arrangement editor merged into `main` after v3.5.0 (PR #143): presets, keyboard/drag ordering and isolated device previews |
+| `layout-editor.test.mjs` | Visual arrangement editor presets, keyboard and drag ordering, and isolated device previews |
 
 Version 3.5's frontend tests also cover independent/linked mosque selection,
 view-scoped synchronisation, optional status panels, natural-height standalone

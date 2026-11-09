@@ -1,6 +1,6 @@
 /** Real-browser fixture: native shadow DOM/CSS with small HA control stand-ins. */
 import {SalahTimetableCard, SalahTimetableCardEditor} from "/custom_components/salah_timetable/frontend/salah-timetable-card.js?v=0.9.19";
-import {resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.19";
+import {localizedNumber, resolveUi, tr} from "/custom_components/salah_timetable/frontend/card-i18n.js?v=0.9.19";
 import {formatDate, formatHijriDate, hijriMonthInfo, formatTime} from "/custom_components/salah_timetable/frontend/card-utils.js?v=0.9.19";
 
 class Selector extends HTMLElement {
@@ -287,7 +287,6 @@ try {
   const [salahClockStyle, jamaatClockStyle] = bothClocks.map(panel => getComputedStyle(panel.querySelector(".count")));
   // getComputedStyle is live; capture the reference size before render()
   // replaces these paired panels during the visibility matrix below.
-  const pairedCountFontSize = Number.parseFloat(salahClockStyle.fontSize);
   const [salahEventStyle, jamaatEventStyle] = bothClocks.map(panel => getComputedStyle(panel.querySelector(".event")));
   check("Salah and Jamaat use identical backgrounds, padding, countdown sizes and type hierarchy",
     salahStyle.backgroundColor === jamaatStyle.backgroundColor &&
@@ -343,99 +342,113 @@ try {
   // restored grid instead of reusing its now-detached computed-style object.
   const restoredGridColumns = getComputedStyle(card.shadowRoot.querySelector(".panels")).gridTemplateColumns.split(" ").length;
   check("container layout uses one column on mobile and two on tablet", restoredGridColumns === (width <= 336 ? 1 : 2));
-  // The layout is measured in native Chromium; this catches a future cascade
-  // regression that leaves a lone summary stuck in one half of the kiosk grid.
-  for (const [detail_level, kiosk_mode] of [
-    ["compact", false], ["standard", false], ["detailed", false], ["standard", true],
+  // Check actual layout at phone and desktop widths in both writing directions.
+  const assertSoloPrayer = (description, kind, timeFormat) => {
+    const root = card.shadowRoot;
+    const grid = root.querySelector(".summary-shell .panels.single-panel");
+    const panel = grid?.querySelector(`[data-panel="${kind}"]`);
+    check(`${description} renders only ${kind}`, root.querySelectorAll(".prayer-panel").length === 1 && panel);
+    const frame = grid.getBoundingClientRect();
+    const bounds = panel.getBoundingClientRect();
+    const icon = panel.querySelector(".panel-silhouette");
+    const iconBounds = icon.getBoundingClientRect();
+    const centre = rect => (rect.left + rect.right) / 2;
+    check(`${description} keeps the countdown centered within the summary`,
+      Math.abs(centre(frame) - centre(bounds)) <= 2 && bounds.width <= frame.width + 1);
+    check(`${description} places the decorative icon at the physical right edge`,
+      iconBounds.width > 0 && iconBounds.right >= frame.right - 12 && iconBounds.right <= frame.right + 1 &&
+      icon.getAttribute("aria-hidden") === "true");
+
+    const heading = panel.querySelector(":scope > .label").getBoundingClientRect();
+    const name = panel.querySelector(".event").getBoundingClientRect();
+    const count = panel.querySelector(".count");
+    const countBounds = count.getBoundingClientRect();
+    const times = panel.querySelector(".prayer-times");
+    const timesBounds = times.getBoundingClientRect();
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const wide = frame.width >= 46 * rem;
+    const narrow = frame.width <= 18 * rem;
+    const beside = ui.dir === "rtl"
+      ? timesBounds.right <= countBounds.left + 2
+      : timesBounds.left >= countBounds.right - 2;
+    check(`${description} centres the heading above the prayer`,
+      Math.abs(centre(heading) - centre(bounds)) <= 2 && heading.bottom <= name.top + 2);
+    check(`${description} moves the tile below the countdown when space is limited`,
+      wide ? beside : timesBounds.top >= Math.max(name.bottom, countBounds.bottom) - 2);
+    check(`${description} shares a name and timer row when there is room`,
+      wide || narrow ? name.bottom <= countBounds.top + 2 : name.top < countBounds.bottom && countBounds.top < name.bottom);
+    check(`${description} keeps the timeline tile and clock inside the panel`,
+      panel.scrollWidth <= panel.clientWidth + 1 && count.scrollWidth <= count.clientWidth + 1 &&
+      times.scrollWidth <= times.clientWidth + 1 && parseFloat(getComputedStyle(times).borderRadius) > 0);
+
+    const rows = [...times.querySelectorAll(".prayer-time")];
+    const cells = rows.map(row => row.getBoundingClientRect());
+    check(`${description} puts both published times beside each other in the tile`,
+      cells.length === 2 && Math.abs(cells[0].top - cells[1].top) <= 2 &&
+      (ui.dir === "rtl" ? cells[0].left >= cells[1].right : cells[0].right <= cells[1].left));
+    const expectedTimes = kind === "salah" ? [time(4, 45), time(5, 15)] : [time(11), time(11, 30)];
+    for (const [index, key] of ["table.beginning", "table.jamaat"].entries()) {
+      const row = rows[index];
+      const label = row.querySelector(".label");
+      const value = row.querySelector(".absolute");
+      const labelBounds = label.getBoundingClientRect();
+      const valueBounds = value.getBoundingClientRect();
+      check(`${description} keeps the ${key} label above its published time`,
+        labelBounds.bottom <= valueBounds.top + 1 && row.scrollWidth <= row.clientWidth + 1 &&
+        parseFloat(getComputedStyle(label).fontSize) < parseFloat(getComputedStyle(value).fontSize) &&
+        label.textContent === tr(ui, key) &&
+        value.textContent === formatTime(expectedTimes[index], data.time_zone, ui, timeFormat));
+    }
+    const timeline = times.querySelector(".timeline-strip");
+    const timelineBounds = timeline?.getBoundingClientRect();
+    const [start, end] = [...timeline.querySelectorAll(".timeline-start,.timeline-end")].map(node => node.getBoundingClientRect());
+    check(`${description} places the timeline below both published times`,
+      timelineBounds.top >= Math.max(...cells.map(cell => cell.bottom)) - 1 &&
+      (ui.dir === "rtl" ? start.left > end.right : start.right < end.left));
+    const state = kind === "salah" ? "interval" : "elapsed";
+    check(`${description} shows the translated timeline state`,
+      timeline.querySelector(".timeline-caption").textContent === tr(ui, `timeline.${state}`, {minutes: localizedNumber(30, ui)}) &&
+      timeline.classList.contains("is-complete") === (kind === "jamaat"));
+  };
+  for (const [name, detail_level, kiosk_mode] of [
+    ["Compact", "compact", false], ["Standard", "standard", false],
+    ["Detailed", "detailed", false], ["Kiosk", "standard", true],
+    ["Custom half-width", "standard", false], ["Standalone", "standard", false],
   ]) {
-    for (const [salah, jamaat] of [[true, false], [false, true]]) {
-      render({detail_level, kiosk_mode,
-        show_salah_countdown: salah, show_jamaat_countdown: jamaat});
-      const root = card.shadowRoot;
-      const grid = root.querySelector(".summary-shell .panels");
-      const panel = grid?.querySelector(".prayer-panel");
-      const frame = grid?.getBoundingClientRect();
-      const rect = panel?.getBoundingClientRect();
-      const centered = Boolean(rect && frame) &&
-        Math.abs((frame.left + frame.right - rect.left - rect.right) / 2) <= 2;
-      const published = panel?.querySelector(".prayer-times");
-      const count = panel?.querySelector(".count");
-      const publishedRect = published?.getBoundingClientRect();
-      const countRect = count?.getBoundingClientRect();
-      const panelColumns = getComputedStyle(panel).gridTemplateColumns.split(" ").length;
-      const shouldStack = (kiosk_mode && width <= 640) || width <= 320;
-      const publishedOnInlineEnd = !shouldStack && publishedRect && countRect &&
-        (ui.dir === "rtl"
-          ? publishedRect.right <= countRect.left + 2
-          : publishedRect.left >= countRect.right - 2);
-      const publishedBelow = shouldStack && publishedRect && countRect &&
-        publishedRect.top >= countRect.bottom - 2;
-      const leadingSize = parseFloat(getComputedStyle(count).fontSize);
-      const normalSize = pairedCountFontSize;
-      const constrained = rect.width <= (kiosk_mode ? 1152 : 896) + 2;
-      const metrics = {width, dir: ui.dir, detail_level, kiosk_mode, centered, constrained,
-        className: grid?.className, children: grid?.children.length,
-        display: getComputedStyle(panel).display,
-        columns: getComputedStyle(panel).gridTemplateColumns, panelColumns,
-        shouldStack, publishedBelow, publishedOnInlineEnd,
-        leadingSize, normalSize,
-        frame: frame && {left: frame.left, right: frame.right, width: frame.width},
-        panel: rect && {left: rect.left, right: rect.right, width: rect.width},
-        time: publishedRect && {left: publishedRect.left, right: publishedRect.right, top: publishedRect.top},
-        count: countRect && {left: countRect.left, right: countRect.right, bottom: countRect.bottom}};
-      const singleLayoutPasses =
-        grid?.classList.contains("single-panel") && grid.children.length === 1 &&
-        centered && constrained &&
-        getComputedStyle(panel).display === "grid" &&
-        panelColumns === (shouldStack ? 1 : 2) &&
-        (shouldStack ? publishedBelow : publishedOnInlineEnd) &&
-        leadingSize > normalSize &&
-        rect.left >= frame.left - 1 && rect.right <= frame.right + 1;
-      const label = `single ${salah ? "Salah" : "Jamaat"} is centred in ${detail_level}${kiosk_mode ? " kiosk" : ""}`;
-      check(singleLayoutPasses ? label : `${label}: ${JSON.stringify(metrics)}`, singleLayoutPasses);
+    for (const kind of ["salah", "jamaat"]) {
+      const salah = kind === "salah";
+      const patch = {detail_level, kiosk_mode, time_format: "12h",
+        show_salah_countdown: salah, show_jamaat_countdown: !salah};
+      if (name === "Custom half-width") patch.arrangement = {sections: [{id: kind, width: "half"}]};
+      if (name === "Standalone") patch.type = `custom:salah-widget-${kind}`;
+      render(patch, salah ? time(4, 40) : time(12));
+      assertSoloPrayer(`${name} ${kind}`, kind, patch.time_format);
+      if (name !== "Standalone") {
+        check(`${name} ${kind} retains day navigation`, card.shadowRoot.querySelectorAll(".date-tab").length === 3);
+      }
+      if (kiosk_mode) {
+        check(`Kiosk ${kind} retains fullscreen control`, card.shadowRoot.querySelector(".kiosk-fullscreen"));
+      }
     }
   }
-  // Physical geometry of the approved Beginning/Jamaat values in a solo
-  // kiosk hero. Both right-column cells expand on wall/tablet screens; mobile
-  // kiosk widths instead place both values side-by-side below the countdown.
-  render({detail_level: "standard", kiosk_mode: true,
-    show_salah_countdown: true, show_jamaat_countdown: false});
-  const kioskTimes = card.shadowRoot.querySelector(".content.kiosk .panels.single-panel .prayer-times");
-  const kioskTimeCells = [...(kioskTimes?.querySelectorAll(".prayer-time") || [])];
-  const kioskTimesRect = kioskTimes?.getBoundingClientRect();
-  const cellRects = kioskTimeCells.map(cell => cell.getBoundingClientRect());
-  const computedTimeGrid = kioskTimes && getComputedStyle(kioskTimes);
-  const mobileKiosk = width <= 640;
-  const timeColumns = computedTimeGrid?.gridTemplateColumns.split(" ").length;
-  const timeRows = computedTimeGrid?.gridTemplateRows.split(" ").length;
-  const timeFont = kioskTimeCells[0] && parseFloat(getComputedStyle(kioskTimeCells[0].querySelector(".absolute")).fontSize);
-  const centreOf = rect => (rect.left + rect.right) / 2;
-  // The grid's inline-start padding protects its divider. Compare each clock
-  // against the centre of its usable cell, not the padded outer grid box.
-  const rightTimesCentred = kioskTimesRect && cellRects.length === 2 &&
-    kioskTimeCells.every((cell, index) => {
-      const valueRect = cell.querySelector(".absolute")?.getBoundingClientRect();
-      const rect = cellRects[index];
-      return valueRect && Math.abs(centreOf(valueRect) - centreOf(rect)) <= 3 &&
-        rect.left >= kioskTimesRect.left - 1 && rect.right <= kioskTimesRect.right + 1;
-    });
-  const timePosition = mobileKiosk
-    ? cellRects.length === 2 && Math.abs(cellRects[0].top - cellRects[1].top) <= 2
-    : cellRects.length === 2 && cellRects[1].top > cellRects[0].bottom + 3;
-  const publishedFits = kioskTimeCells.length === 2 &&
-    kioskTimeCells.every(cell => cell.scrollWidth <= cell.clientWidth + 1);
-  const kioskTimeChecks = {count: kioskTimeCells.length, width, timeColumns, timeRows,
-    mobileKiosk, rightTimesCentred, timePosition, timeFont, publishedFits,
-    gridWidth: kioskTimesRect?.width, cellRects: cellRects.map(r => ({
-      left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height
-    }))};
-  const kioskTimePass = kioskTimeCells.length === 2 && timeColumns === (mobileKiosk ? 2 : 1) &&
-    timeRows === (mobileKiosk ? 1 : 2) && rightTimesCentred && timePosition &&
-    timeFont >= (mobileKiosk ? 24 : 28) && publishedFits;
-  check(kioskTimePass
-    ? "solo kiosk published Beginning/Jamaat values use available right-hand space"
-    : `solo kiosk published Beginning/Jamaat values use available right-hand space: ${JSON.stringify(kioskTimeChecks)}`,
-    kioskTimePass);
+  if (width === 900 && !bilingual) {
+    // At this width the countdown grid is wider than the capped inner panel.
+    // Anchoring the icon to the panel instead of its grid would leave a gap.
+    card.style.width = "1600px";
+    render({kiosk_mode: true, show_jamaat_countdown: false, time_format: "24h"});
+    assertSoloPrayer("Wide Kiosk Salah", "salah", "24h");
+    card.style.removeProperty("width");
+  }
+  render({detail_level: "compact", show_month_view: true, show_salah_countdown: false}, time(4, 50));
+  const timeline = card.shadowRoot.querySelector(".timeline-strip");
+  card._tick(Date.parse(time(5, 5)));
+  check("Jamaat timeline updates its fill and translated remaining minutes in place",
+    card.shadowRoot.querySelector(".timeline-strip") === timeline &&
+    timeline.querySelector(".timeline-caption").textContent === tr(ui, "timeline.remaining", {minutes: localizedNumber(10, ui)}) &&
+    Math.abs(parseFloat(timeline.style.getPropertyValue("--timeline-second-fill")) - 100 / 3) <= .1);
+  const soloControls = [...card.shadowRoot.querySelectorAll(".card-more-toggle,.date-tab")];
+  check("solo Compact More and day controls provide 44px touch targets",
+    soloControls.length === 4 && soloControls.every(node => node.getBoundingClientRect().height >= 44));
   render();
   check("card language and direction match configuration", card.getAttribute("lang") === language && card.getAttribute("dir") === ui.dir);
   check("summary icon silhouettes are hidden from accessibility", card.shadowRoot.querySelectorAll(".panel-silhouette[aria-hidden=\"true\"] svg").length === 2);

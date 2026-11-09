@@ -637,6 +637,8 @@ test("the sole visible countdown is centred across normal and kiosk modes", () =
       const count = Number(salah) + Number(jamaat);
       assert.equal(visible.length, count, `${detail_level}/kiosk=${kiosk_mode}: panel count`);
       assert.equal(panels.length, count ? 1 : 0, "No empty grid when both cards are hidden");
+      assert.equal(classNodes(summary, "timeline-strip").length, salah && !jamaat ? 1 : 0,
+        "The timeline needs a single panel and a complete published pair");
       if (count) {
         assert.equal(panels[0].className, count === 1 ? "panels single-panel" : "panels");
       }
@@ -645,6 +647,47 @@ test("the sole visible countdown is centred across normal and kiosk modes", () =
         assert.ok(visible[0].textContent.includes(salah ? "Next Salah" : "Previous Jamaat"));
       }
     }
+  }
+});
+
+test("single countdown timelines update the published interval on the existing tick", () => {
+  const card = new SalahTimetableCard();
+  const config = {entity: "sensor.mosque_prayer_timetable", show_jamaat_countdown: false};
+  const instant = time => Date.parse(`2026-10-21T${time}Z`);
+  const caption = () => find(card.shadowRoot, "span").find(element => element.className === "timeline-caption");
+  const track = () => find(card.shadowRoot, "div").find(element => element.className?.startsWith("timeline-strip"));
+  card.setConfig(config); card.hass = hass();
+  card._render(instant("04:40:00"));
+  assert.equal(caption().textContent, "30 min");
+  assert.deepEqual(track().style.values, {"--timeline-first-fill": "0%", "--timeline-second-fill": "0%"});
+
+  card.setConfig({...config, show_salah_countdown: false, show_jamaat_countdown: true});
+  card._render(instant("04:52:30"));
+  const activeTrack = track();
+  assert.equal(caption().textContent, "23 min to Jamaat");
+  assert.deepEqual(activeTrack.style.values, {"--timeline-first-fill": "50%", "--timeline-second-fill": "0%"});
+  card._tick(instant("05:07:30"));
+  assert.equal(track(), activeTrack);
+  assert.equal(caption().textContent, "8 min to Jamaat");
+  assert.deepEqual(track().style.values, {"--timeline-first-fill": "100%", "--timeline-second-fill": "50%"});
+
+  card._tick(instant("05:15:00"));
+  assert.equal(track().className, "timeline-strip is-complete");
+  assert.equal(caption().textContent, "0 min since Jamaat");
+  assert.deepEqual(track().style.values, {"--timeline-first-fill": "100%", "--timeline-second-fill": "100%"});
+  card._tick(instant("06:12:00"));
+  assert.equal(caption().textContent, "57 min since Jamaat");
+});
+
+test("single countdown keeps published values visible without a valid timeline interval", () => {
+  for (const [jamaat, displayed] of [[[], "—"], [["2026-10-21T04:45:00Z"], "05:45"], [["2026-10-21T04:44:00Z"], "05:44"]]) {
+    const data = {...attributes, prayers: [{...attributes.prayers[0], jamaat}]};
+    const card = new SalahTimetableCard();
+    card.setConfig({entity: "sensor.mosque_prayer_timetable", show_jamaat_countdown: false});
+    card.hass = hass(data);
+    card._render(Date.parse("2026-10-21T04:40:00Z"));
+    assert.equal(classNodes(card.shadowRoot, "timeline-strip").length, 0);
+    assert.deepEqual(classNodes(card.shadowRoot, "absolute").map(element => element.textContent), ["05:45", displayed]);
   }
 });
 

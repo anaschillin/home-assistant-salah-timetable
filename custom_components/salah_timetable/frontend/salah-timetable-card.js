@@ -1,13 +1,13 @@
-import {openReminderWizard} from "./reminder-wizard.js?v=3.5.0";
-import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=3.5.0";
-import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=3.5.0";
-import {eventProgress, publishedTimes, displayPrayerKey, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.5.0";
-import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=3.5.0";
-import {SECTION_IDS, sectionVisible, widgetSection, widgetType} from "./widget-utils.js?v=3.5.0";
-import {joinSelectionGroup} from "./widget-selection.js?v=3.5.0";
-import {buildJamaatChanges, buildTimetableHealth} from "./widget-renderers.js?v=3.5.0";
-import {widgetTr} from "./widget-i18n.js?v=3.5.0";
-import {buildLayoutEditor} from "./layout-editor.js?v=3.5.0";
+import {openReminderWizard} from "./reminder-wizard.js?v=3.6.0";
+import {MOSQUE_BACKGROUNDS, chooseMosqueBackground} from "./mosque-backgrounds.js?v=3.6.0";
+import {CARD_CSS, EDITOR_CSS} from "./card-styles.js?v=3.6.0";
+import {eventProgress, publishedTimes, displayPrayerKey, hijriMonthInfo, formatHijriDate, hijriDisplayDate, highlightedPrayer, prayerIsPast, countdown, discoverEntity, discoverTimetableEntities, elapsed, formatDate, formatTime, isTimetableState, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.6.0";
+import {localizedNumber, prayerLabels, resolveUi, tr} from "./card-i18n.js?v=3.6.0";
+import {SECTION_IDS, sectionVisible, widgetSection, widgetType} from "./widget-utils.js?v=3.6.0";
+import {joinSelectionGroup} from "./widget-selection.js?v=3.6.0";
+import {buildJamaatChanges, buildTimetableHealth} from "./widget-renderers.js?v=3.6.0";
+import {widgetTr} from "./widget-i18n.js?v=3.6.0";
+import {buildLayoutEditor} from "./layout-editor.js?v=3.6.0";
 
 // Keep HA bookkeeping and unrelated entity updates out of the render decision.
 const RENDER_ATTRIBUTES = [
@@ -136,8 +136,43 @@ function kioskSalahDayLabel(event, now, zone, ui) {
   } catch { return null; }
 }
 
+function prayerTimeline(times, ui, now) {
+  const beginning = timestamp(times.begin);
+  const jamaat = timestamp(times.jamaat);
+  if (beginning === null || jamaat === null || jamaat <= beginning) return null;
+
+  const strip = node("div", undefined, "timeline-strip");
+  const caption = node("span", undefined, "timeline-caption");
+  for (const name of ["timeline-start", "timeline-line", null, "timeline-line", "timeline-end"]) {
+    const part = name ? node("span", undefined, name) : caption;
+    if (name) part.setAttribute("aria-hidden", "true");
+    strip.append(part);
+  }
+  let lastProgress, lastKey, lastMinutes;
+  const update = instant => {
+    const progress = Math.max(0, Math.min(1, (instant - beginning) / (jamaat - beginning)));
+    if (progress !== lastProgress) {
+      // The caption splits the track into two equal segments.
+      strip.style.setProperty("--timeline-first-fill", `${Math.min(progress * 200, 100)}%`);
+      strip.style.setProperty("--timeline-second-fill", `${Math.max(progress * 200 - 100, 0)}%`);
+      strip.className = progress === 1 ? "timeline-strip is-complete" : "timeline-strip";
+      lastProgress = progress;
+    }
+    const key = instant < beginning ? "timeline.interval" : instant < jamaat ? "timeline.remaining" : "timeline.elapsed";
+    const minutes = instant >= jamaat ? Math.floor((instant - jamaat) / 60000)
+      : Math.ceil((jamaat - Math.max(instant, beginning)) / 60000);
+    if (key !== lastKey || minutes !== lastMinutes) {
+      caption.textContent = tr(ui, key, {minutes: localizedNumber(minutes, ui)});
+      lastKey = key;
+      lastMinutes = minutes;
+    }
+  };
+  update(now);
+  return {strip, update};
+}
+
 // Shared structure and styles for the upcoming Salah and contextual Jamaat.
-function prayerPanel(kind, event, data, zone, ui, config, clock, mode = "previous") {
+function prayerPanel(kind, event, data, zone, ui, config, clock, {mode = "previous", timelineNow} = {}) {
   const result = node("section", undefined, "panel prayer-panel");
   result.setAttribute("data-panel", kind);
   const label = node("div", tr(ui, kind === "salah" ? "panel.next_salah" : mode === "upcoming" ? "panel.next_jamaat" : "panel.previous_jamaat"), "label");
@@ -153,10 +188,16 @@ function prayerPanel(kind, event, data, zone, ui, config, clock, mode = "previou
   }
   const times = publishedTimes(data, event, kind === "jamaat");
   const grid = node("div", undefined, "prayer-times");
+  if (timelineNow !== undefined) grid.setAttribute("data-time-format", config.time_format);
   for (const [key, value] of [["table.beginning", times.begin], ["table.jamaat", times.jamaat]]) {
     const cell = node("div", undefined, "prayer-time");
     cell.append(node("div", tr(ui, key), "label"), formattedNode("div", formatTime(value, zone, ui, config.time_format), "absolute"));
     grid.append(cell);
+  }
+  const timeline = timelineNow === undefined ? null : prayerTimeline(times, ui, timelineNow);
+  if (timeline) {
+    grid.append(timeline.strip);
+    result.updateTimeline = timeline.update;
   }
   result.append(grid, panelSilhouette(kind));
   if (kind === "salah" && config.detail_level === "detailed" && times.end) result.append(translatedRun("div", ui, "table.fajr_end", "time", formatTime(times.end, zone, ui, config.time_format), "note fajr-sunrise"));
@@ -866,10 +907,16 @@ export class SalahTimetableCard extends HTMLElement {
     const scrollLeft = previousRegion?.scrollLeft || 0;
     const data = state.attributes;
     const modern = Boolean(this._config.arrangement || widgetSection(this._config));
+    const showSalah = modern ? sectionVisible(this._config, "salah") : this._config.show_salah_countdown;
+    const showJamaat = modern ? sectionVisible(this._config, "jamaat") : this._config.show_jamaat_countdown;
+    const singleCountdown = showSalah !== showJamaat;
+    // Arranged sections have their own tiles even when both sections are enabled.
+    const timelineNow = singleCountdown || modern ? now : undefined;
     const sections = {};
     const fixed = [];
     const zone = data.time_zone || this._hass?.config?.time_zone || "UTC";
     const content = node("div", undefined, `content ${this._config.detail_level === "compact" ? "compact" : "expanded"}${this._config.kiosk_mode ? " kiosk" : ""}`);
+    if (singleCountdown) content.classList.add("single-countdown");
     const baseDate = Date.parse(`${data.date || state.state}T12:00:00Z`);
     const selectedDate = Number.isFinite(baseDate) ? new Date(baseDate + this._selectedDay * 86400000).toISOString().slice(0, 10) : "";
     const displayDate = selectedDate || data.date || state.state;
@@ -1009,8 +1056,8 @@ export class SalahTimetableCard extends HTMLElement {
     const next = nextSalah(data, now);
     const congregation = jamaatPanel(data, "context", now);
     const panels = node("div", undefined, "panels");
-    if (this._selectedDay === 0 && (modern ? sectionVisible(this._config, "salah") : this._config.show_salah_countdown)) {
-      const box = prayerPanel("salah", next, data, zone, ui, this._config, countdown(next?.timestamp, now, ui));
+    if (this._selectedDay === 0 && showSalah) {
+      const box = prayerPanel("salah", next, data, zone, ui, this._config, countdown(next?.timestamp, now, ui), {timelineNow});
       if (this._config.kiosk_mode) {
         const dayLabel = kioskSalahDayLabel(next, now, zone, ui);
         if (dayLabel) {
@@ -1020,15 +1067,17 @@ export class SalahTimetableCard extends HTMLElement {
         }
       }
       updates.push(instant => { box.clock.run.textContent = countdown(next?.timestamp, instant, ui); });
+      if (box.updateTimeline) updates.push(box.updateTimeline);
       sections.salah = box;
       panels.append(box);
     }
-    if (this._selectedDay === 0 && (modern ? sectionVisible(this._config, "jamaat") : this._config.show_jamaat_countdown)) {
+    if (this._selectedDay === 0 && showJamaat) {
       const congregationClock = instant => congregation.mode === "upcoming"
         ? countdown(congregation.event?.timestamp, instant, ui)
         : elapsed(congregation.event?.timestamp, instant, ui);
-      const box = prayerPanel("jamaat", congregation.event, data, zone, ui, this._config, congregationClock(now), congregation.mode);
+      const box = prayerPanel("jamaat", congregation.event, data, zone, ui, this._config, congregationClock(now), {mode: congregation.mode, timelineNow});
       updates.push(instant => { box.clock.run.textContent = congregationClock(instant); });
+      if (box.updateTimeline) updates.push(box.updateTimeline);
       sections.jamaat = box;
       panels.append(box);
     }

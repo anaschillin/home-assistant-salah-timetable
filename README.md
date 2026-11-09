@@ -5,21 +5,21 @@
 [![HACS validation](https://img.shields.io/github/check-runs/anaschillin/home-assistant-salah-timetable/main?nameFilter=hacs&label=HACS)](https://github.com/anaschillin/home-assistant-salah-timetable/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Current integration version: **<!-- docs:version -->3.5.0<!-- /docs:version -->**.
+Current integration version: **<!-- docs:version -->3.6.0<!-- /docs:version -->**.
 
 A Home Assistant custom integration for importing **published mosque Salah and Jamaat timetables**. Configure one or more mosques, import a supported PDF/CSV or public HTTPS source, explicitly approve the timetable, and display it with a bundled Lovelace card.
 
 ## Features
 
 - Separate mosque configurations, sensors, independent next-Salah and next-Jamaat countdowns, and a prayer calendar.
-- Dedicated v3 kiosk / wall-display layout: live clock and mosque-local dates, spacious Salah/Jamaat countdowns, five published prayer tiles, and accessible day/fullscreen controls. v3.1.1 enlarges Beginning/Jamaat values when a single kiosk countdown is displayed.
+- Dedicated kiosk / wall-display layout with a live clock, mosque-local dates, Salah/Jamaat countdowns, five published prayer tiles, and day and fullscreen controls.
 - Annual, monthly and Ramadan sources; automatic recognition of **supported** PDF layouts, source comparison and guided next-year URL imports with approval before activation.
 - Guided readiness checks, optional publisher URL templates and manual CSV imports spanning two adjacent years.
-- Compact, Standard and Detailed responsive cards with multi-mosque selection, Yesterday/Today/Tomorrow navigation, Gregorian/Hijri dates and optional mosque photography. In v3.1.0, hiding either countdown enlarges and centres the other with Beginning/Jamaat times beside it; when both are visible, headings, clocks and times align.
+- Compact, Standard and Detailed responsive cards with multi-mosque selection, Yesterday/Today/Tomorrow navigation, Gregorian/Hijri dates and optional mosque photography.
 - Optional monthly timetable browsing, approved-year CSV export and redacted source details.
 - Configurable prayer-completeness diagnostics, calculated night information and wall/tablet display mode.
 - **New in v3.5:** standalone **Mosque selector**, **Upcoming Jamaat changes** and **Timetable health** cards, plus optional panels in the main card. Link cards with **Advanced → Synchronise mosque selection** to switch several cards together without repeating dropdowns. Standalone cards also work independently. See the [widget guide](docs/dashboard.md#jamaat-changes-and-timetable-health-widgets).
-- **On `main` after v3.5.0 (not in the published v3.5.0 tag):** visual **Layout** editor with five presets, movable full/half-width sections, Reset and isolated phone/tablet/desktop previews, plus ten standalone card sections. Existing layouts are unchanged unless you opt in. See [Visual layouts and standalone sections](docs/dashboard.md#visual-layouts-and-standalone-sections).
+- **New in v3.6:** a responsive Beginning/Jamaat tile with progress between published times for [single-countdown displays](docs/dashboard.md#single-countdown-timeline). The visual **Layout** editor adds five presets, movable full/half-width sections, Reset and isolated phone/tablet/desktop previews, plus ten [standalone card sections](docs/dashboard.md#visual-layouts-and-standalone-sections).
 - Six optional blueprints for prayer reminders, media playback, date-coverage alerts and required-field completeness alerts.
 
 **Important:** Values come from approved publications; this integration does not calculate authoritative prayer schedules or invent missing times. Only [documented PDF layouts](docs/import_review.md#supported-pdf-layouts) are supported.
@@ -30,13 +30,13 @@ A Home Assistant custom integration for importing **published mosque Salah and J
 
 ![Salah Timetable v3.0 kiosk displaying a live mosque-local clock, equal Salah and Jamaat countdown panels, five prayer tiles and a small fullscreen icon inside the glass card](docs/screenshots/showcase/desktop/kiosk-v3.webp)
 
-*Maintainer-approved kiosk screenshot (6 November 2026), showing the established v3 kiosk layout with both countdowns visible. The mosque photograph is decorative and separately licensed. v3.1.0 also supports an enlarged, centred single countdown when the other is hidden.*
+*Maintainer-approved kiosk screenshot (6 November 2026), showing the kiosk layout with both countdowns visible. The mosque photograph is decorative and separately licensed.*
 
 ### Standard and Detailed dashboard
 
 <img src="docs/screenshots/showcase/desktop/detailed-card.webp" width="900" alt="Detailed non-kiosk dashboard with contextual countdowns and published daily prayer timetable">
 
-*The non-kiosk Compact, Standard and Detailed layouts remain available independently of kiosk mode. The v3.1.0 countdown alignment and single-panel improvements apply to all these modes as well as kiosk.*
+*Compact, Standard and Detailed layouts are available independently of kiosk mode.*
 
 For multiple independently positioned cards, use the [v3.5 dashboard widgets and linked mosque selection guide](docs/dashboard.md#synchronise-mosque-selection-across-widgets).
 

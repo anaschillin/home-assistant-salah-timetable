@@ -1,6 +1,6 @@
 # Dashboard card
 
-Current integration version: <!-- docs:version -->3.5.0<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->3.6.0<!-- /docs:version -->.
 
 The **Salah Timetable** card and its custom status widgets are bundled with the integration. They use the mosque's
 **Prayer timetable** sensor and requires no separate card download, Card Mod,
@@ -215,9 +215,8 @@ Browser sessions, other dashboards and devices are not synchronised.
 
 ## Visual layouts and standalone sections
 
-The **Layout** tab and the ten standalone card sections were merged into
-`main` by PR #143 after the published **v3.5.0** release. They are available
-from a build containing that merge, **not** from the v3.5.0 stable tag.
+The **Layout** tab and the ten standalone card sections are available from
+v3.6.0.
 The card editor has **Settings** and **Layout** tabs. Settings retains
 the existing grouped controls. Layout arranges only this card; it does not move
 other Home Assistant cards or change another dashboard's configuration.
@@ -510,11 +509,10 @@ date also respects the mosque-level visibility preference and the optional
 published-Maghrib day boundary. When month information is enabled, it appears
 with the date details.
 
-The main panel gives Next Salah and contextual Previous/Next Jamaat **equal
-50/50 panel widths, matching font sizes, title scale and vertical spacing**. Their colours distinguish urgency: cyan for the next
-Salah, neutral for Jamaat and elapsed time. The shorter hero avoids a large
-empty band above the published Beginning/Jamaat row; all event times and
-second-level updates still come from the approved timetable.
+When both countdowns are visible, the main panel gives Next Salah and
+contextual Previous/Next Jamaat equal widths, matching font sizes and vertical
+spacing. Cyan marks the next Salah, and Jamaat uses a neutral colour. When
+only one countdown is visible, it uses the [single-countdown timeline layout](#single-countdown-timeline).
 
 If the next Salah begins on the following *mosque-local* civil day, a
 **Tomorrow** indicator appears beside Next Salah Begins. The daily tiles
@@ -553,10 +551,9 @@ the upcoming prayer tile uses a deeper highlight and inactive date tabs remain
 legible. Pointer clicks clear fullscreen focus without hiding keyboard focus.
 
 Kiosk mode intentionally replaces the ordinary scrolling timetable with the
-five-tile display regardless of Compact, Standard or Detailed selection. When
-kiosk mode is disabled, those ordinary layouts are unchanged. Wider screens
-use the three-column header and 50/50 countdown layout. Narrow screens stack
-the header and countdowns and wrap the tiles and bottom controls to prevent
+five-tile display regardless of Compact, Standard or Detailed selection. Wider
+screens use a three-column header and put two visible countdowns side by side.
+Narrow screens stack the header and paired countdowns and wrap the tiles and bottom controls to prevent
 clipping. The whole hero, five-tile strip and footer group is centred both
 horizontally and vertically within the visible kiosk canvas, including browser
 fullscreen and viewport resizing. On short or narrow displays where content
@@ -626,20 +623,31 @@ The mosque-wide Hijri preference is managed separately in the integration settin
 | `show_mosque_background` | `true`; legacy YAML visibility flag. The editor sets it via the unified background dropdown; `false` disables the photograph without clearing its saved selection |
 | `mosque_background` | `daily` (default); `none`, or a bundled mosque ID for a fixed photo. In the editor, Off sets `show_mosque_background: false` |
 
-**Available from v3.1.0:** hiding either main countdown half removes it. In
-Compact, Standard, Detailed and kiosk layouts, the remaining countdown is centred within
-the summary and uses larger prayer-name and live-timer lettering. The published
-**Beginning** and **Jamaat** values move into a separate column at the right
-(or to the left for RTL languages). The single panel expands to use more
-of the available glass surface without stretching indefinitely on wide displays.
-On unusually narrow cards, and phone-sized kiosk views, the published times
-move underneath the enlarged countdown to prevent clipping. In v3.1.1, the single-countdown kiosk Beginning and Jamaat times scale up and
-centre in equally sized rows of the right-hand information column; on phone-width
-kiosks they appear beside each other underneath the countdown. Showing both
-keeps the original paired layout, including kiosk's equal-width halves. The
-Next Salah and contextual Jamaat headings, live clocks and published
-Beginning/Jamaat rows are aligned from the top; an optional Fajr sunrise
-note is shown beneath the relevant panel without shifting its neighbour.
+### Single-countdown timeline
+
+When you hide either countdown, the remaining panel uses a centred heading
+and a tile for the published **Beginning** and **Jamaat** times. The tile sits
+beside the countdown on wider cards and below it on narrow cards. In Arabic,
+the wide layout and the timeline read right to left. The decorative silhouette
+sits at the far right. This layout applies in Compact, Standard, Detailed and
+kiosk, as well as standalone prayer widgets and individual countdown sections
+in custom layouts.
+
+Before Salah, the timeline shows the total interval between Beginning and
+Jamaat. Once Salah begins, Next Salah advances to the next prayer. The
+contextual Jamaat panel shows progress and the remaining minutes until Jamaat,
+then a completed line and the minutes since Jamaat while that congregation
+is the previous one. The strip appears only when both published times form a
+positive interval. Available times still appear in the tile when the timeline
+is unavailable.
+
+### Paired countdowns and other options
+
+When both countdowns are visible in a built-in layout, the panels sit side by
+side where space allows, with equal-width halves in kiosk. The Next Salah and
+contextual Jamaat headings, live clocks and published Beginning/Jamaat rows
+align from the top. An optional Fajr sunrise note sits beneath the relevant
+panel without shifting its neighbour.
 Narrow side-by-side cards reserve matching heading and countdown row heights
 when the Jamaat label or elapsed text wraps; once mobile panels stack, that
 extra space is removed. Hiding both leaves the mosque header and

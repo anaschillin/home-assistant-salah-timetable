@@ -12,8 +12,8 @@ The readiness/import changes, first guide simplification, card/editor screenshot
 v3 kiosk redesign, casting fixes and PR #138's card alignment improvements
 shipped by `v3.1.0`. PR #140's kiosk readability changes shipped in `v3.1.1`;
 PR #142's linked widgets shipped in `v3.5.0`. PR #143's visual layout
-editor and additional standalone sections are merged into `main` **after**
-`v3.5.0` and await a subsequent release. The previous 1.0.0-era prerequisites
+editor and additional standalone sections merged into `main` after `v3.5.0`
+and are included in the `v3.6.0` candidate. The previous 1.0.0-era prerequisites
 and unmerged screenshot disclaimer are obsolete.
 Do not reopen completed work. The [roadmap](roadmap.md) contains *upcoming product
 features only*; this file tracks the documentation audit and residual work.
