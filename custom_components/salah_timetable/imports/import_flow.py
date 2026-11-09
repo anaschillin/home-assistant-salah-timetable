@@ -326,4 +326,3 @@ class CsvImportOptionsFlow(ImportReviewFlowMixin, config_entries.OptionsFlow):
             errors=errors,
             description_placeholders={"detail": detail},
         )
-
