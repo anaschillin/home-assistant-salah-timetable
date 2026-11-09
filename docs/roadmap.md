@@ -2,16 +2,12 @@
 
 This page contains **upcoming product features only**, not delivered capabilities, routine maintenance, release procedures or historical PR milestones. Priorities are proposals, not committed dates. For released functionality, see the [README](../README.md#features) and [changelog](../CHANGELOG.md).
 
-Documentation follow-ups belong in the [documentation simplification plan](documentation-simplification-plan.md), and release/quality procedures belong in [Releasing](releasing.md). An item in an open draft branch is still upcoming until merged and included in a release.
+Documentation follow-ups belong in the [documentation simplification plan](documentation-simplification-plan.md), and release/quality procedures belong in [Releasing](releasing.md). Merged functionality is removed from this roadmap; consult the [changelog](../CHANGELOG.md) to distinguish `main` changes awaiting release from features in a published tag.
 
 ## Dashboard and card layouts
 
 - **Jumu’ah detail:** present every published congregation clearly and, when independently published, support separate Bayaan, Adhaan and Khutbah timestamps. Allow reminder selection for a specific congregation without treating a Khutbah as a Jamaat.
 - **Cross-mosque comparison:** compare today's approved Jamaat times across enabled mosques.
-- **Visual layout editor:** add a dedicated arrangement view with selectable presets, ordered sections, visibility controls, full-width/half-width placement and phone/tablet/desktop previews.
-- **Layout presets:** offer countdown-focused, balanced, timetable-first, Ramadan, wall-display and holiday arrangements, building on the existing Compact/Standard/Detailed modes and kiosk layout rather than replacing them.
-- **Movable sections:** arrange mosque selector, dates, prayer summary panels, timetable, Ramadan information, calculated night information and timetable status within the card. Provide drag-and-drop **and** accessible Move up/Move down controls.
-- **Independent saved arrangements:** keep configuration per card/dashboard, including a Reset layout action, with responsive fallbacks that avoid clipping on small screens.
 - **Accessibility improvements:** further improve scalable type, high-contrast options, keyboard focus and accessible touch targets across customised layouts.
 
 ## Timetable, importing and prayer events
@@ -31,15 +27,15 @@ Documentation follow-ups belong in the [documentation simplification plan](docum
 - **Per-person or per-dashboard selection:** ensure one traveller's holiday setting does not unexpectedly switch shared household displays or reminders; define permissions and device scope before implementation.
 - **Travel reminder choice:** choose whether the traveller's destination reminders temporarily replace home reminders without changing other household users' preferences.
 - **Saved destinations and readiness:** reuse configured mosques for later trips, checking approved coverage and showing missing values rather than guessing prayer times.
+- **Holiday layout preset:** consider an optional travel-focused arrangement once manual holiday profiles exist; current presets already cover countdown, balanced, timetable-first, Ramadan and wall displays.
 - **Leave-for-Jamaat reminders:** use a user-entered journey time and preparation buffer against the selected published congregation.
 - **Reminder profiles and guided setup:** offer weekday/weekend and home/travel preferences, plus a guided setup/test flow built on existing reminder/media blueprints rather than duplicate automation engines.
 
 ## Suggested delivery order
 
-1. Add the arrangement editor, presets and responsive ordering controls.
-2. Improve Jumu’ah detail and reminder targeting.
-3. Deliver holiday profiles, scheduled activation and travel reminder preferences.
-4. Extend verified publication imports, approved special events and export compatibility.
+1. Improve Jumu’ah detail and reminder targeting.
+2. Deliver holiday profiles, scheduled activation and travel reminder preferences.
+3. Extend verified publication imports, approved special events and export compatibility.
 
 ## Deferred or exploratory features
 

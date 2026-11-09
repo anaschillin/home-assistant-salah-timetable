@@ -10,16 +10,16 @@ speakers and notification destinations.
 
 ## Guided prayer reminders
 
-The guided setup is proposed in this branch. An older installed release may not
-include it; use the [manual blueprint setup](#import-a-blueprint) until your
-installed version includes **Prayer reminders**. Update the integration, restart
-Home Assistant and reload the dashboard after installing the feature.
+**Prayer reminders** is included in the published integration. If the button is
+missing, first update the installed integration to a current release, restart
+Home Assistant and reload the dashboard. You can also use the
+[manual blueprint setup](#import-a-blueprint) independently of the wizard.
 
 As a Home Assistant administrator, edit the timetable card and open **Prayer reminders** below the
-detail-level selection. The button is hidden in kiosk mode. If it is missing after deploying the
-feature, check that you are an administrator and kiosk mode is off. The integration
-registers a content-fingerprinted frontend URL to replace cached same-version PR
-builds; see [resource troubleshooting](dashboard.md#resource-troubleshooting) for
+detail-level selection. The button is hidden in kiosk mode. If it is missing after updating,
+check that you are an administrator and kiosk mode is off. The integration
+registers a content-fingerprinted frontend URL to replace outdated browser
+assets; see [resource troubleshooting](dashboard.md#resource-troubleshooting) for
 obsolete manual resource entries. The wizard creates one normal Home
 Assistant automation, without requiring individual sensor selection:
 
@@ -114,7 +114,7 @@ event.
 | Source status / `source_status` | Diagnostic summary of URL checks and pending approval; see [source states and cadence](import_review.md#when-data-updates). |
 | Timetable coverage / `coverage_status` | Diagnostic summary of consecutive effective approved dates; [states and attributes](#read-timetable-coverage) below. |
 | Prayer completeness / `completeness_status` | Field-level completeness of approved effective timetables; [details](#prayer-completeness) below. |
-| Prayer timetable / `dashboard` | Mosque-local date plus approved yesterday/today/tomorrow rows, event selections and display/status attributes for the bundled card. Candidate widgets add sanitized `timetable_health` coverage/completeness/source summaries and `config_entry_id` for setup links; staged prayer values remain excluded. |
+| Prayer timetable / `dashboard` | Mosque-local date plus approved yesterday/today/tomorrow rows, event selections and display/status attributes for the bundled card. Since v3.5.0, the bundled status widgets use sanitised `timetable_health` coverage/completeness/source summaries and `config_entry_id` for setup links; staged prayer values remain excluded. |
 | Prayer calendar | Read-only approved prayer events, as described [below](#prayer-calendar). It omits Istewa and untimed Taraweeh. |
 
 **Previous Jamaat** is disabled by default for new registrations; the card uses
