@@ -5,16 +5,19 @@ not the current backlog. For available features see the [README](README.md#featu
 for pending work see the [roadmap](docs/roadmap.md). Published releases and their
 exact source tags are listed on [GitHub Releases](https://github.com/anaschillin/home-assistant-salah-timetable/releases).
 
-## Unreleased — dashboard widgets
+## 3.5.0 — 9 November 2026
 
-- Add opt-in upcoming Jamaat changes and timetable-health panels, plus standalone
-  status and mosque-selector cards with optional dashboard-local selection groups.
-- Reuse approved prayer events and existing diagnostic summaries. Distinguish
-  missing publications, Friday congregations and source checks from time changes;
-  compare mosque-local clocks correctly across daylight-saving changes.
-- Keep existing card layouts and the explicit timetable-review workflow unchanged.
+### Custom dashboard widgets and linked mosque selection
 
-## 3.1.1 — Unreleased
+- Add three standalone Home Assistant cards: **Mosque selector**, **Upcoming Jamaat changes** and **Timetable health**. Place them independently in Lovelace or enable the latter two as optional panels within the existing Salah Timetable card.
+- **Synchronise mosque selection** across compatible cards in the same dashboard view using **Advanced → Synchronise mosque selection** and a shared group name (for example `home`). The main Salah card or dedicated Mosque selector can control linked cards; linked status widgets follow without duplicate dropdowns, while unlinked cards remain independent.
+- Keep mosque availability filters, distinct dashboard-view groups and editor previews isolated. A missing or excluded mosque is reported rather than silently replaced. The group selection is ephemeral and is not persisted to other browsers or devices.
+- Compare approved congregation times for today and tomorrow, showing earlier/later changes only where sessions can be matched. Friday/Jumu’ah, multiple sessions, missing fields, DST changes and unavailable timetable data remain explicit; no times are inferred.
+- Display approved timetable coverage, required-field completeness, review-pending updates and source-check problems. Administrator links lead to existing mosque import/review settings; widgets cannot approve or reveal staged publication values.
+- Respect natural standalone card height, responsive Home Assistant layouts, accessibility and English/Arabic UI labels. Retain the existing Compact, Standard, Detailed, kiosk and approval flows.
+- Extend unit, browser, CodeQL and Home Assistant acceptance regression coverage for linked selection, widget statuses and source boundaries.
+
+## 3.1.1 — 8 November 2026
 
 ### Kiosk right-hand published-time readability
 

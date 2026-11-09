@@ -6,8 +6,6 @@ Documentation follow-ups belong in the [documentation simplification plan](docum
 
 ## Dashboard and card layouts
 
-- **Upcoming Jamaat changes:** show when tomorrow's approved congregation time differs from today's, including the earlier/later difference without implying a missing value.
-- **Timetable health overview:** show approved date coverage, missing required prayer fields and pending source updates in the dashboard, with links to relevant setup or review controls.
 - **Jumu’ah detail:** present every published congregation clearly and, when independently published, support separate Bayaan, Adhaan and Khutbah timestamps. Allow reminder selection for a specific congregation without treating a Khutbah as a Jamaat.
 - **Cross-mosque comparison:** compare today's approved Jamaat times across enabled mosques.
 - **Visual layout editor:** add a dedicated arrangement view with selectable presets, ordered sections, visibility controls, full-width/half-width placement and phone/tablet/desktop previews.
@@ -38,11 +36,10 @@ Documentation follow-ups belong in the [documentation simplification plan](docum
 
 ## Suggested delivery order
 
-1. Improve upcoming-change and timetable-health presentation.
-2. Add the arrangement editor, presets and responsive ordering controls.
-3. Improve Jumu’ah detail and reminder targeting.
-4. Deliver holiday profiles, scheduled activation and travel reminder preferences.
-5. Extend verified publication imports, approved special events and export compatibility.
+1. Add the arrangement editor, presets and responsive ordering controls.
+2. Improve Jumu’ah detail and reminder targeting.
+3. Deliver holiday profiles, scheduled activation and travel reminder preferences.
+4. Extend verified publication imports, approved special events and export compatibility.
 
 ## Deferred or exploratory features
 
