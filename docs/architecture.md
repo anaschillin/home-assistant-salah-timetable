@@ -403,7 +403,9 @@ These files stay at the package root because Home Assistant discovers them there
 | `parsers/` | `mosque_a_monthly_layout.py` | Mosque A monthly publication adapter |
 | `parsers/` | `mosque_b_annual_layout.py` | Mosque B annual publication adapter |
 | `parsers/` | `mosque_b_ramadan_layout.py` | Mosque B Ramadan publication adapter |
-| `imports/` | `import_flow.py` | Upload, mapping and approve/reject options flow |
+| `imports/` | `import_flow.py` | Upload, CSV inspection, mapping and staging options flow |
+| `imports/` | `import_preview.py` | Escaped, bounded published-timetable previews and parser provenance |
+| `imports/` | `import_review_flow.py` | Explicit staged import approval/rejection and paginated comparison steps |
 | `imports/` | `import_comparison.py` | Compare approved and staged canonical values |
 | `sources/` | `download.py` | Secure, bounded remote HTTPS fetch |
 | `sources/` | `source_model.py` | Remote publication URL/profile validation and metadata |
@@ -415,7 +417,7 @@ Each implementation directory has an `__init__.py`. Other production Python modu
 
 #### Single canonical location
 
-No duplicate Python modules or compatibility aliases are retained. The 22 grouped implementation modules live **only** in their listed subfolders; imports such as `custom_components.salah_timetable.model` must use `custom_components.salah_timetable.domain.model`. The coordinator has one canonical top-level implementation, following Home Assistant's common-module convention. All tests and mocks use these canonical locations. A packaging test rejects extra root Python files or missing grouped modules, and verifies the archive includes every runtime Python module.
+No duplicate Python modules or compatibility aliases are retained. The 24 grouped implementation modules live **only** in their listed subfolders; imports such as `custom_components.salah_timetable.model` must use `custom_components.salah_timetable.domain.model`. The coordinator has one canonical top-level implementation, following Home Assistant's common-module convention. All tests and mocks use these canonical locations. A packaging test rejects extra root Python files or missing grouped modules, and verifies the archive includes every runtime Python module.
 
 The standalone `pdf_worker.py` deliberately remains at root. The relocated `parsers/pdf_parser.py` resolves that worker's absolute path; its `python -I` subprocess boundary and resource limits are unchanged.
 
