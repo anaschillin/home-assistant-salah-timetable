@@ -28,6 +28,298 @@ const JS_EMBED_ESCAPE_MAP = {
 };
 const JS_EMBED_UNSAFE_PATTERN = /[<>/\\\b\f\n\r\t\0\u2028\u2029]/g;
 const escapeForJsEmbedding = value => value.replace(JS_EMBED_UNSAFE_PATTERN, char => JS_EMBED_ESCAPE_MAP[char]);
+// Browser fixture operations are trusted, statically authored JavaScript. Pass
+// only data through CDP arguments; never splice executable source into a string.
+async function runWidgetBrowserAction(index, action, config) {
+  const frame = document.querySelectorAll("iframe")[index];
+  if (!frame) throw new Error("Missing widget smoke frame");
+  const f = frame.contentWindow.widgetFixture;
+  switch (action) {
+    case "setup": {
+      const helpers = await frame.contentWindow.eval("import('/tests/frontend/widget-browser-fixture.js')");
+      frame.contentWindow.widgetFixture = helpers.mountWidgetFixture(config);
+      return null;
+    }
+    case "inspect": {
+      const changes = f.changes.shadowRoot;
+      const health = f.health.shadowRoot;
+      const adminLink = health.querySelector('.widget-action');
+      return {
+      changeRows: changes.querySelectorAll('.widget-change-row').length,
+      pending: Boolean(health.querySelector('.pending-review')),
+      action: adminLink?.getAttribute('href'),
+      dates: [...changes.querySelectorAll('.widget-change-times')].map(node => node.textContent),
+      selected: [f.selector, f.changes, f.health].map(card => card._activeEntity()),
+      natural: [f.changes, f.health].every(card => {
+      const surface = card.shadowRoot.querySelector('ha-card');
+      return surface.classList.contains('standalone-widget') &&
+      frame.contentWindow.getComputedStyle(surface).minHeight === '0px' &&
+      !surface.classList.contains('has-mosque-background');
+      }),
+      fits: [f.changes, f.health].every(card => {
+      const surface = card.shadowRoot.querySelector('ha-card').getBoundingClientRect();
+      return [...card.shadowRoot.querySelectorAll('.widget-panel, .widget-change-row, .widget-health-row')].every(node => {
+      const bounds = node.getBoundingClientRect();
+      return bounds.left >= surface.left - 1 && bounds.right <= surface.right + 1;
+      });
+      }),
+      };
+    }
+    case "selectSecond": {
+      f.select(f.second);
+      return [f.selector, f.changes, f.health].map(card => card._activeEntity());
+    }
+    case "reviewAction": {
+      return f.health.shadowRoot.querySelector('.widget-action')?.getAttribute('href');
+    }
+    case "isolation": {
+      const wrapper = frame.contentDocument.createElement('hui-card-options');
+      f.view.append(wrapper);
+      const preview = f.mount('salah-widget-mosque-selector', {selection_group:'browser-status-widgets'}, wrapper);
+      const chooser = preview.shadowRoot.querySelector('.mosque-select');
+      chooser.value = f.first;
+      chooser.dispatchEvent(new frame.contentWindow.Event('change', {bubbles:true}));
+      const restricted = f.mount('salah-widget-timetable-health', {selection_group:'browser-status-widgets',mosque_entities:[f.first]});
+      const ungrouped = f.mount('salah-widget-timetable-health');
+      const view = frame.contentDocument.createElement('hui-view');
+      f.view.after(view);
+      const otherView = f.mount('salah-widget-timetable-health', {selection_group:'browser-status-widgets'}, view);
+      const result = {
+      live: f.health._activeEntity(), preview: preview._activeEntity(),
+      restricted: Boolean(restricted.shadowRoot.querySelector('.group-selection-error')),
+      independent: ungrouped._activeEntity(), otherView: otherView._activeEntity(),
+      };
+      view.remove();wrapper.remove();
+      return result;
+    }
+    case "nonAdmin": {
+      f.health.hass = {...f.hass,user:{is_admin:false}};
+      return f.health.shadowRoot.querySelectorAll('.widget-action').length;
+    }
+    case "refreshed": {
+      const state = f.hass.states[f.second];
+      const next = {...f.hass,states:{...f.hass.states,[f.second]:{
+      ...state,attributes:{...state.attributes,timetable_health:{...state.attributes.timetable_health,
+      source:{...state.attributes.timetable_health.source,pending_review:false}}}
+      }}};
+      f.health.hass = next;
+      return !f.health.shadowRoot.querySelector('.pending-review');
+    }
+    case "disconnected": {
+      for (const card of [f.health, f.changes]) card.hass = {...f.hass,connection:{connected:false}};
+      return {
+      healthUnavailable: Boolean(f.health.shadowRoot.querySelector('.widget-health .widget-status')) &&
+      !f.health.shadowRoot.querySelector('.pending-review, .widget-action'),
+      changesUnavailable: Boolean(f.changes.shadowRoot.querySelector('.widget-changes .widget-status')) &&
+      !f.changes.shadowRoot.querySelector('.widget-change-row'),
+      };
+    }
+    case "destroy": {
+      f.destroy();
+      delete frame.contentWindow.widgetFixture;
+      return null;
+    }
+    default: throw new Error("Unsupported widget test operation");
+  }
+}
+
+
+// Stage-two widget and layout checks use static operations and structured CDP
+// arguments. Do not interpolate JavaScript source inside Runtime.evaluate.
+async function runWidgetLayoutAction(index, action, config) {
+  const frame = document.querySelectorAll("iframe")[index];
+  if (!frame) throw new Error("Missing layout smoke frame");
+  const f = frame.contentWindow.widgetFixture;
+  switch (action) {
+    case "setup": {
+      const helpers = await frame.contentWindow.eval("import('/tests/frontend/widget-browser-fixture.js')");
+      frame.contentWindow.widgetFixture = helpers.mountWidgetFixture(config);
+      return null;
+    }
+    case "standalone": {
+      const module = await frame.contentWindow.eval("import('/custom_components/salah_timetable/frontend/widget-utils.js?v=3.1.1')");
+      f.widgetModule = module;
+      f.standalone = module.SECTIONS.map(({id, show}) => {
+      const type = module.widgetType(id).slice('custom:'.length);
+      const card = f.mount(type, {[show]:false});
+      return {id, card};
+      });
+      return f.standalone.map(({id,card}) => ({
+      id,
+      registered: Boolean(frame.contentWindow.customElements.get(module.widgetType(id).slice('custom:'.length))),
+      picker: frame.contentWindow.customCards.some(item => item.type === module.widgetType(id).slice('custom:'.length)),
+      content: card.shadowRoot.querySelector('ha-card.standalone-widget')?.textContent.trim(),
+      chooser: Boolean(card.shadowRoot.querySelector('select.mosque-select')),
+      compactPreview: (() => {
+        const surface = card.shadowRoot.querySelector('ha-card.standalone-widget');
+        return surface && card.getBoundingClientRect().height <= surface.getBoundingClientRect().height + 3;
+      })(),
+      section: Boolean(card.shadowRoot.querySelector('[data-section="'+id+'"]')),
+      }));
+    }
+    case "timetableCheck": {
+      return Boolean(f.standalone.find(item=>item.id==='timetable').card.shadowRoot.querySelector('table, .kiosk-prayer-strip'));
+    }
+    case "ramadanCheck": {
+      return Boolean(f.standalone.find(item=>item.id==='ramadan').card.shadowRoot.querySelector('.widget-status'));
+    }
+    case "nightCheck": {
+      return Boolean(f.standalone.find(item=>item.id==='night_calculations').card.shadowRoot.querySelector('.night-calculations'));
+    }
+    case "arrangement": {
+      f.custom = f.mount('salah-timetable-card', {
+      detail_level:'compact',show_mosque_selector:false,show_dates:true,show_timetable:true,
+      show_salah_countdown:true,show_jamaat_countdown:true,show_clock:false,
+      show_ramadan_details:false,show_night_calculations:false,
+      show_jamaat_changes:false,show_timetable_health:false,
+      arrangement:{sections:[{id:'salah',width:'half'},{id:'jamaat',width:'half'},{id:'timetable',width:'full'},{id:'dates',width:'full'}]},
+      });
+      const root = f.custom.shadowRoot;
+      const grid = root.querySelector('.arrangement-grid');
+      const cells = [...grid.querySelectorAll(':scope > .arrangement-section')];
+      const bounds = grid.getBoundingClientRect();
+      const rect = element => {const b=element.getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,width:b.width};};
+      return {
+      order:cells.map(cell=>cell.getAttribute('data-section')),
+      table:Boolean(root.querySelector('table')),
+      dates:Boolean(root.querySelector('.hijri, .gregorian')),
+      first:rect(cells[0]),second:rect(cells[1]),full:rect(cells[2]),
+      fits:cells.every(cell=>{const b=cell.getBoundingClientRect();return b.left>=bounds.left-1&&b.right<=bounds.right+1;}),
+      };
+    }
+    case "ticking": {
+      const root=f.custom.shadowRoot;
+      const table=root.querySelector('table');
+      const clock=root.querySelector('[data-panel="salah"] .count');
+      const before=clock.textContent;
+      f.custom._tick(f.now+1000);
+      return {tableSame:root.querySelector('table')===table,clockSame:root.querySelector('[data-panel="salah"] .count')===clock,changed:before!==clock.textContent};
+    }
+    case "openEditor": {
+      f.editorState=f.mountEditor({selection_group:'browser-status-widgets',arrangement:f.custom._config.arrangement,
+      show_salah_countdown:true,show_jamaat_countdown:true,show_timetable:true,show_dates:true});
+      f.editorState.editor.shadowRoot.querySelector('[data-editor-tab="layout"]').click();
+      return null;
+    }
+    case "controls": {
+      const root=f.editorState.editor.shadowRoot;
+      return {rows:root.querySelectorAll('[data-layout-section]').length,
+      labelled:[...root.querySelectorAll('[data-layout-action]')].every(control=>Boolean(control.getAttribute('aria-label'))),
+      preview:Boolean(root.querySelector('[data-layout-preview-card]')),
+      settingsHidden:frame.contentWindow.getComputedStyle(root.querySelector('.form')).display==='none'};
+    }
+    case "standaloneEditor": {
+      const editor=f.mountEditor({type:'custom:salah-widget-timetable-health'}).editor;
+      return frame.contentWindow.getComputedStyle(editor.shadowRoot.querySelector('.editor-tabs')).display==='none';
+    }
+    case "ordering": {
+      const root=f.editorState.editor.shadowRoot;
+      const helper=root.querySelector('.layout-editor');
+      const start=f.editorState.config;
+      const source=root.querySelector('[data-layout-section="jamaat"]');
+      const up=source.querySelector('[data-layout-action="up"]');
+      up.focus();up.click();
+      const arrow=f.editorState.config.arrangement.sections.map(item=>item.id);
+      const focused=root.activeElement?.closest('[data-layout-section]')?.getAttribute('data-layout-section');
+      f.editorState.editor.setConfig(start);
+      const from=root.querySelector('[data-layout-section="jamaat"] [data-layout-action="drag"]');
+      const to=root.querySelector('[data-layout-section="salah"]');
+      const transfer=new frame.contentWindow.DataTransfer();
+      from.dispatchEvent(new frame.contentWindow.DragEvent('dragstart',{bubbles:true,dataTransfer:transfer}));
+      to.dispatchEvent(new frame.contentWindow.DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:transfer}));
+      to.dispatchEvent(new frame.contentWindow.DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:transfer}));
+      from.dispatchEvent(new frame.contentWindow.DragEvent('dragend',{bubbles:true,dataTransfer:transfer}));
+      return {arrow,drag:f.editorState.config.arrangement.sections.map(item=>item.id),focused};
+    }
+    case "edited": {
+      const root=f.editorState.editor.shadowRoot;
+      const row=root.querySelector('[data-layout-section="jamaat"]');
+      const width=row.querySelector('[data-layout-action="width"]');
+      width.value='full';width.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
+      const visibility=row.querySelector('[data-layout-action="visible"]');
+      visibility.checked=false;visibility.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
+      return {width:f.editorState.config.arrangement.sections.find(item=>item.id==='jamaat').width,
+      visible:f.editorState.config.show_jamaat_countdown};
+    }
+    case "devicePreview": {
+      const root=f.editorState.editor.shadowRoot;
+      const control=root.querySelector('[data-layout-device]');
+      control.value=config.device;control.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
+      const card=root.querySelector('[data-layout-preview-card]');
+      const viewport=root.querySelector('[data-layout-preview-frame]');
+      const inner=viewport.firstElementChild;
+      return {width:inner.style.width,preview:card.preview,group:card._config.selection_group,
+      fits:card.getBoundingClientRect().width<=viewport.getBoundingClientRect().width+1};
+    }
+    case "reset": {
+      const root=f.editorState.editor.shadowRoot;
+      const before=f.editorState.config;
+      root.querySelector('[data-layout-reset]').click();
+      return {custom:Boolean(f.editorState.config.arrangement),entity:f.editorState.config.entity,
+      language:f.editorState.config.language,mosques:f.editorState.config.mosque_entities,
+      initialEntity:before.entity,initialLanguage:before.language,initialMosques:before.mosque_entities};
+    }
+    case "destroy": {
+      f.destroy();
+      delete frame.contentWindow.widgetFixture;
+      return null;
+    }
+    default: throw new Error("Unsupported layout test action");
+  }
+}
+async function runWidgetWallAction(index, action, config) {
+  const frame = document.querySelectorAll("iframe")[index];
+  if (!frame) throw new Error("Missing wall smoke frame");
+  const f = frame.contentWindow.widgetFixture;
+  switch (action) {
+    case "setupWall": {
+      frame.style.width='1280px';
+      frame.style.height='1200px';
+      const helpers=await frame.contentWindow.eval("import('/tests/frontend/widget-browser-fixture.js')");
+      frame.contentWindow.widgetFixture=helpers.mountWidgetFixture({language:config.language});
+      return null;
+    }
+    case "wall": {
+      const module=await frame.contentWindow.eval("import('/custom_components/salah_timetable/frontend/widget-utils.js?v=3.1.1')");
+      f.wall=f.mount('salah-timetable-card', {...module.applyPreset(f.base,'wall'),show_jamaat_changes:false,show_timetable_health:false});
+      const root=f.wall.shadowRoot;
+      const grid=root.querySelector('.arrangement-grid');
+      const bounds=grid.getBoundingClientRect();
+      const cells=[...grid.querySelectorAll(':scope>.arrangement-section')];
+      const count=root.querySelector('[data-panel="salah"] .count');
+      const before=count.textContent;
+      f.wall._tick(f.now+1000);
+      return {kiosk:f.wall._config.kiosk_mode,
+      clock:Boolean(root.querySelector('.kiosk-clock')),
+      strip:root.querySelectorAll('.kiosk-strip .kiosk-tile').length,
+      fullscreen:Boolean(root.querySelector('.kiosk-fullscreen')),
+      dateTabs:Boolean(root.querySelector('[data-section="timetable"] .date-tabs')),
+      live:count.textContent!==before,
+      fits:cells.every(cell=>{const b=cell.getBoundingClientRect();return b.left>=bounds.left-1&&b.right<=bounds.right+1;})};
+    }
+    case "destroyWall": {
+      f.destroy();
+      delete frame.contentWindow.widgetFixture;
+      frame.style.width = "900px";
+      frame.style.height = "1500px";
+      return null;
+    }
+    default: throw new Error("Unsupported wall test action");
+  }
+}
+async function dispatchWidgetAction(session, handler, index, action, config = null) {
+  const global = await session.call("Runtime.evaluate", {expression: "globalThis"});
+  assert.ok(global.result?.objectId, "Chromium context is available");
+  const result = await session.call("Runtime.callFunctionOn", {
+    objectId: global.result.objectId,
+    functionDeclaration: handler.toString(),
+    arguments: [{value: index}, {value: action}, {value: config}],
+    awaitPromise: true, returnByValue: true,
+  });
+  assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
+  return result.result?.value;
+}
+
 let browser;
 for (const candidate of [process.env.CHROME_BIN, "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/opt/google/chrome/chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser"].filter(Boolean)) {
   try { await access(candidate, constants.X_OK); browser = candidate; break; } catch { /* Try the next installed browser. */ }
@@ -352,44 +644,21 @@ nextFixture();
     }
     for (const [index, {width, language, bilingual}] of fixtures.entries()) {
       await t.test(`${width}px ${language}${bilingual ? " bilingual" : ""} standalone status widgets and grouped selection`, async () => {
-        const evaluate = async source => {
-          const result = await debuggerSession.call("Runtime.evaluate", {
-            expression: `(async () => {const frame = document.querySelectorAll('iframe')[${index}]; const f = frame.contentWindow.widgetFixture; ${source}})()`,
+        const evaluate = async (operation, config = null) => {
+          const global = await debuggerSession.call("Runtime.evaluate", {expression: "globalThis"});
+          assert.ok(global.result?.objectId, "Chromium global context is available");
+          const result = await debuggerSession.call("Runtime.callFunctionOn", {
+            objectId: global.result.objectId,
+            functionDeclaration: runWidgetBrowserAction.toString(),
+            arguments: [{value: index}, {value: operation}, {value: config}],
             awaitPromise: true, returnByValue: true,
           });
           assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
           return result.result?.value;
         };
-        await evaluate(`
-          const helpers = await frame.contentWindow.eval("import('/tests/frontend/widget-browser-fixture.js')");
-          frame.contentWindow.widgetFixture = helpers.mountWidgetFixture(${JSON.stringify({language, bilingual})});
-        `);
+        await evaluate("setup", {language, bilingual});
         try {
-          const initial = await evaluate(`
-            const changes = f.changes.shadowRoot;
-            const health = f.health.shadowRoot;
-            const adminLink = health.querySelector('.widget-action');
-            return {
-              changeRows: changes.querySelectorAll('.widget-change-row').length,
-              pending: Boolean(health.querySelector('.pending-review')),
-              action: adminLink?.getAttribute('href'),
-              dates: [...changes.querySelectorAll('.widget-change-times')].map(node => node.textContent),
-              selected: [f.selector, f.changes, f.health].map(card => card._activeEntity()),
-              natural: [f.changes, f.health].every(card => {
-                const surface = card.shadowRoot.querySelector('ha-card');
-                return surface.classList.contains('standalone-widget') &&
-                  frame.contentWindow.getComputedStyle(surface).minHeight === '0px' &&
-                  !surface.classList.contains('has-mosque-background');
-              }),
-              fits: [f.changes, f.health].every(card => {
-                const surface = card.shadowRoot.querySelector('ha-card').getBoundingClientRect();
-                return [...card.shadowRoot.querySelectorAll('.widget-panel, .widget-change-row, .widget-health-row')].every(node => {
-                  const bounds = node.getBoundingClientRect();
-                  return bounds.left >= surface.left - 1 && bounds.right <= surface.right + 1;
-                });
-              }),
-            };
-          `);
+          const initial = await evaluate("inspect");
           assert.ok(initial.changeRows > 0, "Approved tomorrow changes render as published field rows");
           assert.ok(initial.dates.every(value => value.trim().length > 0), "Every change row shows the published comparison times");
           assert.equal(initial.pending, true, "Pending manual imports display even without a URL source");
@@ -398,132 +667,48 @@ nextFixture();
           assert.equal(initial.fits, true, "Status content fits its card at the actual container width");
           assert.deepEqual(initial.selected, ["sensor.widget_first_prayer_timetable", "sensor.widget_first_prayer_timetable", "sensor.widget_first_prayer_timetable"]);
 
-          assert.deepEqual(await evaluate(`
-            f.select(f.second);
-            return [f.selector, f.changes, f.health].map(card => card._activeEntity());
-          `), Array(3).fill("sensor.widget_second_prayer_timetable"), "One selector changes every member of its group");
-          assert.equal(await evaluate(`return f.health.shadowRoot.querySelector('.widget-action')?.getAttribute('href');`), "/config/integrations/integration/salah_timetable?config_entry=entry_20", "Review action follows the selected mosque");
+          assert.deepEqual(await evaluate("selectSecond"), Array(3).fill("sensor.widget_second_prayer_timetable"), "One selector changes every member of its group");
+          assert.equal(await evaluate("reviewAction"), "/config/integrations/integration/salah_timetable?config_entry=entry_20", "Review action follows the selected mosque");
 
-          const isolation = await evaluate(`
-            const wrapper = frame.contentDocument.createElement('hui-card-options');
-            f.view.append(wrapper);
-            const preview = f.mount('salah-widget-mosque-selector', {selection_group:'browser-status-widgets'}, wrapper);
-            const chooser = preview.shadowRoot.querySelector('.mosque-select');
-            chooser.value = f.first;
-            chooser.dispatchEvent(new frame.contentWindow.Event('change', {bubbles:true}));
-            const restricted = f.mount('salah-widget-timetable-health', {selection_group:'browser-status-widgets',mosque_entities:[f.first]});
-            const ungrouped = f.mount('salah-widget-timetable-health');
-            const view = frame.contentDocument.createElement('hui-view');
-            f.view.after(view);
-            const otherView = f.mount('salah-widget-timetable-health', {selection_group:'browser-status-widgets'}, view);
-            const result = {
-              live: f.health._activeEntity(), preview: preview._activeEntity(),
-              restricted: Boolean(restricted.shadowRoot.querySelector('.group-selection-error')),
-              independent: ungrouped._activeEntity(), otherView: otherView._activeEntity(),
-            };
-            view.remove();wrapper.remove();
-            return result;
-          `);
+          const isolation = await evaluate("isolation");
           assert.equal(isolation.live, "sensor.widget_second_prayer_timetable", "Dashboard edit previews cannot switch the live group");
           assert.equal(isolation.preview, "sensor.widget_first_prayer_timetable");
           assert.equal(isolation.restricted, true, "An excluded group mosque shows an explicit error instead of a fallback mosque");
           assert.equal(isolation.independent, "sensor.widget_first_prayer_timetable");
           assert.equal(isolation.otherView, "sensor.widget_first_prayer_timetable", "Identical group names are isolated between dashboard views");
 
-          const nonAdmin = await evaluate(`
-            f.health.hass = {...f.hass,user:{is_admin:false}};
-            return f.health.shadowRoot.querySelectorAll('.widget-action').length;
-          `);
+          const nonAdmin = await evaluate("nonAdmin");
           assert.equal(nonAdmin, 0, "Non-administrators see status without integration-management actions");
 
-          const refreshed = await evaluate(`
-            const state = f.hass.states[f.second];
-            const next = {...f.hass,states:{...f.hass.states,[f.second]:{
-              ...state,attributes:{...state.attributes,timetable_health:{...state.attributes.timetable_health,
-                source:{...state.attributes.timetable_health.source,pending_review:false}}}
-            }}};
-            f.health.hass = next;
-            return !f.health.shadowRoot.querySelector('.pending-review');
-          `);
+          const refreshed = await evaluate("refreshed");
           assert.equal(refreshed, true, "New source status updates the widget without a card reload");
-          const disconnected = await evaluate(`
-            for (const card of [f.health, f.changes]) card.hass = {...f.hass,connection:{connected:false}};
-            return {
-              healthUnavailable: Boolean(f.health.shadowRoot.querySelector('.widget-health .widget-status')) &&
-                !f.health.shadowRoot.querySelector('.pending-review, .widget-action'),
-              changesUnavailable: Boolean(f.changes.shadowRoot.querySelector('.widget-changes .widget-status')) &&
-                !f.changes.shadowRoot.querySelector('.widget-change-row'),
-            };
-          `);
+          const disconnected = await evaluate("disconnected");
           assert.equal(disconnected.healthUnavailable, true, "Disconnected health does not retain a current pending/review presentation");
           assert.equal(disconnected.changesUnavailable, true, "Disconnected change data is explicitly unavailable");
         } finally {
-          await evaluate("f.destroy(); delete frame.contentWindow.widgetFixture;");
+          await evaluate("destroy");
         }
       });
     }
     for (const [index, {width, language, bilingual}] of fixtures.entries()) {
       await t.test(`${width}px ${language}${bilingual ? " bilingual" : ""} independent widgets, custom arrangement and visual editor`, async () => {
-        const evaluate = async source => {
-          const result = await debuggerSession.call("Runtime.evaluate", {
-            expression: `(async () => {const frame = document.querySelectorAll('iframe')[${index}]; const f = frame.contentWindow.widgetFixture; ${source}})()`,
-            awaitPromise: true, returnByValue: true,
-          });
-          assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
-          return result.result?.value;
-        };
-        await evaluate(`
-          const helpers = await frame.contentWindow.eval("import('/tests/frontend/widget-browser-fixture.js')");
-          frame.contentWindow.widgetFixture = helpers.mountWidgetFixture(${JSON.stringify({language, bilingual})});
-        `);
+        const evaluate = (operation, config = null) => dispatchWidgetAction(debuggerSession, runWidgetLayoutAction, index, operation, config);
+        await evaluate("setup", {language, bilingual});
         try {
-          const standalone = await evaluate(`
-            const module = await frame.contentWindow.eval("import('/custom_components/salah_timetable/frontend/widget-utils.js?v=3.1.0')");
-            f.widgetModule = module;
-            f.standalone = module.SECTIONS.map(({id, show}) => {
-              const type = module.widgetType(id).slice('custom:'.length);
-              const card = f.mount(type, {[show]:false});
-              return {id, card};
-            });
-            return f.standalone.map(({id,card}) => ({
-              id,
-              registered: Boolean(frame.contentWindow.customElements.get(module.widgetType(id).slice('custom:'.length))),
-              picker: frame.contentWindow.customCards.some(item => item.type === module.widgetType(id).slice('custom:'.length)),
-              content: card.shadowRoot.querySelector('ha-card.standalone-widget')?.textContent.trim(),
-              section: Boolean(card.shadowRoot.querySelector('[data-section="'+id+'"]')),
-            }));
-          `);
+          const standalone = await evaluate("standalone");
           assert.equal(standalone.length, 10);
           for (const item of standalone) {
             assert.equal(item.registered && item.picker, true, `${item.id} has its own registered Add card entry`);
             assert.ok(item.content, `${item.id} always has useful standalone content`);
+            assert.equal(item.chooser, true, `${item.id} retains independent mosque choice`);
+            assert.equal(item.compactPreview, true, `${item.id} host does not stretch beyond its content`);
             if (item.id !== "mosque_selector") assert.equal(item.section, true, `${item.id} renders its requested section rather than only a mosque title`);
           }
-          assert.equal(await evaluate(`return Boolean(f.standalone.find(item=>item.id==='timetable').card.shadowRoot.querySelector('table, .kiosk-prayer-strip'));`), true, "Standalone timetable renders despite its section visibility flag");
-          assert.equal(await evaluate(`return Boolean(f.standalone.find(item=>item.id==='ramadan').card.shadowRoot.querySelector('.widget-status'));`), true, "Inactive standalone Ramadan explains its unavailable content");
-          assert.equal(await evaluate(`return Boolean(f.standalone.find(item=>item.id==='night_calculations').card.shadowRoot.querySelector('.night-calculations'));`), true, "Standalone calculated-night data is available without an enabling section switch");
+          assert.equal(await evaluate("timetableCheck"), true, "Standalone timetable renders despite its section visibility flag");
+          assert.equal(await evaluate("ramadanCheck"), true, "Inactive standalone Ramadan explains its unavailable content");
+          assert.equal(await evaluate("nightCheck"), true, "Standalone calculated-night data is available without an enabling section switch");
 
-          const arrangement = await evaluate(`
-            f.custom = f.mount('salah-timetable-card', {
-              detail_level:'compact',show_mosque_selector:false,show_dates:true,show_timetable:true,
-              show_salah_countdown:true,show_jamaat_countdown:true,show_clock:false,
-              show_ramadan_details:false,show_night_calculations:false,
-              show_jamaat_changes:false,show_timetable_health:false,
-              arrangement:{sections:[{id:'salah',width:'half'},{id:'jamaat',width:'half'},{id:'timetable',width:'full'},{id:'dates',width:'full'}]},
-            });
-            const root = f.custom.shadowRoot;
-            const grid = root.querySelector('.arrangement-grid');
-            const cells = [...grid.querySelectorAll(':scope > .arrangement-section')];
-            const bounds = grid.getBoundingClientRect();
-            const rect = element => {const b=element.getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,width:b.width};};
-            return {
-              order:cells.map(cell=>cell.getAttribute('data-section')),
-              table:Boolean(root.querySelector('table')),
-              dates:Boolean(root.querySelector('.hijri, .gregorian')),
-              first:rect(cells[0]),second:rect(cells[1]),full:rect(cells[2]),
-              fits:cells.every(cell=>{const b=cell.getBoundingClientRect();return b.left>=bounds.left-1&&b.right<=bounds.right+1;}),
-            };
-          `);
+          const arrangement = await evaluate("arrangement");
           assert.deepEqual(arrangement.order, ["salah", "jamaat", "timetable", "dates"], "Saved custom order also defines DOM order");
           assert.equal(arrangement.table && arrangement.dates, true, "Explicit arrangement can show dates and timetable in Compact mode");
           assert.equal(arrangement.fits, true, "Every arranged section stays inside the card container");
@@ -532,81 +717,25 @@ nextFixture();
             assert.ok(Math.abs(arrangement.first.top - arrangement.second.top) <= 1, "Half-width sections share a row on wider cards");
             assert.ok(arrangement.full.width > arrangement.first.width * 1.8, "Full-width timetable spans both grid columns");
           }
-          const ticking = await evaluate(`
-            const root=f.custom.shadowRoot;
-            const table=root.querySelector('table');
-            const clock=root.querySelector('[data-panel="salah"] .count');
-            const before=clock.textContent;
-            f.custom._tick(f.now+1000);
-            return {tableSame:root.querySelector('table')===table,clockSame:root.querySelector('[data-panel="salah"] .count')===clock,changed:before!==clock.textContent};
-          `);
+          const ticking = await evaluate("ticking");
           assert.deepEqual(ticking, {tableSame: true, clockSame: true, changed: true}, "Custom arrangement retains live countdown nodes and table focus targets on ticks");
 
-          await evaluate(`
-            f.editorState=f.mountEditor({selection_group:'browser-status-widgets',arrangement:f.custom._config.arrangement,
-              show_salah_countdown:true,show_jamaat_countdown:true,show_timetable:true,show_dates:true});
-            f.editorState.editor.shadowRoot.querySelector('[data-editor-tab="layout"]').click();
-          `);
-          const controls = await evaluate(`
-            const root=f.editorState.editor.shadowRoot;
-            return {rows:root.querySelectorAll('[data-layout-section]').length,
-              labelled:[...root.querySelectorAll('[data-layout-action]')].every(control=>Boolean(control.getAttribute('aria-label'))),
-              preview:Boolean(root.querySelector('[data-layout-preview-card]')),
-              settingsHidden:frame.contentWindow.getComputedStyle(root.querySelector('.form')).display==='none'};
-          `);
+          await evaluate("openEditor");
+          const controls = await evaluate("controls");
           assert.equal(controls.rows, 10);
           assert.equal(controls.labelled && controls.preview, true, "Layout controls have accessible labels and a preview of the actual card");
           assert.equal(controls.settingsHidden, true, "The Settings panel is visually hidden while Layout is selected");
-          assert.equal(await evaluate(`
-            const editor=f.mountEditor({type:'custom:salah-widget-timetable-health'}).editor;
-            return frame.contentWindow.getComputedStyle(editor.shadowRoot.querySelector('.editor-tabs')).display==='none';
-          `), true, "Standalone widget editors visually hide the composite Layout tabs");
+          assert.equal(await evaluate("standaloneEditor"), true, "Standalone widget editors visually hide the composite Layout tabs");
 
-          const ordering = await evaluate(`
-            const root=f.editorState.editor.shadowRoot;
-            const helper=root.querySelector('.layout-editor');
-            const start=f.editorState.config;
-            const source=root.querySelector('[data-layout-section="jamaat"]');
-            const up=source.querySelector('[data-layout-action="up"]');
-            up.focus();up.click();
-            const arrow=f.editorState.config.arrangement.sections.map(item=>item.id);
-            const focused=root.activeElement?.closest('[data-layout-section]')?.getAttribute('data-layout-section');
-            f.editorState.editor.setConfig(start);
-            const from=root.querySelector('[data-layout-section="jamaat"] [data-layout-action="drag"]');
-            const to=root.querySelector('[data-layout-section="salah"]');
-            const transfer=new frame.contentWindow.DataTransfer();
-            from.dispatchEvent(new frame.contentWindow.DragEvent('dragstart',{bubbles:true,dataTransfer:transfer}));
-            to.dispatchEvent(new frame.contentWindow.DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:transfer}));
-            to.dispatchEvent(new frame.contentWindow.DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:transfer}));
-            from.dispatchEvent(new frame.contentWindow.DragEvent('dragend',{bubbles:true,dataTransfer:transfer}));
-            return {arrow,drag:f.editorState.config.arrangement.sections.map(item=>item.id),focused};
-          `);
+          const ordering = await evaluate("ordering");
           assert.deepEqual(ordering.drag, ordering.arrow, "Native drag/drop and Move up produce identical saved arrangements");
           assert.equal(ordering.focused, "jamaat", "Moving a section preserves focus within that section after configuration echo");
 
-          const edited = await evaluate(`
-            const root=f.editorState.editor.shadowRoot;
-            const row=root.querySelector('[data-layout-section="jamaat"]');
-            const width=row.querySelector('[data-layout-action="width"]');
-            width.value='full';width.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
-            const visibility=row.querySelector('[data-layout-action="visible"]');
-            visibility.checked=false;visibility.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
-            return {width:f.editorState.config.arrangement.sections.find(item=>item.id==='jamaat').width,
-              visible:f.editorState.config.show_jamaat_countdown};
-          `);
+          const edited = await evaluate("edited");
           assert.deepEqual(edited, {width: "full", visible: false}, "Layout width and visibility edit the saved per-card settings");
 
           for (const [device, expectedWidth] of [["phone", 360], ["tablet", 768], ["desktop", 1280]]) {
-            const preview = await evaluate(`
-              const root=f.editorState.editor.shadowRoot;
-              const control=root.querySelector('[data-layout-device]');
-              control.value=${JSON.stringify(device)};control.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
-              const card=root.querySelector('[data-layout-preview-card]');
-              const viewport=root.querySelector('[data-layout-preview-frame]');
-              const inner=viewport.firstElementChild;
-              return {width:inner.style.width,preview:card.preview,group:card._config.selection_group,
-                fits:card.getBoundingClientRect().width<=viewport.getBoundingClientRect().width+1};
-            `);
+            const preview = await evaluate("devicePreview", {device});
             assert.equal(preview.width, `${expectedWidth}px`, `${device} preview uses its advertised logical device width`);
             assert.equal(preview.preview && preview.fits, true, `${device} preview scales inside the editor`);
             assert.ok(!preview.group, "Device previews are isolated from live mosque groups");
@@ -617,20 +746,13 @@ nextFixture();
             await captureWidget(debuggerSession, index, "f.health", `health-widget-${suffix}.png`);
             await captureWidget(debuggerSession, index, "f.editorState.editor.shadowRoot.querySelector('[data-layout-preview-frame]')", `layout-preview-${suffix}.png`);
           }
-          const reset = await evaluate(`
-            const root=f.editorState.editor.shadowRoot;
-            const before=f.editorState.config;
-            root.querySelector('[data-layout-reset]').click();
-            return {custom:Boolean(f.editorState.config.arrangement),entity:f.editorState.config.entity,
-              language:f.editorState.config.language,mosques:f.editorState.config.mosque_entities,
-              initialEntity:before.entity,initialLanguage:before.language,initialMosques:before.mosque_entities};
-          `);
+          const reset = await evaluate("reset");
           assert.equal(reset.custom, false, "Reset restores the legacy mode arrangement");
           assert.equal(reset.entity, reset.initialEntity);
           assert.equal(reset.language, reset.initialLanguage);
           assert.deepEqual(reset.mosques, reset.initialMosques, "Reset preserves selected mosques");
         } finally {
-          await evaluate("f.destroy(); delete frame.contentWindow.widgetFixture;");
+          await evaluate("destroy");
         }
       });
     }
@@ -638,44 +760,15 @@ nextFixture();
       await t.test(`1280px ${language} custom wall layout`, async () => {
         const index = fixtures.findIndex(fixture => fixture.width === 900 && fixture.language === language && !fixture.bilingual);
         await debuggerSession.call("Emulation.setDeviceMetricsOverride", {width: 1400, height: 1200, deviceScaleFactor: 1, mobile: false});
-        const evaluate = async source => {
-          const result = await debuggerSession.call("Runtime.evaluate", {
-            expression: `(async () => {const frame=document.querySelectorAll('iframe')[${index}];const f=frame.contentWindow.widgetFixture;${source}})()`,
-            awaitPromise: true, returnByValue: true,
-          });
-          assert.ok(!result.exceptionDetails, result.exceptionDetails?.exception?.description);
-          return result.result?.value;
-        };
-        await evaluate(`
-          frame.style.width='1280px';
-          frame.style.height='1200px';
-          const helpers=await frame.contentWindow.eval("import('/tests/frontend/widget-browser-fixture.js')");
-          frame.contentWindow.widgetFixture=helpers.mountWidgetFixture({language:${JSON.stringify(language)}});
-        `);
+        const evaluate = (operation, config = null) => dispatchWidgetAction(debuggerSession, runWidgetWallAction, index, operation, config);
+        await evaluate("setupWall", {language});
         try {
-          const wall = await evaluate(`
-            const module=await frame.contentWindow.eval("import('/custom_components/salah_timetable/frontend/widget-utils.js?v=3.1.0')");
-            f.wall=f.mount('salah-timetable-card', {...module.applyPreset(f.base,'wall'),show_jamaat_changes:false,show_timetable_health:false});
-            const root=f.wall.shadowRoot;
-            const grid=root.querySelector('.arrangement-grid');
-            const bounds=grid.getBoundingClientRect();
-            const cells=[...grid.querySelectorAll(':scope>.arrangement-section')];
-            const count=root.querySelector('[data-panel="salah"] .count');
-            const before=count.textContent;
-            f.wall._tick(f.now+1000);
-            return {kiosk:f.wall._config.kiosk_mode,
-              clock:Boolean(root.querySelector('.kiosk-clock')),
-              strip:root.querySelectorAll('.kiosk-strip .kiosk-tile').length,
-              fullscreen:Boolean(root.querySelector('.kiosk-fullscreen')),
-              dateTabs:Boolean(root.querySelector('[data-section="timetable"] .date-tabs')),
-              live:count.textContent!==before,
-              fits:cells.every(cell=>{const b=cell.getBoundingClientRect();return b.left>=bounds.left-1&&b.right<=bounds.right+1;})};
-          `);
+          const wall = await evaluate("wall");
           assert.equal(wall.kiosk && wall.clock && wall.fullscreen && wall.dateTabs && wall.live && wall.fits, true, "Custom wall arrangements retain clock, published timetable, navigation, fullscreen and live timers without clipping");
           assert.equal(wall.strip, 5, "Kiosk uses the existing five published daily-prayer tiles");
           await captureWidget(debuggerSession, index, "f.wall", `custom-kiosk-1280-${language}.png`);
         } finally {
-          await evaluate("f.destroy();delete frame.contentWindow.widgetFixture;frame.style.width='900px';frame.style.height='1500px';");
+          await evaluate("destroyWall");
         }
       });
     }

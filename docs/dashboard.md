@@ -127,21 +127,32 @@ Timetable **Mosque selector**, **Upcoming Jamaat changes** or **Timetable health
 cards. They use the same approved Prayer timetable sensors as the main card.
 Standalone widgets size to their content and have no photograph by default.
 
-### Link mosque selection across widgets
+### Synchronise mosque selection across widgets
 
-Set the same **Selection group** on widgets that should switch mosque together.
-For example, give a Mosque selector and both status widgets the group `home`.
-Leave the group empty for independent selection. Groups are local to one dashboard
-view and do not change integration settings, another browser or another user's
-display. Selection is temporary: the first connected widget supplies the starting
-mosque, and later members adopt it. Configure matching enabled mosque lists for a
-predictable default.
+Most dashboards need only the main Salah card: its existing mosque dropdown already
+switches the whole card, so no separate selector widget or synchronisation is needed.
+
+For a dashboard made of separate status cards, use the optional **Mosque selector**
+card as one shared control. In each participating card's editor open **Advanced**,
+enable **Synchronise mosque selection** and enter the same **Group name** (for
+example `home`). The main Salah card can also be the group controller instead of
+a separate selector. Linking is off by default; a new group starts with `home`.
+
+Linked standalone status cards display the mosque name without repeating another
+dropdown. Unlinked cards keep their own mosque selector. The dedicated Mosque
+selector and the main Salah card always retain theirs, so users can change the
+active mosque. Groups are local to one dashboard view and do not change integration
+settings, another browser or another user's display. Selection is temporary: the
+first connected card supplies the initial mosque, and later members adopt it.
+Configure matching enabled mosque lists for a predictable default.
 
 Every widget retains its enabled-mosque restrictions. If the selected mosque is
 excluded, missing or unavailable, the widget explains the problem instead of
 silently showing another mosque. Editor/device previews never switch live widgets.
 Grouping shares only mosque selection; day and month browsing remain local to each
 card. Standalone status widgets always describe the current mosque-local day.
+Standalone widget previews use their natural content height rather than filling
+the entire viewport; dashboard Sections layouts likewise use automatic row height.
 
 The additional YAML options are:
 

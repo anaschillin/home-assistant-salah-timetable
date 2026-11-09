@@ -629,6 +629,7 @@ try {
   check("restored graphical configuration", restored._config.title === yamlTitle && restored.shadowRoot.querySelector('[data-option="detail_level"]').value === lastConfig.detail_level);
   check("all graphical options survive configuration reload", [...restored.shadowRoot.querySelectorAll("[data-option]")].every(control => {
     const key = control.getAttribute("data-option");
+    if (key === "synchronise_mosque_selection") return control.checked === Boolean(lastConfig.selection_group);
     if (control.localName === "ha-switch") return control.checked === lastConfig[key];
     if (key === "mosque_background") {
       return control.value === (lastConfig.show_mosque_background ? lastConfig.mosque_background : "none");
