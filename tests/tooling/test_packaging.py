@@ -231,6 +231,8 @@ def test_production_modules_have_single_canonical_location():
         "imports": {
             "import_flow.py",
             "import_comparison.py",
+            "import_preview.py",
+            "import_review_flow.py",
         },
         "sources": {
             "download.py",
