@@ -1570,7 +1570,13 @@ test("custom widget identity uses a saved title only for the primary mosque", ()
     const card = new Card();
     card.setConfig({type, entity: primary, title: "Home", show_mosque_selector: false, arrangement: {sections: []}});
     card.hass = state;
-    const identity = () => find(card.shadowRoot, "div").find(item => item.className === "widget-mosque-name").textContent;
+    const identity = () => {
+      const label = find(card.shadowRoot, "div").find(item => item.className === "widget-mosque-name");
+      if (label) return label.textContent;
+      const chooser = find(card.shadowRoot, "select").find(item => item.className === "mosque-select");
+      if (chooser) return find(chooser, "option").find(item => item.value === chooser.value)?.textContent;
+      return find(card.shadowRoot, "h2")[0]?.textContent;
+    };
     assert.equal(identity(), "Home");
     card._selectMosque(other); card._render();
     assert.equal(identity(), "Other mosque");
