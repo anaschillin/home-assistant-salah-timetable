@@ -138,5 +138,3 @@ def import_summary(candidate, existing, settings=None) -> str:
         "Approve only after checking these values against the published timetable."
     )
     return "\n\n".join(lines)
-
-
