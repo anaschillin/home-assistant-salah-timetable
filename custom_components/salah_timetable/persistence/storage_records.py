@@ -79,5 +79,3 @@ class _Snapshot:
                 key: dict(check) for key, check in self.remote_checks.items()
             },
         }
-
-
