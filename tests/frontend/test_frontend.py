@@ -235,6 +235,9 @@ async def test_same_version_deployment_replaces_resource_and_versions_all_import
     assert response.status == 200
     source = await response.text()
     assert "card-editor.js" in source
+    assert "card-rendering.js" in source
+    assert "card-monthly.js" in source
+    assert "card-view-helpers.js" in source
 
     def imports(module):
         return re.findall(
@@ -263,6 +266,9 @@ async def test_same_version_deployment_replaces_resource_and_versions_all_import
             assert "openReminderWizard" in content
         if "card-editor.js" in resolved:
             assert "_reminderButton" in content
+    # Verify that every new rendering module is served under the same bundle namespace.
+    for module in ("card-rendering.js", "card-monthly.js", "card-view-helpers.js"):
+        assert any(module in url for url in visited), module
     # Preserve old manual URLs while managed resources move to the new namespace.
     assert (await client.get(CARD_PATH)).status == 200
 
