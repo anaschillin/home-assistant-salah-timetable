@@ -1,7 +1,7 @@
 /** Shared DOM primitives and configuration validation for card and editor. */
-import {normalizeConfig} from "./card-utils.js?v=3.6.0";
-import {resolveUi} from "./card-i18n.js?v=3.6.0";
-import {widgetTr} from "./widget-i18n.js?v=3.6.0";
+import {normalizeConfig} from "./card-utils.js?v=3.6.1";
+import {resolveUi} from "./card-i18n.js?v=3.6.1";
+import {widgetTr} from "./widget-i18n.js?v=3.6.1";
 
 export function node(tag, text, className) {
   const element = document.createElement(tag);
