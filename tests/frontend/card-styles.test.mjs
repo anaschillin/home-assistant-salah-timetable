@@ -2,6 +2,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {CARD_CSS, EDITOR_CSS} from "../../custom_components/salah_timetable/frontend/card-styles.js";
+import {FOUNDATION_CSS} from "../../custom_components/salah_timetable/frontend/card-style-foundation.js";
+import {DASHBOARD_CSS} from "../../custom_components/salah_timetable/frontend/card-style-dashboard.js";
+import {KIOSK_CSS} from "../../custom_components/salah_timetable/frontend/card-style-kiosk.js";
+import {WIDGET_CSS} from "../../custom_components/salah_timetable/frontend/card-style-widgets.js";
+import {EDITOR_CSS_PART} from "../../custom_components/salah_timetable/frontend/card-style-editor.js";
+
+test("style modules concatenate in the established cascade order", () => {
+  assert.equal(CARD_CSS, FOUNDATION_CSS + DASHBOARD_CSS + KIOSK_CSS + WIDGET_CSS);
+  assert.equal(EDITOR_CSS, EDITOR_CSS_PART);
+});
 
 test("theme, accessibility and responsive styles remain bundled", () => {
   for (const token of [
