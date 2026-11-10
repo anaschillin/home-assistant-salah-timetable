@@ -146,7 +146,9 @@ def test_architecture_production_module_inventory_matches_source_tree():
     assert int(count.group(1)) == len(grouped_actual)
 
     frontend_section = _section(
-        guide, "### Bundled frontend, metadata and assets", "### Central version configuration"
+        guide,
+        "### Bundled frontend, metadata and assets",
+        "### Central version configuration",
     )
     frontend_listed = re.findall(
         r"(?m)^\|\s*\x60(frontend/[^\x60]+\.js)\x60\s*\|", frontend_section
@@ -155,7 +157,9 @@ def test_architecture_production_module_inventory_matches_source_tree():
         path.relative_to(package).as_posix()
         for path in (package / "frontend").glob("*.js")
     )
-    assert len(frontend_listed) == len(set(frontend_listed)), "Duplicate frontend module"
+    assert len(frontend_listed) == len(set(frontend_listed)), (
+        "Duplicate frontend module"
+    )
     assert sorted(frontend_listed) == frontend_actual
 
 
