@@ -1,8 +1,21 @@
 # Roadmap
 
-This page contains **upcoming product features only**, not delivered capabilities, routine maintenance, release procedures or historical PR milestones. Priorities are proposals, not committed dates. For released functionality, see the [README](../README.md#features) and [changelog](../CHANGELOG.md).
+This page tracks **upcoming product features** and records the scope of mobile
+widgets. For released functionality, see the [README](../README.md#features)
+and [changelog](../CHANGELOG.md).
 
-Documentation follow-ups belong in the [documentation simplification plan](documentation-simplification-plan.md), and release/quality procedures belong in [Releasing](releasing.md). Merged functionality is removed from this roadmap; consult the [changelog](../CHANGELOG.md) to distinguish `main` changes awaiting release from features in a published tag.
+Documentation follow-ups belong in the [documentation simplification plan](documentation-simplification-plan.md).
+Release and quality procedures belong in [Releasing](releasing.md).
+Consult the [changelog](../CHANGELOG.md) to distinguish `main` changes awaiting
+release from features in a published tag.
+
+## Mobile widget scope
+
+- **Phase 1 — Home Assistant Companion widgets** is in scope. The Android and
+  iOS Companion apps use the integration's per-mosque prayer entities.
+  See [Companion widget setup](getting-started.md#add-companion-widgets).
+- **Phase 2 — Dedicated native Android widgets** is outside the scope of this repository.
+- **Phase 3 — Dedicated native iOS widgets** is outside the scope of this repository.
 
 ## Dashboard and card layouts
 

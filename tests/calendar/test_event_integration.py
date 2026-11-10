@@ -1,11 +1,17 @@
 """Absolute event entities and effective Ramadan records in a real HA instance."""
 
 from datetime import date, datetime, time, timezone
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import pytest
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import async_fire_time_changed
+from homeassistant.helpers.template import Template
+from homeassistant.setup import async_setup_component
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
 from custom_components.salah_timetable.const import DOMAIN
 from custom_components.salah_timetable.domain.model import (
@@ -13,6 +19,7 @@ from custom_components.salah_timetable.domain.model import (
     PrayerField,
     Timetable,
 )
+from custom_components.salah_timetable.parsers.csv_parser import CsvParser
 from custom_components.salah_timetable.persistence.storage import TimetableStorage
 
 
@@ -66,14 +73,38 @@ async def event_tables(hass, entry):
     return annual, ramadan
 
 
-def state(hass, key):
+def state(hass, key, mosque_id="example"):
     entity_id = er.async_get(hass).async_get_entity_id(
-        "sensor", DOMAIN, f"example_{key}"
+        "sensor", DOMAIN, f"{mosque_id}_{key}"
     )
     assert entity_id is not None, f"Missing {key} entity"
     result = hass.states.get(entity_id)
     assert result is not None
     return result
+
+
+@pytest.fixture
+def companion_template():
+    guide = Path(__file__).resolve().parents[2] / "docs" / "getting-started.md"
+    widget_section = guide.read_text(encoding="utf-8").split(
+        "### Show the prayer name and mosque-local time", 1
+    )[1]
+    return widget_section.split("```jinja\n", 1)[1].split("\n```", 1)[0]
+
+
+def render_widget(hass, template, dashboard, *, jamaat=False, countdown=False):
+    template = template.replace(
+        "sensor.example_mosque_prayer_timetable", dashboard.entity_id, 1
+    )
+    if jamaat:
+        template = template.replace(
+            "set event_key = 'next_salah'", "set event_key = 'next_jamaat'", 1
+        )
+    if countdown:
+        template = template.replace(
+            "set show_countdown = false", "set show_countdown = true", 1
+        )
+    return Template(template, hass).async_render(parse_result=False)
 
 
 async def tick(hass, freezer, instant):
@@ -115,7 +146,7 @@ async def test_event_entities_transition_at_exact_beginning_and_jamaat(
 
 
 async def test_after_isha_uses_tomorrows_published_times(
-    hass, entry, event_tables, freezer
+    hass, entry, event_tables, freezer, companion_template
 ):
     freezer.move_to("2026-03-10T21:00:00+00:00")
     er.async_get(hass).async_get_or_create(
@@ -126,20 +157,78 @@ async def test_after_isha_uses_tomorrows_published_times(
     assert state(hass, "next_salah").state == "2026-03-11T06:03:00+00:00"
     assert state(hass, "next_jamaat").state == "2026-03-11T06:33:00+00:00"
     assert state(hass, "previous_jamaat").state == "2026-03-10T20:30:00+00:00"
-    assert state(hass, "dashboard").attributes["next_salah"]["prayer"] == "fajr"
+    dashboard = state(hass, "dashboard")
+    assert dashboard.attributes["next_salah"]["prayer"] == "fajr"
+    assert render_widget(hass, companion_template, dashboard) == "Fajr · Wed 06:03"
 
 
-async def test_missing_tomorrow_stays_unavailable(hass, entry, freezer):
+async def test_companion_template_uses_each_mosques_local_published_events(
+    hass, entry, freezer, companion_template
+):
+    freezer.move_to("2026-10-23T10:15:00+00:00")
+    other = MockConfigEntry(
+        domain=DOMAIN,
+        title="Other Mosque",
+        unique_id="other",
+        data={
+            "name": "Other Mosque",
+            "mosque_id": "other",
+            "time_zone": "America/New_York",
+        },
+    )
+    other.add_to_hass(hass)
+    friday = date(2026, 10, 23)
+    london_row = daily(friday, extra={PrayerField.JUMUAH: (time(12, 30), time(14))})
+    for mosque, zone, row in (
+        (entry, "Europe/London", london_row),
+        (other, "America/New_York", daily(friday)),
+    ):
+        storage = TimetableStorage(hass, mosque.entry_id, ZoneInfo(zone))
+        await storage.async_replace((Timetable("annual-2026", "annual", (row,)),))
+    assert await async_setup_component(hass, DOMAIN, {})
+    await hass.async_block_till_done()
+
+    london = state(hass, "dashboard")
+    new_york = state(hass, "dashboard", "other")
+    assert render_widget(hass, companion_template, london) == "Dhuhr · Fri 12:00"
+    assert (
+        render_widget(hass, companion_template, london, jamaat=True, countdown=True)
+        == "Jumu’ah · Fri 12:30 · ~1h 15m"
+    )
+    assert (
+        render_widget(hass, companion_template, new_york, jamaat=True, countdown=True)
+        == "Fajr · Fri 06:30 · ~15m"
+    )
+
+
+async def test_missing_tomorrow_stays_unavailable(
+    hass, entry, freezer, companion_template
+):
     freezer.move_to("2026-03-10T21:00:00+00:00")
     storage = TimetableStorage(hass, entry.entry_id, ZoneInfo("Europe/London"))
     await storage.async_replace(
         (Timetable("annual-2026", "annual", (daily(date(2026, 3, 10)),)),)
     )
+    await storage.async_stage(
+        CsvParser().parse(
+            b"Date,Fajr Begin,Fajr Jamaat\n2026-03-11,06:05,06:40\n",
+            timetable_id="annual-2026",
+            kind="annual",
+            year=2026,
+            date_column="Date",
+            columns={"Fajr Begin": "fajr_begin", "Fajr Jamaat": "fajr_jamaat"},
+        )
+    )
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert state(hass, "next_salah").state == "unavailable"
     assert state(hass, "next_jamaat").state == "unavailable"
-    assert state(hass, "dashboard").attributes["next_salah"] is None
+    dashboard = state(hass, "dashboard")
+    assert dashboard.attributes["next_salah"] is None
+    assert render_widget(hass, companion_template, dashboard) == "Unavailable"
+    assert (
+        render_widget(hass, companion_template, dashboard, jamaat=True) == "Unavailable"
+    )
 
 
 async def test_no_per_second_state_writes(hass, entry, event_tables, freezer):
