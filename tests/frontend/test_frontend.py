@@ -234,7 +234,7 @@ async def test_same_version_deployment_replaces_resource_and_versions_all_import
     response = await client.get(CARD_URL)
     assert response.status == 200
     source = await response.text()
-    assert "_reminderButton" in source
+    assert "card-editor.js" in source
 
     def imports(module):
         return re.findall(
@@ -261,6 +261,8 @@ async def test_same_version_deployment_replaces_resource_and_versions_all_import
             assert "Prayer reminders" in content
         if "reminder-wizard.js" in resolved:
             assert "openReminderWizard" in content
+        if "card-editor.js" in resolved:
+            assert "_reminderButton" in content
     # Preserve old manual URLs while managed resources move to the new namespace.
     assert (await client.get(CARD_PATH)).status == 200
 
