@@ -1,8 +1,8 @@
 /** Monthly timetable browsing, CSV export and source details.
  * These instance methods preserve request cancellation and selected-mosque guards.
  */
-import {tr} from "./card-i18n.js?v=3.6.0";
-import {node} from "./card-shared.js?v=3.6.0";
+import {tr} from "./card-i18n.js?v=3.6.1";
+import {node} from "./card-shared.js?v=3.6.1";
 
 export const CardMonthlyMixin = Base => class extends Base {
   _loadMonth(year, month) {
