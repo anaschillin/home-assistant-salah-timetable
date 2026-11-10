@@ -427,7 +427,10 @@ The standalone `pdf_worker.py` deliberately remains at root. The relocated `pars
 
 | Path | Responsibility |
 | --- | --- |
-| `frontend/salah-timetable-card.js` | Custom card, widget registration and public entrypoint; re-exports the editor class at the existing URL |
+| `frontend/salah-timetable-card.js` | Main card lifecycle, mosque selection, custom-element registration and stable public entrypoint |
+| `frontend/card-rendering.js` | Display rendering and custom-arrangement composition for daily, kiosk and widget layouts |
+| `frontend/card-monthly.js` | Monthly timetable navigation, exports and source-information actions |
+| `frontend/card-view-helpers.js` | Shared DOM presentation helpers for prayer labels, clocks and kiosk panels |
 | `frontend/card-editor.js` | Graphical editor lifecycle, controls, layout tab and reminder configuration |
 | `frontend/card-shared.js` | Shared DOM construction, language direction and config-error normalisation for card/editor |
 | `frontend/card-utils.js` | Pure timestamp, time formatting and card model helpers |
