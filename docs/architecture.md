@@ -419,7 +419,7 @@ Each implementation directory has an `__init__.py`. Other production Python modu
 
 #### Single canonical location
 
-No duplicate Python modules or compatibility aliases are retained. The 24 grouped implementation modules live **only** in their listed subfolders; imports such as `custom_components.salah_timetable.model` must use `custom_components.salah_timetable.domain.model`. The coordinator has one canonical top-level implementation, following Home Assistant's common-module convention. All tests and mocks use these canonical locations. A packaging test rejects extra root Python files or missing grouped modules, and verifies the archive includes every runtime Python module.
+No duplicate Python modules or compatibility aliases are retained. The 26 grouped implementation modules live **only** in their listed subfolders; imports such as `custom_components.salah_timetable.model` must use `custom_components.salah_timetable.domain.model`. The coordinator has one canonical top-level implementation, following Home Assistant's common-module convention. All tests and mocks use these canonical locations. Packaging tests reject extra root Python files or missing grouped modules and verify the archive includes every runtime Python module. The tooling inventory test also checks that the architecture tables match every shipped Python and frontend JavaScript module.
 
 The standalone `pdf_worker.py` deliberately remains at root. The relocated `parsers/pdf_parser.py` resolves that worker's absolute path; its `python -I` subprocess boundary and resource limits are unchanged.
 

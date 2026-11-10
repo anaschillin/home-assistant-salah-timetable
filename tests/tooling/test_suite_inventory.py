@@ -109,6 +109,60 @@ def test_every_test_area_has_a_maintenance_guide():
         assert "../../docs/testing.md" in guide.read_text(encoding="utf-8")
 
 
+def test_architecture_production_module_inventory_matches_source_tree():
+    """Prevent future refactors leaving the architecture tables or count stale."""
+    guide = (REPO_ROOT / "docs/architecture.md").read_text(encoding="utf-8")
+    package = REPO_ROOT / "custom_components/salah_timetable"
+
+    root_section = _section(
+        guide,
+        "### Home Assistant and executable entry points",
+        "### Grouped Python implementation",
+    )
+    root_listed = re.findall(r"(?m)^\|\s*\x60([^\x60]+\.py)\x60\s*\|", root_section)
+    root_actual = sorted(path.name for path in package.glob("*.py"))
+    assert len(root_listed) == len(set(root_listed)), "Duplicate root module"
+    assert sorted(root_listed) == root_actual
+
+    grouped_section = _section(
+        guide, "### Grouped Python implementation", "#### Single canonical location"
+    )
+    grouped_listed = [
+        directory + module
+        for directory, module in re.findall(
+            r"(?m)^\|\s*\x60([a-z_]+/)\x60\s*\|\s*\x60([^\x60]+\.py)\x60",
+            grouped_section,
+        )
+    ]
+    grouped_actual = sorted(
+        path.relative_to(package).as_posix()
+        for path in package.rglob("*.py")
+        if path.parent != package and path.name != "__init__.py"
+    )
+    assert len(grouped_listed) == len(set(grouped_listed)), "Duplicate grouped module"
+    assert sorted(grouped_listed) == grouped_actual
+    count = re.search(r"The (\d+) grouped implementation modules", guide)
+    assert count is not None
+    assert int(count.group(1)) == len(grouped_actual)
+
+    frontend_section = _section(
+        guide,
+        "### Bundled frontend, metadata and assets",
+        "### Central version configuration",
+    )
+    frontend_listed = re.findall(
+        r"(?m)^\|\s*\x60(frontend/[^\x60]+\.js)\x60\s*\|", frontend_section
+    )
+    frontend_actual = sorted(
+        path.relative_to(package).as_posix()
+        for path in (package / "frontend").glob("*.js")
+    )
+    assert len(frontend_listed) == len(set(frontend_listed)), (
+        "Duplicate frontend module"
+    )
+    assert sorted(frontend_listed) == frontend_actual
+
+
 def test_documentation_sync_updates_metadata_and_renamed_links(tmp_path):
     """Documentation is rendered from project metadata and canonical link routes."""
     from scripts.versions import load_versions

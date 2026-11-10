@@ -125,7 +125,7 @@ The files below are the complete set of pytest test modules. When adding a regre
 | | `test_compatibility_environment.py` | Pinned HA/Python environment assertions |
 | | `test_packaging.py` | Release file inclusion/exclusion and version integrity |
 | | `test_release_preparation.py` | Release archive and notes preparation |
-| | `test_suite_inventory.py` | Verify all Python/Node test modules and category guides remain documented |
+| | `test_suite_inventory.py` | Verify Python/Node test modules, test-area guides and the production architecture module inventory remain aligned with the tree |
 
 Names indicate the primary module ownership; some tests deliberately span unit, integration and acceptance boundaries. Do not rely on folder names alone to infer a test's isolation level.
 
