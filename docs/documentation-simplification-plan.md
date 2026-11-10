@@ -1,20 +1,19 @@
 # Documentation Simplification — Action Plan
 
-**Status:** Core documentation simplification completed and re-audited against the published v3.5.0 release and current `main` on 9 November 2026. Remaining work is optional redacted examples and recurring release checks.
+**Status:** Core documentation simplification completed and re-audited against published `v3.6.1` and current `main` on 10 November 2026. Remaining work is optional redacted examples and recurring release checks.
 
-**Audit baseline:** All 37 Markdown files originally reviewed on 1 November 2026. Release status rechecked against `v3.1.0` on 7 November and against the published `v3.5.0` tag plus `main` after PR #143 on 9 November 2026. The latter merged after the v3.5.0 tag and is not contained in that release.
+**Audit baseline:** All 37 tracked Markdown files re-reviewed on 10 November 2026. Published stable tag `v3.6.1` and `main` both resolve to commit `8d4127fd`; the v3.5.0 post-tag layout-editor distinction is historical and no longer a current release boundary.
 
 **Scope:** All 37 tracked Markdown documents: root guidance, user/contributor guides, shared excerpts, research notes, examples and test/fixture READMEs.
 
 **Owner / execution:** A maintainer or Codex following [AGENTS.md](../AGENTS.md).
 
-The readiness/import changes, first guide simplification, card/editor screenshots,
-v3 kiosk redesign, casting fixes and PR #138's card alignment improvements
-shipped by `v3.1.0`. PR #140's kiosk readability changes shipped in `v3.1.1`;
-PR #142's linked widgets shipped in `v3.5.0`. PR #143's visual layout
-editor and additional standalone sections merged into `main` after `v3.5.0`
-and are included in the `v3.6.0` candidate. The previous 1.0.0-era prerequisites
-and unmerged screenshot disclaimer are obsolete.
+The released baseline includes the readiness/import improvements, card editor,
+kiosk and casting fixes, single-panel readability, v3.5 linked dashboard widgets,
+and the v3.6 visual layout editor, standalone sections and single-countdown tile.
+The v3.6.1 module refactor changed internal organisation without introducing a
+new user-facing feature. Earlier pre-release or post-tag caveats are historical,
+not current installation guidance.
 Do not reopen completed work. The [roadmap](roadmap.md) contains *upcoming product
 features only*; this file tracks the documentation audit and residual work.
 
@@ -36,25 +35,25 @@ features only*; this file tracks the documentation audit and residual work.
 
 ## File-by-file completion record
 
-All **37 tracked Markdown files** were reviewed in the initial simplification
-pass; current documentation has been rechecked against the v3.5.0 tag and
-merged post-release layout editor on `main` (9 November 2026).
+All **37 tracked Markdown files** were reviewed again against the published
+v3.6.1 tag and matching `main` commit on 10 November 2026. The production and
+test module inventories were compared with the actual repository tree.
 A checked row means the document's **audit and ownership review** is complete;
 it does not claim every optional screenshot or every future release audit is done.
 
 | Documents | Audit | Verified responsibility / retained boundary |
 | --- | :---: | --- |
-| `README.md` | [x] | v3.5.0 linked-widget features and catalogue-first installation, plus an explicit notice that the merged layout editor is on `main` but not in the stable tag. Manual/custom-repository fallbacks retained. |
+| `README.md` | [x] | Stable v3.6.1 feature overview with released linked widgets, single-countdown tile and visual layout editor; catalogue-first installation with manual/custom-repository fallbacks retained. |
 | `AGENTS.md` | [x] | Current-main instructions, documentation handoff, unnumbered descriptive headings and no unmerged-feature prerequisites. |
-| `CHANGELOG.md` | [x] | Published v3.5.0 linked-widget entry and clearly separate post-tag `main` layout-editor changes awaiting the next release; historical unreleased snapshots preserved. |
+| `CHANGELOG.md` | [x] | Published v3.6.1 refactor, v3.6.0 editor/countdown and v3.5.0 widget entries; older unreleased snapshots are clearly historical. |
 | `CONTRIBUTING.md` | [x] | Version/excerpt ownership, Linux/WSL and browser setup; required CI and Markdown-only fast paths distinguished. |
 | `SECURITY.md` | [x] | Stable-release scope, private reporting and constrained dependency advisory policy. |
-| `docs/getting-started.md` | [x] | Installation, first import/approval, mosque settings, deletion, linked-widget setup and the main-versus-tag boundary for the layout editor. Optional redacted edge-case captures remain. |
+| `docs/getting-started.md` | [x] | Installation, first import/approval, mosque settings, deletion and released linked-widget/layout-editor setup. Optional redacted edge-case captures remain. |
 | `docs/import_review.md` | [x] | PDF/CSV/HTTPS boundaries, cross-year CSV, reviewed mapping suggestions, removed-date warnings and guided annual rollover; source state and approval are distinct. |
-| `docs/dashboard.md` | [x] | Released v3/v3.1 kiosk, v3.5 linked widgets, ten standalone sections and the merged post-v3.5 visual editor, with a clear stable-tag boundary, YAML examples, device gallery and disabled history switches. |
+| `docs/dashboard.md` | [x] | Released kiosk, v3.5 linked widgets, v3.6 single-countdown tile, ten standalone sections and visual editor, with YAML examples, device gallery and disabled history switches. |
 | `docs/automations.md` | [x] | Released guided prayer reminders, 27 mosque sensors, calendar, six blueprints and v3.5 widget attributes, with approved/pending and completeness/coverage boundaries. |
-| `docs/architecture.md` | [x] | Production module and data-flow inventory including the merged layout-editor module, approved/pending boundary and PDF-only worker isolation. |
-| `docs/testing.md` | [x] | Verified 56 Python and 20 Node test modules, frontend/layout suites, supported HA pairs and CI ownership; source-controlled inventory remains curated. |
+| `docs/architecture.md` | [x] | Current production and data-flow inventory (12 root Python, 26 grouped Python and 22 frontend JS modules), approved/pending boundary and PDF-only worker isolation. |
+| `docs/testing.md` | [x] | Verified 56 Python and 22 Node test modules, frontend/layout suites, supported HA pairs and CI ownership; source-controlled inventory remains curated. |
 | `docs/releasing.md` | [x] | Validated feature/stable pipelines, immutable same-version release reconciliation, HACS catalogue status, manual acceptance and internal Quality Scale audit. |
 | `docs/roadmap.md` | [x] | Upcoming proposals only; merged layout-editor/preset/movable-section work, shipped widgets, dependency upkeep, CI and documentation chores are excluded. |
 | `docs/documentation-simplification-plan.md` | [x] | Audit record, source-of-truth ownership, accepted decisions, open follow-ups and verification criteria. |
@@ -77,7 +76,7 @@ unstarted product proposals:
 - [x] Guided annual URL rollover, per-mosque template, editable generated address and explicit approval.
 - [x] Seven card-editor groups, detail-level comparison, date navigation, monthly/export/source tools, kiosk and calculated-night controls.
 - [x] Three published v3.5 standalone status/selector widgets, optional panels and dashboard-view-local mosque-selection groups with per-card restrictions.
-- [x] Ten standalone sections, five layout presets, movable full/half-width sections, Reset and isolated device previews merged into `main` after v3.5.0; explicitly marked as awaiting a later published tag.
+- [x] Ten standalone sections, five layout presets, movable full/half-width sections, Reset and isolated device previews shipped in v3.6.0 and retained in v3.6.1.
 - [x] Separate field-completeness and date-coverage diagnostics/alerts, with one entity reference.
 - [x] Shorter contributor/release references linking to canonical test and acceptance procedures.
 - [x] Verified default HACS catalogue listing, with catalogue-first installation instructions and both custom-repository and manual release-copy fallbacks.
@@ -92,11 +91,11 @@ redaction and decorative photograph licences.
 ## Remaining documentation work and decisions
 
 - [ ] **Optional screenshots:** add suitably redacted captures of readiness with named missing fields, CSV mapping suggestions, removed-date warnings and comparison filtering when representative examples are available. The existing review-summary capture is not a comparison-screen capture. Do not substitute fabricated UI states or expose real timetable owners' data.
-- [x] **Test-inventory assessment:** keep the maintained 56-module inventory and its existing ownership checks. Generating the inventory would introduce extra tooling without a demonstrated maintenance failure; revisit only if actual drift appears.
+- [x] **Inventory assessment:** retain the curated 56 Python/22 Node test inventory and check it against the tree in CI. Also enforce the architecture inventory against shipped production Python/JavaScript modules, rather than auto-generating prose tables.
 - [x] **Further consolidation assessment:** architecture, testing and release guides have different primary audiences and canonical responsibilities. No remaining cross-guide duplication warrants merging them; preserve the full inventory, reproducible commands and rule-specific audit.
 - [x] **Stable release reconciliation:** already implemented; later `main` commits with a published version leave immutable tags intact and report a no-publication result.
 - [x] **v3.1.0 baseline refresh:** the published tag was checked; PR #138's single- and paired-panel changes read as released, not proposed. Existing casting work remains in release history.
-- [x] **v3.5.0 and post-tag main refresh:** confirmed the published tag includes PR #142's linked widgets and excludes PR #143's layout editor; corrected guides, changelog, architecture and roadmap against merged `main` without claiming the later changes are already in the stable tag.
+- [x] **v3.6.1 stable baseline refresh:** confirmed the `v3.6.1` tag matches `main` at `8d4127fd`; the v3.6 layout editor, standalone sections and single-countdown improvements are published, and the 3.6.1 internal refactor is reflected in the module inventory. Previous post-v3.5.0 release warnings are removed.
 - [ ] **Recurring release verification:** for every later candidate, compare screenshots (including layout-editor/device previews when released), UI labels, defaults, source limits, compatibility pins and research/runtime separation with the **actual release tag**. Record results in that candidate's PR/release rather than treating this recurring duty as permanently complete.
 
 ## Canonical document ownership
