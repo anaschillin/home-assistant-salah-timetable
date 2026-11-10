@@ -21,6 +21,7 @@ A Home Assistant custom integration for importing **published mosque Salah and J
 - **New in v3.5:** standalone **Mosque selector**, **Upcoming Jamaat changes** and **Timetable health** cards, plus optional panels in the main card. Link cards with **Advanced → Synchronise mosque selection** to switch several cards together without repeating dropdowns. Standalone cards also work independently. See the [widget guide](docs/dashboard.md#jamaat-changes-and-timetable-health-widgets).
 - **New in v3.6:** a responsive Beginning/Jamaat tile with progress between published times for [single-countdown displays](docs/dashboard.md#single-countdown-timeline). The visual **Layout** editor adds five presets, movable full/half-width sections, Reset and isolated phone/tablet/desktop previews, plus ten [standalone card sections](docs/dashboard.md#visual-layouts-and-standalone-sections).
 - Six optional blueprints for prayer reminders, media playback, date-coverage alerts and required-field completeness alerts.
+- [Home Assistant Companion widgets](docs/getting-started.md#add-companion-widgets) on Android and iOS can show the next published Salah and Jamaat for your mosque.
 
 **Important:** Values come from approved publications; this integration does not calculate authoritative prayer schedules or invent missing times. Only [documented PDF layouts](docs/import_review.md#supported-pdf-layouts) are supported.
 
@@ -81,14 +82,14 @@ After installation, follow [Getting started](docs/getting-started.md) to import 
 
 | Guide | Contents |
 | --- | --- |
-| [Getting started](docs/getting-started.md) | Setup, imports, reconfiguration, removal and troubleshooting |
+| [Getting started](docs/getting-started.md) | Setup, imports, Companion widgets, reconfiguration and troubleshooting |
 | [Dashboard](docs/dashboard.md) | Card options and multiple mosques |
 | [Importing and validation](docs/import_review.md) | Configuration fields/defaults, PDF layouts, approval, Ramadan and source updates |
 | [Automations and entities](docs/automations.md) | Entity reference/defaults, prayer calendar, blueprints and coverage alerts |
 | [Architecture](docs/architecture.md) | Internal design for contributors |
 | [Testing](docs/testing.md) | Tests, coverage and development |
 | [Releasing](docs/releasing.md) | Release workflow, sign-off and internal Quality Scale rule audit |
-| [Roadmap](docs/roadmap.md) | Future plans only |
+| [Roadmap](docs/roadmap.md) | Future plans and mobile widget scope |
 | [Assets and credits](docs/asset-provenance.md) | Source checks, image licensing and fixture provenance |
 | [Islamic history research](research/islamic-history/islamic-history-source-audit.md) | Research proposals, not released features |
 

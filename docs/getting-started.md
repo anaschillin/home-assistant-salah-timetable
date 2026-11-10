@@ -104,9 +104,9 @@ the two status panels under **Timetable & information**.
 If you use multiple cards on the same view, open **Advanced** in each card's
 editor, enable **Synchronise mosque selection** and enter the same **Group
 name** (for example `home`). A dedicated Mosque selector is optional: the main
-card's built-in dropdown can control the group. Linked status widgets do not
-repeat the dropdown; unlinked widgets remain independent. These are *dashboard
-cards*, not native mobile home-screen widgets.
+card's built-in dropdown can control the group. Linked status widgets follow the
+same mosque selection. Unlinked widgets remain independent. For your phone's
+Home Screen, see [Companion widgets](#add-companion-widgets).
 
 From v3.6.0, the **Layout** tab offers five presets, drag-and-drop and keyboard
 ordering, and independent standalone sections. See [Visual layouts and standalone sections](dashboard.md#visual-layouts-and-standalone-sections).
@@ -168,6 +168,286 @@ Gregorian year, not the mosque's source PDF. See [all device and mode
 screenshots](dashboard.md#device-screenshots).
 
 These are example interface captures, not a substitute for checking your mosque's approved publication. The background photograph is decorative and does not identify the configured mosque.
+
+## Add Companion widgets
+
+Sign in to your Home Assistant server in the Companion app and
+[approve a timetable](#import-prayer-times) for the mosque you want to display.
+Each mosque has its own **Next Salah beginning** and **Next Jamaat**
+[timestamp sensors](automations.md#entities-per-mosque). Salah shows the next
+published beginning. Jamaat shows the next published congregation, including
+Jumu’ah. The two events can be for different prayers.
+
+Open the mosque's device under **Settings → Devices & services → Salah
+Timetable** to find the sensors and their current entity IDs. Set up a separate
+widget for each mosque or select sensors from several mosques in the same iOS
+widget. Each widget uses the entities you select. It has its own selection
+independent of the mosque selected on your dashboard.
+
+### Android Home Screen
+
+1. Touch and hold an empty area of your Home Screen and open the widget picker.
+2. Under **Home Assistant**, place an **Entity State** widget and choose the
+   mosque's **Next Salah beginning** or **Next Jamaat** sensor.
+3. To include the prayer key next to the timestamp, select the `prayer`
+   attribute. Give the widget a label such as **Next Salah · My Mosque** and save.
+   Add another widget for the other event or mosque. The app may show the
+   sensor's raw UTC timestamp.
+
+For a compact, mosque-local clock time and an optional estimated countdown,
+choose a **Template** widget instead and paste the
+[shared template](#show-the-prayer-name-and-mosque-local-time) into its template
+field. You can add a short heading before the template, followed by `<br>`,
+to identify the event and mosque. For a larger widget showing all five prayers
+with separate Beginning and Jamaat columns, use the
+[full timetable example](#android-full-timetable-template-example).
+Check the preview and save. Tap a prayer widget to refresh it. Android normally updates widgets about every 30 minutes while
+the screen is on.
+Background data, Data Saver and notification access affect refreshes.
+[Android Companion widget guide](https://companion.home-assistant.io/docs/integrations/android-widgets/)
+
+### iPhone Home Screen and Lock Screen
+
+1. On your Home Screen, touch and hold an empty area and add a **Home Assistant**
+   **Sensors** widget. On iOS 18 or later, use **Edit → Add Widget**. On iOS 17,
+   use **+**.
+2. Touch and hold the widget, choose **Edit Widget**, select your server and
+   choose the mosque's **Next Salah beginning** and **Next Jamaat** sensors.
+   You can also select daily Beginning or Jamaat sensors to show more of the
+   published timetable. The app may show the sensors' raw UTC timestamps.
+3. If you want the prayer name and a short mosque-local clock time on the Home
+   Screen, create an optional helper in Home Assistant under **Settings →
+   Devices & services → Helpers → Create helper → Template → Sensor**. Give it
+   an event and mosque name, paste the [shared template](#show-the-prayer-name-and-mosque-local-time)
+   into **State**, and leave unit, device class and state class empty. Keep
+   `show_countdown` set to `false` so the helper updates with the event instead
+   of writing a new state each minute. Select the new helper in the widget.
+   [Template helper guide](https://www.home-assistant.io/integrations/template/#creating-a-template-helper-from-the-user-interface)
+
+On the Lock Screen, add and edit the rectangular **Home Assistant Details**
+widget. Choose the **Entity** source and select a prayer timestamp sensor or
+your optional helper.
+If your Companion app uses a Home Assistant administrator account, you can
+choose **Template** and fill all three fields. Enter an event label such as
+**Next Salah** in **Upper Text Template**, paste the shared template into
+**Lower Text Template**, and enter your mosque's name in **Details Text Template**.
+Use plain text without a vertical bar for the event and mosque labels. You can
+enable the estimated countdown in the shared template if space allows.
+
+iOS controls the refresh schedule. Companion documents updates about every 15
+minutes at best. If a widget gets stuck, use **Settings → Companion app →
+Widgets → Reload all widgets** in the app.
+[iOS Companion widget guide](https://companion.home-assistant.io/docs/integrations/ios-widgets/)
+
+### Show the prayer name and mosque-local time
+
+Replace `sensor.example_mosque_prayer_timetable` with the chosen mosque's
+**Prayer timetable** entity ID. Use `next_salah` for Salah or `next_jamaat` for
+Jamaat. Set `show_countdown` to `true` in a Companion widget's template to add
+the approximate time remaining when it renders. Preview the template in
+**Developer tools → Template** in Home Assistant before saving.
+
+```jinja
+{% set entity_id = 'sensor.example_mosque_prayer_timetable' %}
+{% set event_key = 'next_salah' %}
+{% set show_countdown = false %}
+{% set labels = {
+  'fajr': 'Fajr',
+  'dhuhr': 'Dhuhr',
+  'asr': 'Asr',
+  'maghrib': 'Maghrib',
+  'isha': 'Isha',
+  'jumuah': 'Jumu’ah'
+} %}
+{% set event = state_attr(entity_id, event_key) if has_value(entity_id) else none %}
+{% set target = as_datetime(event.get('timestamp'), none) if event is mapping else none %}
+{% set prayer = labels.get(event.get('prayer')) if event is mapping else none %}
+{%- if target and prayer -%}
+  {{ prayer }} · {{ target.strftime('%a %H:%M') }}
+  {%- if show_countdown -%}
+    {%- set minutes = ((as_timestamp(target) - as_timestamp(now())) / 60) | round(0, 'ceil') | int -%}
+    {%- if minutes > 0 %} · ~
+      {%- if minutes >= 60 %}{{ minutes // 60 }}h {% endif -%}
+      {{ minutes % 60 }}m
+    {%- endif -%}
+  {%- endif -%}
+{%- else -%}
+  Unavailable
+{%- endif -%}
+```
+
+The template uses the event's date and UTC offset to show the mosque's local
+day and time, including when the next prayer is tomorrow or the clocks change.
+It shows **Unavailable** if the selected sensor or approved event is missing.
+Companion widgets can retain an older value while the server is unreachable or
+the phone delays a refresh. The optional countdown updates when the widget
+refreshes. For live countdowns and timed alerts, use the
+[dashboard card](#add-the-dashboard-card) and
+[prayer reminders](automations.md#guided-prayer-reminders).
+
+### Android full timetable Template example
+
+This optional, larger **Android Home Screen Template** widget displays the mosque
+name, timetable date, next published Salah beginning and an estimated countdown
+above the five-prayer timetable. Beginning and Jamaat remain distinct; additional
+published Jumu’ah congregations appear on separate lines. Missing approved values
+display as a dash.
+
+Add a **Home Assistant → Template** widget and paste the example below into its
+template field. Replace `sensor.example_mosque_prayer_timetable` with your
+mosque's **Prayer timetable** entity ID. Preview it in **Developer tools →
+Template** first. Adjust `prayer_width`, `begin_width` and `jamaat_width`
+to fit the widget. These are **character counts, not pixels**: the Android
+Companion widget does not automatically resize the columns when the widget
+changes size. The faint separators follow their combined width. This layout
+uses monospaced text and basic HTML, not CSS Grid or responsive HTML.
+
+```jinja
+{# ==========================================
+   WIDGET CONFIGURATION
+   ========================================== #}
+
+{%- set entity = 'sensor.example_mosque_prayer_timetable' -%}
+{%- set show_countdown = true -%}
+
+{# Column widths in characters, not pixels #}
+{%- set prayer_width = 17 -%}
+{%- set begin_width = 15 -%}
+{%- set jamaat_width = 15 -%}
+
+{# Automatically calculated layout widths #}
+{%- set total_width = prayer_width + begin_width + jamaat_width -%}
+{%- set separator = '─' * total_width -%}
+
+{# Colours #}
+{%- set accent_color = '#E5D5A5' -%}
+{%- set line_color = '#454E60' -%}
+{%- set heading_color = '#BFC7D8' -%}
+
+{# ==========================================
+   SENSOR DATA
+   ========================================== #}
+
+{%- set mosque = state_attr(entity, 'mosque_name') or 'Salah Timetable' -%}
+{%- set day = state_attr(entity, 'date') -%}
+{%- set prayers = state_attr(entity, 'prayers') or [] -%}
+{%- set event = state_attr(entity, 'next_salah') -%}
+
+{%- set labels = {
+  'fajr': 'Fajr',
+  'dhuhr': 'Dhuhr',
+  'asr': 'Asr',
+  'maghrib': 'Maghrib',
+  'isha': 'Isha'
+} -%}
+
+{%- set target = as_datetime(event.get('timestamp'), none) if event is mapping else none -%}
+{%- set next_key = event.get('prayer') if event is mapping else none -%}
+{%- set next_name = labels.get(next_key, 'Prayer') -%}
+{%- set date_obj = as_datetime(day, none) if day else none -%}
+
+{# ==========================================
+   MOSQUE HEADER
+   ========================================== #}
+
+<big><b>☪ {{ mosque | e }}</b></big><br>
+<small>{{ date_obj.strftime('%A, %d %B %Y') if date_obj else 'Date unavailable' }}</small><br>
+<br>
+
+{# ==========================================
+   NEXT SALAH
+   ========================================== #}
+
+<font color="{{ accent_color }}"><small><b>NEXT SALAH</b></small></font><br>
+{% if target -%}
+<big><big><b>{{ next_name }} · {{ target.strftime('%H:%M') }}</b></big></big><br>
+{% if target.date().isoformat() != day -%}
+<small>Tomorrow</small><br>
+{% endif -%}
+{% if show_countdown -%}
+{% set mins = ((as_timestamp(target) - as_timestamp(now())) / 60) | round(0, 'ceil') | int -%}
+{% if mins > 0 -%}
+<small>◷ {% if mins >= 60 %}{{ mins // 60 }}h {% endif %}{{ mins % 60 }}m remaining</small><br>
+{% endif -%}
+{% endif -%}
+{% else -%}
+<b>Next Salah unavailable</b><br>
+{% endif -%}
+<br>
+
+{# ==========================================
+   THREE-COLUMN TIMETABLE
+   ========================================== #}
+
+{%- set header =
+  '  PRAYER'.ljust(prayer_width) ~
+  'BEGIN'.rjust(begin_width) ~
+  'JAMAAT'.rjust(jamaat_width)
+-%}
+
+<tt><small>
+<font color="{{ heading_color }}"><b>{{ header | e | replace(' ', '&nbsp;') | safe }}</b></font><br>
+<font color="{{ line_color }}">{{ separator }}</font><br>
+
+{%- for prayer in prayers -%}
+
+  {%- set key = prayer.get('key') -%}
+  {%- set name = prayer.get('name', 'Prayer') -%}
+  {%- set start = as_datetime(prayer.get('begin'), none) -%}
+  {%- set jamaats = prayer.get('jamaat') or [] -%}
+
+  {%- set begin_time = start.strftime('%H:%M') if start else '—' -%}
+  {%- set first = as_datetime(jamaats[0], none) if jamaats else none -%}
+  {%- set jamaat_time = first.strftime('%H:%M') if first else '—' -%}
+
+  {%- set active = key == next_key and target and target.date().isoformat() == day -%}
+
+  {# Highlight indicator occupies two characters #}
+  {%- set label = ('› ' if active else '  ') ~ name -%}
+
+  {# Build properly aligned row #}
+  {%- set row =
+    label.ljust(prayer_width) ~
+    begin_time.rjust(begin_width) ~
+    jamaat_time.rjust(jamaat_width)
+  -%}
+
+  {%- if active %}
+<font color="{{ accent_color }}"><b>{{ row | e | replace(' ', '&nbsp;') | safe }}</b></font><br>
+  {%- else %}
+{{ row | e | replace(' ', '&nbsp;') | safe }}<br>
+  {%- endif -%}
+
+  {# Additional Jumu'ah congregations #}
+  {%- for extra in jamaats[1:] -%}
+    {%- set extra_time = as_datetime(extra, none) -%}
+    {%- set extra_value = extra_time.strftime('%H:%M') if extra_time else '—' -%}
+    {%- set extra_row =
+      (' ' * (prayer_width + begin_width)) ~
+      extra_value.rjust(jamaat_width)
+    -%}
+{{ extra_row | e | replace(' ', '&nbsp;') | safe }}<br>
+  {%- endfor -%}
+
+  {# Faint separator between prayer rows #}
+  {%- if not loop.last %}
+<font color="{{ line_color }}">{{ separator }}</font><br>
+  {%- endif -%}
+
+{%- else %}
+No approved timetable available<br>
+{%- endfor %}
+</small></tt>
+```
+
+The active prayer highlight applies only when the next Salah begins **today**.
+After today's Isha, the next Salah may instead be tomorrow's Fajr; the summary
+shows **Tomorrow** while the timetable remains on today's published row.
+The countdown is only an estimate at the widget's last refresh, not a live
+second-by-second clock. Colours, font sizing and line alignment depend on the
+Android Companion widget's text renderer and widget size. This full timetable
+example is intended for **Android**; iOS Lock Screen widgets have much less
+space and should use the shorter shared template.
 
 ## Check prayer completeness
 
