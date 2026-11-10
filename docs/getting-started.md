@@ -197,11 +197,11 @@ independent of the mosque selected on your dashboard.
 For a compact, mosque-local clock time and an optional estimated countdown,
 choose a **Template** widget instead and paste the
 [shared template](#show-the-prayer-name-and-mosque-local-time) into its template
-field.
-For a larger widget showing all five prayers with separate Beginning and Jamaat
-columns, use the [full timetable example](#android-full-timetable-template-example). You can add a short heading before the template, followed by `<br>`, to
-identify the event and mosque. Check the preview and save. Tap a prayer widget
-to refresh it. Android normally updates widgets about every 30 minutes while
+field. You can add a short heading before the template, followed by `<br>`,
+to identify the event and mosque. For a larger widget showing all five prayers
+with separate Beginning and Jamaat columns, use the
+[full timetable example](#android-full-timetable-template-example).
+Check the preview and save. Tap a prayer widget to refresh it. Android normally updates widgets about every 30 minutes while
 the screen is on.
 Background data, Data Saver and notification access affect refreshes.
 [Android Companion widget guide](https://companion.home-assistant.io/docs/integrations/android-widgets/)
