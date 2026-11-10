@@ -4,7 +4,7 @@ Pinned PDF parser dependency: <!-- docs:pypdf -->6.21.4<!-- /docs:pypdf --> (fro
 
 Pinned compatibility targets: Home Assistant <!-- docs:homeassistant_min -->2026.10.0<!-- /docs:homeassistant_min --> (minimum) and <!-- docs:homeassistant_tested -->2026.10.4<!-- /docs:homeassistant_tested --> (pinned current).
 
-This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 56 Python test modules are grouped by the behaviour they protect, not by test framework. All 19 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
+This is the authoritative inventory of automated tests and where to add new ones. Paths are relative to the repository root. The 56 Python test modules are grouped by the behaviour they protect, not by test framework. All 22 Node unit test modules live in `tests/frontend/` alongside the browser smoke harness. The root `tests/conftest.py` supplies shared pytest fixtures and configuration for every nested Python module.
 
 ## Run and debug
 
@@ -131,7 +131,7 @@ Names indicate the primary module ownership; some tests deliberately span unit, 
 
 ## JavaScript and browser tests
 
-The following 20 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
+The following 22 Node unit modules are discovered by `npm test` (`node --test tests/frontend/*.test.mjs`):
 
 | File in `tests/frontend/` | Responsibility |
 | --- | --- |
@@ -140,7 +140,9 @@ The following 20 Node unit modules are discovered by `npm test` (`node --test te
 | `card-registry-race.test.mjs` | Re-register the card and editor safely after Home Assistant replaces its custom-element registry |
 | `card-styles.test.mjs` | CSS and responsive style expectations |
 | `card-utils.test.mjs` | Date, duration and card formatting helpers |
-| `card.test.mjs` | Card/editor rendering, interactions and state |
+| `card.test.mjs` | Core card/editor rendering, interactions and state |
+| `card-kiosk.test.mjs` | Kiosk display, fullscreen and published-event rollover behaviour |
+| `card-widgets.test.mjs` | Standalone widgets, linked selection and custom arrangements |
 | `dashboard-options.test.mjs` | Dashboard editor options and display flags |
 | `feature-releases.test.mjs` | Feature release CI gates, replacement, cleanup, races and stable-release protection |
 | `stable-releases.test.mjs` | Stable release version/CI gates, safe tagging, idempotency and publication workflow security |
