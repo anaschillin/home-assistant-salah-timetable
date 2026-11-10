@@ -1,9 +1,9 @@
 /** Presentation helpers shared by the timetable card, its layouts and widgets.
  * Keep DOM construction independent of Home Assistant card lifecycle state.
  */
-import {node} from "./card-shared.js?v=3.6.0";
-import {publishedTimes, displayPrayerKey, prayerIsPast, elapsed, formatDate, formatTime, timestamp} from "./card-utils.js?v=3.6.0";
-import {localizedNumber, prayerLabels, tr} from "./card-i18n.js?v=3.6.0";
+import {node} from "./card-shared.js?v=3.6.1";
+import {publishedTimes, displayPrayerKey, prayerIsPast, elapsed, formatDate, formatTime, timestamp} from "./card-utils.js?v=3.6.1";
+import {localizedNumber, prayerLabels, tr} from "./card-i18n.js?v=3.6.1";
 
 const PRAYERS = new Set(["fajr", "sunrise", "dhuhr", "jumuah", "asr", "maghrib", "isha"]);
 
