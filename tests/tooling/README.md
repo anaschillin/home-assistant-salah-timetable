@@ -1,6 +1,6 @@
 # Quality, release, and inventory tests
 
-Protect distribution packaging, asset provenance, pinned compatibility checks, release preparation, the test-suite inventory itself, and conservative CI change classification.
+Protect distribution packaging, asset provenance, pinned compatibility checks, release preparation, the Python/Node test inventory, the documented production architecture inventory, and conservative CI change classification.
 
 ## Run just this area
 
