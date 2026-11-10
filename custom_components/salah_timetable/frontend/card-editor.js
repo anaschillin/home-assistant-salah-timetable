@@ -1,13 +1,13 @@
 /** Lovelace graphical editor, independent of the card renderer. */
-import {openReminderWizard} from "./reminder-wizard.js?v=3.6.0";
-import {MOSQUE_BACKGROUNDS} from "./mosque-backgrounds.js?v=3.6.0";
-import {EDITOR_CSS} from "./card-styles.js?v=3.6.0";
-import {discoverTimetableEntities, normalizeConfig} from "./card-utils.js?v=3.6.0";
-import {localizedNumber, resolveUi, tr} from "./card-i18n.js?v=3.6.0";
-import {widgetSection} from "./widget-utils.js?v=3.6.0";
-import {widgetTr} from "./widget-i18n.js?v=3.6.0";
-import {buildLayoutEditor} from "./layout-editor.js?v=3.6.0";
-import {node, direction, normalizeForUi} from "./card-shared.js?v=3.6.0";
+import {openReminderWizard} from "./reminder-wizard.js?v=3.6.1";
+import {MOSQUE_BACKGROUNDS} from "./mosque-backgrounds.js?v=3.6.1";
+import {EDITOR_CSS} from "./card-styles.js?v=3.6.1";
+import {discoverTimetableEntities, normalizeConfig} from "./card-utils.js?v=3.6.1";
+import {localizedNumber, resolveUi, tr} from "./card-i18n.js?v=3.6.1";
+import {widgetSection} from "./widget-utils.js?v=3.6.1";
+import {widgetTr} from "./widget-i18n.js?v=3.6.1";
+import {buildLayoutEditor} from "./layout-editor.js?v=3.6.1";
+import {node, direction, normalizeForUi} from "./card-shared.js?v=3.6.1";
 
 const EDITOR_GROUPS = [
   {id: "dates", icon: "mdi:calendar-month", keys: ["show_hijri_date", "show_gregorian_date", "show_hijri_month_info"]},
