@@ -22,7 +22,16 @@ async def test_empty_setup_and_unload(hass, entry):
     get_time_zone.assert_any_await("Europe/London")
     await hass.async_block_till_done()
     assert entry.state == ConfigEntryState.LOADED
-    assert len(er.async_get(hass).entities) == len(PrayerField) + 12
+    registry = er.async_get(hass)
+    assert len(registry.entities) == len(PrayerField) + 12
+    for field in ("jumuah_bayaan", "jumuah_adhaan", "jumuah_khutbah"):
+        entity_id = registry.async_get_entity_id("sensor", DOMAIN, f"example_{field}")
+        assert entity_id is not None
+        assert (
+            registry.async_get(entity_id).disabled_by
+            == er.RegistryEntryDisabler.INTEGRATION
+        )
+        assert hass.states.get(entity_id) is None
     assert (
         hass.states.get("sensor.example_mosque_fajr_beginning").state == "unavailable"
     )
@@ -234,9 +243,15 @@ async def test_new_entity_defaults_preserve_dashboard_and_automation_interfaces(
     registry = er.async_get(hass)
     entries = er.async_entries_for_config_entry(registry, populated.entry_id)
     disabled = [item for item in entries if item.disabled_by is not None]
-    assert len(disabled) == 1
-    previous = disabled[0]
-    assert previous.unique_id == "example_previous_jamaat"
+    assert {item.unique_id for item in disabled} == {
+        "example_previous_jamaat",
+        "example_jumuah_bayaan",
+        "example_jumuah_adhaan",
+        "example_jumuah_khutbah",
+    }
+    previous = next(
+        item for item in disabled if item.unique_id == "example_previous_jamaat"
+    )
     assert previous.disabled_by is er.RegistryEntryDisabler.INTEGRATION
     assert hass.states.get(previous.entity_id) is None
 
@@ -245,7 +260,10 @@ async def test_new_entity_defaults_preserve_dashboard_and_automation_interfaces(
         assert item.translation_key
         assert item.original_name
         assert item.device_id == previous.device_id
-        if item is not previous:
+        if item in disabled:
+            assert item.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+            assert hass.states.get(item.entity_id) is None
+        else:
             assert hass.states.get(item.entity_id) is not None
 
     # Diagnostic information is available to the supplied health blueprint.

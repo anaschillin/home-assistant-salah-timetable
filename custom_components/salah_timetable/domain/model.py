@@ -16,6 +16,9 @@ class PrayerField(StrEnum):
     DHUHR_BEGIN = "dhuhr_begin"
     DHUHR_JAMAAT = "dhuhr_jamaat"
     JUMUAH = "jumuah"
+    JUMUAH_BAYAAN = "jumuah_bayaan"
+    JUMUAH_ADHAAN = "jumuah_adhaan"
+    JUMUAH_KHUTBAH = "jumuah_khutbah"
     ASR_BEGIN = "asr_begin"
     ASR_JAMAAT = "asr_jamaat"
     MAGHRIB_BEGIN = "maghrib_begin"
@@ -25,6 +28,20 @@ class PrayerField(StrEnum):
     ISTEWA = "istewa"
     IFTAR = "iftar"
     TARAWEEH = "taraweeh"
+
+
+# Friday announcements are imported and displayed only when explicitly published.
+# They must not become required timetable fields or default-enabled sensors.
+OPTIONAL_JUMUAH_FIELDS = frozenset(
+    {
+        PrayerField.JUMUAH_BAYAAN,
+        PrayerField.JUMUAH_ADHAAN,
+        PrayerField.JUMUAH_KHUTBAH,
+    }
+)
+STANDARD_PRAYER_FIELDS = tuple(
+    field for field in PrayerField if field not in OPTIONAL_JUMUAH_FIELDS
+)
 
 
 def normalize_field(value: str) -> PrayerField:
@@ -41,6 +58,11 @@ def normalize_field(value: str) -> PrayerField:
         key = "_".join(canonical if part == alias else part for part in key.split("_"))
     if key in {"jumu_ah", "jummah"}:
         key = "jumuah"
+    for prefix in ("jummah_", "jumu_ah_"):
+        if key.startswith(prefix):
+            key = "jumuah_" + key[len(prefix) :]
+    if key == "jumuah_adhan":
+        key = "jumuah_adhaan"
     return PrayerField(key)
 
 

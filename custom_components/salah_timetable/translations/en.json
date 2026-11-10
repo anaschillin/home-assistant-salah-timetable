@@ -90,6 +90,9 @@
           "dhuhr_begin": "Dhuhr beginning",
           "dhuhr_jamaat": "Dhuhr Jamaat",
           "jumuah": "Jumu’ah",
+          "jumuah_bayaan": "Jumu’ah Bayaan",
+          "jumuah_adhaan": "Jumu’ah Adhaan",
+          "jumuah_khutbah": "Jumu’ah Khutbah",
           "asr_begin": "Asr beginning",
           "asr_jamaat": "Asr Jamaat",
           "maghrib_begin": "Maghrib beginning",
@@ -238,6 +241,15 @@
       },
       "jumuah": {
         "name": "Jumu’ah"
+      },
+      "jumuah_bayaan": {
+        "name": "Jumu’ah Bayaan"
+      },
+      "jumuah_adhaan": {
+        "name": "Jumu’ah Adhaan"
+      },
+      "jumuah_khutbah": {
+        "name": "Jumu’ah Khutbah"
       },
       "asr_begin": {
         "name": "Asr beginning"
