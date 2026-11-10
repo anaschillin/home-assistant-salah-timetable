@@ -1,6 +1,6 @@
 # Dashboard card
 
-Current integration version: <!-- docs:version -->3.6.0<!-- /docs:version -->.
+Current integration version: <!-- docs:version -->3.6.1<!-- /docs:version -->.
 
 The **Salah Timetable** card and its custom status widgets are bundled with the integration. They use the mosque's
 **Prayer timetable** sensor and requires no separate card download, Card Mod,

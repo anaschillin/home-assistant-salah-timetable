@@ -1,17 +1,17 @@
-import {hijriDisplayDate, highlightedPrayer, prayerIsPast, discoverEntity, discoverTimetableEntities, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.6.0";
+import {hijriDisplayDate, highlightedPrayer, prayerIsPast, discoverEntity, discoverTimetableEntities, jamaatPanel, nextRamadanEvent, nextSalah, normalizeConfig, timestamp} from "./card-utils.js?v=3.6.1";
 // Keep the direct versioned style import for release asset/cache validation.
 // The rendering mixin reads the same cached module for its CSS content.
-import {CARD_CSS} from "./card-styles.js?v=3.6.0";
-import {resolveUi, tr} from "./card-i18n.js?v=3.6.0";
-import {SECTION_IDS, sectionVisible, widgetSection, widgetType} from "./widget-utils.js?v=3.6.0";
-import {joinSelectionGroup} from "./widget-selection.js?v=3.6.0";
-import {buildJamaatChanges, buildTimetableHealth} from "./widget-renderers.js?v=3.6.0";
-import {widgetTr} from "./widget-i18n.js?v=3.6.0";
-import {SalahTimetableCardEditor} from "./card-editor.js?v=3.6.0";
-import {node, normalizeForUi} from "./card-shared.js?v=3.6.0";
-import {backgroundCredit} from "./card-view-helpers.js?v=3.6.0";
-import {CardMonthlyMixin} from "./card-monthly.js?v=3.6.0";
-import {CardRenderingMixin} from "./card-rendering.js?v=3.6.0";
+import {CARD_CSS} from "./card-styles.js?v=3.6.1";
+import {resolveUi, tr} from "./card-i18n.js?v=3.6.1";
+import {SECTION_IDS, sectionVisible, widgetSection, widgetType} from "./widget-utils.js?v=3.6.1";
+import {joinSelectionGroup} from "./widget-selection.js?v=3.6.1";
+import {buildJamaatChanges, buildTimetableHealth} from "./widget-renderers.js?v=3.6.1";
+import {widgetTr} from "./widget-i18n.js?v=3.6.1";
+import {SalahTimetableCardEditor} from "./card-editor.js?v=3.6.1";
+import {node, normalizeForUi} from "./card-shared.js?v=3.6.1";
+import {backgroundCredit} from "./card-view-helpers.js?v=3.6.1";
+import {CardMonthlyMixin} from "./card-monthly.js?v=3.6.1";
+import {CardRenderingMixin} from "./card-rendering.js?v=3.6.1";
 
 export {SalahTimetableCardEditor};
 

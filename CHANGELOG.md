@@ -5,6 +5,21 @@ not the current backlog. For available features see the [README](README.md#featu
 for pending work see the [roadmap](docs/roadmap.md). Published releases and their
 exact source tags are listed on [GitHub Releases](https://github.com/anaschillin/home-assistant-salah-timetable/releases).
 
+## 3.6.1 — Internal code refactoring and maintainability
+
+### Code organisation
+
+- Split the large dashboard CSS bundle into focused foundation, dashboard, kiosk, widget and editor styles while preserving their order and appearance.
+- Extract the Lovelace configuration editor, main card rendering, monthly timetable interactions and shared prayer presentation helpers into smaller frontend modules without changing the card registration or settings.
+- Separate CSV import previews and staged approval/comparison flows, keeping the explicit review gate and source data unchanged.
+- Separate storage record models and the staged-import/remote-source lifecycle from atomic persistence and migration logic; no storage migration or timetable changes are required.
+
+### Testing and reliability
+
+- Split oversized frontend tests into focused kiosk and widget suites with a shared harness.
+- Retain the existing frontend, browser, Home Assistant compatibility, HACS, packaging and import/storage regression checks.
+- No new user-facing functionality is introduced in this patch release; the refactor is intended to make future fixes and features safer to maintain.
+
 ## 3.6.0 — Kiosk and single-countdown improvements
 
 ### Single-countdown layout
