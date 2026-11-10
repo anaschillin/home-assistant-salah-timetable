@@ -197,7 +197,9 @@ independent of the mosque selected on your dashboard.
 For a compact, mosque-local clock time and an optional estimated countdown,
 choose a **Template** widget instead and paste the
 [shared template](#show-the-prayer-name-and-mosque-local-time) into its template
-field. You can add a short heading before the template, followed by `<br>`, to
+field.
+For a larger widget showing all five prayers with separate Beginning and Jamaat
+columns, use the [full timetable example](#android-full-timetable-template-example). You can add a short heading before the template, followed by `<br>`, to
 identify the event and mosque. Check the preview and save. Tap a prayer widget
 to refresh it. Android normally updates widgets about every 30 minutes while
 the screen is on.
@@ -282,6 +284,170 @@ the phone delays a refresh. The optional countdown updates when the widget
 refreshes. For live countdowns and timed alerts, use the
 [dashboard card](#add-the-dashboard-card) and
 [prayer reminders](automations.md#guided-prayer-reminders).
+
+### Android full timetable Template example
+
+This optional, larger **Android Home Screen Template** widget displays the mosque
+name, timetable date, next published Salah beginning and an estimated countdown
+above the five-prayer timetable. Beginning and Jamaat remain distinct; additional
+published Jumu’ah congregations appear on separate lines. Missing approved values
+display as a dash.
+
+Add a **Home Assistant → Template** widget and paste the example below into its
+template field. Replace `sensor.example_mosque_prayer_timetable` with your
+mosque's **Prayer timetable** entity ID. Preview it in **Developer tools →
+Template** first. Adjust `prayer_width`, `begin_width` and `jamaat_width`
+to fit the widget. These are **character counts, not pixels**: the Android
+Companion widget does not automatically resize the columns when the widget
+changes size. The faint separators follow their combined width. This layout
+uses monospaced text and basic HTML, not CSS Grid or responsive HTML.
+
+```jinja
+{# ==========================================
+   WIDGET CONFIGURATION
+   ========================================== #}
+
+{%- set entity = 'sensor.example_mosque_prayer_timetable' -%}
+{%- set show_countdown = true -%}
+
+{# Column widths in characters, not pixels #}
+{%- set prayer_width = 17 -%}
+{%- set begin_width = 15 -%}
+{%- set jamaat_width = 15 -%}
+
+{# Automatically calculated layout widths #}
+{%- set total_width = prayer_width + begin_width + jamaat_width -%}
+{%- set separator = '─' * total_width -%}
+
+{# Colours #}
+{%- set accent_color = '#E5D5A5' -%}
+{%- set line_color = '#454E60' -%}
+{%- set heading_color = '#BFC7D8' -%}
+
+{# ==========================================
+   SENSOR DATA
+   ========================================== #}
+
+{%- set mosque = state_attr(entity, 'mosque_name') or 'Salah Timetable' -%}
+{%- set day = state_attr(entity, 'date') -%}
+{%- set prayers = state_attr(entity, 'prayers') or [] -%}
+{%- set event = state_attr(entity, 'next_salah') -%}
+
+{%- set labels = {
+  'fajr': 'Fajr',
+  'dhuhr': 'Dhuhr',
+  'asr': 'Asr',
+  'maghrib': 'Maghrib',
+  'isha': 'Isha'
+} -%}
+
+{%- set target = as_datetime(event.get('timestamp'), none) if event is mapping else none -%}
+{%- set next_key = event.get('prayer') if event is mapping else none -%}
+{%- set next_name = labels.get(next_key, 'Prayer') -%}
+{%- set date_obj = as_datetime(day, none) if day else none -%}
+
+{# ==========================================
+   MOSQUE HEADER
+   ========================================== #}
+
+<big><b>☪ {{ mosque | e }}</b></big><br>
+<small>{{ date_obj.strftime('%A, %d %B %Y') if date_obj else 'Date unavailable' }}</small><br>
+<br>
+
+{# ==========================================
+   NEXT SALAH
+   ========================================== #}
+
+<font color="{{ accent_color }}"><small><b>NEXT SALAH</b></small></font><br>
+{% if target -%}
+<big><big><b>{{ next_name }} · {{ target.strftime('%H:%M') }}</b></big></big><br>
+{% if target.date().isoformat() != day -%}
+<small>Tomorrow</small><br>
+{% endif -%}
+{% if show_countdown -%}
+{% set mins = ((as_timestamp(target) - as_timestamp(now())) / 60) | round(0, 'ceil') | int -%}
+{% if mins > 0 -%}
+<small>◷ {% if mins >= 60 %}{{ mins // 60 }}h {% endif %}{{ mins % 60 }}m remaining</small><br>
+{% endif -%}
+{% endif -%}
+{% else -%}
+<b>Next Salah unavailable</b><br>
+{% endif -%}
+<br>
+
+{# ==========================================
+   THREE-COLUMN TIMETABLE
+   ========================================== #}
+
+{%- set header =
+  '  PRAYER'.ljust(prayer_width) ~
+  'BEGIN'.rjust(begin_width) ~
+  'JAMAAT'.rjust(jamaat_width)
+-%}
+
+<tt><small>
+<font color="{{ heading_color }}"><b>{{ header | e | replace(' ', '&nbsp;') | safe }}</b></font><br>
+<font color="{{ line_color }}">{{ separator }}</font><br>
+
+{%- for prayer in prayers -%}
+
+  {%- set key = prayer.get('key') -%}
+  {%- set name = prayer.get('name', 'Prayer') -%}
+  {%- set start = as_datetime(prayer.get('begin'), none) -%}
+  {%- set jamaats = prayer.get('jamaat') or [] -%}
+
+  {%- set begin_time = start.strftime('%H:%M') if start else '—' -%}
+  {%- set first = as_datetime(jamaats[0], none) if jamaats else none -%}
+  {%- set jamaat_time = first.strftime('%H:%M') if first else '—' -%}
+
+  {%- set active = key == next_key and target and target.date().isoformat() == day -%}
+
+  {# Highlight indicator occupies two characters #}
+  {%- set label = ('› ' if active else '  ') ~ name -%}
+
+  {# Build properly aligned row #}
+  {%- set row =
+    label.ljust(prayer_width) ~
+    begin_time.rjust(begin_width) ~
+    jamaat_time.rjust(jamaat_width)
+  -%}
+
+  {%- if active %}
+<font color="{{ accent_color }}"><b>{{ row | e | replace(' ', '&nbsp;') | safe }}</b></font><br>
+  {%- else %}
+{{ row | e | replace(' ', '&nbsp;') | safe }}<br>
+  {%- endif -%}
+
+  {# Additional Jumu'ah congregations #}
+  {%- for extra in jamaats[1:] -%}
+    {%- set extra_time = as_datetime(extra, none) -%}
+    {%- set extra_value = extra_time.strftime('%H:%M') if extra_time else '—' -%}
+    {%- set extra_row =
+      (' ' * (prayer_width + begin_width)) ~
+      extra_value.rjust(jamaat_width)
+    -%}
+{{ extra_row | e | replace(' ', '&nbsp;') | safe }}<br>
+  {%- endfor -%}
+
+  {# Faint separator between prayer rows #}
+  {%- if not loop.last %}
+<font color="{{ line_color }}">{{ separator }}</font><br>
+  {%- endif -%}
+
+{%- else %}
+No approved timetable available<br>
+{%- endfor %}
+</small></tt>
+```
+
+The active prayer highlight applies only when the next Salah begins **today**.
+After today's Isha, the next Salah may instead be tomorrow's Fajr; the summary
+shows **Tomorrow** while the timetable remains on today's published row.
+The countdown is only an estimate at the widget's last refresh, not a live
+second-by-second clock. Colours, font sizing and line alignment depend on the
+Android Companion widget's text renderer and widget size. This full timetable
+example is intended for **Android**; iOS Lock Screen widgets have much less
+space and should use the shorter shared template.
 
 ## Check prayer completeness
 
